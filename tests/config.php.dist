@@ -1,0 +1,3 @@
+<?php
+
+define('TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING', false);
