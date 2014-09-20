@@ -1,0 +1,29 @@
+{
+    "name":         "sad_spirit/pg_builder",
+    "description":  "Query builder for PostgreSQL backed by query parser",
+    "type":         "library",
+    "keywords":     ["PostgreSQL", "Postgres", "SQL", "query", "builder", "parser", "lexer", "AST"],
+    "license":      "BSD-2-Clause",
+    "authors":      [
+        {
+            "name":     "Alexey Borzov",
+            "email":    "avb@php.net"
+        }
+    ],
+    "support":      {
+        "issues":       "https://github.com/sad-spirit/pg-builder/issues"
+    },
+    "require" : {
+        "php":                   ">=5.3.0",
+        "ext-pgsql":             "*",
+        "sad_spirit/pg_wrapper": "dev-master"
+    },
+    "require-dev":  {
+        "phpunit/phpunit":  "*"
+    },
+    "autoload":     {
+        "psr-0":    {
+            "sad_spirit\\pg_builder\\": "src/"
+        }
+    }
+}
