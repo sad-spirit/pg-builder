@@ -12,8 +12,12 @@ spl_autoload_register(function($class) {
     }
 });
 
-require_once __DIR__ . '/../src/sad_spirit/pg_builder/autoloader.php';
-require_once __DIR__ . '/../../pg-wrapper/src/sad_spirit/pg_wrapper/autoloader.php';
+if (@file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    require_once __DIR__ . '/../vendor/autoload.php';
+} else {
+    require_once __DIR__ . '/../src/sad_spirit/pg_builder/autoloader.php';
+    require_once __DIR__ . '/../../pg-wrapper/src/sad_spirit/pg_wrapper/autoloader.php';
+}
 
 date_default_timezone_set('UTC');
 
