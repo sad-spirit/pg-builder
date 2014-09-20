@@ -36,8 +36,14 @@ abstract class FromElement extends Node
         'columnAliases' => null
     );
 
-    public function setAlias(Identifier $tableAlias = null, IdentifierList $columnAliases = null)
+    public function setAlias(Identifier $tableAlias = null, $columnAliases = null)
     {
+        if (null !== $columnAliases && !($columnAliases instanceof IdentifierList)) {
+            throw new InvalidArgumentException(sprintf(
+                '%s expects an instance of IdentifierList for $columnAliases, %s given',
+                __METHOD__, is_object($columnAliases) ? 'object(' . get_class($columnAliases) . ')' : gettype($columnAliases)
+            ));
+        }
         $this->setNamedProperty('tableAlias', $tableAlias);
         $this->setNamedProperty('columnAliases', $columnAliases);
     }
