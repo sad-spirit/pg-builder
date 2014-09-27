@@ -21,7 +21,8 @@ use sad_spirit\pg_wrapper\Connection,
     sad_spirit\pg_wrapper\PreparedStatement,
     sad_spirit\pg_wrapper\ResultSet,
     sad_spirit\pg_wrapper\exceptions\InvalidArgumentException,
-    sad_spirit\pg_wrapper\exceptions\InvalidQueryException;
+    sad_spirit\pg_wrapper\exceptions\InvalidQueryException,
+    sad_spirit\pg_wrapper\exceptions\RuntimeException;
 
 /**
  * Wraps the results of query building process, can be serialized and stored in cache
@@ -47,6 +48,11 @@ class NativeStatement
     private $_parameterTypes;
 
     /**
+     * @var PreparedStatement
+     */
+    private $_prepared;
+
+    /**
      * Constructor, sets the query building results
      *
      * @param string $sql
@@ -58,6 +64,14 @@ class NativeStatement
         $this->_sql               = $sql;
         $this->_parameterTypes    = $parameterTypes;
         $this->_namedParameterMap = $namedParameterMap;
+    }
+
+    /**
+     * Prevents serialization of $_prepared property
+     */
+    function __sleep()
+    {
+        return array('_sql', '_parameterTypes', '_namedParameterMap');
     }
 
     /**
@@ -109,7 +123,7 @@ class NativeStatement
         if (count($positional) < count($parameters)) {
             $unknown = array_diff(array_keys($parameters), array_keys($this->_namedParameterMap));
             throw new InvalidArgumentException(
-                "Unknown keys '" . implode("', '", $unknown) . "' in parameters array"
+                "Unknown keys in parameters array: '" . implode("', '", $unknown) . "'"
             );
         }
         return $positional;
@@ -176,6 +190,24 @@ class NativeStatement
      */
     public function prepare(Connection $connection, array $types = array())
     {
-        return $connection->prepare($this->_sql, $this->mergeInputTypes($types));
+        $this->_prepared = $connection->prepare($this->_sql, $this->mergeInputTypes($types));
+        return $this->_prepared;
+    }
+
+    /**
+     * Executes the prepared statement (requires prepare() to be called first)
+     *
+     * @param array $params
+     * @param array $resultTypes
+     * @return bool|ResultSet|int
+     * @throws RuntimeException
+     * @throws InvalidQueryException
+     */
+    public function executePrepared(array $params = array(), array $resultTypes = array())
+    {
+        if (!$this->_prepared) {
+            throw new RuntimeException(__METHOD__ . '(): prepare() should be called first');
+        }
+        return $this->_prepared->execute($this->mapNamedParameters($params), $resultTypes);
     }
 }
