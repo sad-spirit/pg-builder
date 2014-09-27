@@ -8,5 +8,5 @@ services: postgresql
 before_script:
   - psql -c 'create database pgbuilder_test' -U postgres -h 127.0.0.1
   - cp tests/config.php.travis tests/config.php
-install: composer install --dev
+install: composer install --no-dev
 script: phpunit --configuration tests/phpunit.xml
