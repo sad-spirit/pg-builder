@@ -17,9 +17,11 @@
 
 namespace sad_spirit\pg_builder\exceptions;
 
+use sad_spirit\pg_builder\Exception;
+
 /**
- * Thrown for not-quite-ready features
+ * Namespaced version of SPL's InvalidArgumentException
  */
-class NotImplementedException extends RuntimeException
+class InvalidArgumentException extends \InvalidArgumentException implements Exception
 {
 }

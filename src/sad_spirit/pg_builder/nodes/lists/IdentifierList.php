@@ -18,7 +18,7 @@
 namespace sad_spirit\pg_builder\nodes\lists;
 
 use sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_wrapper\exceptions\InvalidArgumentException;
+    sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * List of identifiers, may appear in alias for FROM element

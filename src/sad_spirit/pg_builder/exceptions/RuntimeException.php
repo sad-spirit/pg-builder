@@ -17,9 +17,11 @@
 
 namespace sad_spirit\pg_builder\exceptions;
 
+use sad_spirit\pg_builder\Exception;
+
 /**
- * Thrown for not-quite-ready features
+ * Namespaced version of SPL's RuntimeException
  */
-class NotImplementedException extends RuntimeException
+class RuntimeException extends \RuntimeException implements Exception
 {
 }

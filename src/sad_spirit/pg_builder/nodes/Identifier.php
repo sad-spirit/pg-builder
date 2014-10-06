@@ -20,7 +20,7 @@ namespace sad_spirit\pg_builder\nodes;
 use sad_spirit\pg_builder\Node,
     sad_spirit\pg_builder\Token,
     sad_spirit\pg_builder\TreeWalker,
-    sad_spirit\pg_wrapper\exceptions\InvalidArgumentException;
+    sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * Represents an identifier (e.g. column name or field name)

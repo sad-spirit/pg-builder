@@ -77,7 +77,7 @@ use sad_spirit\pg_builder\Delete,
 class SetParentNodeTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @expectedException \sad_spirit\pg_wrapper\exceptions\InvalidArgumentException
+     * @expectedException \sad_spirit\pg_builder\exceptions\InvalidArgumentException
      * @expectedExceptionMessage Cannot set a Node or its descendant as its own parent
      */
     public function testCannotCreateCycles()

@@ -18,7 +18,7 @@
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\nodes\lists\NonAssociativeList,
-    sad_spirit\pg_wrapper\exceptions\InvalidArgumentException,
+    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
     sad_spirit\pg_builder\TreeWalker;
 
 /**

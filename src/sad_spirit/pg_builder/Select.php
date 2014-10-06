@@ -17,7 +17,7 @@
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_wrapper\exceptions\InvalidArgumentException,
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
     sad_spirit\pg_builder\nodes\lists\ExpressionList,
     sad_spirit\pg_builder\nodes\lists\FromList,
     sad_spirit\pg_builder\nodes\lists\TargetList,

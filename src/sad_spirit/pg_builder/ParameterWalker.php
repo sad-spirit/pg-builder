@@ -17,8 +17,6 @@
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_wrapper\exceptions\InvalidArgumentException;
-
 /**
  * A tree walker that extracts information about parameters' types and replaces
  * named parameters with positional ones
@@ -172,7 +170,7 @@ class ParameterWalker implements TreeWalker
         switch ($node->type) {
         case Token::TYPE_POSITIONAL_PARAM:
             if (!empty($this->namedParameterMap)) {
-                throw new InvalidArgumentException(
+                throw new exceptions\InvalidArgumentException(
                     "Mixing named and positional parameters is not allowed; "
                     . "found positional parameter \${$node->value} after named ones"
                 );
@@ -182,7 +180,7 @@ class ParameterWalker implements TreeWalker
 
         case Token::TYPE_NAMED_PARAM:
             if (empty($this->namedParameterMap) && !empty($this->parameterTypes)) {
-                throw new InvalidArgumentException(
+                throw new exceptions\InvalidArgumentException(
                     "Mixing named and positional parameters is not allowed; "
                     . "found named parameter :{$node->value} after positional ones"
                 );
@@ -196,11 +194,11 @@ class ParameterWalker implements TreeWalker
             break;
 
         default:
-            throw new InvalidArgumentException(sprintf('Unexpected parameter type %d', $node->type));
+            throw new exceptions\InvalidArgumentException(sprintf('Unexpected parameter type %d', $node->type));
         }
 
         if (!($parent = $node->getParentNode())) {
-            throw new InvalidArgumentException("Parameter node doesn't contain a link to a parent node");
+            throw new exceptions\InvalidArgumentException("Parameter node doesn't contain a link to a parent node");
         }
         if ($parent instanceof nodes\expressions\TypecastExpression && empty($this->parameterTypes[$paramIdx])) {
             $this->parameterTypes[$paramIdx] = clone $parent->type;

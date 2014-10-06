@@ -18,7 +18,7 @@
 namespace sad_spirit\pg_builder\nodes\lists;
 
 use sad_spirit\pg_builder\nodes\TypeName,
-    sad_spirit\pg_wrapper\exceptions\InvalidArgumentException;
+    sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * List of type names (only appears in IS OF?)

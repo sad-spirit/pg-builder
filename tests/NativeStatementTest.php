@@ -55,7 +55,7 @@ class NativeStatementTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \sad_spirit\pg_wrapper\exceptions\InvalidArgumentException
+     * @expectedException \sad_spirit\pg_builder\exceptions\InvalidArgumentException
      * @expectedExceptionMessage Missing parameter name
      */
     public function testMissingNamedParameter()
@@ -67,7 +67,7 @@ class NativeStatementTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \sad_spirit\pg_wrapper\exceptions\InvalidArgumentException
+     * @expectedException \sad_spirit\pg_builder\exceptions\InvalidArgumentException
      * @expectedExceptionMessage Unknown keys
      */
     public function testUnknownNamedParameter()
@@ -130,7 +130,7 @@ class NativeStatementTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \sad_spirit\pg_wrapper\exceptions\RuntimeException
+     * @expectedException \sad_spirit\pg_builder\exceptions\RuntimeException
      * @expectedExceptionMessage prepare() should be called first
      */
     public function testCannotExecutePreparedWithoutPrepare()
@@ -142,7 +142,7 @@ class NativeStatementTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \sad_spirit\pg_wrapper\exceptions\RuntimeException
+     * @expectedException \sad_spirit\pg_builder\exceptions\RuntimeException
      * @expectedExceptionMessage prepare() should be called first
      */
     public function testPreparedStatementIsNotSerialized()

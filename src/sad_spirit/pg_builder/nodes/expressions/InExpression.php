@@ -21,7 +21,7 @@ use sad_spirit\pg_builder\Node,
     sad_spirit\pg_builder\SelectCommon,
     sad_spirit\pg_builder\nodes\ScalarExpression,
     sad_spirit\pg_builder\nodes\lists\ExpressionList,
-    sad_spirit\pg_wrapper\exceptions\InvalidArgumentException,
+    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
     sad_spirit\pg_builder\TreeWalker;
 
 /**

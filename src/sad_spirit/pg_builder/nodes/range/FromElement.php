@@ -17,7 +17,7 @@
 
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_wrapper\exceptions\InvalidArgumentException,
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
     sad_spirit\pg_builder\Node,
     sad_spirit\pg_builder\nodes\Identifier,
     sad_spirit\pg_builder\nodes\QualifiedName,
@@ -54,7 +54,7 @@ abstract class FromElement extends Node
      * @param string|FromElement $fromElement
      * @param string             $joinType
      * @return JoinExpression
-     * @throws \sad_spirit\pg_wrapper\exceptions\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function join($fromElement, $joinType = 'inner')
     {

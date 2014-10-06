@@ -17,8 +17,6 @@
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_wrapper\exceptions\InvalidArgumentException;
-
 /**
  * A tree walker that generates SQL from abstract syntax tree
  */
@@ -600,7 +598,7 @@ class SqlBuilderWalker implements TreeWalker
     /**
      *
      * @param nodes\Constant $node
-     * @throws InvalidArgumentException
+     * @throws exceptions\InvalidArgumentException
      * @return string
      */
     public function walkConstant(nodes\Constant $node)
@@ -635,7 +633,7 @@ class SqlBuilderWalker implements TreeWalker
             break;
 
         default:
-            throw new InvalidArgumentException(sprintf('Unexpected constant type %d', $node->type));
+            throw new exceptions\InvalidArgumentException(sprintf('Unexpected constant type %d', $node->type));
         }
     }
 
@@ -721,11 +719,11 @@ class SqlBuilderWalker implements TreeWalker
             return '$' . $node->value;
             break;
         case Token::TYPE_NAMED_PARAM:
-            throw new InvalidArgumentException(sprintf(
+            throw new exceptions\InvalidArgumentException(sprintf(
                 "Generated SQL should not contain named parameters, ':%s' still present", $node->value
             ));
         default:
-            throw new InvalidArgumentException(sprintf('Unexpected parameter type %d', $node->type));
+            throw new exceptions\InvalidArgumentException(sprintf('Unexpected parameter type %d', $node->type));
         }
     }
 

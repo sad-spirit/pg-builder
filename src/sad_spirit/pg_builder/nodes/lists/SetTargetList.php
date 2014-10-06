@@ -18,7 +18,7 @@
 namespace sad_spirit\pg_builder\nodes\lists;
 
 use sad_spirit\pg_builder\nodes\SetTargetElement,
-    sad_spirit\pg_wrapper\exceptions\InvalidArgumentException,
+    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
     sad_spirit\pg_builder\ElementParseable,
     sad_spirit\pg_builder\Update;
 

@@ -18,7 +18,7 @@
 namespace sad_spirit\pg_builder\nodes\lists;
 
 use sad_spirit\pg_builder\nodes\range\ColumnDefinition,
-    sad_spirit\pg_wrapper\exceptions\InvalidArgumentException;
+    sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * Column definition list, may appear in aliases for functions in FROM

@@ -17,8 +17,7 @@
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_wrapper\MetadataCache,
-    sad_spirit\pg_wrapper\exceptions\BadMethodCallException;
+use sad_spirit\pg_wrapper\MetadataCache;
 
 /**
  * Recursive descent parser for PostgreSQL's dialect of SQL
@@ -422,7 +421,7 @@ class Parser
      * @param string $name
      * @param array  $arguments
      * @return mixed
-     * @throws BadMethodCallException
+     * @throws exceptions\BadMethodCallException
      * @throws exceptions\SyntaxException
      */
     public function __call($name, array $arguments)
@@ -430,7 +429,7 @@ class Parser
         if (!preg_match('/^parse([a-zA-Z]+)$/', $name, $matches)
             || !isset(self::$callable[strtolower($matches[1])])
         ) {
-            throw new BadMethodCallException("The method '{$name}' is not available");
+            throw new exceptions\BadMethodCallException("The method '{$name}' is not available");
         }
 
         $cacheKey = null;

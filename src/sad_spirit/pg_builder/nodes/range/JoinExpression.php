@@ -17,7 +17,7 @@
 
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_wrapper\exceptions\InvalidArgumentException,
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
     sad_spirit\pg_builder\nodes\lists\IdentifierList,
     sad_spirit\pg_builder\nodes\ScalarExpression,
     sad_spirit\pg_builder\TreeWalker;

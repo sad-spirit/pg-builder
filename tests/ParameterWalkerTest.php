@@ -56,7 +56,7 @@ class ParameterWalkerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \sad_spirit\pg_wrapper\exceptions\InvalidArgumentException
+     * @expectedException \sad_spirit\pg_builder\exceptions\InvalidArgumentException
      * @expectedExceptionMessage Mixing named and positional parameters is not allowed
      */
     public function testDisallowMixedParameters()

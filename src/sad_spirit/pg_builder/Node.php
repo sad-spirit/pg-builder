@@ -17,8 +17,6 @@
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_wrapper\exceptions\InvalidArgumentException;
-
 /**
  * Base class for AST nodes
  */
@@ -41,7 +39,7 @@ abstract class Node
      *
      * @param string $name
      * @return mixed
-     * @throws \sad_spirit\pg_wrapper\exceptions\InvalidArgumentException
+     * @throws exceptions\InvalidArgumentException
      */
     public function __get($name)
     {
@@ -49,7 +47,7 @@ abstract class Node
             return $this->props[$name];
 
         } else {
-            throw new InvalidArgumentException("Unknown property '{$name}'");
+            throw new exceptions\InvalidArgumentException("Unknown property '{$name}'");
         }
     }
 
@@ -58,18 +56,18 @@ abstract class Node
      *
      * @param string $name
      * @param mixed  $value
-     * @throws \sad_spirit\pg_wrapper\exceptions\InvalidArgumentException
+     * @throws exceptions\InvalidArgumentException
      */
     public function __set($name, $value)
     {
         if (!array_key_exists($name, $this->props)) {
-            throw new InvalidArgumentException("Unknown property '{$name}'");
+            throw new exceptions\InvalidArgumentException("Unknown property '{$name}'");
 
         } elseif (method_exists($this, 'set' . $name)) {
             $this->{'set' . $name}($value);
 
         } else {
-            throw new InvalidArgumentException("Property '{$name}' is read-only");
+            throw new exceptions\InvalidArgumentException("Property '{$name}' is read-only");
         }
     }
 
@@ -134,7 +132,7 @@ abstract class Node
      * @param Node $parent Node containing the current one, null if the link should
      *                     really be removed (when calling from removeChild())
      *
-     * @throws InvalidArgumentException When trying to set a child of a Node as its parent
+     * @throws exceptions\InvalidArgumentException When trying to set a child of a Node as its parent
      */
     protected function setParentNode(Node $parent = null)
     {
@@ -146,7 +144,7 @@ abstract class Node
             $check = $parent;
             do {
                 if ($this === $check) {
-                    throw new InvalidArgumentException('Cannot set a Node or its descendant as its own parent');
+                    throw new exceptions\InvalidArgumentException('Cannot set a Node or its descendant as its own parent');
                 }
             } while ($check = $check->getparentNode());
             // this is intentionally inside the "if (null !== $parent)" check to prevent endless recursion
@@ -203,12 +201,12 @@ abstract class Node
      * @param Node $oldChild
      * @param Node $newChild
      * @return Node|null $newChild in case of successful replace, null otherwise
-     * @throws InvalidArgumentException
+     * @throws exceptions\InvalidArgumentException
      */
     public function replaceChild(Node $oldChild, Node $newChild)
     {
         if ($this !== $oldChild->getParentNode()) {
-            throw new InvalidArgumentException("First argument to replaceChild() is not a child of current node");
+            throw new exceptions\InvalidArgumentException("First argument to replaceChild() is not a child of current node");
         }
         // no-op?
         if ($newChild === $oldChild) {
@@ -222,7 +220,7 @@ abstract class Node
             if (method_exists($this, 'set' . $key)) {
                 $this->{'set' . $key}($newChild);
             } else {
-                throw new InvalidArgumentException("Property '{$key}' is read-only");
+                throw new exceptions\InvalidArgumentException("Property '{$key}' is read-only");
             }
             return $newChild;
         }
@@ -234,18 +232,18 @@ abstract class Node
      *
      * @param Node $child
      * @return Node|null
-     * @throws \sad_spirit\pg_wrapper\exceptions\InvalidArgumentException
+     * @throws exceptions\InvalidArgumentException
      */
     public function removeChild(Node $child)
     {
         if ($this !== $child->getParentNode()) {
-            throw new InvalidArgumentException("Argument to removeChild() is not a child of current node");
+            throw new exceptions\InvalidArgumentException("Argument to removeChild() is not a child of current node");
         }
         if (false !== ($key = array_search($child, $this->props, true))) {
             if (method_exists($this, 'set' . $key)) {
                 $this->{'set' . $key}(null);
             } else {
-                throw new InvalidArgumentException("Property '{$key}' is read-only");
+                throw new exceptions\InvalidArgumentException("Property '{$key}' is read-only");
             }
             return $child;
         }

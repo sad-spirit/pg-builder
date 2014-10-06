@@ -18,7 +18,7 @@
 namespace sad_spirit\pg_builder\nodes\lists;
 
 use sad_spirit\pg_builder\nodes\range\RowsFromElement,
-    sad_spirit\pg_wrapper\exceptions\InvalidArgumentException;
+    sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * List of elements appearing in ROWS FROM(...) construct

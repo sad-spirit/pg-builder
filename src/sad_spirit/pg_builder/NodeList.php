@@ -21,8 +21,7 @@ use ArrayAccess,
     IteratorAggregate,
     Countable,
     ArrayIterator,
-    Traversable,
-    sad_spirit\pg_wrapper\exceptions\InvalidArgumentException;
+    Traversable;
 
 /**
  * An array that enforces the type of its elements
@@ -91,7 +90,7 @@ abstract class NodeList extends Node implements ArrayAccess, Countable, Iterator
             return $this->nodes[$offset];
         }
 
-        throw new InvalidArgumentException("Undefined offset '{$offset}'");
+        throw new exceptions\InvalidArgumentException("Undefined offset '{$offset}'");
     }
 
     public function offsetSet($offset, $value)
@@ -164,12 +163,12 @@ abstract class NodeList extends Node implements ArrayAccess, Countable, Iterator
     {
         if (is_string($array) && $this instanceof Parseable) {
             if (!($parser = $this->getParser())) {
-                throw new InvalidArgumentException("Passed a string to method '{$method}' without a Parser available");
+                throw new exceptions\InvalidArgumentException("Passed a string to method '{$method}' without a Parser available");
             }
             $array = call_user_func(array(get_class($this), 'createFromString'), $parser, $array);
         }
         if (!is_array($array) && !($array instanceof Traversable)) {
-            throw new InvalidArgumentException(sprintf(
+            throw new exceptions\InvalidArgumentException(sprintf(
                 "%s requires either an array or an instance of Traversable, %s given",
                 $method, is_object($array) ? 'object(' . get_class($array) . ')' : gettype($array)
             ));

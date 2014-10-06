@@ -20,9 +20,7 @@ namespace sad_spirit\pg_builder;
 use sad_spirit\pg_wrapper\Connection,
     sad_spirit\pg_wrapper\PreparedStatement,
     sad_spirit\pg_wrapper\ResultSet,
-    sad_spirit\pg_wrapper\exceptions\InvalidArgumentException,
-    sad_spirit\pg_wrapper\exceptions\InvalidQueryException,
-    sad_spirit\pg_wrapper\exceptions\RuntimeException;
+    sad_spirit\pg_wrapper\exceptions\InvalidQueryException;
 
 /**
  * Wraps the results of query building process, can be serialized and stored in cache
@@ -109,20 +107,20 @@ class NativeStatement
      *
      * @param array $parameters
      * @return array
-     * @throws InvalidArgumentException
+     * @throws exceptions\InvalidArgumentException
      */
     public function mapNamedParameters(array $parameters)
     {
         $positional = array();
         foreach ($this->_namedParameterMap as $name => $position) {
             if (!array_key_exists($name, $parameters)) {
-                throw new InvalidArgumentException("Missing parameter name '{$name}'");
+                throw new exceptions\InvalidArgumentException("Missing parameter name '{$name}'");
             }
             $positional[$position] = $parameters[$name];
         }
         if (count($positional) < count($parameters)) {
             $unknown = array_diff(array_keys($parameters), array_keys($this->_namedParameterMap));
-            throw new InvalidArgumentException(
+            throw new exceptions\InvalidArgumentException(
                 "Unknown keys in parameters array: '" . implode("', '", $unknown) . "'"
             );
         }
@@ -135,7 +133,7 @@ class NativeStatement
      * @param array $inputTypes Parameter types (keys can be either names or positions), types from this
      *                          array take precedence over types from parameterTypes
      * @return array
-     * @throws InvalidArgumentException
+     * @throws exceptions\InvalidArgumentException
      */
     public function mergeInputTypes(array $inputTypes)
     {
@@ -146,7 +144,7 @@ class NativeStatement
             } elseif (array_key_exists($key, $this->_namedParameterMap)) {
                 $types[$this->_namedParameterMap[$key]] = $type;
             } else {
-                throw new InvalidArgumentException(
+                throw new exceptions\InvalidArgumentException(
                     "Offset '{$key}' in input types array does not correspond to a known parameter"
                 );
             }
@@ -164,7 +162,7 @@ class NativeStatement
      * @param array      $outputTypes Result types to pass to ResultSet (keys can be either names or positions)
      * @return bool|ResultSet|int
      * @throws InvalidQueryException
-     * @throws InvalidArgumentException
+     * @throws exceptions\InvalidArgumentException
      */
     public function executeParams(
         Connection $connection, array $params, array $inputTypes = array(), array $outputTypes = array()
@@ -200,13 +198,13 @@ class NativeStatement
      * @param array $params
      * @param array $resultTypes
      * @return bool|ResultSet|int
-     * @throws RuntimeException
+     * @throws exceptions\RuntimeException
      * @throws InvalidQueryException
      */
     public function executePrepared(array $params = array(), array $resultTypes = array())
     {
         if (!$this->_prepared) {
-            throw new RuntimeException(__METHOD__ . '(): prepare() should be called first');
+            throw new exceptions\RuntimeException(__METHOD__ . '(): prepare() should be called first');
         }
         return $this->_prepared->execute($this->mapNamedParameters($params), $resultTypes);
     }

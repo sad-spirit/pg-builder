@@ -19,7 +19,7 @@ namespace sad_spirit\pg_builder\nodes\lists;
 
 use sad_spirit\pg_builder\nodes\Constant,
     sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_wrapper\exceptions\InvalidArgumentException;
+    sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * List of type modifiers

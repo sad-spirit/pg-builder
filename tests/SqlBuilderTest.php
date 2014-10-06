@@ -178,7 +178,7 @@ QRY
     }
 
     /**
-     * @expectedException \sad_spirit\pg_wrapper\exceptions\InvalidArgumentException
+     * @expectedException \sad_spirit\pg_builder\exceptions\InvalidArgumentException
      * @expectedExceptionMessage should not contain named parameters
      */
     public function testPreventNamedParameters()

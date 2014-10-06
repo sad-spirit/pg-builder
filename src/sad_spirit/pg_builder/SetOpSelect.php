@@ -17,8 +17,6 @@
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_wrapper\exceptions\InvalidArgumentException;
-
 /**
  * Represents a set operator (UNION, INTERSECT, EXCEPT) applied to two select statements
  *
@@ -42,7 +40,7 @@ class SetOpSelect extends SelectCommon
         parent::__construct();
 
         if (!isset(self::$allowedOperators[$operator])) {
-            throw new InvalidArgumentException("Unknown set operator '{$operator}'");
+            throw new exceptions\InvalidArgumentException("Unknown set operator '{$operator}'");
         }
 
         $this->setLeft($left);

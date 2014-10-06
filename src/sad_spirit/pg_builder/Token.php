@@ -17,8 +17,6 @@
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_wrapper\exceptions\InvalidArgumentException;
-
 /**
  * Class representing a token
  */
@@ -155,7 +153,7 @@ class Token
      *
      * @param $type
      * @return string
-     * @throws InvalidArgumentException
+     * @throws exceptions\InvalidArgumentException
      */
     public static function typeToString($type)
     {
@@ -193,6 +191,6 @@ class Token
                 return 'keyword';
             }
         }
-        throw new InvalidArgumentException("Unknown token type '{$type}'");
+        throw new exceptions\InvalidArgumentException("Unknown token type '{$type}'");
     }
 }
