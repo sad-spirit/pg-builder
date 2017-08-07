@@ -101,6 +101,7 @@ class Lexer
         'committed'          => Token::TYPE_UNRESERVED_KEYWORD,
         'concurrently'       => Token::TYPE_TYPE_FUNC_NAME_KEYWORD,
         'configuration'      => Token::TYPE_UNRESERVED_KEYWORD,
+        'conflict'           => Token::TYPE_UNRESERVED_KEYWORD,
         'connection'         => Token::TYPE_UNRESERVED_KEYWORD,
         'constraint'         => Token::TYPE_RESERVED_KEYWORD,
         'constraints'        => Token::TYPE_UNRESERVED_KEYWORD,
@@ -112,6 +113,7 @@ class Lexer
         'create'             => Token::TYPE_RESERVED_KEYWORD,
         'cross'              => Token::TYPE_TYPE_FUNC_NAME_KEYWORD,
         'csv'                => Token::TYPE_UNRESERVED_KEYWORD,
+        'cube'               => Token::TYPE_UNRESERVED_KEYWORD,
         'current'            => Token::TYPE_UNRESERVED_KEYWORD,
         'current_catalog'    => Token::TYPE_RESERVED_KEYWORD,
         'current_date'       => Token::TYPE_RESERVED_KEYWORD,
@@ -187,6 +189,7 @@ class Lexer
         'granted'            => Token::TYPE_UNRESERVED_KEYWORD,
         'greatest'           => Token::TYPE_COL_NAME_KEYWORD,
         'group'              => Token::TYPE_RESERVED_KEYWORD,
+        'grouping'           => Token::TYPE_COL_NAME_KEYWORD,
         'handler'            => Token::TYPE_UNRESERVED_KEYWORD,
         'having'             => Token::TYPE_RESERVED_KEYWORD,
         'header'             => Token::TYPE_UNRESERVED_KEYWORD,
@@ -198,6 +201,7 @@ class Lexer
         'immediate'          => Token::TYPE_UNRESERVED_KEYWORD,
         'immutable'          => Token::TYPE_UNRESERVED_KEYWORD,
         'implicit'           => Token::TYPE_UNRESERVED_KEYWORD,
+        'import'             => Token::TYPE_UNRESERVED_KEYWORD,
         'in'                 => Token::TYPE_RESERVED_KEYWORD,
         'including'          => Token::TYPE_UNRESERVED_KEYWORD,
         'increment'          => Token::TYPE_UNRESERVED_KEYWORD,
@@ -229,8 +233,6 @@ class Lexer
         'large'              => Token::TYPE_UNRESERVED_KEYWORD,
         'last'               => Token::TYPE_UNRESERVED_KEYWORD,
         'lateral'            => Token::TYPE_RESERVED_KEYWORD,
-        'lc_collate'         => Token::TYPE_UNRESERVED_KEYWORD,
-        'lc_ctype'           => Token::TYPE_UNRESERVED_KEYWORD,
         'leading'            => Token::TYPE_RESERVED_KEYWORD,
         'leakproof'          => Token::TYPE_UNRESERVED_KEYWORD,
         'least'              => Token::TYPE_COL_NAME_KEYWORD,
@@ -245,6 +247,8 @@ class Lexer
         'localtimestamp'     => Token::TYPE_RESERVED_KEYWORD,
         'location'           => Token::TYPE_UNRESERVED_KEYWORD,
         'lock'               => Token::TYPE_UNRESERVED_KEYWORD,
+        'locked'             => Token::TYPE_UNRESERVED_KEYWORD,
+        'logged'             => Token::TYPE_UNRESERVED_KEYWORD,
         'mapping'            => Token::TYPE_UNRESERVED_KEYWORD,
         'match'              => Token::TYPE_UNRESERVED_KEYWORD,
         'materialized'       => Token::TYPE_UNRESERVED_KEYWORD,
@@ -298,6 +302,7 @@ class Lexer
         'password'           => Token::TYPE_UNRESERVED_KEYWORD,
         'placing'            => Token::TYPE_RESERVED_KEYWORD,
         'plans'              => Token::TYPE_UNRESERVED_KEYWORD,
+        'policy'             => Token::TYPE_UNRESERVED_KEYWORD,
         'position'           => Token::TYPE_COL_NAME_KEYWORD,
         'preceding'          => Token::TYPE_UNRESERVED_KEYWORD,
         'precision'          => Token::TYPE_COL_NAME_KEYWORD,
@@ -336,6 +341,7 @@ class Lexer
         'right'              => Token::TYPE_TYPE_FUNC_NAME_KEYWORD,
         'role'               => Token::TYPE_UNRESERVED_KEYWORD,
         'rollback'           => Token::TYPE_UNRESERVED_KEYWORD,
+        'rollup'             => Token::TYPE_UNRESERVED_KEYWORD,
         'row'                => Token::TYPE_COL_NAME_KEYWORD,
         'rows'               => Token::TYPE_UNRESERVED_KEYWORD,
         'rule'               => Token::TYPE_UNRESERVED_KEYWORD,
@@ -354,13 +360,16 @@ class Lexer
         'session_user'       => Token::TYPE_RESERVED_KEYWORD,
         'set'                => Token::TYPE_UNRESERVED_KEYWORD,
         'setof'              => Token::TYPE_COL_NAME_KEYWORD,
+        'sets'               => Token::TYPE_UNRESERVED_KEYWORD,
         'share'              => Token::TYPE_UNRESERVED_KEYWORD,
         'show'               => Token::TYPE_UNRESERVED_KEYWORD,
         'similar'            => Token::TYPE_TYPE_FUNC_NAME_KEYWORD,
         'simple'             => Token::TYPE_UNRESERVED_KEYWORD,
+        'skip'               => Token::TYPE_UNRESERVED_KEYWORD,
         'smallint'           => Token::TYPE_COL_NAME_KEYWORD,
         'snapshot'           => Token::TYPE_UNRESERVED_KEYWORD,
         'some'               => Token::TYPE_RESERVED_KEYWORD,
+        'sql'                => Token::TYPE_UNRESERVED_KEYWORD,
         'stable'             => Token::TYPE_UNRESERVED_KEYWORD,
         'standalone'         => Token::TYPE_UNRESERVED_KEYWORD,
         'start'              => Token::TYPE_UNRESERVED_KEYWORD,
@@ -377,6 +386,7 @@ class Lexer
         'system'             => Token::TYPE_UNRESERVED_KEYWORD,
         'table'              => Token::TYPE_RESERVED_KEYWORD,
         'tables'             => Token::TYPE_UNRESERVED_KEYWORD,
+        'tablesample'        => Token::TYPE_TYPE_FUNC_NAME_KEYWORD,
         'tablespace'         => Token::TYPE_UNRESERVED_KEYWORD,
         'temp'               => Token::TYPE_UNRESERVED_KEYWORD,
         'template'           => Token::TYPE_UNRESERVED_KEYWORD,
@@ -388,6 +398,7 @@ class Lexer
         'to'                 => Token::TYPE_RESERVED_KEYWORD,
         'trailing'           => Token::TYPE_RESERVED_KEYWORD,
         'transaction'        => Token::TYPE_UNRESERVED_KEYWORD,
+        'transform'          => Token::TYPE_UNRESERVED_KEYWORD,
         'treat'              => Token::TYPE_COL_NAME_KEYWORD,
         'trigger'            => Token::TYPE_UNRESERVED_KEYWORD,
         'trim'               => Token::TYPE_COL_NAME_KEYWORD,
@@ -616,6 +627,16 @@ class Lexer
                 } else {
                     $this->pushToken('.', Token::TYPE_SPECIAL_CHAR, $this->position++);
                 }
+
+            } elseif ('=' === $char && '>' === $nextChar) {
+                $this->pushToken('=>', Token::TYPE_EQUALS_GREATER, $this->position);
+                $this->position += 2;
+
+            } elseif ('=' === $nextChar && ('<' === $char || '>' === $char || '!' === $char)
+                      || '>' === $nextChar && '<' === $char
+            ) {
+                $this->pushToken($char . $nextChar, Token::TYPE_INEQUALITY, $this->position);
+                $this->position += 2;
 
             } elseif (ctype_digit($char)) {
                 $this->lexNumeric();

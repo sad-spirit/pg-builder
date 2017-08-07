@@ -46,6 +46,8 @@ class Token
     const TYPE_TYPECAST               = 514;
     const TYPE_COLON_EQUALS           = 516;
     const TYPE_OPERATOR               = 520;
+    const TYPE_INEQUALITY             = 528;
+    const TYPE_EQUALS_GREATER         = 544;
 
     /* Keywords, as in src/include/parser/keywords.h */
     const TYPE_UNRESERVED_KEYWORD     = 2049;
@@ -181,9 +183,12 @@ class Token
         case self::TYPE_TYPECAST:
             return 'typecast operator';
         case self::TYPE_COLON_EQUALS:
+        case self::TYPE_EQUALS_GREATER:
             return 'named argument mark';
         case self::TYPE_SPECIAL_CHAR:
             return 'special character';
+        case self::TYPE_INEQUALITY:
+            return 'comparison operator';
         case self::TYPE_IDENTIFIER:
             return 'identifier';
         default:

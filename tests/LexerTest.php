@@ -37,7 +37,7 @@ class LexerTest extends \PHPUnit_Framework_TestCase
 
     public function testTokenTypes()
     {
-        $stream = $this->lexer->tokenize("sElEcT 'select' \"select\", FOO + 1.2, 3 !, :foo, $1::integer");
+        $stream = $this->lexer->tokenize("sElEcT 'select' \"select\", FOO + 1.2, 3 ! <> :foo, $1::integer");
 
         $stream->expect(Token::TYPE_KEYWORD, 'select');
         $stream->expect(Token::TYPE_STRING, 'select');
@@ -49,7 +49,7 @@ class LexerTest extends \PHPUnit_Framework_TestCase
         $stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
         $stream->expect(Token::TYPE_INTEGER, '3');
         $stream->expect(Token::TYPE_OPERATOR, '!');
-        $stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
+        $stream->expect(Token::TYPE_INEQUALITY, '<>');
         $stream->expect(Token::TYPE_NAMED_PARAM, 'foo');
         $stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
         $stream->expect(Token::TYPE_POSITIONAL_PARAM, '1');
@@ -102,7 +102,7 @@ QRY
         $stream->expect(Token::TYPE_SPECIAL_CHAR, '=');
         $stream->expect(Token::TYPE_SPECIAL_CHAR, '-');
         $stream->expect(Token::TYPE_OPERATOR, '@+');
-        $stream->expect(Token::TYPE_OPERATOR, '<=');
+        $stream->expect(Token::TYPE_INEQUALITY, '<=');
         $stream->expect(Token::TYPE_OPERATOR, '+*');
         $stream->expect(Token::TYPE_SPECIAL_CHAR, '*');
         $stream->expect(Token::TYPE_SPECIAL_CHAR, '+');

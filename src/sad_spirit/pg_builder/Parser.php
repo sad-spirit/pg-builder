@@ -72,7 +72,7 @@ class Parser
      * mathOp production from grammar
      * @var array
      */
-    protected static $mathOp = array('+', '-', '*', '/', '%', '^', '<', '>', '=');
+    protected static $mathOp = array('+', '-', '*', '/', '%', '^', '<', '>', '=', '<=', '>=', '!=', '<>');
 
     /**
      * sub_type production from grammar
@@ -242,6 +242,8 @@ class Parser
     private function _matchesOperator()
     {
         return $this->stream->matches(Token::TYPE_OPERATOR)
+               || self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence
+                  && $this->stream->matches(Token::TYPE_INEQUALITY)
                || $this->stream->matches(Token::TYPE_KEYWORD, 'operator')
                   && $this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, '(');
     }
@@ -1308,7 +1310,7 @@ class Parser
                     : $this->PatternMatchingExpression();
 
         if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, array('<', '>', '='))
-            || $this->stream->matches(Token::TYPE_OPERATOR, array('<=', '>=', '!=', '<>'))
+            || $this->stream->matches(Token::TYPE_INEQUALITY)
         ) {
             return new nodes\expressions\OperatorExpression(
                 $this->stream->next()->getValue(), $argument,
@@ -1524,7 +1526,7 @@ class Parser
         $leftOperand = $this->GenericOperatorTerm($restricted);
 
         while (($op = $this->_matchesOperator())
-               || $this->stream->matches(Token::TYPE_SPECIAL_CHAR, self::$mathOp)
+               || $this->stream->matches(Token::TYPE_SPECIAL, self::$mathOp)
                    && $this->stream->look(1)->matches(Token::TYPE_KEYWORD, self::$subType)
         ) {
             if ($op) {
@@ -1575,6 +1577,8 @@ class Parser
     protected function Operator($all = false)
     {
         if ($this->stream->matches(Token::TYPE_OPERATOR)
+            || (self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence
+                && $this->stream->matches(Token::TYPE_INEQUALITY))
             || $all && $this->stream->matches(Token::TYPE_SPECIAL_CHAR, self::$mathOp)
         ) {
             return $this->stream->next()->getValue();
