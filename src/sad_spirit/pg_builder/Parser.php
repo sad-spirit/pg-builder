@@ -9,7 +9,7 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014 Alexey Borzov
+ * @copyright 2014-2017 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
@@ -58,6 +58,16 @@ use sad_spirit\pg_wrapper\MetadataCache;
  */
 class Parser
 {
+    /**
+     * Use operator precedence for PostgreSQL releases before 9.5
+     */
+    const OPERATOR_PRECEDENCE_PRE_9_5 = 'pre-9.5';
+
+    /**
+     * Use operator precedence for PostgreSQL 9.5 and up
+     */
+    const OPERATOR_PRECEDENCE_CURRENT = 'current';
+
     /**
      * mathOp production from grammar
      * @var array
@@ -117,6 +127,11 @@ class Parser
      * @var TokenStream
      */
     protected $stream;
+
+    /**
+     * @var string
+     */
+    protected $precedence = self::OPERATOR_PRECEDENCE_CURRENT;
 
     /**
      * Guesses the type of parenthesised expression
@@ -411,6 +426,54 @@ class Parser
         $this->_lexer = $lexer;
         $this->_cache = $cache;
     }
+
+    /**
+     * Sets operator precedence to use when parsing expressions
+     *
+     * PostgreSQL 9.5 changed operator precedence to better follow SQL standard:
+     *  - The precedence of <=, >= and <> has been reduced to match that of <, > and =.
+     *  - The precedence of IS tests (e.g., x IS NULL) has been reduced to be just below these six
+     *    comparison operators.
+     *  - Also, multi-keyword operators beginning with NOT now have the precedence of their base operator
+     *    (for example, NOT BETWEEN now has the same precedence as BETWEEN) whereas before they had
+     *    inconsistent precedence, behaving like NOT with respect to their left operand but like
+     *    their base operator with respect to their right operand.
+     *
+     * This setting allows switching between pre-9.5 and 9.5+ operator precedence.
+     * Setting precedence to pre-9.5 will also allow using '=>' as custom operator
+     * and make equality operator right-associative so that
+     * <code>
+     * select true = true = true;
+     * </code>
+     * will parse.
+     *
+     * Note that even "pre 9.5" setting will not reproduce the buggy behaviour of
+     * "not whatever" constructs with left operands, e.g. expression
+     * <code>
+     * select true = 'foo' not like 'bar';
+     * </code>
+     * will parse properly using either precedence setting.
+     *
+     * @param string $precedence
+     */
+    public function setOperatorPrecedence($precedence)
+    {
+        if (self::OPERATOR_PRECEDENCE_PRE_9_5 !== $precedence) {
+            $precedence = self::OPERATOR_PRECEDENCE_CURRENT;
+        }
+        $this->precedence = $precedence;
+    }
+
+    /**
+     * Returns operator precedence used by the parser
+     *
+     * @return string
+     */
+    public function getOperatorPrecedence()
+    {
+        return $this->precedence;
+    }
+
 
     /**
      * Magic method for function overloading

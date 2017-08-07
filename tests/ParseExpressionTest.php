@@ -9,7 +9,7 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014 Alexey Borzov
+ * @copyright 2014-2017 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
@@ -137,45 +137,6 @@ QRY
         );
     }
 
-    public function testEquality()
-    {
-        $list = $this->parser->parseExpressionList(<<<QRY
-    foo = bar = baz, foo = any(array[bar,baz]) = quux
-QRY
-        );
-        $this->assertEquals(
-            new ExpressionList(array(
-                new OperatorExpression(
-                    '=',
-                    new ColumnReference(array(new Identifier('foo'))),
-                    new OperatorExpression(
-                        '=',
-                        new ColumnReference(array(new Identifier('bar'))),
-                        new ColumnReference(array(new Identifier('baz')))
-                    )
-                ),
-                new OperatorExpression(
-                    '=',
-                    new OperatorExpression(
-                        '=',
-                        new ColumnReference(array(new Identifier('foo'))),
-                        new FunctionExpression(
-                            'any',
-                            new FunctionArgumentList(array(
-                                new ArrayExpression(new ExpressionList(array(
-                                    new ColumnReference(array(new Identifier('bar'))),
-                                    new ColumnReference(array(new Identifier('baz')))
-                                )))
-                            ))
-                        )
-                    ),
-                    new ColumnReference(array(new Identifier('quux')))
-                )
-            )),
-            $list
-        );
-    }
-
     public function testLogicalExpression()
     {
         $expr = $this->parser->parseExpression(<<<QRY
@@ -205,46 +166,6 @@ QRY
                 'or'
             ),
             $expr
-        );
-    }
-
-    /**
-     * NB: '<=' and '>=' are treated as generic multicharacter operators, so they are
-     * left-associative and have higher precedence than '<' and '>'
-     */
-    public function testInequality()
-    {
-        $expr = $this->parser->parseExpression(<<<QRY
-    a < b and c = d > e
-QRY
-        );
-        $this->assertEquals(
-            new LogicalExpression(
-                array(
-                    new OperatorExpression(
-                        '<',
-                        new ColumnReference(array(new Identifier('a'))),
-                        new ColumnReference(array(new Identifier('b')))
-                    ),
-                    new OperatorExpression(
-                        '=',
-                        new ColumnReference(array(new Identifier('c'))),
-                        new OperatorExpression(
-                            '>',
-                            new ColumnReference(array(new Identifier('d'))),
-                            new ColumnReference(array(new Identifier('e')))
-                        )
-                    )
-                ),
-                'and'
-            ),
-            $expr
-        );
-
-        $this->setExpectedException('sad_spirit\pg_builder\exceptions\SyntaxException');
-        $this->parser->parseExpression(<<<QRY
-    a < b > c
-QRY
         );
     }
 
