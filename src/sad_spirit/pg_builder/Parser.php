@@ -29,32 +29,32 @@ use sad_spirit\pg_wrapper\MetadataCache;
  * more are available to facilitate parsing of expression parts rather than complete
  * SQL statements.
  *
- * @method \sad_spirit\pg_builder\Statement                     parseStatement($input)
- * @method \sad_spirit\pg_builder\SelectCommon                  parseSelectStatement($input)
- * @method \sad_spirit\pg_builder\nodes\lists\ExpressionList    parseExpressionList($input)
- * @method \sad_spirit\pg_builder\nodes\ScalarExpression        parseExpression($input)
- * @method \sad_spirit\pg_builder\nodes\lists\TargetList        parseTargetList($input)
- * @method \sad_spirit\pg_builder\nodes\TargetElement           parseTargetElement($input)
- * @method \sad_spirit\pg_builder\nodes\lists\FromList          parseFromList($input)
- * @method \sad_spirit\pg_builder\nodes\range\FromElement       parseFromElement($input)
- * @method \sad_spirit\pg_builder\nodes\lists\OrderByList       parseOrderByList($input)
- * @method \sad_spirit\pg_builder\nodes\OrderByElement          parseOrderByElement($input)
- * @method \sad_spirit\pg_builder\nodes\lists\WindowList        parseWindowList($input)
- * @method \sad_spirit\pg_builder\nodes\WindowDefinition        parseWindowDefinition($input)
- * @method \sad_spirit\pg_builder\nodes\LockingElement          parseLockingElement($input)
- * @method \sad_spirit\pg_builder\nodes\lists\LockList          parseLockingList($input)
- * @method \sad_spirit\pg_builder\nodes\range\RelationReference parseRelationExpressionOptAlias($input)
- * @method \sad_spirit\pg_builder\nodes\QualifiedName           parseQualifiedName($input)
- * @method \sad_spirit\pg_builder\nodes\lists\SetTargetList     parseSetClause($input)
- * @method \sad_spirit\pg_builder\nodes\SetTargetElement        parseSingleSetClause($input)
- * @method \sad_spirit\pg_builder\nodes\lists\SetTargetList     parseInsertTargetList($input)
- * @method \sad_spirit\pg_builder\nodes\SetTargetElement        parseSetTargetElement($input)
- * @method \sad_spirit\pg_builder\nodes\lists\CtextRowList      parseCtextRowList($input)
- * @method \sad_spirit\pg_builder\nodes\lists\CtextRow          parseCtextRow($input)
- * @method \sad_spirit\pg_builder\nodes\ScalarExpression        parseExpressionWithDefault($input)
- * @method \sad_spirit\pg_builder\nodes\WithClause              parseWithClause($input)
- * @method \sad_spirit\pg_builder\nodes\CommonTableExpression   parseCommonTableExpression($input)
- * @method \sad_spirit\pg_builder\nodes\lists\IdentifierList    parseColIdList($input)
+ * @method Statement                     parseStatement($input)
+ * @method SelectCommon                  parseSelectStatement($input)
+ * @method nodes\lists\ExpressionList    parseExpressionList($input)
+ * @method nodes\ScalarExpression        parseExpression($input)
+ * @method nodes\lists\TargetList        parseTargetList($input)
+ * @method nodes\TargetElement           parseTargetElement($input)
+ * @method nodes\lists\FromList          parseFromList($input)
+ * @method nodes\range\FromElement       parseFromElement($input)
+ * @method nodes\lists\OrderByList       parseOrderByList($input)
+ * @method nodes\OrderByElement          parseOrderByElement($input)
+ * @method nodes\lists\WindowList        parseWindowList($input)
+ * @method nodes\WindowDefinition        parseWindowDefinition($input)
+ * @method nodes\LockingElement          parseLockingElement($input)
+ * @method nodes\lists\LockList          parseLockingList($input)
+ * @method nodes\range\RelationReference parseRelationExpressionOptAlias($input)
+ * @method nodes\QualifiedName           parseQualifiedName($input)
+ * @method nodes\lists\SetTargetList     parseSetClause($input)
+ * @method nodes\SetTargetElement        parseSingleSetClause($input)
+ * @method nodes\lists\SetTargetList     parseInsertTargetList($input)
+ * @method nodes\SetTargetElement        parseSetTargetElement($input)
+ * @method nodes\lists\CtextRowList      parseCtextRowList($input)
+ * @method nodes\lists\CtextRow          parseCtextRow($input)
+ * @method nodes\ScalarExpression        parseExpressionWithDefault($input)
+ * @method nodes\WithClause              parseWithClause($input)
+ * @method nodes\CommonTableExpression   parseCommonTableExpression($input)
+ * @method nodes\lists\IdentifierList    parseColIdList($input)
  */
 class Parser
 {
@@ -1032,7 +1032,7 @@ class Parser
      */
     protected function SelectIntersect()
     {
-        $stmt = $this->SimpleSelect($this->stream);
+        $stmt = $this->SimpleSelect();
 
         while ($this->stream->matches(Token::TYPE_KEYWORD, 'intersect')) {
             $setOp = $this->stream->next()->getValue();
