@@ -1290,7 +1290,33 @@ class Parser
             $this->stream->next();
             return new nodes\expressions\OperatorExpression('not', null, $this->LogicalExpressionFactor());
         }
-        return $this->ComparisonEquality();
+        return self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence
+               ? $this->ComparisonEquality()
+               : $this->Comparison();
+    }
+
+    /**
+     * In Postgres 9.5+ all comparison operators have the same precedence and are non-associative
+     *
+     * @param bool $restricted
+     * @return nodes\ScalarExpression
+     */
+    protected function Comparison($restricted = false)
+    {
+        $argument = $restricted
+                    ? $this->GenericOperatorExpression(true)
+                    : $this->PatternMatchingExpression();
+
+        if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, array('<', '>', '='))
+            || $this->stream->matches(Token::TYPE_OPERATOR, array('<=', '>=', '!=', '<>'))
+        ) {
+            return new nodes\expressions\OperatorExpression(
+                $this->stream->next()->getValue(), $argument,
+                $restricted ? $this->GenericOperatorExpression(true) : $this->PatternMatchingExpression()
+            );
+        }
+
+        return $argument;
     }
 
     protected function ComparisonEquality($restricted = false)
@@ -1442,7 +1468,9 @@ class Parser
 
     protected function RestrictedExpression()
     {
-        return $this->ComparisonEquality(true);
+        return self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence
+               ? $this->ComparisonEquality(true)
+               : $this->Comparison(true);
     }
 
     /**

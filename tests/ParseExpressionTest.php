@@ -308,7 +308,7 @@ QRY
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     foo < any(select otherfoo from foosource), bar like all(select barpattern from barsource),
-    baz = some(array[one, two])
+    baz = some(array[one, two]), foo = any(array[bar,baz]) = quux
 QRY
         );
 
@@ -331,6 +331,23 @@ QRY
                     new FunctionExpression('some', new FunctionArgumentList(array(
                         new ArrayExpression(array(new ColumnReference(array('one')), new ColumnReference(array('two'))))
                     )))
+                ),
+                new OperatorExpression(
+                    '=',
+                    new OperatorExpression(
+                        '=',
+                        new ColumnReference(array(new Identifier('foo'))),
+                        new FunctionExpression(
+                            'any',
+                            new FunctionArgumentList(array(
+                                new ArrayExpression(new ExpressionList(array(
+                                    new ColumnReference(array(new Identifier('bar'))),
+                                    new ColumnReference(array(new Identifier('baz')))
+                                )))
+                            ))
+                        )
+                    ),
+                    new ColumnReference(array(new Identifier('quux')))
                 )
             )),
             $list

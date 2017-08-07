@@ -18,15 +18,11 @@
 namespace sad_spirit\pg_builder\tests;
 
 use sad_spirit\pg_builder\nodes\ColumnReference,
-    sad_spirit\pg_builder\nodes\lists\ExpressionList,
-    sad_spirit\pg_builder\nodes\lists\FunctionArgumentList,
     sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\Lexer,
     sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_builder\nodes\expressions\ArrayExpression,
     sad_spirit\pg_builder\nodes\expressions\LogicalExpression,
-    sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
-    sad_spirit\pg_builder\nodes\expressions\FunctionExpression;
+    sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
 
 /**
  * Abstract base class for operator precedence tests
@@ -60,26 +56,6 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
                         new ColumnReference(array(new Identifier('bar'))),
                         new ColumnReference(array(new Identifier('baz')))
                     )
-                )
-            ),
-            array(
-                'foo = any(array[bar,baz]) = quux',
-                new OperatorExpression(
-                    '=',
-                    new OperatorExpression(
-                        '=',
-                        new ColumnReference(array(new Identifier('foo'))),
-                        new FunctionExpression(
-                            'any',
-                            new FunctionArgumentList(array(
-                                new ArrayExpression(new ExpressionList(array(
-                                    new ColumnReference(array(new Identifier('bar'))),
-                                    new ColumnReference(array(new Identifier('baz')))
-                                )))
-                            ))
-                        )
-                    ),
-                    new ColumnReference(array(new Identifier('quux')))
                 )
             )
         );
