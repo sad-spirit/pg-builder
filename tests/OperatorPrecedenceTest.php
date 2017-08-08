@@ -20,9 +20,11 @@ namespace sad_spirit\pg_builder\tests;
 use sad_spirit\pg_builder\nodes\ColumnReference,
     sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\Lexer,
+    sad_spirit\pg_builder\nodes\Constant,
     sad_spirit\pg_builder\nodes\Identifier,
     sad_spirit\pg_builder\nodes\expressions\LogicalExpression,
-    sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
+    sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
+    sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression;
 
 /**
  * Abstract base class for operator precedence tests
@@ -42,6 +44,21 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
     abstract public function testAssociativeEquality($expression, $parsed);
 
     abstract public function testInequalityPrecedence($expression, $parsed);
+
+    /**
+     * @dataProvider isWhateverPrecedenceProvider
+     * @param $expression
+     * @param $parsedLegacy
+     * @param $parsedCurrent
+     */
+    public function testIsWhateverPrecedence($expression, $parsedLegacy, $parsedCurrent)
+    {
+        $this->assertEquals(
+            Parser::OPERATOR_PRECEDENCE_PRE_9_5 === $this->parser->getOperatorPrecedence()
+            ? $parsedLegacy : $parsedCurrent,
+            $this->parser->parseExpression($expression)
+        );
+    }
 
     public function associativeEqualityProvider()
     {
@@ -119,6 +136,70 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
             array(
                 'a < b > c',
                 "Unexpected special character '>'"
+            )
+        );
+    }
+
+
+    public function isWhateverPrecedenceProvider()
+    {
+        return array(
+            array(
+                'false = true is null',
+                new OperatorExpression(
+                    '=',
+                    new Constant(false),
+                    new OperatorExpression(
+                        'is null',
+                        new Constant(true)
+                    )
+                ),
+                new OperatorExpression(
+                    'is null',
+                    new OperatorExpression(
+                        '=',
+                        new Constant(false),
+                        new Constant(true)
+                    )
+                )
+            ),
+            array(
+                'foo @#! bar is distinct from baz',
+                new OperatorExpression(
+                    '@#!',
+                    new ColumnReference(array(new Identifier('foo'))),
+                    new OperatorExpression(
+                        'is distinct from',
+                        new ColumnReference(array(new Identifier('bar'))),
+                        new ColumnReference(array(new Identifier('baz')))
+                    )
+                ),
+                new OperatorExpression(
+                    'is distinct from',
+                    new OperatorExpression(
+                        '@#!',
+                        new ColumnReference(array(new Identifier('foo'))),
+                        new ColumnReference(array(new Identifier('bar')))
+                    ),
+                    new ColumnReference(array(new Identifier('baz')))
+                )
+            ),
+            array(
+                "'foo' like 'bar' is not true",
+                new PatternMatchingExpression(
+                    new Constant('foo'),
+                    new OperatorExpression(
+                        'is not true',
+                        new Constant('bar')
+                    )
+                ),
+                new OperatorExpression(
+                    'is not true',
+                    new PatternMatchingExpression(
+                        new Constant('foo'),
+                        new Constant('bar')
+                    )
+                )
             )
         );
     }
