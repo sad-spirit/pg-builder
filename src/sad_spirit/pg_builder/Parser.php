@@ -1294,7 +1294,7 @@ class Parser
         }
         return self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence
                ? $this->ComparisonEquality()
-               : $this->Comparison();
+               : $this->IsWhateverExpression();
     }
 
     /**
@@ -1560,7 +1560,9 @@ class Parser
         while ($this->_matchesOperator()) {
             $operators[] = $this->Operator();
         }
-        $term = $this->IsWhateverExpression($restricted);
+        $term = self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence
+                ? $this->IsWhateverExpression($restricted)
+                : $this->ArithmeticExpression($restricted);
         // prefix operators are left-associative
         while (!empty($operators)) {
             $term = new nodes\expressions\OperatorExpression(array_pop($operators), null, $term);
@@ -1606,7 +1608,9 @@ class Parser
 
     protected function IsWhateverExpression($restricted = false)
     {
-        $operand = $this->ArithmeticExpression();
+        $operand = self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence
+                   ? $this->ArithmeticExpression($restricted)
+                   : $this->Comparison($restricted);
 
         if ($restricted) {
             $checks = array();
