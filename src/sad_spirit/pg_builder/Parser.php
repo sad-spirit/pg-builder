@@ -1438,6 +1438,21 @@ class Parser
         return new nodes\expressions\OperatorExpression('overlaps', $left, $right);
     }
 
+    /**
+     * Parses BETWEEN expressions
+     *
+     * Note that in pre-9.5 Postgres BETWEEN expressions were de-facto left-associative, so that
+     * <code>
+     * select 1 between 0 and 2 between false and true;
+     * </code>
+     * actually worked. Expressions of the form
+     * <code>
+     * select 2 between 3 and 4 is false;
+     * </code>
+     * resulted in syntax error but work in 9.5+
+     *
+     * @return nodes\ScalarExpression
+     */
     protected function BetweenExpression()
     {
         static $checks = array(
@@ -1457,9 +1472,15 @@ class Parser
                     $this->stream->skip(count($check));
                     $left  = $this->GenericOperatorExpression(true);
                     $this->stream->expect(Token::TYPE_KEYWORD, 'and');
-                    $right = $this->GenericOperatorExpression(true);
+                    // right argument of BETWEEN is defined as 'b_expr' in pre-9.5 grammar and as 'a_expr' afterwards
+                    $right = $this->GenericOperatorExpression(self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence);
                     $value = new nodes\expressions\BetweenExpression($value, $left, $right, implode(' ', $check));
-                    continue 2;
+                    // perhaps non-associativity of 9.5+ BETWEEN is caused by above change to right argument?
+                    if (self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence) {
+                        continue 2;
+                    } else {
+                        break 2;
+                    }
                 }
             }
             break;
@@ -1482,7 +1503,9 @@ class Parser
      * <code>
      * select 'foo' in ('foo', 'bar') in (true, false);
      * </code>
-     * actually works, so no reason not to allow it here
+     * actually works, so we allow it here. That's pretty strange as [NOT ] IN is defined
+     * %nonassoc in gram.y and the above code should be a syntax error per bison docs:
+     * > %nonassoc specifies no associativity, which means that `x op y op z' is considered a syntax error.
      *
      * @return nodes\expressions\InExpression
      */

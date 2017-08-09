@@ -20,8 +20,10 @@ namespace sad_spirit\pg_builder\tests;
 use sad_spirit\pg_builder\nodes\ColumnReference,
     sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\Lexer,
+    sad_spirit\pg_builder\Node,
     sad_spirit\pg_builder\nodes\Constant,
     sad_spirit\pg_builder\nodes\Identifier,
+    sad_spirit\pg_builder\nodes\expressions\BetweenExpression,
     sad_spirit\pg_builder\nodes\expressions\LogicalExpression,
     sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
     sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression;
@@ -47,9 +49,9 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider isWhateverPrecedenceProvider
-     * @param $expression
-     * @param $parsedLegacy
-     * @param $parsedCurrent
+     * @param string      $expression
+     * @param string|Node $parsedLegacy
+     * @param string|Node $parsedCurrent
      */
     public function testIsWhateverPrecedence($expression, $parsedLegacy, $parsedCurrent)
     {
@@ -58,6 +60,27 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
             ? $parsedLegacy : $parsedCurrent,
             $this->parser->parseExpression($expression)
         );
+    }
+
+    /**
+     * @dataProvider betweenPrecedenceProvider
+     * @param string      $expression
+     * @param string|Node $parsedLegacy
+     * @param string|Node $parsedCurrent
+     */
+    public function testBetweenPrecedence($expression, $parsedLegacy, $parsedCurrent)
+    {
+        $parsed = Parser::OPERATOR_PRECEDENCE_PRE_9_5 === $this->parser->getOperatorPrecedence()
+                  ? $parsedLegacy : $parsedCurrent;
+        if (!is_string($parsed)) {
+            $this->assertEquals($parsed, $this->parser->parseExpression($expression));
+
+        } else {
+            $this->setExpectedException(
+                'sad_spirit\pg_builder\exceptions\SyntaxException', $parsed
+            );
+            $this->parser->parseExpression($expression);
+        }
     }
 
     public function associativeEqualityProvider()
@@ -198,6 +221,37 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
                     new PatternMatchingExpression(
                         new Constant('foo'),
                         new Constant('bar')
+                    )
+                )
+            )
+        );
+    }
+
+    public function betweenPrecedenceProvider()
+    {
+        return array(
+            array(
+                '1 between 0 and 2 between false and true',
+                new BetweenExpression(
+                    new BetweenExpression(
+                        new Constant(1),
+                        new Constant(0),
+                        new Constant(2)
+                    ),
+                    new Constant(false),
+                    new Constant(true)
+                ),
+                "Unexpected keyword 'between'"
+            ),
+            array(
+                'foo between false and true is not false',
+                "Unexpected keyword 'not'",
+                new OperatorExpression(
+                    'is not false',
+                    new BetweenExpression(
+                        new ColumnReference(array(new Identifier('foo'))),
+                        new Constant(false),
+                        new Constant(true)
                     )
                 )
             )

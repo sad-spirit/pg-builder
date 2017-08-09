@@ -233,40 +233,28 @@ QRY
 
     public function testBetween()
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
-    foo between 'bar' and 'baz' and foofoo NOT BETWEEN symmetric 'quux' and 'xyzzy',
-    1 between 0 and 2 between false and true -- this works in Postgres
+        $expression = $this->parser->parseExpression(<<<QRY
+    foo between 'bar' and 'baz' and foofoo NOT BETWEEN symmetric 'quux' and 'xyzzy'
 QRY
         );
         $this->assertEquals(
-            new ExpressionList(array(
-                new LogicalExpression(
-                    array(
-                        new BetweenExpression(
-                            new ColumnReference(array(new Identifier('foo'))),
-                            new Constant('bar'),
-                            new Constant('baz')
-                        ),
-                        new BetweenExpression(
-                            new ColumnReference(array(new Identifier('foofoo'))),
-                            new Constant('quux'),
-                            new Constant('xyzzy'),
-                            'not between symmetric'
-                        )
-                    ),
-                    'and'
-                ),
-                new BetweenExpression(
+            new LogicalExpression(
+                array(
                     new BetweenExpression(
-                        new Constant(1),
-                        new Constant(0),
-                        new Constant(2)
+                        new ColumnReference(array(new Identifier('foo'))),
+                        new Constant('bar'),
+                        new Constant('baz')
                     ),
-                    new Constant(false),
-                    new Constant(true)
-                )
-            )),
-            $list
+                    new BetweenExpression(
+                        new ColumnReference(array(new Identifier('foofoo'))),
+                        new Constant('quux'),
+                        new Constant('xyzzy'),
+                        'not between symmetric'
+                    )
+                ),
+                'and'
+            ),
+            $expression
         );
     }
 
