@@ -48,6 +48,21 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
     abstract public function testInequalityPrecedence($expression, $parsed);
 
     /**
+     * @dataProvider inequalityWithCustomOperatorsPrecedenceProvider
+     * @param string    $expression
+     * @param Node      $parsedLegacy
+     * @param Node      $parsedCurrent
+     */
+    public function testInequalityWithCustomOperatorsPrecedence($expression, $parsedLegacy, $parsedCurrent)
+    {
+        $this->assertEquals(
+            Parser::OPERATOR_PRECEDENCE_PRE_9_5 === $this->parser->getOperatorPrecedence()
+            ? $parsedLegacy : $parsedCurrent,
+            $this->parser->parseExpression($expression)
+        );
+    }
+
+    /**
      * @dataProvider isWhateverPrecedenceProvider
      * @param string      $expression
      * @param string|Node $parsedLegacy
@@ -252,6 +267,43 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
                         new ColumnReference(array(new Identifier('foo'))),
                         new Constant(false),
                         new Constant(true)
+                    )
+                )
+            )
+        );
+    }
+
+    public function inequalityWithCustomOperatorsPrecedenceProvider()
+    {
+        // Based on Tom Lane's message to pgsql-hackers which started the whole precedence brouhaha
+        // https://www.postgresql.org/message-id/12603.1424360914%40sss.pgh.pa.us
+        return array(
+            array(
+                "j->>'space' <= j->>'node'",
+                new OperatorExpression(
+                    '->>',
+                    new OperatorExpression(
+                        '<=',
+                        new OperatorExpression(
+                            '->>',
+                            new ColumnReference(array(new Identifier('j'))),
+                            new Constant('space')
+                        ),
+                        new ColumnReference(array(new Identifier('j')))
+                    ),
+                    new Constant('node')
+                ),
+                new OperatorExpression(
+                    '<=',
+                    new OperatorExpression(
+                        '->>',
+                        new ColumnReference(array(new Identifier('j'))),
+                        new Constant('space')
+                    ),
+                    new OperatorExpression(
+                        '->>',
+                        new ColumnReference(array(new Identifier('j'))),
+                        new Constant('node')
                     )
                 )
             )
