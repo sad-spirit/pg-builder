@@ -29,30 +29,4 @@ class CurrentOperatorPrecedenceTest extends OperatorPrecedenceTest
         parent::setUp();
         $this->parser->setOperatorPrecedence(Parser::OPERATOR_PRECEDENCE_CURRENT);
     }
-
-    /**
-     * @dataProvider associativeEqualityProvider
-     */
-    public function testAssociativeEquality($expression, $parsed)
-    {
-        $this->setExpectedException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException',
-            "Unexpected special character '='"
-        );
-        $this->parser->parseExpression($expression);
-    }
-
-    /**
-     * @dataProvider inequalityPrecedenceProvider
-     * @param $expression
-     * @param $parsed
-     */
-    public function testInequalityPrecedence($expression, $parsed)
-    {
-        $this->setExpectedException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException',
-            is_string($parsed) ? $parsed : ''
-        );
-        $this->parser->parseExpression($expression);
-    }
 }

@@ -30,6 +30,8 @@ use sad_spirit\pg_builder\nodes\ColumnReference,
 
 /**
  * Abstract base class for operator precedence tests
+ *
+ * We use a base class with two subclasses to easily notice which parsing mode fails
  */
 abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
 {
@@ -43,23 +45,60 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
         $this->parser = new Parser(new Lexer());
     }
 
-    abstract public function testAssociativeEquality($expression, $parsed);
+    /**
+     * Checks that $expression parses to either of $parsedLegacy or $parsedCurrent depending on precedence setting
+     *
+     * @param string      $expression
+     * @param string|Node $parsedLegacy
+     * @param string|Node $parsedCurrent
+     */
+    protected function doTest($expression, $parsedLegacy, $parsedCurrent)
+    {
+        $parsed = Parser::OPERATOR_PRECEDENCE_PRE_9_5 === $this->parser->getOperatorPrecedence()
+                  ? $parsedLegacy : $parsedCurrent;
 
-    abstract public function testInequalityPrecedence($expression, $parsed);
+        if (!is_string($parsed)) {
+            $this->assertEquals($parsed, $this->parser->parseExpression($expression));
+
+        } else {
+            $this->setExpectedException(
+                'sad_spirit\pg_builder\exceptions\SyntaxException', $parsed
+            );
+            $this->parser->parseExpression($expression);
+        }
+    }
+
+    /**
+     * @dataProvider associativeEqualityProvider
+     * @param string      $expression
+     * @param string|Node $parsedLegacy
+     * @param string|Node $parsedCurrent
+     */
+    public function testAssociativeEquality($expression, $parsedLegacy, $parsedCurrent)
+    {
+        $this->doTest($expression, $parsedLegacy, $parsedCurrent);
+    }
+
+    /**
+     * @dataProvider inequalityPrecedenceProvider
+     * @param string      $expression
+     * @param string|Node $parsedLegacy
+     * @param string|Node $parsedCurrent
+     */
+    public function testInequalityPrecedence($expression, $parsedLegacy, $parsedCurrent)
+    {
+        $this->doTest($expression, $parsedLegacy, $parsedCurrent);
+    }
 
     /**
      * @dataProvider inequalityWithCustomOperatorsPrecedenceProvider
-     * @param string    $expression
-     * @param Node      $parsedLegacy
-     * @param Node      $parsedCurrent
+     * @param string      $expression
+     * @param string|Node $parsedLegacy
+     * @param string|Node $parsedCurrent
      */
     public function testInequalityWithCustomOperatorsPrecedence($expression, $parsedLegacy, $parsedCurrent)
     {
-        $this->assertEquals(
-            Parser::OPERATOR_PRECEDENCE_PRE_9_5 === $this->parser->getOperatorPrecedence()
-            ? $parsedLegacy : $parsedCurrent,
-            $this->parser->parseExpression($expression)
-        );
+        $this->doTest($expression, $parsedLegacy, $parsedCurrent);
     }
 
     /**
@@ -70,11 +109,7 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
      */
     public function testIsWhateverPrecedence($expression, $parsedLegacy, $parsedCurrent)
     {
-        $this->assertEquals(
-            Parser::OPERATOR_PRECEDENCE_PRE_9_5 === $this->parser->getOperatorPrecedence()
-            ? $parsedLegacy : $parsedCurrent,
-            $this->parser->parseExpression($expression)
-        );
+        $this->doTest($expression, $parsedLegacy, $parsedCurrent);
     }
 
     /**
@@ -85,17 +120,7 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
      */
     public function testBetweenPrecedence($expression, $parsedLegacy, $parsedCurrent)
     {
-        $parsed = Parser::OPERATOR_PRECEDENCE_PRE_9_5 === $this->parser->getOperatorPrecedence()
-                  ? $parsedLegacy : $parsedCurrent;
-        if (!is_string($parsed)) {
-            $this->assertEquals($parsed, $this->parser->parseExpression($expression));
-
-        } else {
-            $this->setExpectedException(
-                'sad_spirit\pg_builder\exceptions\SyntaxException', $parsed
-            );
-            $this->parser->parseExpression($expression);
-        }
+        $this->doTest($expression, $parsedLegacy, $parsedCurrent);
     }
 
     public function associativeEqualityProvider()
@@ -111,7 +136,8 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
                         new ColumnReference(array(new Identifier('bar'))),
                         new ColumnReference(array(new Identifier('baz')))
                     )
-                )
+                ),
+                "Unexpected special character '='"
             )
         );
     }
@@ -139,7 +165,8 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
                         )
                     ),
                     'and'
-                )
+                ),
+                "Unexpected special character '>'"
             ),
             // NB: in pre-9.5 Postgres '<=' and '>=' are treated as generic multicharacter operators,
             // so they are  left-associative and have higher precedence than '<' and '>'
@@ -153,7 +180,8 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
                         new ColumnReference(array(new Identifier('b')))
                     ),
                     new ColumnReference(array(new Identifier('c')))
-                )
+                ),
+                "Unexpected comparison operator '<='"
             ),
             array(
                 'foo = bar > baz <= quux',
@@ -169,10 +197,12 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
                             new ColumnReference(array(new Identifier('quux')))
                         )
                     )
-                )
+                ),
+                "Unexpected special character '>'"
             ),
             array(
                 'a < b > c',
+                "Unexpected special character '>'",
                 "Unexpected special character '>'"
             )
         );

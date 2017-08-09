@@ -29,31 +29,4 @@ class Pre95OperatorPrecedenceTest extends OperatorPrecedenceTest
         parent::setUp();
         $this->parser->setOperatorPrecedence(Parser::OPERATOR_PRECEDENCE_PRE_9_5);
     }
-
-    /**
-     * @dataProvider associativeEqualityProvider
-     * @param $expression
-     * @param $parsed
-     */
-    public function testAssociativeEquality($expression, $parsed)
-    {
-        $this->assertEquals($parsed, $this->parser->parseExpression($expression));
-    }
-
-    /**
-     * @dataProvider inequalityPrecedenceProvider
-     * @param $expression
-     * @param $parsed
-     */
-    public function testInequalityPrecedence($expression, $parsed)
-    {
-        if (is_string($parsed)) {
-            $this->setExpectedException(
-                'sad_spirit\pg_builder\exceptions\SyntaxException', $parsed
-            );
-            $this->parser->parseExpression($expression);
-        } else {
-            $this->assertEquals($parsed, $this->parser->parseExpression($expression));
-        }
-    }
 }
