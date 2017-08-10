@@ -23,10 +23,13 @@ use sad_spirit\pg_builder\nodes\ColumnReference,
     sad_spirit\pg_builder\Node,
     sad_spirit\pg_builder\nodes\Constant,
     sad_spirit\pg_builder\nodes\Identifier,
+    sad_spirit\pg_builder\nodes\QualifiedName,
     sad_spirit\pg_builder\nodes\expressions\BetweenExpression,
+    sad_spirit\pg_builder\nodes\expressions\FunctionExpression,
     sad_spirit\pg_builder\nodes\expressions\LogicalExpression,
     sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
-    sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression;
+    sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression,
+    sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
 
 /**
  * Abstract base class for operator precedence tests
@@ -119,6 +122,17 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
      * @param string|Node $parsedCurrent
      */
     public function testBetweenPrecedence($expression, $parsedLegacy, $parsedCurrent)
+    {
+        $this->doTest($expression, $parsedLegacy, $parsedCurrent);
+    }
+
+    /**
+     * @dataProvider equalsGreaterOperatorProvider
+     * @param string      $expression
+     * @param string|Node $parsedLegacy
+     * @param string|Node $parsedCurrent
+     */
+    public function testEqualsGreaterOperator($expression, $parsedLegacy, $parsedCurrent)
     {
         $this->doTest($expression, $parsedLegacy, $parsedCurrent);
     }
@@ -335,6 +349,40 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
                         new ColumnReference(array(new Identifier('j'))),
                         new Constant('node')
                     )
+                )
+            )
+        );
+    }
+
+    public function equalsGreaterOperatorProvider()
+    {
+        return array(
+            array(
+                'foo => bar',
+                new OperatorExpression(
+                    '=>',
+                    new ColumnReference(array(new Identifier('foo'))),
+                    new ColumnReference(array(new Identifier('bar')))
+                ),
+                "Unexpected named argument mark"
+            ),
+            array(
+                "foo(bar => 'baz')",
+                new FunctionExpression(
+                    new QualifiedName(array(new Identifier('foo'))),
+                    new FunctionArgumentList(array(
+                        new OperatorExpression(
+                            '=>',
+                            new ColumnReference(array(new Identifier('bar'))),
+                            new Constant('baz')
+                        )
+                    ))
+                ),
+                new FunctionExpression(
+                    new QualifiedName(array(new Identifier('foo'))),
+                    new FunctionArgumentList(array(
+                        '"bar"' => new Constant('baz')
+                    ))
                 )
             )
         );

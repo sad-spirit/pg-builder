@@ -243,7 +243,8 @@ class Parser
     {
         return $this->stream->matches(Token::TYPE_OPERATOR)
                || self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence
-                  && $this->stream->matches(Token::TYPE_INEQUALITY)
+                  && ($this->stream->matches(Token::TYPE_INEQUALITY)
+                      || $this->stream->matches(Token::TYPE_EQUALS_GREATER))
                || $this->stream->matches(Token::TYPE_KEYWORD, 'operator')
                   && $this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, '(');
     }
@@ -1603,7 +1604,8 @@ class Parser
     {
         if ($this->stream->matches(Token::TYPE_OPERATOR)
             || (self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence
-                && $this->stream->matches(Token::TYPE_INEQUALITY))
+                && ($this->stream->matches(Token::TYPE_INEQUALITY)
+                    || $this->stream->matches(Token::TYPE_EQUALS_GREATER)))
             || $all && $this->stream->matches(Token::TYPE_SPECIAL_CHAR, self::$mathOp)
         ) {
             return $this->stream->next()->getValue();
@@ -2908,7 +2910,10 @@ class Parser
 
         $name = null;
         // it's the only place this shit can appear in
-        if ($this->stream->look(1)->matches(Token::TYPE_COLON_EQUALS)) {
+        if ($this->stream->look(1)->matches(Token::TYPE_COLON_EQUALS)
+            || self::OPERATOR_PRECEDENCE_PRE_9_5 !== $this->precedence
+               && $this->stream->look(1)->matches(Token::TYPE_EQUALS_GREATER)
+        ) {
             if ($this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
                 || $this->stream->matches(Token::TYPE_TYPE_FUNC_NAME_KEYWORD)
             ) {
