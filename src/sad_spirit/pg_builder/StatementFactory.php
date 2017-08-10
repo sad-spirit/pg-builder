@@ -67,8 +67,9 @@ class StatementFactory
     {
         if (!$this->_parser) {
             if (!$this->_connection) {
-                $cache        = null;
-                $lexerOptions = array();
+                $cache         = null;
+                $lexerOptions  = array();
+                $serverVersion = '9.5.0';
 
             } else {
                 $cache = $this->_connection->getMetadataCache();
@@ -82,8 +83,14 @@ class StatementFactory
                     $lexerOptions = array('standard_conforming_strings' => false);
                 }
 
+                $serverVersion = pg_parameter_status($this->_connection->getResource(), 'server_version');
+
             }
             $this->_parser = new Parser(new Lexer($lexerOptions), $cache);
+            $this->_parser->setOperatorPrecedence(
+                version_compare($serverVersion, '9.5.0', '>=')
+                ? Parser::OPERATOR_PRECEDENCE_CURRENT : Parser::OPERATOR_PRECEDENCE_PRE_9_5
+            );
         }
         return $this->_parser;
     }
