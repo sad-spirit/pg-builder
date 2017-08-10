@@ -500,7 +500,7 @@ class Parser
 
         $cacheKey = null;
         if ($this->_cache) {
-            $cacheKey = 'parsetree-' . md5("{$name}" . $arguments[0]);
+            $cacheKey = 'parsetree-' . md5('{' . $name . '}{' . $this->precedence . '}' . $arguments[0]);
             if (null !== ($cached = $this->_cache->getItem($cacheKey))) {
                 return $cached;
             }
