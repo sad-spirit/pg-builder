@@ -293,15 +293,61 @@ class SqlBuilderWalker implements TreeWalker
     }
 
     /**
-     * Adds parentheses around processed expression if $needParens is true
+     * Checks whether an argument of expression should be parenthesized
      *
+     * @param nodes\ScalarExpression $argument
      * @param nodes\ScalarExpression $expression
-     * @param bool                   $needParens
+     * @param bool                   $right
+     * @return bool
+     */
+    protected function argumentNeedsParentheses(
+        nodes\ScalarExpression $argument, nodes\ScalarExpression $expression, $right = false
+    ) {
+        $argumentPrecedence = $this->getPrecedence($argument);
+
+        if ($expression instanceof nodes\expressions\BetweenExpression) {
+            return $argumentPrecedence < ($right ? self::PRECEDENCE_TYPECAST : $this->getPrecedence($expression));
+
+        } elseif ($expression instanceof nodes\expressions\OperatorExpression) {
+            $rightAssociative = $this->isRightAssociative($expression);
+            $exprPrecedence   = $this->getPrecedence($expression);
+            if ($right) {
+                return $argumentPrecedence < $exprPrecedence
+                    || !$rightAssociative && $argumentPrecedence === $exprPrecedence;
+            } else {
+                return $argumentPrecedence < $exprPrecedence
+                    || $rightAssociative && $argumentPrecedence === $exprPrecedence;
+            }
+
+        } elseif ($expression instanceof nodes\Indirection) {
+            $isArray = $expression[0] instanceof nodes\ArrayIndexes;
+            return ($isArray && $argumentPrecedence < self::PRECEDENCE_ATOM)
+                    || (!$isArray && !($argument instanceof nodes\Parameter
+                                       || $argument instanceof nodes\expressions\SubselectExpression
+                                          && !$argument->operator));
+
+        } elseif ($right) {
+            return $argumentPrecedence <= $this->getPrecedence($expression);
+
+        } else {
+            return $argumentPrecedence < $this->getPrecedence($expression);
+        }
+    }
+
+    /**
+     * Adds parentheses around argument if its precedence is lower than that of parent expression
+     *
+     * @param nodes\ScalarExpression $argument
+     * @param nodes\ScalarExpression $expression
+     * @param bool                   $right
      * @return string
      */
-    protected function optionalParentheses(nodes\ScalarExpression $expression, $needParens)
-    {
-        return ($needParens ? '(' : '') . $expression->dispatch($this) . ($needParens ? ')' : '');
+    protected function optionalParentheses(
+        nodes\ScalarExpression $argument, nodes\ScalarExpression $expression, $right = false
+    ) {
+        $needParens = $this->argumentNeedsParentheses($argument, $expression, $right);
+
+        return ($needParens ? '(' : '') . $argument->dispatch($this) . ($needParens ? ')' : '');
     }
 
     /**
@@ -665,14 +711,7 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkIndirection(nodes\Indirection $node)
     {
-        $isArray = $node[0] instanceof nodes\ArrayIndexes;
-        $sql = $this->optionalParentheses(
-            $node->expression,
-            ($isArray && $this->getPrecedence($node->expression) < self::PRECEDENCE_ATOM)
-            || (!$isArray && !($node->expression instanceof nodes\Parameter
-                               || $node->expression instanceof nodes\expressions\SubselectExpression
-                                  && !$node->expression->operator))
-        );
+        $sql = $this->optionalParentheses($node->expression, $node, false);
         /* @var Node $item */
         foreach ($node as $item) {
             if ($item instanceof nodes\ArrayIndexes) {
@@ -862,24 +901,14 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkBetweenExpression(nodes\expressions\BetweenExpression $expression)
     {
-        $sql = $this->optionalParentheses(
-            $expression->argument,
-            $this->getPrecedence($expression->argument) < $this->getPrecedence($expression)
-        );
-
-        $sql .= ' ' . $expression->operator . ' ';
+        $sql = $this->optionalParentheses($expression->argument, $expression, false)
+               . ' ' . $expression->operator . ' ';
 
         // to be on a safe side, wrap just about everything in parentheses, it is quite
         // difficult to distinguish between a_expr and b_expr at this stage
-        $sql .= $this->optionalParentheses(
-            $expression->left,
-            $this->getPrecedence($expression->left) < self::PRECEDENCE_TYPECAST
-        );
-        $sql .= ' and ';
-        $sql .= $this->optionalParentheses(
-            $expression->right,
-            $this->getPrecedence($expression->right) < self::PRECEDENCE_TYPECAST
-        );
+        $sql .= $this->optionalParentheses($expression->left, $expression, true)
+                . ' and '
+                . $this->optionalParentheses($expression->right, $expression, true);
 
         return $sql;
     }
@@ -905,10 +934,7 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkCollateExpression(nodes\expressions\CollateExpression $expression)
     {
-        return $this->optionalParentheses(
-                    $expression->argument,
-                    $this->getPrecedence($expression->argument) < $this->getPrecedence($expression)
-               )
+        return $this->optionalParentheses($expression->argument, $expression, false)
                . ' collate ' . $expression->collation->dispatch($this);
     }
 
@@ -950,19 +976,13 @@ class SqlBuilderWalker implements TreeWalker
             $right = '(' . implode(', ', $expression->right->dispatch($this)) . ')';
         }
 
-        return $this->optionalParentheses(
-                    $expression->left,
-                    $this->getPrecedence($expression->left) < $this->getPrecedence($expression)
-               )
+        return $this->optionalParentheses($expression->left, $expression, false)
                . ' ' . $expression->operator . ' ' . $right;
     }
 
     public function walkIsOfExpression(nodes\expressions\IsOfExpression $expression)
     {
-        return $this->optionalParentheses(
-                    $expression->left,
-                    $this->getPrecedence($expression->left) < $this->getPrecedence($expression)
-               )
+        return $this->optionalParentheses($expression->left, $expression, false)
                . ' ' . $expression->operator . ' ('
                . implode(', ', $expression->right->dispatch($this)) . ')';
     }
@@ -1001,25 +1021,16 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkOperatorExpression(nodes\expressions\OperatorExpression $expression)
     {
-        $precedence = $this->getPrecedence($expression);
-        $isRight    = $this->isRightAssociative($expression);
-        $sql        = '';
         if ($expression->left) {
-            $precLeft = $this->getPrecedence($expression->left);
-            $sql     .= $this->optionalParentheses(
-                $expression->left,
-                $precLeft < $precedence || $isRight && $precLeft === $precedence
-            ) . ' ';
+            $sql = $this->optionalParentheses($expression->left, $expression, false) . ' ';
+        } else {
+            $sql = '';
         }
 
         $sql .= $expression->operator;
 
         if ($expression->right) {
-            $precRight = $this->getPrecedence($expression->right);
-            $sql .= ' ' . $this->optionalParentheses(
-                $expression->right,
-                $precRight < $precedence || !$isRight && $precRight === $precedence
-            );
+            $sql .= ' ' . $this->optionalParentheses($expression->right, $expression, true);
         }
 
         return $sql;
@@ -1027,18 +1038,11 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkPatternMatchingExpression(nodes\expressions\PatternMatchingExpression $expression)
     {
-        $precedence = $this->getPrecedence($expression);
-        $sql = $this->optionalParentheses(
-            $expression->argument, $this->getPrecedence($expression->argument) < $precedence
-        );
-        $sql .= ' ' . $expression->operator . ' ';
-        $sql .= $this->optionalParentheses(
-            $expression->pattern, $this->getPrecedence($expression->pattern) <= $precedence
-        );
+        $sql = $this->optionalParentheses($expression->argument, $expression, false)
+               . ' ' . $expression->operator . ' '
+               . $this->optionalParentheses($expression->pattern, $expression, true);
         if ($expression->escape) {
-            $sql .= ' escape ' . $this->optionalParentheses(
-                        $expression->escape, $this->getPrecedence($expression->escape) <= $precedence
-                    );
+            $sql .= ' escape ' . $this->optionalParentheses($expression->escape, $expression, true);
         }
         return $sql;
     }
@@ -1064,10 +1068,7 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkTypecastExpression(nodes\expressions\TypecastExpression $expression)
     {
-        return $this->optionalParentheses(
-                    $expression->argument,
-                    $this->getPrecedence($expression->argument) < $this->getPrecedence($expression)
-               )
+        return $this->optionalParentheses($expression->argument, $expression, false)
                . '::' . $expression->type->dispatch($this);
     }
 
