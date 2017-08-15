@@ -9,7 +9,7 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014 Alexey Borzov
+ * @copyright 2014-2017 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
@@ -142,12 +142,23 @@ class SqlBuilderWalker implements TreeWalker
      */
     const PRECEDENCE_SETOP_SELECT    = 3;
 
+    /**
+     * Liberally add parentheses to expressions so that generated queries can run on any version of Postgres
+     */
+    const PARENTHESES_COMPAT = 'compat';
+
+    /**
+     * Add only parentheses that are needed for Postgres 9.5+, somewhat increasing readability of generated queries
+     */
+    const PARENTHESES_CURRENT = 'current';
+
     protected $indentLevel = 0;
 
     protected $options = array(
-        'indent'    => "    ",
-        'linebreak' => "\n",
-        'wrap'      => 120
+        'indent'      => "    ",
+        'linebreak'   => "\n",
+        'wrap'        => 120,
+        'parentheses' => self::PARENTHESES_CURRENT
     );
 
     /**
