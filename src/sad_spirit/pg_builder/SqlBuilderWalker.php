@@ -25,102 +25,102 @@ class SqlBuilderWalker implements TreeWalker
     /**
      * Precedence for logical OR operator
      */
-    const PRECEDENCE_OR             = 1;
+    const PRECEDENCE_OR             = 10;
 
     /**
      * Precedence for logical AND operator
      */
-    const PRECEDENCE_AND            = 2;
+    const PRECEDENCE_AND            = 20;
 
     /**
      * Precedence for logical NOT operator
      */
-    const PRECEDENCE_NOT            = 3;
+    const PRECEDENCE_NOT            = 30;
 
     /**
      * Precedence for equality operator '='
      */
-    const PRECEDENCE_EQUALITY       = 4;
+    const PRECEDENCE_OLD_EQUALITY   = 40;
 
     /**
      * Precedence for strict inequality operators '<' and '>'
      *
      * NB: operators '>=' and '<=' are considered generic operators and actually
-     * have higher precedence than this
+     * have higher precedence than this in pre-9.5 Postgres
      */
-    const PRECEDENCE_INEQUALITY     = 5;
+    const PRECEDENCE_OLD_INEQUALITY = 50;
 
     /**
      * Precedence for pattern matching operators LIKE / ILIKE / SIMILAR TO
      */
-    const PRECEDENCE_PATTERN        = 6;
+    const PRECEDENCE_PATTERN        = 60;
 
     /**
      * Precedence for OVERLAPS operator
      */
-    const PRECEDENCE_OVERLAPS       = 7;
+    const PRECEDENCE_OVERLAPS       = 70;
 
     /**
      * Precedence for BETWEEN operator (and its variants)
      */
-    const PRECEDENCE_BETWEEN        = 8;
+    const PRECEDENCE_BETWEEN        = 80;
 
     /**
      * Precedence for IN operator
      */
-    const PRECEDENCE_IN             = 9;
+    const PRECEDENCE_IN             = 90;
 
     /**
      * Precedence for generic postfix operators
      */
-    const PRECEDENCE_POSTFIX_OP     = 10;
+    const PRECEDENCE_POSTFIX_OP     = 100;
 
     /**
      * Precedence for generic infix and prefix operators
      */
-    const PRECEDENCE_GENERIC_OP     = 11;
+    const PRECEDENCE_GENERIC_OP     = 110;
 
     /**
      * Precedence for various "IS <something>" operators
      */
-    const PRECEDENCE_IS             = 12;
+    const PRECEDENCE_OLD_IS         = 120;
 
     /**
      * Precedence for arithmetic addition / substraction
      */
-    const PRECEDENCE_ADDITION       = 13;
+    const PRECEDENCE_ADDITION       = 130;
 
     /**
      * Precedence for arithmetic multiplication / division
      */
-    const PRECEDENCE_MULTIPLICATION = 14;
+    const PRECEDENCE_MULTIPLICATION = 140;
 
     /**
      * Precedence for exponentiation operator '^'
      *
      * Note that it is left-associative, contrary to usual mathematical rules
      */
-    const PRECEDENCE_EXPONENTIATION = 15;
+    const PRECEDENCE_EXPONENTIATION = 150;
 
     /**
      * Precedence for AT TIME ZONE expression
      */
-    const PRECEDENCE_TIME_ZONE      = 16;
+    const PRECEDENCE_TIME_ZONE      = 160;
 
     /**
      * Precedence for COLLATE expression
      */
-    const PRECEDENCE_COLLATE        = 17;
+    const PRECEDENCE_COLLATE        = 170;
 
     /**
      * Precedence for unary plus / minus
      */
-    const PRECEDENCE_UNARY_MINUS    = 18;
+    const PRECEDENCE_UNARY_MINUS    = 180;
 
     /**
      * Precedence for PostgreSQL's typecast operator '::'
      */
-    const PRECEDENCE_TYPECAST       = 19;
+    const PRECEDENCE_TYPECAST       = 190;
 
     /**
      * Precedence for base elements of expressions, see c_expr in original grammar
@@ -165,12 +165,14 @@ class SqlBuilderWalker implements TreeWalker
      * Returns the precedence for operator represented by given Node
      *
      * @param nodes\ScalarExpression $expression a node that can appear in scalar expression
+     * @param bool                   $right
      * @return integer
      */
-    protected function getPrecedence(nodes\ScalarExpression $expression)
+    protected function getPrecedence(nodes\ScalarExpression $expression, $right = false)
     {
         if ($expression instanceof nodes\expressions\BetweenExpression) {
-            return self::PRECEDENCE_BETWEEN;
+            return ($right && 'not' === substr($expression->operator, 0, 3))
+                   ? self::PRECEDENCE_NOT : self::PRECEDENCE_BETWEEN;
 
         } elseif ($expression instanceof nodes\expressions\CollateExpression) {
             return self::PRECEDENCE_COLLATE;
@@ -179,7 +181,7 @@ class SqlBuilderWalker implements TreeWalker
             return self::PRECEDENCE_IN;
 
         } elseif ($expression instanceof nodes\expressions\IsOfExpression) {
-            return self::PRECEDENCE_IS;
+            return self::PRECEDENCE_OLD_IS;
 
         } elseif ($expression instanceof nodes\expressions\LogicalExpression) {
             return 'or' === $expression->operator ? self::PRECEDENCE_OR : self::PRECEDENCE_AND;
@@ -190,11 +192,11 @@ class SqlBuilderWalker implements TreeWalker
                 return self::PRECEDENCE_NOT;
 
             case '=':
-                return self::PRECEDENCE_EQUALITY;
+                return self::PRECEDENCE_OLD_EQUALITY;
 
             case '<':
             case '>':
-                return self::PRECEDENCE_INEQUALITY;
+                return self::PRECEDENCE_OLD_INEQUALITY;
 
             case 'overlaps':
                 return self::PRECEDENCE_OVERLAPS;
@@ -211,7 +213,7 @@ class SqlBuilderWalker implements TreeWalker
             case 'is not document':
             case 'is distinct from':
             case 'is not distinct from':
-                return self::PRECEDENCE_IS;
+                return self::PRECEDENCE_OLD_IS;
 
             case '+':
             case '-':
@@ -235,7 +237,8 @@ class SqlBuilderWalker implements TreeWalker
             }
 
         } elseif ($expression instanceof nodes\expressions\PatternMatchingExpression) {
-            return self::PRECEDENCE_PATTERN;
+            return ($right && 'not' === substr($expression->operator, 0, 3))
+                   ? self::PRECEDENCE_NOT : self::PRECEDENCE_PATTERN;
 
         } elseif ($expression instanceof nodes\expressions\TypecastExpression) {
             return self::PRECEDENCE_TYPECAST;
@@ -314,7 +317,7 @@ class SqlBuilderWalker implements TreeWalker
     protected function argumentNeedsParentheses(
         nodes\ScalarExpression $argument, nodes\ScalarExpression $expression, $right = false
     ) {
-        $argumentPrecedence = $this->getPrecedence($argument);
+        $argumentPrecedence = $this->getPrecedence($argument, $right);
 
         if ($expression instanceof nodes\expressions\BetweenExpression) {
             return $argumentPrecedence < ($right ? self::PRECEDENCE_TYPECAST : $this->getPrecedence($expression));
