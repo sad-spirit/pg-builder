@@ -27,20 +27,14 @@ use sad_spirit\pg_builder\SqlBuilderWalker,
     sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression;
 
 /**
- * Tests for proper addition of parentheses using both 'compat' and 'current' settings
+ * Abstract base class for tests checking the proper addition of parentheses
+ *
+ * We use a base class with two subclasses to easily notice which building mode fails
  */
-class SqlBuilderParenthesesTest extends \PHPUnit_Framework_TestCase
+abstract class SqlBuilderParenthesesTest extends \PHPUnit_Framework_TestCase
 {
     /** @var SqlBuilderWalker */
-    protected $builderCompat;
-    /** @var SqlBuilderWalker */
-    protected $builderCurrent;
-
-    protected function setUp()
-    {
-        $this->builderCompat  = new SqlBuilderWalker(array('parentheses' => SqlBuilderWalker::PARENTHESES_COMPAT));
-        $this->builderCurrent = new SqlBuilderWalker(array('parentheses' => SqlBuilderWalker::PARENTHESES_CURRENT));
-    }
+    protected $builder;
 
     private function _normalizeWhitespace($string)
     {
@@ -53,43 +47,35 @@ class SqlBuilderParenthesesTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Checks that we always add parentheses if chains of comparison operators are used
+     *
+     * All comparison operators are non-associative in 9.5+ and have the same precedence,
+     * so chains without parentheses will always fail
+     *
      * @dataProvider chainedComparisonProvider
      * @param Node   $ast
      * @param string $expected
      */
     public function testChainedComparisonRequiresParentheses(Node $ast, $expected)
     {
-        $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builderCompat));
-        $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builderCurrent));
+        $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builder));
     }
 
     /**
-     * @dataProvider isPrecedenceProvider
+     * Checks that we add parentheses for IS SOMETHING arguments in 'compat' mode and don't add in 'current'
+     *
      * @param Node   $ast
      * @param string $expected
      */
-    public function testCompatParenthesesForIsPrecedenceChanges(Node $ast, $expected)
-    {
-        $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builderCompat));
-        $this->assertStringsEqualIgnoringWhitespace(
-            str_replace(array('(', ')'), '', $expected),
-            $ast->dispatch($this->builderCurrent)
-        );
-    }
+    abstract public function testCompatParenthesesForIsPrecedenceChanges(Node $ast, $expected);
 
     /**
-     * @dataProvider inequalityPrecedenceProvider
+     * Checks that 'compat' mode properly adds parentheses to expressions with non-strict inequalities
+     *
      * @param Node   $ast
      * @param string $expected
      */
-    public function testCompatParenthesesForInequalityPrecedenceChanges(Node $ast, $expected)
-    {
-        $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builderCompat));
-        $this->assertStringsEqualIgnoringWhitespace(
-            str_replace(array('(', ')'), '', $expected),
-            $ast->dispatch($this->builderCurrent)
-        );
-    }
+    abstract public function testCompatParenthesesForInequalityPrecedenceChanges(Node $ast, $expected);
 
     /**
      * Checks that generated queries do not trigger a bug in pre-9.5 Postgres if 'compat' setting is used
@@ -98,18 +84,10 @@ class SqlBuilderParenthesesTest extends \PHPUnit_Framework_TestCase
      * precedence, behaving like NOT with respect to their left operand but like
      * their base operator with respect to their right operand.
      *
-     * @dataProvider buggyNotPrecedenceProvider
      * @param Node $ast
      * @param $expected
      */
-    public function testCompatParenthesesForBuggyNotPrecedence(Node $ast, $expected)
-    {
-        $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builderCompat));
-        $this->assertStringsEqualIgnoringWhitespace(
-            str_replace(array('(', ')'), '', $expected),
-            $ast->dispatch($this->builderCurrent)
-        );
-    }
+    abstract public function testCompatParenthesesForBuggyNotPrecedence(Node $ast, $expected);
 
 
     public function chainedComparisonProvider()
