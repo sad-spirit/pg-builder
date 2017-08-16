@@ -38,6 +38,16 @@ class SqlBuilderWalker implements TreeWalker
     const PRECEDENCE_NOT            = 30;
 
     /**
+     * Precedence for various "IS <something>" operators in Postgres 9.5+
+     */
+    const PRECEDENCE_IS             = 40;
+
+    /**
+     * Precedence for comparison operators in Postgres 9.5+
+     */
+    const PRECEDENCE_COMPARISON     = 50;
+
+    /**
      * Precedence for equality operator '='
      */
     const PRECEDENCE_OLD_EQUALITY   = 40;
@@ -152,6 +162,22 @@ class SqlBuilderWalker implements TreeWalker
      */
     const PARENTHESES_CURRENT = 'current';
 
+    /**
+     * Setting returned by getAssociativity() for right-associative operators
+     */
+    const ASSOCIATIVE_RIGHT = 'right';
+
+    /**
+     * Setting returned by getAssociativity() for left-associative operators
+     */
+    const ASSOCIATIVE_LEFT  = 'left';
+
+    /**
+     * Setting returned by getAssociativity() for non-associative operators
+     */
+    const ASSOCIATIVE_NONE  = 'nonassoc';
+
+
     protected $indentLevel = 0;
 
     protected $options = array(
@@ -162,13 +188,13 @@ class SqlBuilderWalker implements TreeWalker
     );
 
     /**
-     * Returns the precedence for operator represented by given Node
+     * Returns the precedence for operator represented by given Node in pre-9.5 Postgres
      *
      * @param nodes\ScalarExpression $expression a node that can appear in scalar expression
      * @param bool                   $right
      * @return integer
      */
-    protected function getPrecedence(nodes\ScalarExpression $expression, $right = false)
+    protected function getPrecedenceCompat(nodes\ScalarExpression $expression, $right = false)
     {
         if ($expression instanceof nodes\expressions\BetweenExpression) {
             return ($right && 'not' === substr($expression->operator, 0, 3))
@@ -248,6 +274,81 @@ class SqlBuilderWalker implements TreeWalker
         }
     }
 
+
+    /**
+     * Returns the precedence for operator represented by given Node in Postgres 9.5+
+     *
+     * @param nodes\ScalarExpression $expression a node that can appear in scalar expression
+     * @return integer
+     */
+    protected function getPrecedence(nodes\ScalarExpression $expression)
+    {
+        if ($expression instanceof nodes\expressions\BetweenExpression) {
+            return self::PRECEDENCE_BETWEEN;
+
+        } elseif ($expression instanceof nodes\expressions\PatternMatchingExpression) {
+            return self::PRECEDENCE_PATTERN;
+
+        } elseif ($expression instanceof nodes\expressions\IsOfExpression) {
+            return self::PRECEDENCE_IS;
+
+        } elseif ($expression instanceof nodes\expressions\OperatorExpression) {
+            switch ($expression->operator) {
+            case 'not':
+                return self::PRECEDENCE_NOT;
+
+            case '=':
+            case '<':
+            case '>':
+            case '<=':
+            case '>=':
+            case '!=':
+            case '<>':
+                return self::PRECEDENCE_COMPARISON;
+
+            case 'overlaps':
+                return self::PRECEDENCE_OVERLAPS;
+
+            case 'is null':
+            case 'is not null':
+            case 'is true':
+            case 'is not true':
+            case 'is false':
+            case 'is not false':
+            case 'is unknown':
+            case 'is not unknown':
+            case 'is document':
+            case 'is not document':
+            case 'is distinct from':
+            case 'is not distinct from':
+                return self::PRECEDENCE_IS;
+
+            case '+':
+            case '-':
+                // if no left operand is present, then this is an unary variant with higher precedence
+                return $expression->left ? self::PRECEDENCE_ADDITION : self::PRECEDENCE_UNARY_MINUS;
+
+            case '*':
+            case '/':
+            case '%':
+                return self::PRECEDENCE_MULTIPLICATION;
+
+            case '^':
+                return self::PRECEDENCE_EXPONENTIATION;
+
+            case 'at time zone':
+                return self::PRECEDENCE_TIME_ZONE;
+
+            default:
+                // generic operator
+                return $expression->right ? self::PRECEDENCE_GENERIC_OP : self::PRECEDENCE_POSTFIX_OP;
+            }
+
+        } else {
+            return $this->getPrecedenceCompat($expression);
+        }
+    }
+
     /**
      * Returns the precedence for set operation represented by given Node
      *
@@ -291,12 +392,12 @@ class SqlBuilderWalker implements TreeWalker
     }
 
     /**
-     * Returns whether the given Node represents a right-associative operator
+     * Returns whether the given Node represents a right-associative operator in pre-9.5 Postgres
      *
      * @param nodes\ScalarExpression $expression a node that can appear in scalar expression
      * @return bool
      */
-    protected function isRightAssociative(nodes\ScalarExpression $expression)
+    protected function isRightAssociativeCompat(nodes\ScalarExpression $expression)
     {
         if (!($expression instanceof nodes\expressions\OperatorExpression)) {
             return false;
@@ -307,24 +408,58 @@ class SqlBuilderWalker implements TreeWalker
     }
 
     /**
-     * Checks whether an argument of expression should be parenthesized
+     * Returns associativity of operator represented by a given Node in Postgres 9.5+
+     *
+     * @param nodes\ScalarExpression $expression
+     * @return string
+     */
+    protected function getAssociativity(nodes\ScalarExpression $expression)
+    {
+        if ($expression instanceof nodes\expressions\TypecastExpression
+            || $expression instanceof nodes\expressions\CollateExpression
+            || $expression instanceof nodes\Indirection
+        ) {
+            return self::ASSOCIATIVE_LEFT;
+
+        } elseif ($expression instanceof nodes\expressions\OperatorExpression) {
+            if (!$expression->left && in_array($expression->operator, array('not', '+', '-'))) {
+                return self::ASSOCIATIVE_RIGHT;
+
+            } elseif (!in_array($expression->operator, array(
+                          '=', '<', '>', '<=', '>=', '!=', '<>',
+                          'overlaps', 'is null', 'is not null', 'is true', 'is not true',
+                          'is false', 'is not false', 'is unknown', 'is not unknown',
+                          'is document', 'is not document', 'is distinct from', 'is not distinct from'
+                      ))
+            ) {
+                return self::ASSOCIATIVE_LEFT;
+            }
+        }
+
+        return self::ASSOCIATIVE_NONE;
+    }
+
+    /**
+     * Checks whether an argument of expression should be parenthesized when requiring compatibility
      *
      * @param nodes\ScalarExpression $argument
      * @param nodes\ScalarExpression $expression
      * @param bool                   $right
      * @return bool
      */
-    protected function argumentNeedsParentheses(
+    protected function argumentNeedsParenthesesCompat(
         nodes\ScalarExpression $argument, nodes\ScalarExpression $expression, $right = false
     ) {
-        $argumentPrecedence = $this->getPrecedence($argument, $right);
+        $argumentPrecedence = $this->getPrecedenceCompat($argument, $right);
 
         if ($expression instanceof nodes\expressions\BetweenExpression) {
-            return $argumentPrecedence < ($right ? self::PRECEDENCE_TYPECAST : $this->getPrecedence($expression));
+            // to be on a safe side, wrap just about everything in parentheses, it is quite
+            // difficult to distinguish between a_expr and b_expr at this stage
+            return $argumentPrecedence < ($right ? self::PRECEDENCE_TYPECAST : $this->getPrecedenceCompat($expression));
 
         } elseif ($expression instanceof nodes\expressions\OperatorExpression) {
-            $rightAssociative = $this->isRightAssociative($expression);
-            $exprPrecedence   = $this->getPrecedence($expression);
+            $rightAssociative = $this->isRightAssociativeCompat($expression);
+            $exprPrecedence   = $this->getPrecedenceCompat($expression);
             if ($right) {
                 return $argumentPrecedence < $exprPrecedence
                     || !$rightAssociative && $argumentPrecedence === $exprPrecedence;
@@ -341,10 +476,49 @@ class SqlBuilderWalker implements TreeWalker
                                           && !$argument->operator));
 
         } elseif ($right) {
-            return $argumentPrecedence <= $this->getPrecedence($expression);
+            return $argumentPrecedence <= $this->getPrecedenceCompat($expression);
 
         } else {
-            return $argumentPrecedence < $this->getPrecedence($expression);
+            return $argumentPrecedence < $this->getPrecedenceCompat($expression);
+        }
+    }
+
+    /**
+     * Checks whether an argument of expression should be parenthesized in Postgres 9.5+
+     *
+     * @param nodes\ScalarExpression $argument
+     * @param nodes\ScalarExpression $expression
+     * @param bool                   $right
+     * @return bool
+     */
+    protected function argumentNeedsParentheses(
+        nodes\ScalarExpression $argument, nodes\ScalarExpression $expression, $right = false
+    ) {
+        $argumentPrecedence = $this->getPrecedence($argument);
+
+        if ($expression instanceof nodes\expressions\BetweenExpression) {
+            // to be on a safe side, wrap just about everything in parentheses, it is quite
+            // difficult to distinguish between a_expr and b_expr at this stage
+            return $argumentPrecedence < ($right ? self::PRECEDENCE_TYPECAST : $this->getPrecedence($expression));
+
+        } elseif ($expression instanceof nodes\Indirection) {
+            $isArray = $expression[0] instanceof nodes\ArrayIndexes;
+            return ($isArray && $argumentPrecedence < self::PRECEDENCE_ATOM)
+                    || (!$isArray && !($argument instanceof nodes\Parameter
+                                       || $argument instanceof nodes\expressions\SubselectExpression
+                                          && !$argument->operator));
+        }
+
+        $expressionPrecedence = $this->getPrecedence($expression);
+        switch ($this->getAssociativity($expression)) {
+        case self::ASSOCIATIVE_NONE:
+            return $argumentPrecedence <= $expressionPrecedence;
+        case self::ASSOCIATIVE_RIGHT:
+            return $argumentPrecedence < $expressionPrecedence
+                   || !$right && $argumentPrecedence === $expressionPrecedence;
+        case self::ASSOCIATIVE_LEFT:
+            return $argumentPrecedence < $expressionPrecedence
+                   || $right && $argumentPrecedence === $expressionPrecedence;
         }
     }
 
@@ -359,7 +533,9 @@ class SqlBuilderWalker implements TreeWalker
     protected function optionalParentheses(
         nodes\ScalarExpression $argument, nodes\ScalarExpression $expression, $right = false
     ) {
-        $needParens = $this->argumentNeedsParentheses($argument, $expression, $right);
+        $needParens = $this->argumentNeedsParentheses($argument, $expression, $right)
+                      || self::PARENTHESES_COMPAT === $this->options['parentheses']
+                         && $this->argumentNeedsParenthesesCompat($argument, $expression, $right);
 
         return ($needParens ? '(' : '') . $argument->dispatch($this) . ($needParens ? ')' : '');
     }
@@ -918,8 +1094,6 @@ class SqlBuilderWalker implements TreeWalker
         $sql = $this->optionalParentheses($expression->argument, $expression, false)
                . ' ' . $expression->operator . ' ';
 
-        // to be on a safe side, wrap just about everything in parentheses, it is quite
-        // difficult to distinguish between a_expr and b_expr at this stage
         $sql .= $this->optionalParentheses($expression->left, $expression, true)
                 . ' and '
                 . $this->optionalParentheses($expression->right, $expression, true);
