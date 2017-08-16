@@ -154,4 +154,61 @@ class WhereOrHavingClauseTest extends \PHPUnit_Framework_TestCase
             clone $where->condition
         );
     }
+
+    public function testExplicitOrExpressionsShouldBeAutoNestedInAnd()
+    {
+        $where = new WhereOrHavingClause();
+        $where->and_(new ColumnReference(array('foo')));
+        $where->and_(new LogicalExpression(
+            array(
+                new ColumnReference(array('bar')),
+                new ColumnReference(array('baz')),
+            ),
+            'or'
+        ));
+
+        $this->assertEquals(
+            new LogicalExpression(
+                array(
+                    new ColumnReference(array('foo')),
+                    new LogicalExpression(
+                        array(
+                            new ColumnReference(array('bar')),
+                            new ColumnReference(array('baz')),
+                        ),
+                        'or'
+                    )
+                ),
+                'and'
+            ),
+            clone $where->condition
+        );
+
+        $where = new WhereOrHavingClause();
+        $where->and_(new LogicalExpression(
+            array(
+                new ColumnReference(array('bar')),
+                new ColumnReference(array('baz')),
+            ),
+            'or'
+        ));
+        $where->and_(new ColumnReference(array('foo')));
+
+        $this->assertEquals(
+            new LogicalExpression(
+                array(
+                    new LogicalExpression(
+                        array(
+                            new ColumnReference(array('bar')),
+                            new ColumnReference(array('baz')),
+                        ),
+                        'or'
+                    ),
+                    new ColumnReference(array('foo'))
+                ),
+                'and'
+            ),
+            clone $where->condition
+        );
+    }
 }

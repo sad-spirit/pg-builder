@@ -81,18 +81,21 @@ class WhereOrHavingClause extends Node
      */
     public function and_($condition)
     {
+        $this->_normalizeCondition($condition, __METHOD__);
         if (!$this->props['condition']) {
-            if (!($condition instanceof self)) {
-                $this->setCondition($condition);
-            } else {
+            if ($condition instanceof self
+                || ($condition instanceof LogicalExpression && 'and' !== $condition->operator)
+            ) {
                 // nested condition, should always wrap in LogicalExpression
                 $this->setNamedProperty('condition', new LogicalExpression(
-                    array($condition->condition), 'and'
+                    array($condition instanceof self ? $condition->condition : $condition), 'and'
                 ));
+
+            } else {
+                $this->setNamedProperty('condition', $condition);
             }
 
         } else {
-            $this->_normalizeCondition($condition, __METHOD__);
             if (!($this->props['condition'] instanceof LogicalExpression)) {
                 $this->setNamedProperty('condition', new LogicalExpression(
                     array($this->props['condition']), 'and'
