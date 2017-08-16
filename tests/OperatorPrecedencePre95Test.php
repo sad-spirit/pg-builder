@@ -22,7 +22,7 @@ use sad_spirit\pg_builder\Parser;
 /**
  * Tests for parser using pre-Postgres 9.5 operator precedence
  */
-class Pre95OperatorPrecedenceTest extends OperatorPrecedenceTest
+class OperatorPrecedencePre95Test extends OperatorPrecedenceTest
 {
     public function setUp()
     {
