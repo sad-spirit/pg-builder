@@ -116,7 +116,17 @@ class StatementFactory
     public function getBuilder()
     {
         if (!$this->_builder) {
-            $this->_builder = new SqlBuilderWalker();
+            if (!$this->_connection) {
+                $serverVersion = '9.5.0';
+
+            } else {
+                $serverVersion = pg_parameter_status($this->_connection->getResource(), 'server_version');
+            }
+
+            $this->_builder = new SqlBuilderWalker(array(
+                'parentheses' => version_compare($serverVersion, '9.5.0', '>=')
+                                 ? SqlBuilderWalker::PARENTHESES_CURRENT : SqlBuilderWalker::PARENTHESES_COMPAT
+            ));
         }
         return $this->_builder;
     }
