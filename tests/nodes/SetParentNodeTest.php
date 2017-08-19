@@ -9,7 +9,7 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014 Alexey Borzov
+ * @copyright 2014-2017 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
@@ -62,6 +62,7 @@ use sad_spirit\pg_builder\Delete,
     sad_spirit\pg_builder\nodes\lists\TypeModifierList,
     sad_spirit\pg_builder\nodes\range\ColumnDefinition,
     sad_spirit\pg_builder\nodes\range\FunctionCall as RangeFunctionCall,
+    sad_spirit\pg_builder\nodes\range\InsertTarget,
     sad_spirit\pg_builder\nodes\range\JoinExpression,
     sad_spirit\pg_builder\nodes\range\RelationReference,
     sad_spirit\pg_builder\nodes\range\Subselect,
@@ -108,7 +109,7 @@ class SetParentNodeTest extends \PHPUnit_Framework_TestCase
 
     public function testInsertStatement()
     {
-        $insert = new Insert(new QualifiedName(array('foo', 'bar')));
+        $insert = new Insert(new InsertTarget(new QualifiedName(array('foo', 'bar'))));
 
         $this->assertSame($insert, $insert->relation->getParentNode());
         $this->assertSame($insert, $insert->cols->getParentNode());

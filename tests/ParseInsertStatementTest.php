@@ -9,7 +9,7 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014 Alexey Borzov
+ * @copyright 2014-2017 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
@@ -34,6 +34,7 @@ use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\nodes\ArrayIndexes,
     sad_spirit\pg_builder\nodes\lists\IdentifierList,
     sad_spirit\pg_builder\nodes\lists\TargetList,
+    sad_spirit\pg_builder\nodes\range\InsertTarget,
     sad_spirit\pg_builder\nodes\range\RelationReference;
 
 /**
@@ -53,9 +54,9 @@ class ParseInsertStatementTest extends \PHPUnit_Framework_TestCase
 
     public function testInsertDefaultValues()
     {
-        $parsed = $this->parser->parseStatement("insert into foo default values");
+        $parsed = $this->parser->parseStatement("insert into foo as bar default values");
 
-        $built = new Insert(new QualifiedName(array('foo')));
+        $built = new Insert(new InsertTarget(new QualifiedName(array('foo')), new Identifier('bar')));
 
         $this->assertEquals($built, $parsed);
     }
@@ -69,7 +70,7 @@ with foo (id) as (
 bar (blah) as (
     select somebar from basebar
 )
-insert into baz (one, two[1])
+insert into baz as bzzz (one, two[1])
 select id, blah
 from foo, bar
 where id < blah
@@ -77,7 +78,7 @@ returning *
 QRY
         );
 
-        $built = new Insert(new QualifiedName(array('baz')));
+        $built = new Insert(new InsertTarget(new QualifiedName(array('baz')), new Identifier('bzzz')));
         $built->cols->replace(array(
             new SetTargetElement(new Identifier('one')),
             new SetTargetElement(new Identifier('two'), array(new ArrayIndexes(new Constant(1))))

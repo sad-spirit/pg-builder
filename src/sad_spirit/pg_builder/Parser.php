@@ -44,6 +44,7 @@ use sad_spirit\pg_wrapper\MetadataCache;
  * @method nodes\LockingElement          parseLockingElement($input)
  * @method nodes\lists\LockList          parseLockingList($input)
  * @method nodes\range\RelationReference parseRelationExpressionOptAlias($input)
+ * @method nodes\range\InsertTarget      parseInsertTarget($input)
  * @method nodes\QualifiedName           parseQualifiedName($input)
  * @method nodes\lists\SetTargetList     parseSetClause($input)
  * @method nodes\SetTargetElement        parseSingleSetClause($input)
@@ -100,6 +101,7 @@ class Parser
         'lockinglist'                => true,
         'lockingelement'             => true,
         'relationexpressionoptalias' => true,
+        'inserttarget'               => true,
         'qualifiedname'              => true,
         'setclause'                  => true, // for UPDATE
         'singlesetclause'            => true, // for UPDATE
@@ -635,7 +637,7 @@ class Parser
         $this->stream->expect(Token::TYPE_KEYWORD, 'insert');
         $this->stream->expect(Token::TYPE_KEYWORD, 'into');
 
-        $stmt = new Insert($this->QualifiedName());
+        $stmt = new Insert($this->InsertTarget());
         if (!empty($withClause)) {
             $stmt->with = $withClause;
         }
@@ -3200,6 +3202,20 @@ class Parser
     protected function RelationExpressionOptAlias()
     {
         return $this->RelationExpression('delete');
+    }
+
+    protected function InsertTarget()
+    {
+        $name  = $this->QualifiedName();
+        $alias = null;
+
+        // AS is required for aliases in INSERT
+        if ($this->stream->matches(Token::TYPE_KEYWORD, 'as')) {
+            $this->stream->next();
+            $alias = $this->ColId();
+        }
+
+        return new nodes\range\InsertTarget($name, $alias);
     }
 
     protected function RelationExpression($statementType = 'select')

@@ -9,7 +9,7 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014 Alexey Borzov
+ * @copyright 2014-2017 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
@@ -33,6 +33,7 @@ use sad_spirit\pg_wrapper\Connection,
     sad_spirit\pg_builder\nodes\lists\FromList,
     sad_spirit\pg_builder\nodes\lists\SetTargetList,
     sad_spirit\pg_builder\nodes\lists\TargetList,
+    sad_spirit\pg_builder\nodes\range\InsertTarget,
     sad_spirit\pg_builder\nodes\range\RelationReference;
 
 /**
@@ -94,13 +95,16 @@ class StatementFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $factory = new StatementFactory();
 
-        $insert   = $factory->insert('someschema.target');
-        $relation = new QualifiedName(array('someschema', 'target'));
-        $this->assertEquals($relation, clone $insert->relation);
+        $insert   = $factory->insert('someschema.target as aliaz');
+        $target   = new InsertTarget(
+            new QualifiedName(array('someschema', 'target')),
+            new Identifier('aliaz')
+        );
+        $this->assertEquals($target, clone $insert->relation);
         $this->assertAttributeSame($factory->getParser(), '_parser', $insert);
 
-        $insert2 = $factory->insert($relation);
-        $this->assertSame($relation, $insert2->relation);
+        $insert2 = $factory->insert($target);
+        $this->assertSame($target, $insert2->relation);
     }
 
     public function testCreateSelectStatement()

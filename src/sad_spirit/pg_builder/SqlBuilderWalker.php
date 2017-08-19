@@ -1406,6 +1406,18 @@ class SqlBuilderWalker implements TreeWalker
                . $this->getFromItemAliases($rangeItem);
     }
 
+    public function walkInsertTarget(nodes\range\InsertTarget $target)
+    {
+        $sql = $target->relation->dispatch($this);
+
+        if ($target->alias) {
+            $sql .= ' as ' . $target->alias->dispatch($this);
+        }
+
+        return $sql;
+    }
+
+
     public function walkXmlElement(nodes\xml\XmlElement $xml)
     {
         $sql = 'xmlelement(name ' . $xml->name->dispatch($this);

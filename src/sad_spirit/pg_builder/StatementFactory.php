@@ -9,7 +9,7 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014 Alexey Borzov
+ * @copyright 2014-2017 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
@@ -186,15 +186,17 @@ class StatementFactory
     /**
      * Creates an INSERT statement object
      *
-     * @param string|nodes\QualifiedName $into
+     * @param string|nodes\QualifiedName|nodes\range\InsertTarget $into
      * @return Insert
      */
     public function insert($into)
     {
-        if ($into instanceof nodes\QualifiedName) {
+        if ($into instanceof nodes\range\InsertTarget) {
             $relation = $into;
+        } elseif ($into instanceof nodes\QualifiedName) {
+            $relation = new nodes\range\InsertTarget($into);
         } else {
-            $relation = $this->getParser()->parseQualifiedName($into);
+            $relation = $this->getParser()->parseInsertTarget($into);
         }
 
         $insert = new Insert($relation);

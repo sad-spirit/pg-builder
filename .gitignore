@@ -1,3 +1,5 @@
 .idea/
 cache/
 tests/config.php
+/vendor
+composer.lock
