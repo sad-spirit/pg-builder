@@ -133,6 +133,8 @@ interface TreeWalker
 
     public function walkInsertTarget(nodes\range\InsertTarget $target);
 
+    public function walkUpdateOrDeleteTarget(nodes\range\UpdateOrDeleteTarget $target);
+
 
     public function walkXmlElement(nodes\xml\XmlElement $xml);
 

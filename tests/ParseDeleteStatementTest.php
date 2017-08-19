@@ -9,7 +9,7 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014 Alexey Borzov
+ * @copyright 2014-2017 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
@@ -31,7 +31,8 @@ use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\nodes\Identifier,
     sad_spirit\pg_builder\nodes\lists\IdentifierList,
     sad_spirit\pg_builder\nodes\lists\TargetList,
-    sad_spirit\pg_builder\nodes\range\RelationReference;
+    sad_spirit\pg_builder\nodes\range\RelationReference,
+    sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
 
 /**
  * Tests parsing all possible parts of DELETE statement
@@ -61,7 +62,7 @@ returning *
 QRY
         );
 
-        $built = new Delete(new RelationReference(new QualifiedName(array('bar'))));
+        $built = new Delete(new UpdateOrDeleteTarget(new QualifiedName(array('bar'))));
         $built->using->merge(array(
             new RelationReference(new QualifiedName(array('foo')))
         ));

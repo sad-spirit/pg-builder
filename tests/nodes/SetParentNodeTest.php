@@ -66,6 +66,7 @@ use sad_spirit\pg_builder\Delete,
     sad_spirit\pg_builder\nodes\range\JoinExpression,
     sad_spirit\pg_builder\nodes\range\RelationReference,
     sad_spirit\pg_builder\nodes\range\Subselect,
+    sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget,
     sad_spirit\pg_builder\nodes\xml\XmlElement,
     sad_spirit\pg_builder\nodes\xml\XmlParse,
     sad_spirit\pg_builder\nodes\xml\XmlPi,
@@ -91,7 +92,7 @@ class SetParentNodeTest extends \PHPUnit_Framework_TestCase
 
     public function testDeleteStatement()
     {
-        $delete = new Delete(new RelationReference(new QualifiedName(array('foo', 'bar'))));
+        $delete = new Delete(new UpdateOrDeleteTarget(new QualifiedName(array('foo', 'bar'))));
 
         $this->assertSame($delete, $delete->relation->getParentNode());
         $this->assertSame($delete, $delete->using->getParentNode());
@@ -169,7 +170,7 @@ class SetParentNodeTest extends \PHPUnit_Framework_TestCase
     public function testUpdateStatement()
     {
         $update = new Update(
-            new RelationReference(new QualifiedName(array('foo', 'bar'))),
+            new UpdateOrDeleteTarget(new QualifiedName(array('foo', 'bar'))),
             new SetTargetList(array(new SetTargetElement(new Identifier('baz'), array(), new Constant('quux'))))
         );
 

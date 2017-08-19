@@ -29,33 +29,33 @@ use sad_spirit\pg_wrapper\MetadataCache;
  * more are available to facilitate parsing of expression parts rather than complete
  * SQL statements.
  *
- * @method Statement                     parseStatement($input)
- * @method SelectCommon                  parseSelectStatement($input)
- * @method nodes\lists\ExpressionList    parseExpressionList($input)
- * @method nodes\ScalarExpression        parseExpression($input)
- * @method nodes\lists\TargetList        parseTargetList($input)
- * @method nodes\TargetElement           parseTargetElement($input)
- * @method nodes\lists\FromList          parseFromList($input)
- * @method nodes\range\FromElement       parseFromElement($input)
- * @method nodes\lists\OrderByList       parseOrderByList($input)
- * @method nodes\OrderByElement          parseOrderByElement($input)
- * @method nodes\lists\WindowList        parseWindowList($input)
- * @method nodes\WindowDefinition        parseWindowDefinition($input)
- * @method nodes\LockingElement          parseLockingElement($input)
- * @method nodes\lists\LockList          parseLockingList($input)
- * @method nodes\range\RelationReference parseRelationExpressionOptAlias($input)
- * @method nodes\range\InsertTarget      parseInsertTarget($input)
- * @method nodes\QualifiedName           parseQualifiedName($input)
- * @method nodes\lists\SetTargetList     parseSetClause($input)
- * @method nodes\SetTargetElement        parseSingleSetClause($input)
- * @method nodes\lists\SetTargetList     parseInsertTargetList($input)
- * @method nodes\SetTargetElement        parseSetTargetElement($input)
- * @method nodes\lists\CtextRowList      parseCtextRowList($input)
- * @method nodes\lists\CtextRow          parseCtextRow($input)
- * @method nodes\ScalarExpression        parseExpressionWithDefault($input)
- * @method nodes\WithClause              parseWithClause($input)
- * @method nodes\CommonTableExpression   parseCommonTableExpression($input)
- * @method nodes\lists\IdentifierList    parseColIdList($input)
+ * @method Statement                        parseStatement($input)
+ * @method SelectCommon                     parseSelectStatement($input)
+ * @method nodes\lists\ExpressionList       parseExpressionList($input)
+ * @method nodes\ScalarExpression           parseExpression($input)
+ * @method nodes\lists\TargetList           parseTargetList($input)
+ * @method nodes\TargetElement              parseTargetElement($input)
+ * @method nodes\lists\FromList             parseFromList($input)
+ * @method nodes\range\FromElement          parseFromElement($input)
+ * @method nodes\lists\OrderByList          parseOrderByList($input)
+ * @method nodes\OrderByElement             parseOrderByElement($input)
+ * @method nodes\lists\WindowList           parseWindowList($input)
+ * @method nodes\WindowDefinition           parseWindowDefinition($input)
+ * @method nodes\LockingElement             parseLockingElement($input)
+ * @method nodes\lists\LockList             parseLockingList($input)
+ * @method nodes\range\UpdateOrDeleteTarget parseRelationExpressionOptAlias($input)
+ * @method nodes\range\InsertTarget         parseInsertTarget($input)
+ * @method nodes\QualifiedName              parseQualifiedName($input)
+ * @method nodes\lists\SetTargetList        parseSetClause($input)
+ * @method nodes\SetTargetElement           parseSingleSetClause($input)
+ * @method nodes\lists\SetTargetList        parseInsertTargetList($input)
+ * @method nodes\SetTargetElement           parseSetTargetElement($input)
+ * @method nodes\lists\CtextRowList         parseCtextRowList($input)
+ * @method nodes\lists\CtextRow             parseCtextRow($input)
+ * @method nodes\ScalarExpression           parseExpressionWithDefault($input)
+ * @method nodes\WithClause                 parseWithClause($input)
+ * @method nodes\CommonTableExpression      parseCommonTableExpression($input)
+ * @method nodes\lists\IdentifierList       parseColIdList($input)
  */
 class Parser
 {
@@ -3241,11 +3241,15 @@ class Parser
             $inherit = true;
         }
 
-        $expression = new nodes\range\RelationReference($name, $inherit);
-        if ('select' === $statementType && ($alias = $this->OptionalAliasClause())) {
-            $expression->setAlias($alias[0], $alias[1]);
-        } elseif ('select' !== $statementType && ($alias = $this->DMLAliasClause($statementType))) {
-            $expression->setAlias($alias);
+        if ('select' !== $statementType) {
+            $expression = new nodes\range\UpdateOrDeleteTarget(
+                $name, $this->DMLAliasClause($statementType), $inherit
+            );
+        } else {
+            $expression = new nodes\range\RelationReference($name, $inherit);
+            if ($alias = $this->OptionalAliasClause()) {
+                $expression->setAlias($alias[0], $alias[1]);
+            }
         }
 
         return $expression;

@@ -1417,6 +1417,19 @@ class SqlBuilderWalker implements TreeWalker
         return $sql;
     }
 
+    public function walkUpdateOrDeleteTarget(nodes\range\UpdateOrDeleteTarget $target)
+    {
+        $sql = (false === $target->inherit ? 'only ' : '')
+               . $target->relation->dispatch($this)
+               . (true === $target->inherit ? ' *' : '');
+
+        if ($target->alias) {
+            $sql .= ' as ' . $target->alias->dispatch($this);
+        }
+
+        return $sql;
+    }
+
 
     public function walkXmlElement(nodes\xml\XmlElement $xml)
     {

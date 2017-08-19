@@ -166,12 +166,12 @@ class StatementFactory
     /**
      * Creates a DELETE statement object
      *
-     * @param string|nodes\range\RelationReference $from
+     * @param string|nodes\range\UpdateOrDeleteTarget $from
      * @return Delete
      */
     public function delete($from)
     {
-        if ($from instanceof nodes\range\RelationReference) {
+        if ($from instanceof nodes\range\UpdateOrDeleteTarget) {
             $relation = $from;
         } else {
             $relation = $this->getParser()->parseRelationExpressionOptAlias($from);
@@ -240,13 +240,13 @@ class StatementFactory
     /**
      * Creates an UPDATE statement object
      *
-     * @param string|nodes\range\RelationReference   $table
-     * @param string|array|nodes\lists\SetTargetList $set
+     * @param string|nodes\range\UpdateOrDeleteTarget $table
+     * @param string|array|nodes\lists\SetTargetList  $set
      * @return Update
      */
     public function update($table, $set)
     {
-        if ($table instanceof nodes\range\RelationReference) {
+        if ($table instanceof nodes\range\UpdateOrDeleteTarget) {
             $relation = $table;
         } else {
             $relation = $this->getParser()->parseRelationExpressionOptAlias($table);

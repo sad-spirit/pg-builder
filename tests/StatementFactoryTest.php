@@ -34,7 +34,8 @@ use sad_spirit\pg_wrapper\Connection,
     sad_spirit\pg_builder\nodes\lists\SetTargetList,
     sad_spirit\pg_builder\nodes\lists\TargetList,
     sad_spirit\pg_builder\nodes\range\InsertTarget,
-    sad_spirit\pg_builder\nodes\range\RelationReference;
+    sad_spirit\pg_builder\nodes\range\RelationReference,
+    sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
 
 /**
  * Unit test for StatementFactory class
@@ -82,8 +83,9 @@ class StatementFactoryTest extends \PHPUnit_Framework_TestCase
         $factory = new StatementFactory();
 
         $delete   = $factory->delete('only foo as bar');
-        $relation = new RelationReference(new QualifiedName(array('foo')), false);
-        $relation->setAlias(new Identifier('bar'));
+        $relation = new UpdateOrDeleteTarget(
+            new QualifiedName(array('foo')), new Identifier('bar'),false
+        );
         $this->assertEquals($relation, clone $delete->relation);
         $this->assertAttributeSame($factory->getParser(), '_parser', $delete);
 
@@ -142,8 +144,9 @@ class StatementFactoryTest extends \PHPUnit_Framework_TestCase
         $factory = new StatementFactory();
 
         $update   = $factory->update('someschema.foo as bar', 'blah = default, blahblah = 42');
-        $relation = new RelationReference(new QualifiedName(array('someschema', 'foo')));
-        $relation->setAlias(new Identifier('bar'));
+        $relation = new UpdateOrDeleteTarget(
+            new QualifiedName(array('someschema', 'foo')), new Identifier('bar')
+        );
         $targetList = new SetTargetList(array(
             new SetTargetElement(new Identifier('blah'), array(), new SetToDefault()),
             new SetTargetElement(new Identifier('blahblah'), array(), new Constant(42))

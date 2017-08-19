@@ -423,6 +423,8 @@ class ParameterWalker implements TreeWalker
 
     public function walkInsertTarget(nodes\range\InsertTarget $target) { /* No Parameters here */ }
 
+    public function walkUpdateOrDeleteTarget(nodes\range\UpdateOrDeleteTarget $target) { /* No Parameters here */ }
+
 
     public function walkXmlElement(nodes\xml\XmlElement $xml)
     {

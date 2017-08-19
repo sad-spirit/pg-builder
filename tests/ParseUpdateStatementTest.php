@@ -9,7 +9,7 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014 Alexey Borzov
+ * @copyright 2014-2017 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
@@ -36,7 +36,8 @@ use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\nodes\lists\IdentifierList,
     sad_spirit\pg_builder\nodes\lists\SetTargetList,
     sad_spirit\pg_builder\nodes\lists\TargetList,
-    sad_spirit\pg_builder\nodes\range\RelationReference;
+    sad_spirit\pg_builder\nodes\range\RelationReference,
+    sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
 
 /**
  * Tests parsing all possible parts of UPDATE statement
@@ -60,7 +61,7 @@ class ParseUpdateStatementTest extends \PHPUnit_Framework_TestCase
 QRY
         );
         $update = new Update(
-            new RelationReference(new QualifiedName(array('foo'))),
+            new UpdateOrDeleteTarget(new QualifiedName(array('foo')), new Identifier('bar')),
             new SetTargetList(array(
                 new SetTargetElement(
                     new Identifier('blah'),
@@ -84,7 +85,6 @@ QRY
                 )
             ))
         );
-        $update->relation->setAlias(new Identifier('bar'));
 
         $this->assertEquals($update, $parsed);
     }
@@ -96,7 +96,7 @@ QRY
 QRY
         );
         $update = new Update(
-            new RelationReference(new QualifiedName(array('foo'))),
+            new UpdateOrDeleteTarget(new QualifiedName(array('foo'))),
             new SetTargetList(array(
                 new SetTargetElement(new Identifier('set'), array(), new Constant('set'))
             ))
@@ -120,7 +120,7 @@ QRY
         );
 
         $built = new Update(
-            new RelationReference(new QualifiedName(array('bar'))),
+            new UpdateOrDeleteTarget(new QualifiedName(array('bar'))),
             new SetTargetList(array(
                 new SetTargetElement(new Identifier('blah'), array(), new ColumnReference(array('foo', 'blah')))
             ))
