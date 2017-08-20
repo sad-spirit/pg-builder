@@ -95,7 +95,7 @@ on conflict (id, (name || surname) collate "zz_ZZ" asc nulls last) where not ble
 returning *
 QRY
         );
-        $built = $parsed->dispatch($this->builder);echo $built;
+        $built = $parsed->dispatch($this->builder);
         $this->assertEquals(
             $parsed, $this->parser->parseStatement($built),
             'AST of the built statement should be equal to that of the original statement'
