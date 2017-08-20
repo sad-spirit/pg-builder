@@ -19,15 +19,18 @@ namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_builder\nodes\lists\TargetList,
     sad_spirit\pg_builder\nodes\lists\SetTargetList,
-    sad_spirit\pg_builder\nodes\range\InsertTarget;
+    sad_spirit\pg_builder\nodes\range\InsertTarget,
+    sad_spirit\pg_builder\nodes\OnConflictClause,
+    sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * AST node representing INSERT statement
  *
- * @property-read InsertTarget  $relation
- * @property-read SetTargetList $cols
- * @property      SelectCommon  $values
- * @property-read TargetList    $returning
+ * @property-read InsertTarget      $relation
+ * @property      SetTargetList     $cols
+ * @property      SelectCommon      $values
+ * @property      OnConflictClause  $onConflict
+ * @property      TargetList        $returning
  */
 class Insert extends Statement
 {
@@ -36,9 +39,10 @@ class Insert extends Statement
         parent::__construct();
 
         $this->setNamedProperty('relation', $relation);
-        $this->props['cols']      = new SetTargetList();
-        $this->props['values']    = null;
-        $this->props['returning'] = new TargetList();
+        $this->props['cols']       = new SetTargetList();
+        $this->props['values']     = null;
+        $this->props['returning']  = new TargetList();
+        $this->props['onConflict'] = null;
 
         $this->props['cols']->setParentNode($this);
         $this->props['returning']->setParentNode($this);
@@ -47,6 +51,23 @@ class Insert extends Statement
     public function setValues(SelectCommon $values = null)
     {
         $this->setNamedProperty('values', $values);
+    }
+
+    public function setOnConflict($onConflict = null)
+    {
+        if (is_string($onConflict)) {
+            if (!($parser = $this->getParser())) {
+                throw new InvalidArgumentException("Passed a string as ON CONFLICT clause without a Parser available");
+            }
+            $onConflict = $parser->parseOnConflict($onConflict);
+        }
+        if (null !== $onConflict && !($onConflict instanceof OnConflictClause)) {
+            throw new InvalidArgumentException(sprintf(
+                '%s expects an instance of OnConflictClause, %s given',
+                __METHOD__, is_object($onConflict) ? 'object(' . get_class($onConflict) . ')' : gettype($onConflict)
+            ));
+        }
+        $this->setNamedProperty('onConflict', $onConflict);
     }
 
     public function dispatch(TreeWalker $walker)

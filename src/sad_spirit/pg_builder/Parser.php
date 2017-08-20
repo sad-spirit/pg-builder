@@ -56,6 +56,9 @@ use sad_spirit\pg_wrapper\MetadataCache;
  * @method nodes\WithClause                 parseWithClause($input)
  * @method nodes\CommonTableExpression      parseCommonTableExpression($input)
  * @method nodes\lists\IdentifierList       parseColIdList($input)
+ * @method nodes\OnConflictClause           parseOnConflict($input)
+ * @method nodes\IndexParameters            parseIndexParameters($input)
+ * @method nodes\IndexElement               parseIndexElement($input)
  */
 class Parser
 {
@@ -112,7 +115,10 @@ class Parser
         'expressionwithdefault'      => true,
         'withclause'                 => true,
         'commontableexpression'      => true,
-        'colidlist'                  => true
+        'colidlist'                  => true,
+        'indexparameters'            => true,
+        'indexelement'               => true,
+        'onconflict'                 => true
     );
 
     /**
@@ -654,6 +660,11 @@ class Parser
                 $stmt->cols->merge($cols);
             }
             $stmt->values = $this->SelectStatement();
+        }
+
+        if ($this->stream->matchesSequence(array('on', 'conflict'))) {
+            $this->stream->skip(2);
+            $stmt->onConflict = $this->OnConflict();
         }
 
         if ($this->stream->matches(Token::TYPE_KEYWORD, 'returning')) {
@@ -3400,5 +3411,101 @@ class Parser
         }
 
         return new nodes\OrderByElement($expression, $direction, $nullsOrder, $operator);
+    }
+
+    protected function OnConflict()
+    {
+        $target = $set = $condition = null;
+        if ($this->stream->matchesSequence(array('on', 'constraint'))) {
+            $this->stream->skip(2);
+            $target = $this->ColId();
+
+        } elseif ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+            $target = $this->IndexParameters();
+        }
+
+        $this->stream->expect(Token::TYPE_KEYWORD, 'do');
+        if ('update' === ($action = $this->stream->expect(Token::TYPE_KEYWORD, array('update', 'nothing'))->getValue())) {
+            $this->stream->expect(Token::TYPE_KEYWORD, 'set');
+            $set = $this->SetClause();
+            if ($this->stream->matches(Token::TYPE_KEYWORD, 'where')) {
+                $this->stream->next();
+                $condition = $this->Expression();
+            }
+        }
+
+        return new nodes\OnConflictClause($action, $target, $set, $condition);
+    }
+
+    protected function IndexParameters()
+    {
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+
+        $items = new nodes\IndexParameters(array($this->IndexElement()));
+        while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
+            $this->stream->next();
+            $items[] = $this->IndexElement();
+        }
+
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+        if ($this->stream->matches(Token::TYPE_KEYWORD, 'where')) {
+            $this->stream->next();
+            $items->where->condition = $this->Expression();
+        }
+
+        return $items;
+    }
+
+
+    protected function IndexElement()
+    {
+        if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+            $this->stream->next();
+            $expression = $this->Expression();
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+        } elseif ($this->_matchesFunctionCall()) {
+            if (null === ($function = $this->SpecialFunctionCall())) {
+                $function = $this->GenericFunctionCall();
+            }
+            $expression = new nodes\expressions\FunctionExpression(
+                is_object($function->name) ? clone $function->name : $function->name,
+                clone $function->arguments, $function->distinct, $function->variadic,
+                clone $function->order
+            );
+
+        } else {
+            $expression = $this->ColId();
+        }
+
+        $collation = $opClass = $direction = $nullsOrder = null;
+
+        if ($this->stream->matches(Token::TYPE_KEYWORD, 'collate')) {
+            $this->stream->next();
+            $collation = $this->QualifiedName();
+        }
+
+        if ($this->stream->matches(Token::TYPE_KEYWORD, 'using')) {
+            $this->stream->next();
+            $opClass = $this->QualifiedName();
+
+        } elseif ($this->stream->matches(Token::TYPE_IDENTIFIER)
+                  || $this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
+                  || $this->stream->matches(Token::TYPE_COL_NAME_KEYWORD)
+        ) {
+            $opClass = $this->QualifiedName();
+        }
+
+        if ($this->stream->matches(Token::TYPE_KEYWORD, array('asc', 'desc'))) {
+            $direction = $this->stream->next()->getValue();
+        }
+
+        if ($this->stream->matches(Token::TYPE_KEYWORD, 'nulls')) {
+            $this->stream->next();
+            $nullsOrder = $this->stream->expect(Token::TYPE_KEYWORD, array('first', 'last'))->getValue();
+        }
+
+        return new nodes\IndexElement($expression, $collation, $opClass, $direction, $nullsOrder);
     }
 }

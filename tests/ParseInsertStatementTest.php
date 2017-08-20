@@ -32,7 +32,11 @@ use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\nodes\SetTargetElement,
     sad_spirit\pg_builder\nodes\Identifier,
     sad_spirit\pg_builder\nodes\ArrayIndexes,
+    sad_spirit\pg_builder\nodes\OnConflictClause,
+    sad_spirit\pg_builder\nodes\IndexElement,
+    sad_spirit\pg_builder\nodes\IndexParameters,
     sad_spirit\pg_builder\nodes\lists\IdentifierList,
+    sad_spirit\pg_builder\nodes\lists\SetTargetList,
     sad_spirit\pg_builder\nodes\lists\TargetList,
     sad_spirit\pg_builder\nodes\range\InsertTarget,
     sad_spirit\pg_builder\nodes\range\RelationReference;
@@ -74,6 +78,7 @@ insert into baz as bzzz (one, two[1])
 select id, blah
 from foo, bar
 where id < blah
+on conflict do nothing
 returning *
 QRY
         );
@@ -84,6 +89,7 @@ QRY
             new SetTargetElement(new Identifier('two'), array(new ArrayIndexes(new Constant(1))))
         ));
         $built->returning->replace(array(new Star()));
+        $built->onConflict = new OnConflictClause('nothing');
 
         $foo = new Select(new TargetList(array(
             new TargetElement(new ColumnReference(array('somefoo')))
@@ -117,5 +123,80 @@ QRY
         );
 
         $this->assertEquals($built, $parsed);
+    }
+
+    /**
+     * @dataProvider onConflictClauseProvider
+     * @param string           $sql
+     * @param OnConflictClause $expected
+     */
+    public function testParseOnConflictClause($sql, OnConflictClause $expected)
+    {
+        $this->assertEquals($expected, $this->parser->parseOnConflict($sql));
+    }
+
+    public function onConflictClauseProvider()
+    {
+        // directly from Postgres docs on the clause
+        return array(
+            array(
+                '(did) DO UPDATE SET dname = EXCLUDED.dname',
+                new OnConflictClause(
+                    'update',
+                    new IndexParameters(array(
+                        new IndexElement(new Identifier('did'))
+                    )),
+                    new SetTargetList(array(
+                        new SetTargetElement(
+                            new Identifier('dname'),
+                            array(),
+                            new ColumnReference(array('excluded', 'dname'))
+                        )
+                    ))
+                )
+            ),
+            array(
+                '(did) DO UPDATE
+                 SET dname = EXCLUDED.dname || \' (formerly \' || d.dname || \')\'
+                 WHERE d.zipcode <> \'21201\'',
+                new OnConflictClause(
+                    'update',
+                    new IndexParameters(array(
+                        new IndexElement(new Identifier('did'))
+                    )),
+                    new SetTargetList(array(
+                        new SetTargetElement(
+                            new Identifier('dname'),
+                            array(),
+                            new OperatorExpression(
+                                '||',
+                                new OperatorExpression(
+                                    '||',
+                                    new OperatorExpression(
+                                        '||',
+                                        new ColumnReference(array('excluded', 'dname')),
+                                        new Constant(" (formerly ")
+                                    ),
+                                    new ColumnReference(array('d', 'dname'))
+                                ),
+                                new Constant(")")
+                            )
+                        )
+                    )),
+                    new OperatorExpression(
+                        '<>',
+                        new ColumnReference(array('d', 'zipcode')),
+                        new Constant("21201")
+                    )
+                )
+            ),
+            array(
+                'ON CONSTRAINT distributors_pkey DO NOTHING',
+                new OnConflictClause(
+                    'nothing',
+                    new Identifier('distributors_pkey')
+                )
+            )
+        );
     }
 }
