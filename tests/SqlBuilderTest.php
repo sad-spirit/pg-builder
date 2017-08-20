@@ -9,7 +9,7 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014 Alexey Borzov
+ * @copyright 2014-2017 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
@@ -88,10 +88,14 @@ insert into blah.blah
 values
     (default, 'foo', (select somefoo from foobar where idfoo = 1)),
     (-1, 'blah', 'duh-huh')
+on conflict (id, (name || surname) collate "zz_ZZ" asc nulls last) where not blergh do update
+    set name = excluded.name,
+        surname = excluded.surname || ' (formerly ' || blah.surname || ')'
+    where something is distinct from anything
 returning *
 QRY
         );
-        $built = $parsed->dispatch($this->builder);
+        $built = $parsed->dispatch($this->builder);echo $built;
         $this->assertEquals(
             $parsed, $this->parser->parseStatement($built),
             'AST of the built statement should be equal to that of the original statement'

@@ -459,4 +459,25 @@ class ParameterWalker implements TreeWalker
     {
         $xml->argument->dispatch($this);
     }
+
+    public function walkOnConflictClause(nodes\OnConflictClause $onConflict)
+    {
+        // Not sure whether IndexParameters may actually contain placeholders...
+        if ($onConflict->target) {
+            $onConflict->target->dispatch($this);
+        }
+        $onConflict->set->dispatch($this);
+        $onConflict->where->dispatch($this);
+    }
+
+    public function walkIndexParameters(nodes\IndexParameters $parameters)
+    {
+        $parameters->where->dispatch($this);
+        $this->walkGenericNodeList($parameters);
+    }
+
+    public function walkIndexElement(nodes\IndexElement $element)
+    {
+        $element->expression->dispatch($this);
+    }
 }

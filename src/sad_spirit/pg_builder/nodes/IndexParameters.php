@@ -34,6 +34,13 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList,
  */
 class IndexParameters extends NonAssociativeList implements Parseable, ElementParseable
 {
+    public function __construct($array = null)
+    {
+        parent::__construct($array);
+        $this->props['where'] = new WhereOrHavingClause();
+        $this->props['where']->setParentNode($this);
+    }
+
     protected function normalizeElement(&$offset, &$value)
     {
         parent::normalizeElement($offset, $value);

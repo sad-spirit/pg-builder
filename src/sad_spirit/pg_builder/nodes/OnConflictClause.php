@@ -73,6 +73,6 @@ class OnConflictClause extends Node
 
     public function dispatch(TreeWalker $walker)
     {
-        $walker->walkOnConflictClause($this);
+        return $walker->walkOnConflictClause($this);
     }
 }

@@ -772,6 +772,9 @@ class SqlBuilderWalker implements TreeWalker
             $clauses[] = $statement->values->dispatch($this);
             $this->indentLevel++;
         }
+        if ($statement->onConflict) {
+            $clauses[] = $indent . 'on conflict ' . $statement->onConflict->dispatch($this);
+        }
         if (0 < count($statement->returning)) {
             $clauses[] = $this->implode($indent . 'returning ', $statement->returning->dispatch($this), ',');
         }
@@ -1471,5 +1474,65 @@ class SqlBuilderWalker implements TreeWalker
     {
         return 'xmlserialize(' . $xml->documentOrContent . ' ' . $xml->argument->dispatch($this)
                . ' as ' . $xml->type->dispatch($this) . ')';
+    }
+
+    public function walkOnConflictClause(nodes\OnConflictClause $onConflict)
+    {
+        $sql = '';
+        if ($onConflict->target) {
+            if ($onConflict->target instanceof nodes\Identifier) {
+                $sql .= 'on constraint ';
+            }
+            $sql .= $onConflict->target->dispatch($this);
+        }
+        $sql .= ' do ' . $onConflict->action;
+        if ('update' === $onConflict->action) {
+            $indent = $this->getIndent();
+            $this->indentLevel++;
+
+            $clauses = array('');
+            $clauses[] = $this->implode($indent . 'set ', $onConflict->set->dispatch($this), ',');
+            if ($onConflict->where->condition) {
+                $clauses[] = $indent . 'where ' . $onConflict->where->dispatch($this);
+            }
+
+            $this->indentLevel--;
+
+            $sql .= implode($this->options['linebreak'] ?: ' ', $clauses);
+        }
+        return $sql;
+    }
+
+    public function walkIndexParameters(nodes\IndexParameters $parameters)
+    {
+        $sql = '(' . implode(', ', $this->walkGenericNodeList($parameters)) . ')';
+        if ($parameters->where->condition) {
+            $sql .= ' where ' . $parameters->where->dispatch($this);
+        }
+        return $sql;
+    }
+
+    public function walkIndexElement(nodes\IndexElement $element)
+    {
+        if ($element->expression instanceof nodes\Identifier) {
+            $sql = $element->expression->dispatch($this);
+        } else {
+            $sql = '(' . $element->expression->dispatch($this) . ')';
+        }
+
+        if ($element->collation) {
+            $sql .= ' collate ' . $element->collation->dispatch($this);
+        }
+        if ($element->opClass) {
+            $sql .= ' ' . $element->opClass->dispatch($this);
+        }
+        if ($element->direction) {
+            $sql .= ' ' . $element->direction;
+        }
+        if ($element->nullsOrder) {
+            $sql .= ' nulls ' . $element->nullsOrder;
+        }
+
+        return $sql;
     }
 }

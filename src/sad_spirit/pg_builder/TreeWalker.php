@@ -147,4 +147,11 @@ interface TreeWalker
     public function walkXmlRoot(nodes\xml\XmlRoot $xml);
 
     public function walkXmlSerialize(nodes\xml\XmlSerialize $xml);
+
+
+    public function walkOnConflictClause(nodes\OnConflictClause $onConflict);
+
+    public function walkIndexParameters(nodes\IndexParameters $parameters);
+
+    public function walkIndexElement(nodes\IndexElement $element);
 }
