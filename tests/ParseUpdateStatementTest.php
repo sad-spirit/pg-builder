@@ -29,6 +29,7 @@ use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\nodes\QualifiedName,
     sad_spirit\pg_builder\nodes\Constant,
     sad_spirit\pg_builder\nodes\SetTargetElement,
+    sad_spirit\pg_builder\nodes\MultipleSetClause,
     sad_spirit\pg_builder\nodes\SingleSetClause,
     sad_spirit\pg_builder\nodes\TargetElement,
     sad_spirit\pg_builder\nodes\Identifier,
@@ -36,6 +37,7 @@ use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\nodes\SetToDefault,
     sad_spirit\pg_builder\nodes\lists\IdentifierList,
     sad_spirit\pg_builder\nodes\lists\SetClauseList,
+    sad_spirit\pg_builder\nodes\lists\SetTargetList,
     sad_spirit\pg_builder\nodes\lists\TargetList,
     sad_spirit\pg_builder\nodes\range\RelationReference,
     sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
@@ -58,7 +60,8 @@ class ParseUpdateStatementTest extends \PHPUnit_Framework_TestCase
     public function testParseSetClause()
     {
         $parsed = $this->parser->parseStatement(<<<QRY
-    update foo bar set blah.one = 'blah', blahblah = default, (baz[1], quux) = ('quux', default)
+    update foo bar set blah.one = 'blah', blahblah = default, (baz[1], quux) = ('quux', default),
+           (a, b, c) = (select aa, bb, cc from somewhere)
 QRY
         );
         $update = new Update(
@@ -79,9 +82,22 @@ QRY
                 new SingleSetClause(
                     new SetTargetElement(new Identifier('quux')),
                     new SetToDefault()
+                ),
+                new MultipleSetClause(
+                    new SetTargetList(array(
+                        new SetTargetElement(new Identifier('a')),
+                        new SetTargetElement(new Identifier('b')),
+                        new SetTargetElement(new Identifier('c')),
+                    )),
+                    $select = new Select(new TargetList(array(
+                        new TargetElement(new ColumnReference(array('aa'))),
+                        new TargetElement(new ColumnReference(array('bb'))),
+                        new TargetElement(new ColumnReference(array('cc')))
+                    )))
                 )
             ))
         );
+        $select->from[] = new RelationReference(new QualifiedName(array('somewhere')));
 
         $this->assertEquals($update, $parsed);
     }

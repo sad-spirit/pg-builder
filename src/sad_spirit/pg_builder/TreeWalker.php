@@ -62,6 +62,8 @@ interface TreeWalker
 
     public function walkSingleSetClause(nodes\SingleSetClause $node);
 
+    public function walkMultipleSetClause(nodes\MultipleSetClause $node);
+
     public function walkSetToDefault(nodes\SetToDefault $node);
 
     public function walkStar(nodes\Star $node);

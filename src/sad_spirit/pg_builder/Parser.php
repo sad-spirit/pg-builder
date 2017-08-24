@@ -930,17 +930,22 @@ class Parser
 
     protected function SetClause()
     {
-        if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
-            $targetList = $this->MultipleSetClause();
-        } else {
+        if (!$this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
             $targetList = new nodes\lists\SetClauseList(array($this->SingleSetClause()));
+        } else {
+            $targetList = $this->MultipleSetClause();
+            if ($targetList instanceof nodes\MultipleSetClause) {
+                $targetList = new nodes\lists\SetClauseList($targetList);
+            }
         }
         while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
             $this->stream->next();
-            if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
-                $targetList->merge($this->MultipleSetClause());
-            } else {
+            if (!$this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
                 $targetList[] = $this->SingleSetClause();
+            } elseif (($multiple = $this->MultipleSetClause()) instanceof nodes\MultipleSetClause) {
+                $targetList[] = $multiple;
+            } else {
+                $targetList->merge($multiple);
             }
         }
         return $targetList;
@@ -957,6 +962,13 @@ class Parser
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '=');
+
+        if ('select' === $this->_checkContentsOfParentheses()) {
+            return new nodes\MultipleSetClause(
+                new nodes\lists\SetTargetList($columns),
+                $this->SelectWithParentheses()
+            );
+        }
 
         $values = $this->CtextRow();
         if (count($columns) != count($values)) {

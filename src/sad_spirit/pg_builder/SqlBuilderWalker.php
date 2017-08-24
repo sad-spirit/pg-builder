@@ -981,6 +981,18 @@ class SqlBuilderWalker implements TreeWalker
         return $node->column->dispatch($this) . ' = ' . $node->value->dispatch($this);
     }
 
+    public function walkMultipleSetClause(nodes\MultipleSetClause $node)
+    {
+        $sql = '(' . implode(', ', $node->columns->dispatch($this)) . ') = ';
+
+        $this->indentLevel++;
+        $sql .= '(' . $this->options['linebreak']
+                . $node->value->dispatch($this);
+        $this->indentLevel--;
+
+        return $sql . $this->options['linebreak'] . $this->getIndent() . ')';
+    }
+
     public function walkSetToDefault(nodes\SetToDefault $node)
     {
         return 'default';

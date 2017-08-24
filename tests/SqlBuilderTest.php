@@ -167,7 +167,8 @@ QRY
 with foo as (
     select somefoo from basefoo
 )
-update bar baralias set blah.one = 'blah', blahblah = default, (baz[1], quux) = ('quux', default)
+update bar baralias set blah.one = 'blah', blahblah = default, (baz[1], quux) = ('quux', default),
+       (a, b, c) = (select aa, bb, cc from somewhere)
 from baz
 where baz.id = baralias.baz_id and
       baz.foovalue in (select somefoo from foo)

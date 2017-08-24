@@ -231,6 +231,11 @@ class ParameterWalker implements TreeWalker
         $node->value->dispatch($this);
     }
 
+    public function walkMultipleSetClause(nodes\MultipleSetClause $node)
+    {
+        $node->columns->dispatch($this);
+        $node->value->dispatch($this);
+    }
 
     public function walkTargetElement(nodes\TargetElement $node)
     {
