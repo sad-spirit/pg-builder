@@ -219,14 +219,18 @@ class ParameterWalker implements TreeWalker
 
     public function walkSetTargetElement(nodes\SetTargetElement $node)
     {
-        if ($node->value) {
-            $node->value->dispatch($this);
-        }
         /* @var Node $item */
         foreach ($node as $item) {
             $item->dispatch($this);
         }
     }
+
+    public function walkSingleSetClause(nodes\SingleSetClause $node)
+    {
+        $node->column->dispatch($this);
+        $node->value->dispatch($this);
+    }
+
 
     public function walkTargetElement(nodes\TargetElement $node)
     {

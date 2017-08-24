@@ -19,7 +19,7 @@ namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_builder\nodes\lists\FromList,
     sad_spirit\pg_builder\nodes\lists\TargetList,
-    sad_spirit\pg_builder\nodes\lists\SetTargetList,
+    sad_spirit\pg_builder\nodes\lists\SetClauseList,
     sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget,
     sad_spirit\pg_builder\nodes\WhereOrHavingClause;
 
@@ -27,14 +27,14 @@ use sad_spirit\pg_builder\nodes\lists\FromList,
  * AST node representing UPDATE statement
  *
  * @property-read UpdateOrDeleteTarget  $relation
- * @property-read SetTargetList         $set
+ * @property-read SetClauseList         $set
  * @property-read FromList              $from
  * @property-read WhereOrHavingClause   $where
  * @property-read TargetList            $returning
  */
 class Update extends Statement
 {
-    public function __construct(UpdateOrDeleteTarget $relation, SetTargetList $set)
+    public function __construct(UpdateOrDeleteTarget $relation, SetClauseList $set)
     {
         parent::__construct();
 

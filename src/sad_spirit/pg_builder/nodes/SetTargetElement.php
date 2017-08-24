@@ -9,7 +9,7 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014 Alexey Borzov
+ * @copyright 2014-2017 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
@@ -22,33 +22,28 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList,
     sad_spirit\pg_builder\TreeWalker;
 
 /**
- * Represents a part of a targer list for INSERT or UPDATE statements
+ * Represents a target column (with possible indirection) for INSERT or UPDATE statements
  *
- * Possible indirection is represented by array offsets. Unlike normal Indirection nodes,
+ * Indirection is represented by array offsets. Unlike normal Indirection nodes,
  * Star indirection is not possible as Postgres does not allow it:
  * 'ERROR:  row expansion via "*" is not supported here'
  *
- * @property-read Identifier                    $name
- * @property      ScalarExpression|SetToDefault $value
+ * @property Identifier $name
  */
 class SetTargetElement extends NonAssociativeList
 {
-    public function __construct(Identifier $name, array $indirection = array(), $value = null)
+    public function __construct($name, array $indirection = array())
     {
         parent::__construct($indirection);
-        $this->setValue($value);
-        $this->setNamedProperty('name', $name);
+        $this->setName($name);
     }
 
-    public function setValue($value = null)
+    public function setName($name)
     {
-        if (null !== $value && !($value instanceof ScalarExpression) && !($value instanceof SetToDefault)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s expects either a ScalarExpression or SetToDefault instance as value, %s given',
-                __CLASS__, is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
+        if (!($name instanceof Identifier)) {
+            $name = new Identifier($name);
         }
-        $this->setNamedProperty('value', $value);
+        $this->setNamedProperty('name', $name);
     }
 
     protected function normalizeElement(&$offset, &$value)

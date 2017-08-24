@@ -17,32 +17,29 @@
 
 namespace sad_spirit\pg_builder\nodes\lists;
 
-use sad_spirit\pg_builder\nodes\SetTargetElement,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\ElementParseable,
+use sad_spirit\pg_builder\ElementParseable,
     sad_spirit\pg_builder\Parseable,
-    sad_spirit\pg_builder\Parser;
+    sad_spirit\pg_builder\Parser,
+    sad_spirit\pg_builder\nodes\MultipleSetClause,
+    sad_spirit\pg_builder\nodes\SingleSetClause,
+    sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
- * Represents a list of SetTargetElements, used by INSERT and UPDATE statements
+ * Represents SET clause of UPDATE statement
  */
-class SetTargetList extends NonAssociativeList implements Parseable, ElementParseable
+class SetClauseList extends NonAssociativeList implements Parseable, ElementParseable
 {
     protected function normalizeElement(&$offset, &$value)
     {
         parent::normalizeElement($offset, $value);
-
-        if (!($value instanceof SetTargetElement)) {
+        
+        if (!($value instanceof SingleSetClause) && !($value instanceof MultipleSetClause)) {
             throw new InvalidArgumentException(sprintf(
-                '%s can contain only instances of SetTargetElement, %s given',
+                '%s can contain only instances of SingleSetClause or MultipleSetClause, %s given',
                 __CLASS__, is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
             ));
+            
         }
-    }
-
-    public static function createFromString(Parser $parser, $sql)
-    {
-        return $parser->parseInsertTargetList($sql);
     }
 
     public function createElementFromString($sql)
@@ -50,6 +47,11 @@ class SetTargetList extends NonAssociativeList implements Parseable, ElementPars
         if (!($parser = $this->getParser())) {
             throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
         }
-        return $parser->parseSetTargetElement($sql);
+        return $parser->parseSingleSetClause($sql);
+    }
+
+    public static function createFromString(Parser $parser, $sql)
+    {
+        return $parser->parseSetClause($sql);
     }
 }

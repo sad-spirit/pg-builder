@@ -46,7 +46,7 @@ use sad_spirit\pg_wrapper\MetadataCache;
  * @method nodes\range\UpdateOrDeleteTarget parseRelationExpressionOptAlias($input)
  * @method nodes\range\InsertTarget         parseInsertTarget($input)
  * @method nodes\QualifiedName              parseQualifiedName($input)
- * @method nodes\lists\SetTargetList        parseSetClause($input)
+ * @method nodes\lists\SetClauseList        parseSetClause($input)
  * @method nodes\SetTargetElement           parseSingleSetClause($input)
  * @method nodes\lists\SetTargetList        parseInsertTargetList($input)
  * @method nodes\SetTargetElement           parseSetTargetElement($input)
@@ -933,7 +933,7 @@ class Parser
         if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
             $targetList = $this->MultipleSetClause();
         } else {
-            $targetList = new nodes\lists\SetTargetList(array($this->SingleSetClause()));
+            $targetList = new nodes\lists\SetClauseList(array($this->SingleSetClause()));
         }
         while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
             $this->stream->next();
@@ -949,7 +949,7 @@ class Parser
     protected function MultipleSetClause()
     {
         $first   = $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-        $columns = new nodes\lists\SetTargetList(array($this->SetTargetElement()));
+        $columns = array($this->SetTargetElement());
         while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
             $this->stream->next();
             $columns[] = $this->SetTargetElement();
@@ -966,12 +966,12 @@ class Parser
             );
         }
 
-        /* @var $columns nodes\SetTargetElement[] */
+        $set = array();
         for ($i = 0; $i < count($columns); $i++) {
-            $columns[$i]->setValue($values[$i]);
+            $set[] = new nodes\SingleSetClause($columns[$i], $values[$i]);
         }
 
-        return $columns;
+        return new nodes\lists\SetClauseList($set);
     }
 
     protected function CtextRowList()
@@ -999,11 +999,11 @@ class Parser
 
     protected function SingleSetClause()
     {
-        $target = $this->SetTargetElement();
+        $column = $this->SetTargetElement();
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '=');
-        $target->setValue($this->ExpressionWithDefault());
+        $value  = $this->ExpressionWithDefault();
 
-        return $target;
+        return new nodes\SingleSetClause($column, $value);
     }
 
     protected function InsertTargetList()

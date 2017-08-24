@@ -35,6 +35,7 @@ use sad_spirit\pg_builder\Delete,
     sad_spirit\pg_builder\nodes\Parameter,
     sad_spirit\pg_builder\nodes\QualifiedName,
     sad_spirit\pg_builder\nodes\SetTargetElement,
+    sad_spirit\pg_builder\nodes\SingleSetClause,
     sad_spirit\pg_builder\nodes\TargetElement,
     sad_spirit\pg_builder\nodes\TypeName,
     sad_spirit\pg_builder\nodes\WindowDefinition,
@@ -56,7 +57,7 @@ use sad_spirit\pg_builder\Delete,
     sad_spirit\pg_builder\nodes\lists\FunctionArgumentList,
     sad_spirit\pg_builder\nodes\lists\IdentifierList,
     sad_spirit\pg_builder\nodes\lists\OrderByList,
-    sad_spirit\pg_builder\nodes\lists\SetTargetList,
+    sad_spirit\pg_builder\nodes\lists\SetClauseList,
     sad_spirit\pg_builder\nodes\lists\TargetList,
     sad_spirit\pg_builder\nodes\lists\TypeList,
     sad_spirit\pg_builder\nodes\lists\TypeModifierList,
@@ -171,7 +172,12 @@ class SetParentNodeTest extends \PHPUnit_Framework_TestCase
     {
         $update = new Update(
             new UpdateOrDeleteTarget(new QualifiedName(array('foo', 'bar'))),
-            new SetTargetList(array(new SetTargetElement(new Identifier('baz'), array(), new Constant('quux'))))
+            new SetClauseList(array(
+                new SingleSetClause(
+                    new SetTargetElement(new Identifier('baz')),
+                    new Constant('quux')
+                )
+            ))
         );
 
         $this->assertSame($update, $update->relation->getParentNode());
@@ -258,26 +264,19 @@ class SetParentNodeTest extends \PHPUnit_Framework_TestCase
 
     public function testSetTargetElement()
     {
-        $value  = new ColumnReference(array('foo', 'bar'));
         $target = new SetTargetElement(
             new Identifier('baz'),
-            array(new Identifier('blah')),
-            $value
+            array(new Identifier('blah'))
         );
 
-        $this->assertSame($target, $value->getParentNode());
         $this->assertSame($target, $target->name->getParentNode());
-
-        $target->setValue(null);
-        $this->assertNull($value->getParentNode());
     }
 
     public function testTargetElement()
     {
         $target = new TargetElement(
             new ColumnReference(array('foo', 'bar')),
-            new Identifier('baz'),
-            array(new Identifier('blah'))
+            new Identifier('baz')
         );
 
         $this->assertSame($target, $target->expression->getParentNode());

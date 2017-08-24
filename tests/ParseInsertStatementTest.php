@@ -30,13 +30,14 @@ use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\nodes\Constant,
     sad_spirit\pg_builder\nodes\TargetElement,
     sad_spirit\pg_builder\nodes\SetTargetElement,
+    sad_spirit\pg_builder\nodes\SingleSetClause,
     sad_spirit\pg_builder\nodes\Identifier,
     sad_spirit\pg_builder\nodes\ArrayIndexes,
     sad_spirit\pg_builder\nodes\OnConflictClause,
     sad_spirit\pg_builder\nodes\IndexElement,
     sad_spirit\pg_builder\nodes\IndexParameters,
     sad_spirit\pg_builder\nodes\lists\IdentifierList,
-    sad_spirit\pg_builder\nodes\lists\SetTargetList,
+    sad_spirit\pg_builder\nodes\lists\SetClauseList,
     sad_spirit\pg_builder\nodes\lists\TargetList,
     sad_spirit\pg_builder\nodes\range\InsertTarget,
     sad_spirit\pg_builder\nodes\range\RelationReference;
@@ -146,10 +147,9 @@ QRY
                     new IndexParameters(array(
                         new IndexElement(new Identifier('did'))
                     )),
-                    new SetTargetList(array(
-                        new SetTargetElement(
-                            new Identifier('dname'),
-                            array(),
+                    new SetClauseList(array(
+                        new SingleSetClause(
+                            new SetTargetElement(new Identifier('dname')),
                             new ColumnReference(array('excluded', 'dname'))
                         )
                     ))
@@ -164,10 +164,9 @@ QRY
                     new IndexParameters(array(
                         new IndexElement(new Identifier('did'))
                     )),
-                    new SetTargetList(array(
-                        new SetTargetElement(
-                            new Identifier('dname'),
-                            array(),
+                    new SetClauseList(array(
+                        new SingleSetClause(
+                            new SetTargetElement(new Identifier('dname')),
                             new OperatorExpression(
                                 '||',
                                 new OperatorExpression(

@@ -973,10 +973,12 @@ class SqlBuilderWalker implements TreeWalker
         foreach ($node as $item) {
             $sql .= ($item instanceof nodes\ArrayIndexes ? '' : '.') . $item->dispatch($this);
         }
-        if ($node->value) {
-            $sql .= ' = ' . $node->value->dispatch($this);
-        }
         return $sql;
+    }
+
+    public function walkSingleSetClause(nodes\SingleSetClause $node)
+    {
+        return $node->column->dispatch($this) . ' = ' . $node->value->dispatch($this);
     }
 
     public function walkSetToDefault(nodes\SetToDefault $node)

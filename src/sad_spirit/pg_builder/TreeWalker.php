@@ -60,6 +60,8 @@ interface TreeWalker
 
     public function walkSetTargetElement(nodes\SetTargetElement $node);
 
+    public function walkSingleSetClause(nodes\SingleSetClause $node);
+
     public function walkSetToDefault(nodes\SetToDefault $node);
 
     public function walkStar(nodes\Star $node);

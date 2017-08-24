@@ -18,7 +18,7 @@
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\nodes\lists\SetTargetList,
+    sad_spirit\pg_builder\nodes\lists\SetClauseList,
     sad_spirit\pg_builder\exceptions\InvalidArgumentException,
     sad_spirit\pg_builder\TreeWalker;
 
@@ -27,16 +27,16 @@ use sad_spirit\pg_builder\Node,
  *
  * @property      string                          $action
  * @property      IndexParameters|Identifier|null $target
- * @property      SetTargetList                   $set
+ * @property      SetClauseList                   $set
  * @property-read WhereOrHavingClause             $where
  */
 class OnConflictClause extends Node
 {
-    public function __construct($action, $target = null, SetTargetList $set = null, ScalarExpression $condition = null)
+    public function __construct($action, $target = null, SetClauseList $set = null, ScalarExpression $condition = null)
     {
         $this->setAction($action);
         $this->setTarget($target);
-        $this->props['set']   = new SetTargetList();
+        $this->props['set']   = new SetClauseList();
         $this->props['where'] = new WhereOrHavingClause($condition);
 
         $this->props['set']->setParentNode($this);

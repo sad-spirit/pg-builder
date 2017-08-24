@@ -241,7 +241,7 @@ class StatementFactory
      * Creates an UPDATE statement object
      *
      * @param string|nodes\range\UpdateOrDeleteTarget $table
-     * @param string|array|nodes\lists\SetTargetList  $set
+     * @param string|array|nodes\lists\SetClauseList  $set
      * @return Update
      */
     public function update($table, $set)
@@ -252,20 +252,20 @@ class StatementFactory
             $relation = $this->getParser()->parseRelationExpressionOptAlias($table);
         }
 
-        if ($set instanceof nodes\lists\SetTargetList) {
+        if ($set instanceof nodes\lists\SetClauseList) {
             $setList = $set;
         } elseif (is_string($set)) {
             $setList = $this->getParser()->parseSetClause($set);
         } else {
             // we don't pass $set since it may contain strings instead of SetTargetElements,
             // Parser may be needed for that
-            $setList = new nodes\lists\SetTargetList();
+            $setList = new nodes\lists\SetClauseList();
         }
 
         $update = new Update($relation, $setList);
         $update->setParser($this->getParser());
 
-        if (!is_string($set) && !($set instanceof nodes\lists\SetTargetList)) {
+        if (!is_string($set) && !($set instanceof nodes\lists\SetClauseList)) {
             $update->set->replace($set);
         }
 

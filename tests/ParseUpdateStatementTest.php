@@ -29,12 +29,13 @@ use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\nodes\QualifiedName,
     sad_spirit\pg_builder\nodes\Constant,
     sad_spirit\pg_builder\nodes\SetTargetElement,
+    sad_spirit\pg_builder\nodes\SingleSetClause,
     sad_spirit\pg_builder\nodes\TargetElement,
     sad_spirit\pg_builder\nodes\Identifier,
     sad_spirit\pg_builder\nodes\ArrayIndexes,
     sad_spirit\pg_builder\nodes\SetToDefault,
     sad_spirit\pg_builder\nodes\lists\IdentifierList,
-    sad_spirit\pg_builder\nodes\lists\SetTargetList,
+    sad_spirit\pg_builder\nodes\lists\SetClauseList,
     sad_spirit\pg_builder\nodes\lists\TargetList,
     sad_spirit\pg_builder\nodes\range\RelationReference,
     sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
@@ -62,25 +63,21 @@ QRY
         );
         $update = new Update(
             new UpdateOrDeleteTarget(new QualifiedName(array('foo')), new Identifier('bar')),
-            new SetTargetList(array(
-                new SetTargetElement(
-                    new Identifier('blah'),
-                    array(new Identifier('one')),
+            new SetClauseList(array(
+                new SingleSetClause(
+                    new SetTargetElement(new Identifier('blah'), array(new Identifier('one'))),
                     new Constant('blah')
                 ),
-                new SetTargetElement(
-                    new Identifier('blahblah'),
-                    array(),
+                new SingleSetClause(
+                    new SetTargetElement(new Identifier('blahblah')),
                     new SetToDefault()
                 ),
-                new SetTargetElement(
-                    new Identifier('baz'),
-                    array(new ArrayIndexes(new Constant(1))),
+                new SingleSetClause(
+                    new SetTargetElement(new Identifier('baz'), array(new ArrayIndexes(new Constant(1)))),
                     new Constant('quux')
                 ),
-                new SetTargetElement(
-                    new Identifier('quux'),
-                    array(),
+                new SingleSetClause(
+                    new SetTargetElement(new Identifier('quux')),
                     new SetToDefault()
                 )
             ))
@@ -97,8 +94,11 @@ QRY
         );
         $update = new Update(
             new UpdateOrDeleteTarget(new QualifiedName(array('foo'))),
-            new SetTargetList(array(
-                new SetTargetElement(new Identifier('set'), array(), new Constant('set'))
+            new SetClauseList(array(
+                new SingleSetClause(
+                    new SetTargetElement(new Identifier('set')),
+                    new Constant('set')
+                )
             ))
         );
 
@@ -121,8 +121,11 @@ QRY
 
         $built = new Update(
             new UpdateOrDeleteTarget(new QualifiedName(array('bar'))),
-            new SetTargetList(array(
-                new SetTargetElement(new Identifier('blah'), array(), new ColumnReference(array('foo', 'blah')))
+            new SetClauseList(array(
+                new SingleSetClause(
+                    new SetTargetElement(new Identifier('blah')),
+                    new ColumnReference(array('foo', 'blah'))
+                )
             ))
         );
         $built->from->replace(array(

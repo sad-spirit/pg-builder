@@ -28,10 +28,11 @@ use sad_spirit\pg_wrapper\Connection,
     sad_spirit\pg_builder\nodes\QualifiedName,
     sad_spirit\pg_builder\nodes\SetTargetElement,
     sad_spirit\pg_builder\nodes\SetToDefault,
+    sad_spirit\pg_builder\nodes\SingleSetClause,
     sad_spirit\pg_builder\nodes\TargetElement,
     sad_spirit\pg_builder\nodes\lists\CtextRowList,
     sad_spirit\pg_builder\nodes\lists\FromList,
-    sad_spirit\pg_builder\nodes\lists\SetTargetList,
+    sad_spirit\pg_builder\nodes\lists\SetClauseList,
     sad_spirit\pg_builder\nodes\lists\TargetList,
     sad_spirit\pg_builder\nodes\range\InsertTarget,
     sad_spirit\pg_builder\nodes\range\RelationReference,
@@ -147,18 +148,24 @@ class StatementFactoryTest extends \PHPUnit_Framework_TestCase
         $relation = new UpdateOrDeleteTarget(
             new QualifiedName(array('someschema', 'foo')), new Identifier('bar')
         );
-        $targetList = new SetTargetList(array(
-            new SetTargetElement(new Identifier('blah'), array(), new SetToDefault()),
-            new SetTargetElement(new Identifier('blahblah'), array(), new Constant(42))
+        $setClauseList = new SetClauseList(array(
+            new SingleSetClause(
+                new SetTargetElement(new Identifier('blah')),
+                new SetToDefault()
+            ),
+            new SingleSetClause(
+                new SetTargetElement(new Identifier('blahblah')),
+                new Constant(42)
+            )
         ));
 
         $this->assertEquals($relation, clone $update->relation);
-        $this->assertEquals($targetList, clone $update->set);
+        $this->assertEquals($setClauseList, clone $update->set);
         $this->assertAttributeSame($factory->getParser(), '_parser', $update);
 
-        $update2 = $factory->update($relation, $targetList);
+        $update2 = $factory->update($relation, $setClauseList);
         $this->assertSame($relation, $update2->relation);
-        $this->assertSame($targetList, $update2->set);
+        $this->assertSame($setClauseList, $update2->set);
     }
 
     public function testCreateValuesStatement()
