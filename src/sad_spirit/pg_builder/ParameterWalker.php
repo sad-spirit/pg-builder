@@ -434,6 +434,13 @@ class ParameterWalker implements TreeWalker
 
     public function walkUpdateOrDeleteTarget(nodes\range\UpdateOrDeleteTarget $target) { /* No Parameters here */ }
 
+    public function walkTableSample(nodes\range\TableSample $rangeItem)
+    {
+        $rangeItem->arguments->dispatch($this);
+        if ($rangeItem->repeatable) {
+            $rangeItem->repeatable->dispatch($this);
+        }
+    }
 
     public function walkXmlElement(nodes\xml\XmlElement $xml)
     {

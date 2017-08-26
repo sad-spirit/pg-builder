@@ -1447,6 +1447,19 @@ class SqlBuilderWalker implements TreeWalker
         return $sql;
     }
 
+    public function walkTableSample(nodes\range\TableSample $rangeItem)
+    {
+        $sql = $rangeItem->relation->dispatch($this)
+               . ' tablesample ' . $rangeItem->method->dispatch($this)
+               . ' (' . implode(', ', $rangeItem->arguments->dispatch($this)) . ')';
+
+        if ($rangeItem->repeatable) {
+            $sql .= ' repeatable(' . $rangeItem->repeatable->dispatch($this) . ')';
+        }
+
+        return $sql;
+    }
+
 
     public function walkXmlElement(nodes\xml\XmlElement $xml)
     {

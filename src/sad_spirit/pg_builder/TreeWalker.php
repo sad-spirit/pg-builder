@@ -139,6 +139,8 @@ interface TreeWalker
 
     public function walkUpdateOrDeleteTarget(nodes\range\UpdateOrDeleteTarget $target);
 
+    public function walkTableSample(nodes\range\TableSample $rangeItem);
+
 
     public function walkXmlElement(nodes\xml\XmlElement $xml);
 
