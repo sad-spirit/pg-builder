@@ -2248,6 +2248,9 @@ class Parser
         } elseif ($this->stream->matches(Token::TYPE_KEYWORD, 'case')) {
             return $this->CaseExpression();
 
+        } elseif ($this->stream->matches(Token::TYPE_KEYWORD, 'grouping')) {
+            return $this->GroupingExpression();
+
         } elseif ('select' === $check) {
             $atom = new nodes\expressions\SubselectExpression($this->SelectWithParentheses());
 
@@ -2364,6 +2367,16 @@ class Parser
         $this->stream->expect(Token::TYPE_KEYWORD, 'end');
 
         return new nodes\expressions\CaseExpression($whenClauses, $elseClause, $argument);
+    }
+
+    protected function GroupingExpression()
+    {
+        $this->stream->expect(Token::TYPE_KEYWORD, 'grouping');
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $expression = new nodes\expressions\GroupingExpression($this->ExpressionList());
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+        return $expression;
     }
 
     protected function LeadingTypecast()

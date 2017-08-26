@@ -107,6 +107,7 @@ interface TreeWalker
 
     public function walkTypecastExpression(nodes\expressions\TypecastExpression $expression);
 
+    public function walkGroupingExpression(nodes\expressions\GroupingExpression $expression);
 
     /**
      * Most of the lists do not have any additional features and may be handled by a generic method

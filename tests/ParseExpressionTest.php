@@ -48,6 +48,7 @@ use sad_spirit\pg_builder\nodes\ColumnReference,
     sad_spirit\pg_builder\nodes\TargetElement,
     sad_spirit\pg_builder\nodes\QualifiedName,
     sad_spirit\pg_builder\nodes\range\RelationReference;
+use sad_spirit\pg_builder\nodes\expressions\GroupingExpression;
 
 /**
  * Tests parsing all possible scalar expressions
@@ -67,7 +68,8 @@ class ParseExpressionTest extends \PHPUnit_Framework_TestCase
     public function testParseExpressionAtoms()
     {
         $list = $this->parser->parseExpressionList(<<<QRY
-    'foo', bar.baz, array[1,2], array[[1,2],[3,4]], row(3,4), $1.blah, :foo, null
+    'foo', bar.baz, array[1,2], array[[1,2],[3,4]], row(3,4), $1.blah, :foo, null,
+    grouping(a, b)
 QRY
         );
         $this->assertEquals(
@@ -81,7 +83,11 @@ QRY
                 new RowExpression(array(new Constant(3), new Constant(4))),
                 new Indirection(array(new Identifier('blah')), new Parameter(1)),
                 new Parameter('foo'),
-                new Constant(null)
+                new Constant(null),
+                new GroupingExpression(array(
+                    new ColumnReference(array(new Identifier('a'))),
+                    new ColumnReference(array(new Identifier('b')))
+                ))
             )),
             $list
         );

@@ -1274,6 +1274,12 @@ class SqlBuilderWalker implements TreeWalker
                . '::' . $expression->type->dispatch($this);
     }
 
+    public function walkGroupingExpression(nodes\expressions\GroupingExpression $expression)
+    {
+        return 'grouping(' . implode(', ', $this->walkGenericNodeList($expression)) . ')';
+    }
+
+
     /**
      * Most of the lists do not have any additional features and may be handled by a generic method
      *
