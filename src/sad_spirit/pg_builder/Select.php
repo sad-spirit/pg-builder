@@ -9,7 +9,7 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014 Alexey Borzov
+ * @copyright 2014-2017 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
@@ -20,6 +20,7 @@ namespace sad_spirit\pg_builder;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
     sad_spirit\pg_builder\nodes\lists\ExpressionList,
     sad_spirit\pg_builder\nodes\lists\FromList,
+    sad_spirit\pg_builder\nodes\lists\GroupByList,
     sad_spirit\pg_builder\nodes\lists\TargetList,
     sad_spirit\pg_builder\nodes\lists\WindowList,
     sad_spirit\pg_builder\nodes\WhereOrHavingClause;
@@ -31,7 +32,7 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
  * @property      bool|ExpressionList $distinct
  * @property-read FromList            $from
  * @property-read WhereOrHavingClause $where
- * @property-read ExpressionList      $group
+ * @property-read GroupByList         $group
  * @property-read WhereOrHavingClause $having
  * @property-read WindowList          $window
  */
@@ -46,7 +47,7 @@ class Select extends SelectCommon
 
         $this->props['from']   = new FromList();
         $this->props['where']  = new WhereOrHavingClause();
-        $this->props['group']  = new ExpressionList();
+        $this->props['group']  = new GroupByList();
         $this->props['having'] = new WhereOrHavingClause();
         $this->props['window'] = new WindowList();
 

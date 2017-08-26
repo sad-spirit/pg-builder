@@ -59,6 +59,8 @@ use sad_spirit\pg_wrapper\MetadataCache;
  * @method nodes\OnConflictClause           parseOnConflict($input)
  * @method nodes\IndexParameters            parseIndexParameters($input)
  * @method nodes\IndexElement               parseIndexElement($input)
+ * @method nodes\lists\GroupByList          parseGroupByList($input)
+ * @method nodes\ScalarExpression|nodes\group\GroupByElement parseGroupByElement($input)
  */
 class Parser
 {
@@ -118,7 +120,9 @@ class Parser
         'colidlist'                  => true,
         'indexparameters'            => true,
         'indexelement'               => true,
-        'onconflict'                 => true
+        'onconflict'                 => true,
+        'groupbylist'                => true,
+        'groupbyelement'             => true
     );
 
     /**
@@ -1117,7 +1121,7 @@ class Parser
 
         if ($this->stream->matchesSequence(array('group', 'by'))) {
             $this->stream->skip(2);
-            $stmt->group->merge($this->ExpressionList());
+            $stmt->group->merge($this->GroupByList());
         }
 
         if ($this->stream->matches(Token::TYPE_KEYWORD, 'having')) {
@@ -3519,5 +3523,42 @@ class Parser
         }
 
         return new nodes\IndexElement($expression, $collation, $opClass, $direction, $nullsOrder);
+    }
+
+    protected function GroupByList()
+    {
+        $items = new nodes\lists\GroupByList(array($this->GroupByElement()));
+
+        while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
+            $this->stream->next();
+            $items[] = $this->GroupByElement();
+        }
+
+        return $items;
+    }
+
+    protected function GroupByElement()
+    {
+        if ($this->stream->matchesSequence(array('(', ')'))) {
+            $this->stream->skip(2);
+            $element = new nodes\group\EmptyGroupingSet();
+
+        } elseif ($this->stream->matches(Token::TYPE_KEYWORD, array('cube', 'rollup'))) {
+            $type = $this->stream->next()->getValue();
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+            $element = new nodes\group\CubeOrRollupClause($this->ExpressionList(), $type);
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+        } elseif ($this->stream->matchesSequence(array('grouping', 'sets'))) {
+            $this->stream->skip(2);
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+            $element = new nodes\group\GroupingSetsClause($this->GroupByList());
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+        } else {
+            $element = $this->Expression();
+        }
+
+        return $element;
     }
 }

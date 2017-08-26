@@ -158,4 +158,11 @@ interface TreeWalker
     public function walkIndexParameters(nodes\IndexParameters $parameters);
 
     public function walkIndexElement(nodes\IndexElement $element);
+
+
+    public function walkEmptyGroupingSet(nodes\group\EmptyGroupingSet $empty);
+
+    public function walkCubeOrRollupClause(nodes\group\CubeOrRollupClause $clause);
+
+    public function walkGroupingSetsClause(nodes\group\GroupingSetsClause $clause);
 }

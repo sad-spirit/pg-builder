@@ -1549,4 +1549,20 @@ class SqlBuilderWalker implements TreeWalker
 
         return $sql;
     }
+
+
+    public function walkEmptyGroupingSet(nodes\group\EmptyGroupingSet $empty)
+    {
+        return '()';
+    }
+
+    public function walkCubeOrRollupClause(nodes\group\CubeOrRollupClause $clause)
+    {
+        return $clause->type . '(' . implode(', ', $this->walkGenericNodeList($clause)) . ')';
+    }
+
+    public function walkGroupingSetsClause(nodes\group\GroupingSetsClause $clause)
+    {
+        return 'grouping sets(' . implode(', ', $this->walkGenericNodeList($clause)) . ')';
+    }
 }

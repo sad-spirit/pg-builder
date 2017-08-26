@@ -144,7 +144,7 @@ from quux, xyzzy left join (atable as one left join anothertable as two using (c
 where quux.id = ya.five and
       quux.id = xyzzy.quux_id or
       ya.six <= any(select stuff from setopstuff)
-group by quux.one, four
+group by quux.one, four, grouping sets(cube((one, two), three), rollup(four, (five, six)), seven, ())
 having count(quux.one) > over9000
 window win95 as (partition by anything range between unbounded preceding and current row)
 order by 1 using >>> nulls first, 2 desc

@@ -489,4 +489,17 @@ class ParameterWalker implements TreeWalker
     {
         $element->expression->dispatch($this);
     }
+
+
+    public function walkEmptyGroupingSet(nodes\group\EmptyGroupingSet $empty) { /* It's empty, duh */ }
+
+    public function walkCubeOrRollupClause(nodes\group\CubeOrRollupClause $clause)
+    {
+        return $this->walkGenericNodeList($clause);
+    }
+
+    public function walkGroupingSetsClause(nodes\group\GroupingSetsClause $clause)
+    {
+        return $this->walkGenericNodeList($clause);
+    }
 }
