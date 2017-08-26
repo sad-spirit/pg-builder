@@ -23,13 +23,16 @@ use sad_spirit\pg_builder\nodes\ColumnReference,
     sad_spirit\pg_builder\Node,
     sad_spirit\pg_builder\nodes\Constant,
     sad_spirit\pg_builder\nodes\Identifier,
+    sad_spirit\pg_builder\nodes\IntervalTypeName,
     sad_spirit\pg_builder\nodes\QualifiedName,
     sad_spirit\pg_builder\nodes\expressions\BetweenExpression,
     sad_spirit\pg_builder\nodes\expressions\FunctionExpression,
     sad_spirit\pg_builder\nodes\expressions\LogicalExpression,
     sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
     sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression,
-    sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
+    sad_spirit\pg_builder\nodes\expressions\TypecastExpression,
+    sad_spirit\pg_builder\nodes\lists\FunctionArgumentList,
+    sad_spirit\pg_builder\nodes\lists\TypeModifierList;
 
 /**
  * Abstract base class for operator precedence tests
@@ -133,6 +136,17 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
      * @param string|Node $parsedCurrent
      */
     public function testEqualsGreaterOperator($expression, $parsedLegacy, $parsedCurrent)
+    {
+        $this->doTest($expression, $parsedLegacy, $parsedCurrent);
+    }
+
+    /**
+     * @dataProvider intervalTypeProvider
+     * @param string      $expression
+     * @param string|Node $parsedLegacy
+     * @param string|Node $parsedCurrent
+     */
+    public function testIntervalTypeSpecification($expression, $parsedLegacy, $parsedCurrent)
     {
         $this->doTest($expression, $parsedLegacy, $parsedCurrent);
     }
@@ -384,6 +398,26 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
                         '"bar"' => new Constant('baz')
                     ))
                 )
+            )
+        );
+    }
+
+    public function intervalTypeProvider()
+    {
+        $interval = new IntervalTypeName(new TypeModifierList(array(
+            new Constant(10)
+        )));
+        $interval->setMask('minute to second');
+        return array(
+            array(
+                "cast (foo as interval (5) minute to second (6))",
+                'Interval precision specified twice',
+                "Unexpected keyword 'minute'"
+            ),
+            array(
+                "interval (10) 'a value' minute to second",
+                new TypecastExpression(new Constant('a value'), $interval),
+                "Unexpected keyword 'minute'"
             )
         );
     }

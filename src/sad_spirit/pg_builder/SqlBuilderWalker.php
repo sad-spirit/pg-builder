@@ -1013,15 +1013,12 @@ class SqlBuilderWalker implements TreeWalker
     {
         $sql = $node->setOf ? 'setof ' : '';
         if ($node instanceof nodes\IntervalTypeName) {
-            $sql .= 'interval';
+            $sql .= 'interval' . ($node->mask ? ' ' . $node->mask : '');
         } else {
             $sql .= $node->name->dispatch($this);
         }
         if (0 < count($node->modifiers)) {
             $sql .= '(' . implode(', ', $node->modifiers->dispatch($this)) . ')';
-        }
-        if ($node instanceof nodes\IntervalTypeName && $node->mask) {
-            $sql .= ' ' . $node->mask;
         }
         if ($node->bounds) {
             foreach ($node->bounds as $bound) {

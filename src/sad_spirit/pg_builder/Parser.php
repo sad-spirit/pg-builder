@@ -2011,7 +2011,9 @@ class Parser
                 $operand = new nodes\Constant($this->stream->expect(Token::TYPE_STRING));
             }
 
-            if ($this->stream->matches(Token::TYPE_KEYWORD, array('year', 'month', 'day', 'hour', 'minute', 'second'))) {
+            if ((!$modifiers || self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence)
+                && $this->stream->matches(Token::TYPE_KEYWORD, array('year', 'month', 'day', 'hour', 'minute', 'second'))
+            ) {
                 $trailing  = array($this->stream->next()->getValue());
                 $second    = 'second' === $trailing[0];
                 if ($this->stream->matches(Token::TYPE_KEYWORD, 'to')) {

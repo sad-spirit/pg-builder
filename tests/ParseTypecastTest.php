@@ -9,7 +9,7 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014 Alexey Borzov
+ * @copyright 2014-2017 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
@@ -246,7 +246,7 @@ QRY
         $list = $this->parser->parseExpressionList(<<<QRY
     double precision 'a value', national char varying 'a value', varchar(10) 'a value',
     char 'a value', bit 'a value', bit varying (10) 'a value', time (10) with time zone 'a value',
-    timestamp without time zone 'a value', interval (10) 'a value' minute to second, quux.xyzzy 'a value'
+    timestamp without time zone 'a value', interval 'a value' minute to second (10), quux.xyzzy 'a value'
 QRY
         );
         $val      = new Constant('a value');
@@ -329,10 +329,6 @@ QRY
             array(
                 "cast (foo as interval day to hour (5))",
                 "Unexpected special character '('"
-            ),
-            array(
-                "cast (foo as interval (5) minute to second (6))",
-                'Interval precision specified twice'
             )
         );
     }
