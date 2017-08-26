@@ -3012,15 +3012,22 @@ class Parser
                 }
 
             } else {
-                $lower = $this->Expression();
-                $upper = null;
+                $lower = $upper = null;
+                $isSlice = false;
+
+                if (!$this->stream->matches(Token::TYPE_SPECIAL_CHAR, ':')) {
+                    $lower = $this->Expression();
+                }
                 if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ':')) {
                     $this->stream->next();
-                    $upper = $this->Expression();
+                    $isSlice = true;
+                    if (!$this->stream->matches(Token::TYPE_SPECIAL_CHAR, ']')) {
+                        $upper = $this->Expression();
+                    }
                 }
                 $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ']');
 
-                $indirection[] = new nodes\ArrayIndexes($lower, $upper);
+                $indirection[] = new nodes\ArrayIndexes($lower, $upper, $isSlice);
             }
         }
         return $indirection;
@@ -3540,13 +3547,9 @@ class Parser
             $collation = $this->QualifiedName();
         }
 
-        if ($this->stream->matches(Token::TYPE_KEYWORD, 'using')) {
-            $this->stream->next();
-            $opClass = $this->QualifiedName();
-
-        } elseif ($this->stream->matches(Token::TYPE_IDENTIFIER)
-                  || $this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
-                  || $this->stream->matches(Token::TYPE_COL_NAME_KEYWORD)
+        if ($this->stream->matches(Token::TYPE_IDENTIFIER)
+            || $this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
+            || $this->stream->matches(Token::TYPE_COL_NAME_KEYWORD)
         ) {
             $opClass = $this->QualifiedName();
         }

@@ -129,7 +129,9 @@ class ParameterWalker implements TreeWalker
 
     public function walkArrayIndexes(nodes\ArrayIndexes $node)
     {
-        $node->lower->dispatch($this);
+        if ($node->lower) {
+            $node->lower->dispatch($this);
+        }
         if ($node->upper) {
             $node->upper->dispatch($this);
         }

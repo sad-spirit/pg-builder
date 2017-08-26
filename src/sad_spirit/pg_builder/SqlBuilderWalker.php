@@ -811,8 +811,11 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkArrayIndexes(nodes\ArrayIndexes $node)
     {
-        return '[' . $node->lower->dispatch($this)
-               . ($node->upper ? ' : ' . $node->upper->dispatch($this) : '') . ']';
+        return '['
+               . ($node->lower ? $node->lower->dispatch($this) : '')
+               . ($node->isSlice ? ' : ' : '')
+               . ($node->upper ? $node->upper->dispatch($this) : '')
+               . ']';
     }
 
     public function walkColumnReference(nodes\ColumnReference $node)

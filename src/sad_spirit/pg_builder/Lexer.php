@@ -9,7 +9,7 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014 Alexey Borzov
+ * @copyright 2014-2017 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
@@ -139,6 +139,7 @@ class Lexer
         'delete'             => Token::TYPE_UNRESERVED_KEYWORD,
         'delimiter'          => Token::TYPE_UNRESERVED_KEYWORD,
         'delimiters'         => Token::TYPE_UNRESERVED_KEYWORD,
+        'depends'            => Token::TYPE_UNRESERVED_KEYWORD,
         'desc'               => Token::TYPE_RESERVED_KEYWORD,
         'dictionary'         => Token::TYPE_UNRESERVED_KEYWORD,
         'disable'            => Token::TYPE_UNRESERVED_KEYWORD,
@@ -253,6 +254,7 @@ class Lexer
         'match'              => Token::TYPE_UNRESERVED_KEYWORD,
         'materialized'       => Token::TYPE_UNRESERVED_KEYWORD,
         'maxvalue'           => Token::TYPE_UNRESERVED_KEYWORD,
+        'method'             => Token::TYPE_UNRESERVED_KEYWORD,
         'minute'             => Token::TYPE_UNRESERVED_KEYWORD,
         'minvalue'           => Token::TYPE_UNRESERVED_KEYWORD,
         'mode'               => Token::TYPE_UNRESERVED_KEYWORD,
@@ -295,6 +297,7 @@ class Lexer
         'overlay'            => Token::TYPE_COL_NAME_KEYWORD,
         'owned'              => Token::TYPE_UNRESERVED_KEYWORD,
         'owner'              => Token::TYPE_UNRESERVED_KEYWORD,
+        'parallel'           => Token::TYPE_UNRESERVED_KEYWORD,
         'parser'             => Token::TYPE_UNRESERVED_KEYWORD,
         'partial'            => Token::TYPE_UNRESERVED_KEYWORD,
         'partition'          => Token::TYPE_UNRESERVED_KEYWORD,

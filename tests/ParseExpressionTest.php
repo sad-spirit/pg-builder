@@ -69,7 +69,7 @@ class ParseExpressionTest extends \PHPUnit_Framework_TestCase
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     'foo', bar.baz, array[1,2], array[[1,2],[3,4]], row(3,4), $1.blah, :foo, null,
-    grouping(a, b)
+    grouping(a, b), ary[1:], ary[1]
 QRY
         );
         $this->assertEquals(
@@ -87,7 +87,15 @@ QRY
                 new GroupingExpression(array(
                     new ColumnReference(array(new Identifier('a'))),
                     new ColumnReference(array(new Identifier('b')))
-                ))
+                )),
+                new Indirection(
+                    array(new ArrayIndexes(new Constant(1), null, true)),
+                    new ColumnReference(array(new Identifier('ary')))
+                ),
+                new Indirection(
+                    array(new ArrayIndexes(new Constant(1), null, false)),
+                    new ColumnReference(array(new Identifier('ary')))
+                )
             )),
             $list
         );
