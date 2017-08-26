@@ -2846,36 +2846,11 @@ class Parser
 
     protected function GenericFunctionCall()
     {
-        if ($this->stream->matches(Token::TYPE_KEYWORD)
-            && !$this->stream->matches(Token::TYPE_RESERVED_KEYWORD)
-        ) {
-            $firstToken = $this->stream->next();
-        } else {
-            $firstToken = $this->stream->expect(Token::TYPE_IDENTIFIER);
-        }
-        $funcName = array(new nodes\Identifier($firstToken));
-
-        while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '.')) {
-            $this->stream->next();
-            if ($this->stream->matches(Token::TYPE_KEYWORD)) {
-                $funcName[] = new nodes\Identifier($this->stream->next());
-            } else {
-                $funcName[] = new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
-            }
-        }
-
-        if (Token::TYPE_TYPE_FUNC_NAME_KEYWORD === $firstToken->getType() && 1 < count($funcName)
-            || Token::TYPE_COL_NAME_KEYWORD === $firstToken->getType() && 1 === count($funcName)
-        ) {
-            throw exceptions\SyntaxException::atPosition(
-                implode('.', $funcName) . ' is not a valid function name',
-                $this->stream->getSource(),  $firstToken->getPosition()
-            );
-        }
-
         $positionalArguments = $namedArguments = array();
         $variadic = $distinct = false;
-        $orderBy = null;
+        $orderBy  = null;
+
+        $funcName = $this->GenericFunctionName();
 
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
         if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '*')) {
@@ -2924,11 +2899,42 @@ class Parser
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
         return new nodes\FunctionCall(
-            new nodes\QualifiedName($funcName),
-            $positionalArguments instanceof nodes\Star
+            $funcName, $positionalArguments instanceof nodes\Star
             ? $positionalArguments : new nodes\lists\FunctionArgumentList($positionalArguments + $namedArguments),
             $distinct, $variadic, $orderBy
         );
+    }
+
+    protected function GenericFunctionName()
+    {
+        if ($this->stream->matches(Token::TYPE_KEYWORD)
+            && !$this->stream->matches(Token::TYPE_RESERVED_KEYWORD)
+        ) {
+            $firstToken = $this->stream->next();
+        } else {
+            $firstToken = $this->stream->expect(Token::TYPE_IDENTIFIER);
+        }
+        $funcName = array(new nodes\Identifier($firstToken));
+
+        while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '.')) {
+            $this->stream->next();
+            if ($this->stream->matches(Token::TYPE_KEYWORD)) {
+                $funcName[] = new nodes\Identifier($this->stream->next());
+            } else {
+                $funcName[] = new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
+            }
+        }
+
+        if (Token::TYPE_TYPE_FUNC_NAME_KEYWORD === $firstToken->getType() && 1 < count($funcName)
+            || Token::TYPE_COL_NAME_KEYWORD === $firstToken->getType() && 1 === count($funcName)
+        ) {
+            throw exceptions\SyntaxException::atPosition(
+                implode('.', $funcName) . ' is not a valid function name',
+                $this->stream->getSource(),  $firstToken->getPosition()
+            );
+        }
+
+        return new nodes\QualifiedName($funcName);
     }
 
     protected function GenericFunctionArgument()
@@ -3276,6 +3282,23 @@ class Parser
             $expression = new nodes\range\RelationReference($name, $inherit);
             if ($alias = $this->OptionalAliasClause()) {
                 $expression->setAlias($alias[0], $alias[1]);
+            }
+            if ($this->stream->matches(Token::TYPE_KEYWORD, 'tablesample')) {
+                $this->stream->next();
+                $method     = $this->GenericFunctionName();
+                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+                $arguments  = $this->ExpressionList();
+                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+                $repeatable = null;
+                if ($this->stream->matches(Token::TYPE_KEYWORD, 'repeatable')) {
+                    $this->stream->next();
+                    $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+                    $repeatable = $this->Expression();
+                    $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+                }
+
+                $expression = new nodes\range\TableSample($expression, $method, $arguments, $repeatable);
             }
         }
 

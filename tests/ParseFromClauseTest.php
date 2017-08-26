@@ -9,7 +9,7 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014 Alexey Borzov
+ * @copyright 2014-2017 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
@@ -23,6 +23,7 @@ use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\nodes\TargetElement,
     sad_spirit\pg_builder\nodes\FunctionCall,
     sad_spirit\pg_builder\nodes\Constant,
+    sad_spirit\pg_builder\nodes\ColumnReference,
     sad_spirit\pg_builder\nodes\Identifier,
     sad_spirit\pg_builder\nodes\TypeName,
     sad_spirit\pg_builder\nodes\QualifiedName,
@@ -34,6 +35,8 @@ use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\nodes\range\RowsFromElement,
     sad_spirit\pg_builder\nodes\range\Subselect,
     sad_spirit\pg_builder\nodes\range\ColumnDefinition,
+    sad_spirit\pg_builder\nodes\range\TableSample,
+    sad_spirit\pg_builder\nodes\lists\ExpressionList,
     sad_spirit\pg_builder\nodes\lists\FromList,
     sad_spirit\pg_builder\nodes\lists\FunctionArgumentList,
     sad_spirit\pg_builder\nodes\lists\IdentifierList,
@@ -266,5 +269,46 @@ QRY
         $rowsTwo->setWithOrdinality(true);
 
         $this->assertEquals(new FromList(array($rowsOne, $rowsTwo)), $list);
+    }
+
+    public function testTableSample()
+    {
+        $list = $this->parser->parseFromList(
+<<<QRY
+foo tablesample system (bar.baz * 100),
+quux natural join xyzzy as a (b,c) tablesample bernoulli (50) repeatable (seed)
+QRY
+        );
+
+        $sample1 = new TableSample(
+            new RelationReference(new QualifiedName(array('foo'))),
+            new QualifiedName(array('system')),
+            new ExpressionList(array(
+                new OperatorExpression(
+                    '*',
+                    new ColumnReference(array('bar', 'baz')),
+                    new Constant(100)
+                )
+            ))
+        );
+
+        $sample2 = new JoinExpression(
+            new RelationReference(new QualifiedName(array('quux'))),
+            new TableSample(
+                new RelationReference(new QualifiedName(array('xyzzy'))),
+                new QualifiedName(array('bernoulli')),
+                new ExpressionList(array(
+                    new Constant(50)
+                )),
+                new ColumnReference(array('seed'))
+            )
+        );
+        $sample2->setNatural(true);
+        $sample2->right->setAlias(
+            new Identifier('a'),
+            new IdentifierList(array('b', 'c'))
+        );
+
+        $this->assertEquals(new FromList(array($sample1, $sample2)), $list);
     }
 }
