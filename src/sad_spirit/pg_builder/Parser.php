@@ -370,9 +370,6 @@ class Parser
         static $trailingTimezone = array(
             'time', 'timestamp'
         );
-        static $trailingCharset = array(
-            'character', 'char', 'varchar', 'nchar'
-        );
 
         if (!$this->stream->matches(Token::TYPE_KEYWORD, $constNames)) {
             return false;
@@ -394,10 +391,6 @@ class Parser
         }
         if (in_array($base, $trailingTimezone)) {
             if ($this->stream->look($idx)->matches(Token::TYPE_KEYWORD, array('with', 'without'))) {
-                $idx += 3;
-            }
-        } elseif (in_array($base, $trailingCharset)) {
-            if ($this->stream->look($idx)->matches(Token::TYPE_KEYWORD, 'character')) {
                 $idx += 3;
             }
         }
@@ -1951,16 +1944,6 @@ class Parser
                 new nodes\QualifiedName(array('pg_catalog', $varying ? 'varchar' : 'bpchar')),
                 $modifiers
             );
-
-            // do not allow CHARACTER SET modifier for text types, "support" for it can be traced back
-            // to commit f10b63923760101f765b1d37b1fcc7adc189d778 from 1997 and behaviour is a bit strange:
-            // pglibtest=# select cast('foo' as varchar character set cp1251);
-            // ERROR:  type "pg_catalog.varchar_cp1251" does not exist
-            if ($this->stream->matchesSequence(array('character', 'set'))) {
-                throw new exceptions\NotImplementedException(
-                    'Support for CHARACTER SET modifier of character types not implemented'
-                );
-            }
 
             return $typeNode;
         }

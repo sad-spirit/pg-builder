@@ -271,15 +271,6 @@ QRY
     }
 
     /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\NotImplementedException
-     * @expectedExceptionMessage CHARACTER SET modifier
-     */
-    public function testDisallowCharacterSet()
-    {
-        $this->parser->parseExpression("cast('foo' as varchar character set cp1251)");
-    }
-
-    /**
      * @dataProvider getInvalidTypeSpecifications
      */
     public function testInvalidTypeSpecification($expression, $message)
