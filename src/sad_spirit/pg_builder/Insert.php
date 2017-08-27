@@ -29,6 +29,7 @@ use sad_spirit\pg_builder\nodes\lists\TargetList,
  * @property-read InsertTarget      $relation
  * @property      SetTargetList     $cols
  * @property      SelectCommon      $values
+ * @property      string|null       $overriding
  * @property      OnConflictClause  $onConflict
  * @property      TargetList        $returning
  */
@@ -43,6 +44,7 @@ class Insert extends Statement
         $this->props['values']     = null;
         $this->props['returning']  = new TargetList();
         $this->props['onConflict'] = null;
+        $this->props['overriding'] = null;
 
         $this->props['cols']->setParentNode($this);
         $this->props['returning']->setParentNode($this);
@@ -68,6 +70,14 @@ class Insert extends Statement
             ));
         }
         $this->setNamedProperty('onConflict', $onConflict);
+    }
+
+    public function setOverriding($overriding = null)
+    {
+        if (null !== $overriding && !in_array($overriding, array('user', 'system'))) {
+            throw new InvalidArgumentException("Unknown override kind '{$overriding}'");
+        }
+        $this->props['overriding'] = $overriding;
     }
 
     public function dispatch(TreeWalker $walker)

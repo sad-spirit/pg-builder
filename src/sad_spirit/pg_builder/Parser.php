@@ -656,6 +656,13 @@ class Parser
                 $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
                 $stmt->cols->merge($cols);
             }
+            if ($this->stream->matches(Token::TYPE_KEYWORD, 'overriding')) {
+                $this->stream->next();
+                $stmt->setOverriding(
+                    $this->stream->expect(Token::TYPE_KEYWORD, array('user', 'system'))->getValue()
+                );
+                $this->stream->expect(Token::TYPE_KEYWORD, 'value');
+            }
             $stmt->values = $this->SelectStatement();
         }
 

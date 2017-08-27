@@ -76,6 +76,7 @@ bar (blah) as (
     select somebar from basebar
 )
 insert into baz as bzzz (one, two[1])
+overriding system value
 select id, blah
 from foo, bar
 where id < blah
@@ -89,6 +90,7 @@ QRY
             new SetTargetElement(new Identifier('one')),
             new SetTargetElement(new Identifier('two'), array(new ArrayIndexes(new Constant(1))))
         ));
+        $built->overriding = 'system';
         $built->returning->replace(array(new Star()));
         $built->onConflict = new OnConflictClause('nothing');
 

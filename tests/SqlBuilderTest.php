@@ -85,6 +85,7 @@ with foobar as (
 )
 insert into blah.blah
     (id, composite.field, ary[idx])
+overriding user value
 values
     (default, 'foo', (select somefoo from foobar where idfoo = 1)),
     (-1, 'blah', 'duh-huh')

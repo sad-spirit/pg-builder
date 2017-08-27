@@ -768,6 +768,9 @@ class SqlBuilderWalker implements TreeWalker
         if (!$statement->values) {
             $clauses[] = $indent . 'default values';
         } else {
+            if ($statement->overriding) {
+                $clauses[] = $indent . 'overriding ' . $statement->overriding . ' value';
+            }
             $this->indentLevel--;
             $clauses[] = $statement->values->dispatch($this);
             $this->indentLevel++;
