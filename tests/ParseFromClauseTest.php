@@ -28,6 +28,7 @@ use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\nodes\TypeName,
     sad_spirit\pg_builder\nodes\QualifiedName,
     sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
+    sad_spirit\pg_builder\nodes\expressions\SubselectExpression,
     sad_spirit\pg_builder\nodes\range\JoinExpression,
     sad_spirit\pg_builder\nodes\range\RelationReference,
     sad_spirit\pg_builder\nodes\range\FunctionCall as RangeFunctionCall,
@@ -36,6 +37,7 @@ use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\nodes\range\Subselect,
     sad_spirit\pg_builder\nodes\range\ColumnDefinition,
     sad_spirit\pg_builder\nodes\range\TableSample,
+    sad_spirit\pg_builder\nodes\range\XmlTable,
     sad_spirit\pg_builder\nodes\lists\ExpressionList,
     sad_spirit\pg_builder\nodes\lists\FromList,
     sad_spirit\pg_builder\nodes\lists\FunctionArgumentList,
@@ -43,7 +45,11 @@ use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\nodes\lists\ColumnDefinitionList,
     sad_spirit\pg_builder\nodes\lists\RowsFromList,
     sad_spirit\pg_builder\nodes\lists\TargetList,
-    sad_spirit\pg_builder\nodes\lists\TypeModifierList;
+    sad_spirit\pg_builder\nodes\lists\TypeModifierList,
+    sad_spirit\pg_builder\nodes\xml\XmlColumnDefinition,
+    sad_spirit\pg_builder\nodes\xml\XmlColumnList,
+    sad_spirit\pg_builder\nodes\xml\XmlNamespace,
+    sad_spirit\pg_builder\nodes\xml\XmlNamespaceList;
 
 /**
  * Tests parsing all possible expressions appearing in FROM clause
@@ -310,5 +316,111 @@ QRY
         );
 
         $this->assertEquals(new FromList(array($sample1, $sample2)), $list);
+    }
+
+    public function testXmlTable()
+    {
+        // from docs
+        $list = $this->parser->parseFromList(
+<<<QRY
+XMLTABLE(
+    '//ROWS/ROW' PASSING data
+    COLUMNS id int PATH '@id',
+            ordinality FOR ORDINALITY,
+            "COUNTRY_NAME" text,
+            country_id text PATH 'COUNTRY_ID',
+            size_sq_km float PATH 'SIZE[@unit = "sq_km"]',
+            size_other text PATH 'concat(SIZE[@unit!="sq_km"], " ", SIZE[@unit!="sq_km"]/@unit)',
+            premier_name text PATH 'PREMIER_NAME' DEFAULT 'not specified'
+),
+LATERAL XMLTABLE(
+    XMLNAMESPACES(
+        'http://example.com/myns' AS x,
+        'http://example.com/b' AS "B"
+    ),
+    '/x:example/x:item' PASSING (SELECT data FROM xmldata)
+    COLUMNS foo int PATH '@foo',
+            bar int PATH '@B:bar'
+) AS baz                        
+QRY
+        );
+
+        $table1 = new XmlTable(
+            new Constant('//ROWS/ROW'),
+            new ColumnReference(array('data')),
+            new XmlColumnList(array(
+                new XmlColumnDefinition(
+                    new Identifier('id'),
+                    false,
+                    new TypeName(new QualifiedName(array('pg_catalog', 'int4'))),
+                    new Constant('@id')
+                ),
+                new XmlColumnDefinition(
+                    new Identifier('ordinality'),
+                    true
+                ),
+                new XmlColumnDefinition(
+                    new Identifier('COUNTRY_NAME'),
+                    false,
+                    new TypeName(new QualifiedName(array('text')))
+                ),
+                new XmlColumnDefinition(
+                    new Identifier('country_id'),
+                    false,
+                    new TypeName(new QualifiedName(array('text'))),
+                    new Constant('COUNTRY_ID')
+                ),
+                new XmlColumnDefinition(
+                    new Identifier('size_sq_km'),
+                    false,
+                    new TypeName(new QualifiedName(array('pg_catalog', 'float8'))),
+                    new Constant('SIZE[@unit = "sq_km"]')
+                ),
+                new XmlColumnDefinition(
+                    new Identifier('size_other'),
+                    false,
+                    new TypeName(new QualifiedName(array('text'))),
+                    new Constant('concat(SIZE[@unit!="sq_km"], " ", SIZE[@unit!="sq_km"]/@unit)')
+                ),
+                new XmlColumnDefinition(
+                    new Identifier('premier_name'),
+                    false,
+                    new TypeName(new QualifiedName(array('text'))),
+                    new Constant('PREMIER_NAME'),
+                    null,
+                    new Constant('not specified')
+                )
+            ))
+        );
+
+        $subselect = new Select(new TargetList(array(new TargetElement(new ColumnReference(array('data'))))));
+        $subselect->from[] = new RelationReference(new QualifiedName(array('xmldata')));
+        $table2 = new XmlTable(
+            new Constant('/x:example/x:item'),
+            new SubselectExpression($subselect),
+            new XmlColumnList(array(
+                new XmlColumnDefinition(
+                    new Identifier('foo'),
+                    false,
+                    new TypeName(new QualifiedName(array('pg_catalog', 'int4'))),
+                    new Constant('@foo')
+                ),
+                new XmlColumnDefinition(
+                    new Identifier('bar'),
+                    false,
+                    new TypeName(new QualifiedName(array('pg_catalog', 'int4'))),
+                    new Constant('@B:bar')
+                )
+            )),
+            new XmlNamespaceList(array(
+                new XmlNamespace(new Constant('http://example.com/myns'), new Identifier('x')),
+                new XmlNamespace(new Constant('http://example.com/b'), new Identifier('B'))
+            ))
+        );
+
+        $table2->setLateral(true);
+        $table2->setAlias(new Identifier('baz'));
+
+        $this->assertEquals(new FromList(array($table1, $table2)), $list);
     }
 }

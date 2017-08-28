@@ -61,6 +61,10 @@ use sad_spirit\pg_wrapper\MetadataCache;
  * @method nodes\IndexElement               parseIndexElement($input)
  * @method nodes\lists\GroupByList          parseGroupByList($input)
  * @method nodes\ScalarExpression|nodes\group\GroupByElement parseGroupByElement($input)
+ * @method nodes\xml\XmlNamespaceList       parseXmlNamespaceList($input)
+ * @method nodes\xml\XmlNamespace           parseXmlNamespace($input)
+ * @method nodes\xml\XmlColumnList          parseXmlColumnList($input)
+ * @method nodes\xml\XmlColumnDefinition    parseXmlColumnDefinition($input)
  */
 class Parser
 {
@@ -122,7 +126,11 @@ class Parser
         'indexelement'               => true,
         'onconflict'                 => true,
         'groupbylist'                => true,
-        'groupbyelement'             => true
+        'groupbyelement'             => true,
+        'xmlnamespacelist'           => true,
+        'xmlnamespace'               => true,
+        'xmlcolumnlist'              => true,
+        'xmlcolumndefinition'        => true
     );
 
     /**
@@ -2533,17 +2541,7 @@ class Parser
             break;
 
         case 'xmlexists':
-            $arguments[] = $this->ExpressionAtom();
-            $this->stream->expect(Token::TYPE_KEYWORD, 'passing');
-            if ($this->stream->matchesSequence(array('by', 'ref'))) {
-                $this->stream->next();
-                $this->stream->next();
-            }
-            $arguments[] = $this->ExpressionAtom();
-            if ($this->stream->matchesSequence(array('by', 'ref'))) {
-                $this->stream->next();
-                $this->stream->next();
-            }
+            $arguments = $this->XmlExistsArguments();
             break;
 
         case 'xmlforest':
@@ -3134,9 +3132,11 @@ class Parser
     {
         if ($this->stream->matches(Token::TYPE_KEYWORD, 'lateral')) {
             $this->stream->next();
-            // lateral can only apply to subselects or function invocations
+            // lateral can only apply to subselects, XMLTABLEs or function invocations
             if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
                 $reference = $this->RangeSubselect();
+            } elseif ($this->stream->matches(Token::TYPE_KEYWORD, 'xmltable')) {
+                $reference = $this->XmlTable();
             } else {
                 $reference = $this->RangeFunctionCall();
             }
@@ -3154,6 +3154,9 @@ class Parser
                     $reference->setAlias($alias[0], $alias[1]);
                 }
             }
+
+        } elseif ($this->stream->matches(Token::TYPE_KEYWORD, 'xmltable')) {
+            $reference = $this->XmlTable();
 
         } elseif ($this->stream->matchesSequence(array('rows', 'from'))
                   || $this->_matchesFunctionCall()
@@ -3591,5 +3594,162 @@ class Parser
         }
 
         return $element;
+    }
+
+    protected function XmlExistsArguments()
+    {
+        $arguments = array($this->ExpressionAtom());
+        // 'by ref' is noise in Postgres
+        $this->stream->expect(Token::TYPE_KEYWORD, 'passing');
+        if ($this->stream->matchesSequence(array('by', 'ref'))) {
+            $this->stream->next();
+            $this->stream->next();
+        }
+        $arguments[] = $this->ExpressionAtom();
+        if ($this->stream->matchesSequence(array('by', 'ref'))) {
+            $this->stream->next();
+            $this->stream->next();
+        }
+
+        return $arguments;
+    }
+
+    protected function XmlTable()
+    {
+        $this->stream->expect(Token::TYPE_KEYWORD, 'xmltable');
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+
+        $namespaces = null;
+        if ($this->stream->matches(Token::TYPE_KEYWORD, 'xmlnamespaces')) {
+            $this->stream->next();
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+            $namespaces = $this->XmlNamespaceList();
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
+        }
+        $doc = $this->XmlExistsArguments();
+        $this->stream->expect(Token::TYPE_KEYWORD, 'columns');
+        $columns = $this->XmlColumnList();
+
+        $table = new nodes\range\XmlTable($doc[0], $doc[1], $columns, $namespaces);
+
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+        if ($alias = $this->OptionalAliasClause()) {
+            $table->setAlias($alias[0], $alias[1]);
+        }
+
+        return $table;
+    }
+
+    protected function XmlNamespaceList()
+    {
+        $items = new nodes\xml\XmlNamespaceList(array($this->XmlNamespace()));
+
+        while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
+            $this->stream->next();
+            $items[] = $this->XmlNamespace();
+        }
+
+        return $items;
+    }
+
+    protected function XmlNamespace()
+    {
+        // Default namespace is not currently supported, but Postgres accepts the syntax. We do the same.
+        if ($this->stream->matches(Token::TYPE_KEYWORD, 'default')) {
+            $this->stream->next();
+            $value = $this->RestrictedExpression();
+            $alias = null;
+
+        } else {
+            $value = $this->RestrictedExpression();
+            $this->stream->expect(Token::TYPE_KEYWORD, 'as');
+            if ($this->stream->matches(Token::TYPE_KEYWORD)) {
+                $alias = new nodes\Identifier($this->stream->next());
+            } else {
+                $alias = new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
+            }
+        }
+
+        return new nodes\xml\XmlNamespace($value, $alias);
+    }
+
+    protected function XmlColumnList()
+    {
+        $columns = new nodes\xml\XmlColumnList(array($this->XmlColumnDefinition()));
+
+        while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
+            $this->stream->next();
+            $columns[] = $this->XmlColumnDefinition();
+        }
+
+        return $columns;
+    }
+
+    protected function XmlColumnDefinition()
+    {
+        $name = $this->ColId();
+        $forOrdinality = false;
+        $type = $nullable = $default = $path = null;
+        if ($this->stream->matchesSequence(array('for', 'ordinality'))) {
+            $this->stream->skip(2);
+            $forOrdinality = true;
+        } else {
+            $type = $this->TypeName();
+            // 'path' is for some reason not a keyword in Postgres, so production for xmltable_column_option_el
+            // accepts any identifier and then xmltable_column_el basically rejects anything that is not 'path'.
+            // We explicitly check for 'path' here instead.
+            do {
+                if ($this->stream->matches(Token::TYPE_IDENTIFIER, 'path')) {
+                    if (null !== $path) {
+                        throw exceptions\SyntaxException::atPosition(
+                            "only one PATH value per column is allowed",
+                            $this->stream->getSource(), $this->stream->getCurrent()->getPosition()
+                        );
+                    }
+                    $this->stream->next();
+                    $path = $this->RestrictedExpression();
+
+                } elseif ($this->stream->matches(Token::TYPE_KEYWORD, 'default')) {
+                    if (null !== $default) {
+                        throw exceptions\SyntaxException::atPosition(
+                            "only one DEFAULT value is allowed",
+                            $this->stream->getSource(), $this->stream->getCurrent()->getPosition()
+                        );
+                    }
+                    $this->stream->next();
+                    $default = $this->RestrictedExpression();
+
+                } elseif ($this->stream->matches(Token::TYPE_KEYWORD, 'null')) {
+                    if (null !== $nullable) {
+                        throw exceptions\SyntaxException::atPosition(
+                            "conflicting or redundant NULL / NOT NULL declarations",
+                            $this->stream->getSource(), $this->stream->getCurrent()->getPosition()
+                        );
+                    }
+                    $this->stream->next();
+                    $nullable = true;
+
+                } elseif ($this->stream->matches(Token::TYPE_KEYWORD, 'not')
+                          && $this->stream->look(1)->matches(Token::TYPE_KEYWORD, 'null')
+                ) {
+                    if (null !== $nullable) {
+                        throw exceptions\SyntaxException::atPosition(
+                            "conflicting or redundant NULL / NOT NULL declarations",
+                            $this->stream->getSource(), $this->stream->getCurrent()->getPosition()
+                        );
+                    }
+                    $this->stream->skip(2);
+                    $nullable = false;
+
+                } else {
+                    break;
+                }
+
+            } while (true);
+        }
+
+        return new nodes\xml\XmlColumnDefinition($name, $forOrdinality, $type, $path, $nullable, $default);
     }
 }
