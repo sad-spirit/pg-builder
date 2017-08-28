@@ -483,6 +483,31 @@ class ParameterWalker implements TreeWalker
         $xml->argument->dispatch($this);
     }
 
+    public function walkXmlTable(nodes\range\XmlTable $table)
+    {
+        $table->documentExpression->dispatch($this);
+        $table->rowExpression->dispatch($this);
+        // to be on a safe side
+        $table->columns->dispatch($this);
+        $table->namespaces->dispatch($this);
+    }
+
+    public function walkXmlColumnDefinition(nodes\xml\XmlColumnDefinition $column)
+    {
+        if ($column->path) {
+            $column->path->dispatch($this);
+        }
+        if ($column->default) {
+            $column->default->dispatch($this);
+        }
+    }
+
+    public function walkXmlNamespace(nodes\xml\XmlNamespace $ns)
+    {
+        $ns->value->dispatch($this);
+    }
+
+
     public function walkOnConflictClause(nodes\OnConflictClause $onConflict)
     {
         // Not sure whether IndexParameters may actually contain placeholders...

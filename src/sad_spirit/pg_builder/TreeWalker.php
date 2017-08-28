@@ -155,6 +155,12 @@ interface TreeWalker
 
     public function walkXmlSerialize(nodes\xml\XmlSerialize $xml);
 
+    public function walkXmlTable(nodes\range\XmlTable $table);
+
+    public function walkXmlColumnDefinition(nodes\xml\XmlColumnDefinition $column);
+
+    public function walkXmlNamespace(nodes\xml\XmlNamespace $ns);
+
 
     public function walkOnConflictClause(nodes\OnConflictClause $onConflict);
 

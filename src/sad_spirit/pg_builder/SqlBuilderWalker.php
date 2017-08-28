@@ -188,6 +188,12 @@ class SqlBuilderWalker implements TreeWalker
     );
 
     /**
+     * Dummy typecast expression used for checks with argumentNeedsParentheses()
+     * @var nodes\expressions\TypecastExpression
+     */
+    private $_dummyTypecast;
+
+    /**
      * Returns the precedence for operator represented by given Node in pre-9.5 Postgres
      *
      * @param nodes\ScalarExpression $expression a node that can appear in scalar expression
@@ -632,6 +638,11 @@ class SqlBuilderWalker implements TreeWalker
     public function __construct(array $options = array())
     {
         $this->options = array_merge($this->options, $options);
+
+        $this->_dummyTypecast = new nodes\expressions\TypecastExpression(
+            new nodes\Constant('dummy'),
+            new nodes\TypeName(new nodes\QualifiedName(array('dummy')))
+        );
     }
 
     public function walkSelectStatement(Select $statement)
@@ -1510,6 +1521,69 @@ class SqlBuilderWalker implements TreeWalker
     {
         return 'xmlserialize(' . $xml->documentOrContent . ' ' . $xml->argument->dispatch($this)
                . ' as ' . $xml->type->dispatch($this) . ')';
+    }
+
+    public function walkXmlTable(nodes\range\XmlTable $table)
+    {
+        $this->indentLevel++;
+        $lines = array(($table->lateral ? 'lateral ' : '') . 'xmltable(');
+        if (0 < count($table->namespaces)) {
+            $lines[] = $this->getIndent() . 'xmlnamespaces(';
+
+            $this->indentLevel++;
+            $glue = $this->options['linebreak'] ? ',' . $this->options['linebreak'] . $this->getIndent() : ', ';
+            $lines[] = $this->getIndent() . implode($glue, $this->walkGenericNodeList($table->namespaces));
+            $this->indentLevel--;
+
+            $lines[] = $this->getIndent() . '),';
+        }
+
+        $lines[] = $this->getIndent() . $this->optionalParentheses($table->rowExpression, $this->_dummyTypecast, true)
+                   . ' passing by ref ' . $this->optionalParentheses($table->documentExpression, $this->_dummyTypecast, true)
+                   . ' by ref';
+        $glue    = $this->options['linebreak']
+                   ? ',' . $this->options['linebreak'] . $this->getIndent() . '        ' // let's align columns
+                   : ', ';
+        $lines[] = $this->getIndent() . 'columns ' . implode($glue, $this->walkGenericNodeList($table->columns));
+
+        $this->indentLevel--;
+        $sql = implode($this->options['linebreak'] ?: ' ', $lines) . $this->options['linebreak'] . $this->getIndent() . ')';
+        if ($table->tableAlias || $table->columnAliases) {
+            $sql .= $this->getFromItemAliases($table);
+        }
+
+        return $sql;
+    }
+
+    public function walkXmlColumnDefinition(nodes\xml\XmlColumnDefinition $column)
+    {
+        $sql = $column->name->dispatch($this);
+
+        if ($column->forOrdinality) {
+            return $sql . ' for ordinality';
+        }
+        $sql .= ' ' . $column->type->dispatch($this);
+        if ($column->path) {
+            $sql .= ' path ' . $this->optionalParentheses($column->path, $this->_dummyTypecast, true);
+        }
+        if ($column->default) {
+            $sql .= ' default ' . $this->optionalParentheses($column->default, $this->_dummyTypecast, true);
+        }
+        if (null !== $column->nullable) {
+            $sql .= $column->nullable ? ' null' : ' not null';
+        }
+        return $sql;
+    }
+
+    public function walkXmlNamespace(nodes\xml\XmlNamespace $ns)
+    {
+        $sql = $this->optionalParentheses($ns->value, $this->_dummyTypecast, true);
+
+        if (!$ns->alias) {
+            return 'default ' . $sql;
+        } else {
+            return $sql . ' as ' . $ns->alias->dispatch($this);
+        }
     }
 
     public function walkOnConflictClause(nodes\OnConflictClause $onConflict)
