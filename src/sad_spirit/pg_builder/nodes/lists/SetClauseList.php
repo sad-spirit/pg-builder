@@ -47,11 +47,11 @@ class SetClauseList extends NonAssociativeList implements Parseable, ElementPars
         if (!($parser = $this->getParser())) {
             throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
         }
-        return $parser->parseSingleSetClause($sql);
+        return $parser->parseSetClause($sql);
     }
 
     public static function createFromString(Parser $parser, $sql)
     {
-        return $parser->parseSetClause($sql);
+        return $parser->parseSetClauseList($sql);
     }
 }

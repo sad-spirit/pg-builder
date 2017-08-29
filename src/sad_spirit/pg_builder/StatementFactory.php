@@ -255,7 +255,7 @@ class StatementFactory
         if ($set instanceof nodes\lists\SetClauseList) {
             $setList = $set;
         } elseif (is_string($set)) {
-            $setList = $this->getParser()->parseSetClause($set);
+            $setList = $this->getParser()->parseSetClauseList($set);
         } else {
             // we don't pass $set since it may contain strings instead of SetTargetElements,
             // Parser may be needed for that

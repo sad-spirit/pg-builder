@@ -49,8 +49,8 @@ use sad_spirit\pg_wrapper\MetadataCache;
  * @method nodes\range\UpdateOrDeleteTarget parseRelationExpressionOptAlias($input)
  * @method nodes\range\InsertTarget         parseInsertTarget($input)
  * @method nodes\QualifiedName              parseQualifiedName($input)
- * @method nodes\lists\SetClauseList        parseSetClause($input)
- * @method nodes\SetTargetElement           parseSingleSetClause($input)
+ * @method nodes\lists\SetClauseList        parseSetClauseList($input)
+ * @method nodes\SingleSetClause|nodes\MultipleSetClause parseSetClause($input)
  * @method nodes\lists\SetTargetList        parseInsertTargetList($input)
  * @method nodes\SetTargetElement           parseSetTargetElement($input)
  * @method nodes\ScalarExpression           parseExpressionWithDefault($input)
@@ -117,7 +117,7 @@ class Parser
         'inserttarget'               => true,
         'qualifiedname'              => true,
         'setclause'                  => true, // for UPDATE
-        'singlesetclause'            => true, // for UPDATE
+        'setclauselist'              => true, // for UPDATE
         'settargetelement'           => true, // for INSERT
         'inserttargetlist'           => true, // for INSERT
         'expressionwithdefault'      => true,
@@ -703,7 +703,7 @@ class Parser
         $relation = $this->RelationExpression('update');
         $this->stream->expect(Token::TYPE_KEYWORD, 'set');
 
-        $stmt = new Update($relation, $this->SetClause());
+        $stmt = new Update($relation, $this->SetClauseList());
 
         if (!empty($withClause)) {
             $stmt->with = $withClause;
@@ -942,64 +942,52 @@ class Parser
         }
     }
 
-    protected function SetClause()
+    protected function SetClauseList()
     {
-        if (!$this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
-            $targetList = new nodes\lists\SetClauseList(array($this->SingleSetClause()));
-        } else {
-            $targetList = $this->MultipleSetClause();
-            if ($targetList instanceof nodes\MultipleSetClause) {
-                $targetList = new nodes\lists\SetClauseList($targetList);
-            }
-        }
+        $targetList = new nodes\lists\SetClauseList(array($this->SetClause()));
         while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
             $this->stream->next();
-            if (!$this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
-                $targetList[] = $this->SingleSetClause();
-            } elseif (($multiple = $this->MultipleSetClause()) instanceof nodes\MultipleSetClause) {
-                $targetList[] = $multiple;
-            } else {
-                $targetList->merge($multiple);
-            }
+            $targetList[] = $this->SetClause();
         }
         return $targetList;
     }
 
-    protected function MultipleSetClause()
+    protected function SetClause()
     {
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-        $columns = new nodes\lists\SetTargetList(array($this->SetTargetElement()));
-        while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
+        if (!$this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+            $column = $this->SetTargetElement();
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '=');
+            $value  = $this->ExpressionWithDefault();
+
+            return new nodes\SingleSetClause($column, $value);
+
+        } else {
             $this->stream->next();
-            $columns[] = $this->SetTargetElement();
+
+            $columns = new nodes\lists\SetTargetList(array($this->SetTargetElement()));
+            while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
+                $this->stream->next();
+                $columns[] = $this->SetTargetElement();
+            }
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '=');
+
+            $token = $this->stream->getCurrent();
+
+            $value = $this->Expression();
+
+            if ((!($value instanceof nodes\expressions\SubselectExpression) || $value->operator)
+                && !($value instanceof nodes\expressions\RowExpression)
+            ) {
+                throw exceptions\SyntaxException::atPosition(
+                    'source for a multiple-column UPDATE item must be a sub-SELECT or ROW() expression',
+                    $this->stream->getSource(), $token->getPosition()
+                );
+            }
+
+            return new nodes\MultipleSetClause($columns, $value);
         }
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '=');
-
-        $token = $this->stream->getCurrent();
-
-        $value = $this->Expression();
-
-        if ((!($value instanceof nodes\expressions\SubselectExpression) || $value->operator)
-            && !($value instanceof nodes\expressions\RowExpression)
-        ) {
-            throw exceptions\SyntaxException::atPosition(
-                'source for a multiple-column UPDATE item must be a sub-SELECT or ROW() expression',
-                $this->stream->getSource(), $token->getPosition()
-            );
-        }
-
-        return new nodes\MultipleSetClause($columns, $value);
-    }
-
-    protected function SingleSetClause()
-    {
-        $column = $this->SetTargetElement();
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '=');
-        $value  = $this->ExpressionWithDefault();
-
-        return new nodes\SingleSetClause($column, $value);
     }
 
     protected function InsertTargetList()
@@ -3480,7 +3468,7 @@ class Parser
         $this->stream->expect(Token::TYPE_KEYWORD, 'do');
         if ('update' === ($action = $this->stream->expect(Token::TYPE_KEYWORD, array('update', 'nothing'))->getValue())) {
             $this->stream->expect(Token::TYPE_KEYWORD, 'set');
-            $set = $this->SetClause();
+            $set = $this->SetClauseList();
             if ($this->stream->matches(Token::TYPE_KEYWORD, 'where')) {
                 $this->stream->next();
                 $condition = $this->Expression();
