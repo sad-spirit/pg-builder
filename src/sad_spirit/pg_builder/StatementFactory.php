@@ -275,25 +275,25 @@ class StatementFactory
     /**
      * Creates a VALUES statement object
      *
-     * @param string|array|nodes\lists\CtextRowList $rows
+     * @param string|array|nodes\lists\RowList $rows
      * @return Values
      */
     public function values($rows)
     {
-        if ($rows instanceof nodes\lists\CtextRowList) {
+        if ($rows instanceof nodes\lists\RowList) {
             $rowList = $rows;
         } elseif (is_string($rows)) {
-            $rowList = nodes\lists\CtextRowList::createFromString($this->getParser(), $rows);
+            $rowList = nodes\lists\RowList::createFromString($this->getParser(), $rows);
         } else {
             // we don't pass $set since it may contain strings/arrays instead of CtextRows,
             // Parser may be needed for that
-            $rowList = new nodes\lists\CtextRowList();
+            $rowList = new nodes\lists\RowList();
         }
 
         $values = new Values($rowList);
         $values->setParser($this->getParser());
 
-        if (!is_string($rows) && !($rows instanceof nodes\lists\CtextRowList)) {
+        if (!is_string($rows) && !($rows instanceof nodes\lists\RowList)) {
             $values->rows->replace($rows);
         }
 

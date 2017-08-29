@@ -19,24 +19,27 @@ namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\Node,
     sad_spirit\pg_builder\nodes\lists\SetTargetList,
-    sad_spirit\pg_builder\SelectCommon,
     sad_spirit\pg_builder\TreeWalker;
 
 /**
- * Represents a (column_name, ...) = (sub-select) construct in SET clause of UPDATE statement
+ * Represents a (column_name, ...) = (sub-select|row-expression) construct in SET clause of UPDATE statement
  *
- * @property SetTargetList $columns
- * @property SelectCommon  $value
+ * Note that we allow any scalar expression as $value here (as does set_clause production in Postgres 10+ grammar),
+ * however Parser will raise an error for anything that is not either a subselect or a row expression,
+ * just like Postgres itself does.
+ *
+ * @property SetTargetList    $columns
+ * @property ScalarExpression $value
  */
 class MultipleSetClause extends Node
 {
-    public function __construct(SetTargetList $columns, SelectCommon $value)
+    public function __construct(SetTargetList $columns, ScalarExpression $value)
     {
         $this->setNamedProperty('columns', $columns);
         $this->setValue($value);
     }
 
-    public function setValue(SelectCommon $value)
+    public function setValue(ScalarExpression $value)
     {
         $this->setNamedProperty('value', $value);
     }

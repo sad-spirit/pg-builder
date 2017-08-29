@@ -52,7 +52,7 @@ use sad_spirit\pg_builder\Delete,
     sad_spirit\pg_builder\nodes\expressions\TypecastExpression,
     sad_spirit\pg_builder\nodes\expressions\WhenExpression,
     sad_spirit\pg_builder\nodes\lists\ColumnDefinitionList,
-    sad_spirit\pg_builder\nodes\lists\CtextRowList,
+    sad_spirit\pg_builder\nodes\lists\RowList,
     sad_spirit\pg_builder\nodes\lists\ExpressionList,
     sad_spirit\pg_builder\nodes\lists\FunctionArgumentList,
     sad_spirit\pg_builder\nodes\lists\IdentifierList,
@@ -117,7 +117,7 @@ class SetParentNodeTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($insert, $insert->cols->getParentNode());
         $this->assertSame($insert, $insert->returning->getParentNode());
 
-        $values = new Values(new CtextRowList(array(array(new Constant(1)), array(new Constant(2)))));
+        $values = new Values(new RowList(array(array(new Constant(1)), array(new Constant(2)))));
         $insert->setValues($values);
         $this->assertSame($insert, $values->getParentNode());
         $insert->setValues(null);
@@ -189,7 +189,7 @@ class SetParentNodeTest extends \PHPUnit_Framework_TestCase
 
     public function testValuesStatement()
     {
-        $values = new Values(new CtextRowList(array(array(new Constant(1)), array(new Constant(2)))));
+        $values = new Values(new RowList(array(array(new Constant(1)), array(new Constant(2)))));
 
         $this->assertSame($values, $values->rows->getParentNode());
     }

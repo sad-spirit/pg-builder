@@ -33,6 +33,9 @@ use sad_spirit\pg_wrapper\MetadataCache;
  * @method SelectCommon                     parseSelectStatement($input)
  * @method nodes\lists\ExpressionList       parseExpressionList($input)
  * @method nodes\ScalarExpression           parseExpression($input)
+ * @method nodes\expressions\RowExpression  parseRowConstructor($input)
+ * @method nodes\expressions\RowExpression  parseRowConstructorNoKeyword($input)
+ * @method nodes\lists\RowList              parseRowList($input)
  * @method nodes\lists\TargetList           parseTargetList($input)
  * @method nodes\TargetElement              parseTargetElement($input)
  * @method nodes\lists\FromList             parseFromList($input)
@@ -50,8 +53,6 @@ use sad_spirit\pg_wrapper\MetadataCache;
  * @method nodes\SetTargetElement           parseSingleSetClause($input)
  * @method nodes\lists\SetTargetList        parseInsertTargetList($input)
  * @method nodes\SetTargetElement           parseSetTargetElement($input)
- * @method nodes\lists\CtextRowList         parseCtextRowList($input)
- * @method nodes\lists\CtextRow             parseCtextRow($input)
  * @method nodes\ScalarExpression           parseExpressionWithDefault($input)
  * @method nodes\WithClause                 parseWithClause($input)
  * @method nodes\CommonTableExpression      parseCommonTableExpression($input)
@@ -99,6 +100,9 @@ class Parser
         'selectstatement'            => true,
         'expression'                 => true,
         'expressionlist'             => true,
+        'rowconstructor'             => true,
+        'rowconstructornokeyword'    => true,
+        'rowlist'                    => true,
         'targetlist'                 => true,
         'targetelement'              => true,
         'fromlist'                   => true,
@@ -116,8 +120,6 @@ class Parser
         'singlesetclause'            => true, // for UPDATE
         'settargetelement'           => true, // for INSERT
         'inserttargetlist'           => true, // for INSERT
-        'ctextrowlist'               => true,
-        'ctextrow'                   => true,
         'expressionwithdefault'      => true,
         'withclause'                 => true,
         'commontableexpression'      => true,
@@ -965,8 +967,8 @@ class Parser
 
     protected function MultipleSetClause()
     {
-        $first   = $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-        $columns = array($this->SetTargetElement());
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $columns = new nodes\lists\SetTargetList(array($this->SetTargetElement()));
         while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
             $this->stream->next();
             $columns[] = $this->SetTargetElement();
@@ -975,50 +977,20 @@ class Parser
 
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '=');
 
-        if ('select' === $this->_checkContentsOfParentheses()) {
-            return new nodes\MultipleSetClause(
-                new nodes\lists\SetTargetList($columns),
-                $this->SelectWithParentheses()
-            );
-        }
+        $token = $this->stream->getCurrent();
 
-        $values = $this->CtextRow();
-        if (count($columns) != count($values)) {
+        $value = $this->Expression();
+
+        if ((!($value instanceof nodes\expressions\SubselectExpression) || $value->operator)
+            && !($value instanceof nodes\expressions\RowExpression)
+        ) {
             throw exceptions\SyntaxException::atPosition(
-                'Number of columns does not match number of values',
-                $this->stream->getSource(), $first->getPosition()
+                'source for a multiple-column UPDATE item must be a sub-SELECT or ROW() expression',
+                $this->stream->getSource(), $token->getPosition()
             );
         }
 
-        $set = array();
-        for ($i = 0; $i < count($columns); $i++) {
-            $set[] = new nodes\SingleSetClause($columns[$i], $values[$i]);
-        }
-
-        return new nodes\lists\SetClauseList($set);
-    }
-
-    protected function CtextRowList()
-    {
-        $list = new nodes\lists\CtextRowList(array($this->CtextRow()));
-        while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
-            $this->stream->next();
-            $list[] = $this->CtextRow();
-        }
-        return $list;
-    }
-
-    protected function CtextRow()
-    {
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-        $values = array($this->ExpressionWithDefault());
-        while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
-            $this->stream->next();
-            $values[] = $this->ExpressionWithDefault();
-        }
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-
-        return $values;
+        return new nodes\MultipleSetClause($columns, $value);
     }
 
     protected function SingleSetClause()
@@ -1043,6 +1015,17 @@ class Parser
     protected function SetTargetElement()
     {
         return new nodes\SetTargetElement($this->ColId(), $this->Indirection(false));
+    }
+
+    protected function ExpressionListWithDefault()
+    {
+        $values = array($this->ExpressionWithDefault());
+        while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
+            $this->stream->next();
+            $values[] = $this->ExpressionWithDefault();
+        }
+
+        return $values;
     }
 
     protected function ExpressionWithDefault()
@@ -1091,7 +1074,7 @@ class Parser
 
         $token = $this->stream->expect(Token::TYPE_KEYWORD, array('select', 'values'));
         if ('values' === $token->getValue()) {
-            return new Values($this->CtextRowList());
+            return new Values($this->RowList());
         }
 
         $distinctClause = false;
@@ -2282,18 +2265,34 @@ class Parser
         return $atom;
     }
 
+    protected function RowList()
+    {
+        $list = new nodes\lists\RowList(array($this->RowConstructorNoKeyword()));
+        while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
+            $this->stream->next();
+            $list[] = $this->RowConstructorNoKeyword();
+        }
+        return $list;
+    }
+
     protected function RowConstructor()
     {
         if ($this->stream->matches(Token::TYPE_KEYWORD, 'row')) {
             $this->stream->next();
         }
-
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-        if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ')')) {
-            $fields = array();
-        } else {
-            $fields = $this->ExpressionList();
+        // ROW() is only possible with the keyword, 'VALUES ()' is a syntax error
+        if ($this->stream->matchesSequence(array('(', ')'))) {
+            $this->stream->skip(2);
+            return new nodes\expressions\RowExpression(array());
         }
+
+        return $this->RowConstructorNoKeyword();
+    }
+
+    protected function RowConstructorNoKeyword()
+    {
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $fields = $this->ExpressionListWithDefault();
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
         return new nodes\expressions\RowExpression($fields);

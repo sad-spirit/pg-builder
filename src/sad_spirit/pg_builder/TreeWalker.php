@@ -117,8 +117,6 @@ interface TreeWalker
      */
     public function walkGenericNodeList(NodeList $list);
 
-    public function walkCtextRow(nodes\lists\CtextRow $list);
-
     public function walkFunctionArgumentList(nodes\lists\FunctionArgumentList $list);
 
 

@@ -30,7 +30,7 @@ use sad_spirit\pg_wrapper\Connection,
     sad_spirit\pg_builder\nodes\SetToDefault,
     sad_spirit\pg_builder\nodes\SingleSetClause,
     sad_spirit\pg_builder\nodes\TargetElement,
-    sad_spirit\pg_builder\nodes\lists\CtextRowList,
+    sad_spirit\pg_builder\nodes\lists\RowList,
     sad_spirit\pg_builder\nodes\lists\FromList,
     sad_spirit\pg_builder\nodes\lists\SetClauseList,
     sad_spirit\pg_builder\nodes\lists\TargetList,
@@ -172,13 +172,13 @@ class StatementFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $factory = new StatementFactory();
 
-        $values    = $factory->values("('foo', 42), ('bar', default)");
-        $ctextRows = new CtextRowList(array(
+        $values = $factory->values("('foo', 42), ('bar', default)");
+        $rows   = new RowList(array(
             array(new Constant('foo'), new Constant(42)),
             array(new Constant('bar'), new SetToDefault())
         ));
 
-        $this->assertEquals($ctextRows, clone $values->rows);
+        $this->assertEquals($rows, clone $values->rows);
         $this->assertAttributeSame($factory->getParser(), '_parser', $values);
     }
 }

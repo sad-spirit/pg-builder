@@ -394,11 +394,6 @@ class ParameterWalker implements TreeWalker
         }
     }
 
-    public function walkCtextRow(nodes\lists\CtextRow $list)
-    {
-        $this->walkGenericNodeList($list);
-    }
-
     public function walkFunctionArgumentList(nodes\lists\FunctionArgumentList $list)
     {
         $this->walkGenericNodeList($list);

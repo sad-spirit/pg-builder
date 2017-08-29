@@ -24,6 +24,8 @@ use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\nodes\ColumnReference,
     sad_spirit\pg_builder\nodes\CommonTableExpression,
     sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
+    sad_spirit\pg_builder\nodes\expressions\RowExpression,
+    sad_spirit\pg_builder\nodes\expressions\SubselectExpression,
     sad_spirit\pg_builder\nodes\Star,
     sad_spirit\pg_builder\nodes\WithClause,
     sad_spirit\pg_builder\nodes\QualifiedName,
@@ -61,7 +63,7 @@ class ParseUpdateStatementTest extends \PHPUnit_Framework_TestCase
     {
         $parsed = $this->parser->parseStatement(<<<QRY
     update foo bar set blah.one = 'blah', blahblah = default, (baz[1], quux) = ('quux', default),
-           (a, b, c) = (select aa, bb, cc from somewhere)
+           (a, b, c) = (select aa, bb, cc from somewhere), (d, e) = row(v.*)
 QRY
         );
         $update = new Update(
@@ -75,13 +77,15 @@ QRY
                     new SetTargetElement(new Identifier('blahblah')),
                     new SetToDefault()
                 ),
-                new SingleSetClause(
-                    new SetTargetElement(new Identifier('baz'), array(new ArrayIndexes(new Constant(1)))),
-                    new Constant('quux')
-                ),
-                new SingleSetClause(
-                    new SetTargetElement(new Identifier('quux')),
-                    new SetToDefault()
+                new MultipleSetClause(
+                    new SetTargetList(array(
+                        new SetTargetElement(new Identifier('baz'), array(new ArrayIndexes(new Constant(1)))),
+                        new SetTargetElement(new Identifier('quux'))
+                    )),
+                    new RowExpression(array(
+                        new Constant('quux'),
+                        new SetToDefault()
+                    ))
                 ),
                 new MultipleSetClause(
                     new SetTargetList(array(
@@ -89,11 +93,20 @@ QRY
                         new SetTargetElement(new Identifier('b')),
                         new SetTargetElement(new Identifier('c')),
                     )),
-                    $select = new Select(new TargetList(array(
-                        new TargetElement(new ColumnReference(array('aa'))),
-                        new TargetElement(new ColumnReference(array('bb'))),
-                        new TargetElement(new ColumnReference(array('cc')))
-                    )))
+                    new SubselectExpression($select = new Select(new TargetList(array(
+                            new TargetElement(new ColumnReference(array('aa'))),
+                            new TargetElement(new ColumnReference(array('bb'))),
+                            new TargetElement(new ColumnReference(array('cc')))
+                    ))))
+                ),
+                new MultipleSetClause(
+                    new SetTargetList(array(
+                        new SetTargetElement(new Identifier('d')),
+                        new SetTargetElement(new Identifier('e')),
+                    )),
+                    new RowExpression(array(
+                        new ColumnReference(array('v', '*'))
+                    ))
                 )
             ))
         );

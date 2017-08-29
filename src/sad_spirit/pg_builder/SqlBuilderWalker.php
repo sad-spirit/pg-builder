@@ -1000,14 +1000,8 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkMultipleSetClause(nodes\MultipleSetClause $node)
     {
-        $sql = '(' . implode(', ', $node->columns->dispatch($this)) . ') = ';
-
-        $this->indentLevel++;
-        $sql .= '(' . $this->options['linebreak']
-                . $node->value->dispatch($this);
-        $this->indentLevel--;
-
-        return $sql . $this->options['linebreak'] . $this->getIndent() . ')';
+        return '(' . implode(', ', $node->columns->dispatch($this)) . ') = '
+               . $node->value->dispatch($this);
     }
 
     public function walkSetToDefault(nodes\SetToDefault $node)
@@ -1268,7 +1262,9 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkRowExpression(nodes\expressions\RowExpression $expression)
     {
-        if (count($expression) < 2) {
+        if ($expression->getParentNode() instanceof nodes\lists\RowList) {
+            return $this->implode($this->getIndent() . '(', $this->walkGenericNodeList($expression), ',') . ')';
+        } elseif (count($expression) < 2) {
             return 'row(' . implode(', ', $this->walkGenericNodeList($expression)) . ')';
         } else {
             return '(' . implode(', ', $this->walkGenericNodeList($expression)) . ')';
@@ -1311,11 +1307,6 @@ class SqlBuilderWalker implements TreeWalker
             $items[] = $item->dispatch($this);
         }
         return $items;
-    }
-
-    public function walkCtextRow(nodes\lists\CtextRow $list)
-    {
-        return $this->implode($this->getIndent() . '(', $this->walkGenericNodeList($list), ',') . ')';
     }
 
     public function walkFunctionArgumentList(nodes\lists\FunctionArgumentList $list)
