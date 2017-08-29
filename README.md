@@ -5,14 +5,14 @@
 This is a query builder for Postgres with a twist: it contains a (partial) reimplementation of PostgreSQL's own
 query parser. This sets it aside from usual breed of "write-only" query builders:
 
-* Almost all syntax available for `SELECT` (and `VALUES`) / `INSERT` / `UPDATE` / `DELETE` in PostgreSQL 9.4
+* Almost all syntax available for `SELECT` (and `VALUES`) / `INSERT` / `UPDATE` / `DELETE` in PostgreSQL 10
   is supported, query being built is automatically checked for correct syntax.
 * Query is represented as an Abstract Syntax Tree quite similar to PostgreSQL's internal representation.
-* Query parts can be added to the AST either as objects or as strings (that will be fed to Parser).
+* Query parts can be added to the AST either as objects or as strings (that will be processed by Parser).
 * Nodes can be removed and replaced in AST.
-* AST can be analyzed and transformed, the package takes advantage of this to allow using named parameters like
-  `:foo` instead of standard PostgreSQL's positional parameters like `$1` and to get type info for parameters directly
-  from query
+* AST can be analyzed and transformed, the package takes advantage of this to allow named parameters like
+  `:foo` instead of standard PostgreSQL's positional parameters `$1` and to infer parameters' types
+  from SQL typecasts.
 
 Parsing is definitely not a fast operation, so there are means to cache parts of AST and the resultant query.
 
