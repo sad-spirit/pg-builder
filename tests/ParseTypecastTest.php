@@ -51,7 +51,7 @@ class ParseTypecastTest extends \PHPUnit_Framework_TestCase
 QRY
         );
         $arrayOfInt = new TypeName(new QualifiedName(array('pg_catalog', 'int4')));
-        $arrayOfInt->setArrayBounds(array(-1));
+        $arrayOfInt->setBounds(array(-1));
 
         $this->assertEquals(
             new ExpressionList(array(
@@ -213,9 +213,9 @@ QRY
 
         $foo    = new ColumnReference(array('foo'));
         $array5 = new TypeName(new QualifiedName(array('text')));
-        $array5->setArrayBounds(array(5));
+        $array5->setBounds(array(5));
         $setof  = new TypeName(new QualifiedName(array('text')));
-        $setof->setSetOfFlag(true);
+        $setof->setSetOf(true);
 
         $this->assertEquals(
             new ExpressionList(array(

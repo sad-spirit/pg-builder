@@ -25,12 +25,12 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
 /**
  * AST node for JOIN expression in FROM clause
  *
- * @property-read FromElement      $left
- * @property-read FromElement      $right
+ * @property      FromElement      $left
+ * @property      FromElement      $right
  * @property-read string           $type
- * @property-read bool             $natural
- * @property-read IdentifierList   $using
- * @property-read ScalarExpression $on
+ * @property      bool             $natural
+ * @property      IdentifierList   $using
+ * @property      ScalarExpression $on
  */
 class JoinExpression extends FromElement
 {

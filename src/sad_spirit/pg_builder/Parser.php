@@ -1740,7 +1740,7 @@ class Parser
         }
 
         $typeName = $this->SimpleTypeName();
-        $typeName->setSetOfFlag($setOf);
+        $typeName->setSetOf($setOf);
 
         if ($this->stream->matches(Token::TYPE_KEYWORD, 'array')) {
             $this->stream->next();
@@ -1763,7 +1763,7 @@ class Parser
                 $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ']');
             }
         }
-        $typeName->setArrayBounds($bounds);
+        $typeName->setBounds($bounds);
 
         return $typeName;
     }

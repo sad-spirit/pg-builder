@@ -30,7 +30,7 @@ use sad_spirit\pg_builder\Node,
  * Cannot be an OperatorExpression due to specific right operands
  *
  * @property      ScalarExpression            $left
- * @property-read SelectCommon|ExpressionList $right
+ * @property      SelectCommon|ExpressionList $right
  * @property-read string                      $operator
  */
 class InExpression extends Node implements ScalarExpression

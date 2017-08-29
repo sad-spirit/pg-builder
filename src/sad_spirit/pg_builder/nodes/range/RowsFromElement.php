@@ -28,7 +28,7 @@ use sad_spirit\pg_builder\Node,
  * Cannot use range\FunctionCall instead as it has a lot more properties
  *
  * @property-read BaseFunctionCall     $function
- * @property-read ColumnDefinitionList $columnAliases
+ * @property      ColumnDefinitionList $columnAliases
  */
 class RowsFromElement extends Node
 {

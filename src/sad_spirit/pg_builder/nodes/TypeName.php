@@ -25,8 +25,8 @@ use sad_spirit\pg_builder\Node,
 /**
  * Represents a type name with all bells and whistles
  *
- * @property-read bool             $setOf
- * @property-read array            $bounds
+ * @property      bool             $setOf
+ * @property      array            $bounds
  * @property-read QualifiedName    $name
  * @property-read TypeModifierList $modifiers
  */
@@ -40,12 +40,12 @@ class TypeName extends Node
         $this->setNamedProperty('modifiers', $typeModifiers ?: new TypeModifierList());
     }
 
-    public function setSetOfFlag($setOf = false)
+    public function setSetOf($setOf = false)
     {
         $this->props['setOf'] = (bool)$setOf;
     }
 
-    public function setArrayBounds(array $bounds)
+    public function setBounds(array $bounds)
     {
         $this->props['bounds'] = array();
         foreach ($bounds as $key => $value) {

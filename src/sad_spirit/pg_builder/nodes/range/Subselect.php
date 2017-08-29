@@ -23,8 +23,8 @@ use sad_spirit\pg_builder\SelectCommon,
 /**
  * AST node representing a subselect in FROM clause
  *
- * @property-read SelectCommon $query
- * @property-read bool         $lateral
+ * @property SelectCommon $query
+ * @property bool         $lateral
  */
 class Subselect extends FromElement
 {

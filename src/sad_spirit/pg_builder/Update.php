@@ -27,10 +27,10 @@ use sad_spirit\pg_builder\nodes\lists\FromList,
  * AST node representing UPDATE statement
  *
  * @property-read UpdateOrDeleteTarget  $relation
- * @property-read SetClauseList         $set
- * @property-read FromList              $from
+ * @property      SetClauseList         $set
+ * @property      FromList              $from
  * @property-read WhereOrHavingClause   $where
- * @property-read TargetList            $returning
+ * @property      TargetList            $returning
  */
 class Update extends Statement
 {

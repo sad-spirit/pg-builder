@@ -31,10 +31,10 @@ use sad_spirit\pg_builder\Node,
  * for functions in FROM
  *
  * @property-read string|QualifiedName      $name
- * @property-read FunctionArgumentList|Star $arguments
+ * @property      FunctionArgumentList|Star $arguments
  * @property-read bool                      $distinct
  * @property-read bool                      $variadic
- * @property-read OrderByList               $order
+ * @property      OrderByList               $order
  */
 class FunctionCall extends Node
 {

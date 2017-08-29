@@ -23,7 +23,7 @@ use sad_spirit\pg_builder\nodes\lists\RowsFromList,
 /**
  * Represents a ROWS FROM() construct in FROM clause (PostgreSQL 9.4+)
  *
- * @property-read RowsFromList $function
+ * @property RowsFromList $function
  */
 class RowsFrom extends FunctionCall
 {

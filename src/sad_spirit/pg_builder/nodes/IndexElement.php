@@ -27,7 +27,7 @@ use sad_spirit\pg_builder\Node,
  * We don't parse CREATE INDEX statements, but the same syntax is also used in ON CONFLICT
  * clauses of INSERT statements and we do parse those.
  *
- * @property-read ScalarExpression|Identifier $expression
+ * @property      ScalarExpression|Identifier $expression
  * @property-read QualifiedName               $collation
  * @property-read QualifiedName               $opClass
  * @property-read string|null                 $direction

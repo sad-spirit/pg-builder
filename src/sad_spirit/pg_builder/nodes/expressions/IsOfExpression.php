@@ -29,7 +29,7 @@ use sad_spirit\pg_builder\Node,
  * Cannot be an OperatorExpression due to specific right operand
  *
  * @property      ScalarExpression $left
- * @property-read TypeList         $right
+ * @property      TypeList         $right
  * @property-read string           $operator
  */
 class IsOfExpression extends Node implements ScalarExpression

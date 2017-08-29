@@ -32,7 +32,7 @@ use sad_spirit\pg_builder\nodes\lists\TypeModifierList,
  * done to underlying type pg_catalog.interval, this is too implementation-specific.
  * So we keep the mask in text form and use the standard INTERVAL type name.
  *
- * @property-read string $mask
+ * @property string $mask
  */
 class IntervalTypeName extends TypeName
 {

@@ -20,8 +20,8 @@ namespace sad_spirit\pg_builder;
 /**
  * Represents a set operator (UNION, INTERSECT, EXCEPT) applied to two select statements
  *
- * @property-read SelectCommon $left
- * @property-read SelectCommon $right
+ * @property      SelectCommon $left
+ * @property      SelectCommon $right
  * @property-read string       $operator
  */
 class SetOpSelect extends SelectCommon

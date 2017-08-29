@@ -27,7 +27,7 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
  * Base class for alias-able items in FROM clause
  *
  * @property-read Identifier     $tableAlias
- * @property-read IdentifierList $columnAliases
+ * @property      IdentifierList $columnAliases
  */
 abstract class FromElement extends Node
 {

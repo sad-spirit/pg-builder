@@ -30,7 +30,7 @@ use sad_spirit\pg_builder\Node,
  *  * foo::bar
  *  * bar 'string constant'
  *
- * @property-read ScalarExpression $argument
+ * @property      ScalarExpression $argument
  * @property-read TypeName         $type
  */
 class TypecastExpression extends Node implements ScalarExpression

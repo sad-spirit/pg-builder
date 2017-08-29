@@ -28,13 +28,13 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
 /**
  * Represents a (simple) SELECT statement
  *
- * @property-read TargetList          $list
+ * @property      TargetList          $list
  * @property      bool|ExpressionList $distinct
- * @property-read FromList            $from
+ * @property      FromList            $from
  * @property-read WhereOrHavingClause $where
- * @property-read GroupByList         $group
+ * @property      GroupByList         $group
  * @property-read WhereOrHavingClause $having
- * @property-read WindowList          $window
+ * @property      WindowList          $window
  */
 class Select extends SelectCommon
 {

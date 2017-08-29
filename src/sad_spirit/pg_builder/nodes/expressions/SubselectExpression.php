@@ -26,7 +26,7 @@ use sad_spirit\pg_builder\Node,
 /**
  * AST node representing a subquery appearing in scalar expressions, possibly with a subquery operator applied
  *
- * @property-read SelectCommon $query
+ * @property      SelectCommon $query
  * @property-read string|null  $operator
  */
 class SubselectExpression extends Node implements ScalarExpression

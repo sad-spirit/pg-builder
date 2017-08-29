@@ -26,9 +26,9 @@ use sad_spirit\pg_builder\nodes\lists\FromList,
  * AST node representing DELETE statement
  *
  * @property-read UpdateOrDeleteTarget  $relation
- * @property-read FromList              $using
+ * @property      FromList              $using
  * @property-read WhereOrHavingClause   $where
- * @property-read TargetList            $returning
+ * @property      TargetList            $returning
  */
 class Delete extends Statement
 {

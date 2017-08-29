@@ -109,7 +109,7 @@ QRY
         $this->assertEquals(37, count($matches[0]));
 
         $text = new TypeName(new QualifiedName(array('text')));
-        $text->setArrayBounds(array(-1));
+        $text->setBounds(array(-1));
         $this->assertEquals($text, $types[$map['typecast']]);
         $this->assertEquals(new TypeName(new QualifiedName(array('foo'))), $types[$map['typecastop']]);
     }
