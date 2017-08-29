@@ -17,11 +17,9 @@
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_wrapper\Exception as BaseException;
-
 /**
  * Interface that should be implemented by all package exceptions
  */
-interface Exception extends BaseException
+interface Exception
 {
 }
