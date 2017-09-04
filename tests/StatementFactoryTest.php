@@ -18,7 +18,6 @@
 namespace sad_spirit\pg_builder\tests;
 
 use sad_spirit\pg_wrapper\Connection,
-    sad_spirit\pg_wrapper\cache\File,
     sad_spirit\pg_builder\Lexer,
     sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\StatementFactory,
@@ -36,7 +35,8 @@ use sad_spirit\pg_wrapper\Connection,
     sad_spirit\pg_builder\nodes\lists\TargetList,
     sad_spirit\pg_builder\nodes\range\InsertTarget,
     sad_spirit\pg_builder\nodes\range\RelationReference,
-    sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
+    sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget,
+    Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Unit test for StatementFactory class
@@ -57,7 +57,8 @@ class StatementFactoryTest extends \PHPUnit_Framework_TestCase
         if (!TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING) {
             $this->markTestSkipped('Connection string is not configured');
         }
-        $cache      = new File(__DIR__ . '/../cache');
+        /* @var $mockPool CacheItemPoolInterface|\PHPUnit_Framework_MockObject_MockObject */
+        $cache      = $this->getMock('Psr\Cache\CacheItemPoolInterface');
         $connection = new Connection(TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING);
         $connection->execute("set standard_conforming_strings = off");
         $connection->setMetadataCache($cache);

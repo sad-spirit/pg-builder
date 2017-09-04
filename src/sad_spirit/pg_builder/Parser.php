@@ -17,7 +17,7 @@
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_wrapper\MetadataCache;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Recursive descent parser for PostgreSQL's dialect of SQL
@@ -141,7 +141,7 @@ class Parser
     private $_lexer;
 
     /**
-     * @var MetadataCache
+     * @var CacheItemPoolInterface
      */
     private $_cache;
 
@@ -436,10 +436,10 @@ class Parser
      *
      * It is recommended to always use cache in production: parsing is slow.
      *
-     * @param Lexer         $lexer
-     * @param MetadataCache $cache
+     * @param Lexer                  $lexer
+     * @param CacheItemPoolInterface $cache
      */
-    public function __construct(Lexer $lexer, MetadataCache $cache = null)
+    public function __construct(Lexer $lexer, CacheItemPoolInterface $cache = null)
     {
         $this->_lexer = $lexer;
         $this->_cache = $cache;
@@ -513,11 +513,14 @@ class Parser
             throw new exceptions\BadMethodCallException("The method '{$name}' is not available");
         }
 
-        $cacheKey = null;
-        if ($this->_cache) {
-            $cacheKey = 'parsetree-' . md5('{' . $name . '}{' . $this->precedence . '}' . $arguments[0]);
-            if (null !== ($cached = $this->_cache->getItem($cacheKey))) {
-                return $cached;
+        if (!$this->_cache) {
+            $cacheItem = null;
+
+        } else {
+            $cacheKey  = 'parsetree-' . md5('{' . $name . '}{' . $this->precedence . '}' . $arguments[0]);
+            $cacheItem = $this->_cache->getItem($cacheKey);
+            if ($cacheItem->isHit()) {
+                return $cacheItem->get();
             }
         }
 
@@ -536,8 +539,8 @@ class Parser
             );
         }
 
-        if ($cacheKey) {
-            $this->_cache->setItem($cacheKey, $parsed);
+        if ($cacheItem) {
+            $this->_cache->save($cacheItem->set($parsed));
         }
 
         return $parsed;
