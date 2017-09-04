@@ -20,11 +20,14 @@ Parsing is definitely not a fast operation, so there are means to cache parts of
 
 ```PHP
 use sad_spirit\pg_builder\StatementFactory,
+    sad_spirit\pg_builder\converters\ParserAwareTypeConverterFactory,
     sad_spirit\pg_builder\Select,
     sad_spirit\pg_wrapper\Connection;
 
 $connection = new Connection('host=localhost user=username dbname=cms');
 $factory    = new StatementFactory($connection);
+// Needed for handling type info extracted from query
+$connection->setTypeConverterFactory(new ParserAwareTypeConverterFactory($factory->getParser()));
 
 // latest 5 news
 /* @var $query Select */

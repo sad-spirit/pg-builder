@@ -19,7 +19,8 @@ namespace sad_spirit\pg_builder\tests;
 
 use sad_spirit\pg_wrapper\Connection,
     sad_spirit\pg_builder\NativeStatement,
-    sad_spirit\pg_builder\StatementFactory;
+    sad_spirit\pg_builder\StatementFactory,
+    sad_spirit\pg_builder\converters\ParserAwareTypeConverterFactory;
 
 class NativeStatementTest extends \PHPUnit_Framework_TestCase
 {
@@ -40,6 +41,7 @@ class NativeStatementTest extends \PHPUnit_Framework_TestCase
         }
 
         $this->connection = new Connection(TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING);
+        $this->connection->setTypeConverterFactory(new ParserAwareTypeConverterFactory());
         $this->factory    = new StatementFactory($this->connection);
     }
 

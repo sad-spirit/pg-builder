@@ -66,6 +66,7 @@ use Psr\Cache\CacheItemPoolInterface;
  * @method nodes\xml\XmlNamespace           parseXmlNamespace($input)
  * @method nodes\xml\XmlColumnList          parseXmlColumnList($input)
  * @method nodes\xml\XmlColumnDefinition    parseXmlColumnDefinition($input)
+ * @method nodes\TypeName                   parseTypeName($input)
  */
 class Parser
 {
@@ -132,7 +133,8 @@ class Parser
         'xmlnamespacelist'           => true,
         'xmlnamespace'               => true,
         'xmlcolumnlist'              => true,
-        'xmlcolumndefinition'        => true
+        'xmlcolumndefinition'        => true,
+        'typename'                   => true
     );
 
     /**
