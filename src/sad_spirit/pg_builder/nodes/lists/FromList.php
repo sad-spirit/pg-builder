@@ -34,7 +34,7 @@ class FromList extends NonAssociativeList implements Parseable, ElementParseable
 
         if (!($value instanceof FromElement)) {
             throw new InvalidArgumentException(sprintf(
-                '%s can contain only instances of FromItem, %s given',
+                '%s can contain only instances of FromElement, %s given',
                 __CLASS__, is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
             ));
         }
