@@ -28,7 +28,7 @@ use sad_spirit\pg_builder\Node,
  * Quite similar to range\Subselect, but any statement is allowed here, not only
  * SELECT
  *
- * @property-read Statement      $statement
+ * @property      Statement      $statement
  * @property-read Identifier     $alias
  * @property-read IdentifierList $columnAliases
  */
@@ -36,9 +36,14 @@ class CommonTableExpression extends Node
 {
     public function __construct(Statement $statement, Identifier $alias, IdentifierList $columnAliases = null)
     {
-        $this->setNamedProperty('statement', $statement);
+        $this->setStatement($statement);
         $this->setNamedProperty('alias', $alias);
         $this->setNamedProperty('columnAliases', $columnAliases ?: new IdentifierList());
+    }
+
+    public function setStatement(Statement $statement)
+    {
+        $this->setNamedProperty('statement', $statement);
     }
 
     public function dispatch(TreeWalker $walker)
