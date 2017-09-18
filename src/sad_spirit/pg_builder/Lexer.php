@@ -514,7 +514,7 @@ class Lexer
      *      characters.
      *  'ascii_only_downcasing' - when true only ASCII letters in unquoted identifiers will be converted to
      *      lower case, when false all letters (according to current mbstring encoding / locale). Only should
-     *      be set to true for single-byte encodings (see changelog for Postgres releases @ 2013-10-10)!
+     *      be set to false for single-byte encodings (see changelog for Postgres releases @ 2013-10-10)!
      *
      * @param array $options
      */
