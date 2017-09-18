@@ -72,3 +72,7 @@ where ro.rubric_id = any($1::pg_catalog.int4[])
 order by news_added desc
 limit 5
 ```
+
+## Documentation
+
+Is in the [wiki](https://github.com/sad-spirit/pg-builder/wiki)
