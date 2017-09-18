@@ -17,12 +17,6 @@
 
 namespace sad_spirit\pg_builder;
 
-use ArrayAccess,
-    IteratorAggregate,
-    Countable,
-    ArrayIterator,
-    Traversable;
-
 /**
  * An array that enforces the type of its elements
  *
@@ -31,7 +25,7 @@ use ArrayAccess,
  *
  * Inspired by PEAR's PHP_ArrayOf class
  */
-abstract class NodeList extends Node implements ArrayAccess, Countable, IteratorAggregate
+abstract class NodeList extends Node implements \ArrayAccess, \Countable, \IteratorAggregate
 {
     /**
      * Child nodes available through ArrayAccess
@@ -130,9 +124,15 @@ abstract class NodeList extends Node implements ArrayAccess, Countable, Iterator
 
     public function getIterator()
     {
-        return new ArrayIterator($this->nodes);
+        return new \ArrayIterator($this->nodes);
     }
 
+    /**
+     * Merges one or more lists with the current one
+     *
+     * The arguments can be arrays, Traversables or even strings if current class
+     * implements Parseable and a Parser is available.
+     */
     public function merge()
     {
         $args = func_get_args();
@@ -149,6 +149,12 @@ abstract class NodeList extends Node implements ArrayAccess, Countable, Iterator
         }
     }
 
+    /**
+     * Replaces the elements of the list with the given ones
+     *
+     * @param array|\Traversable|string $array strings are allowed if current class
+     *                                        implements Parseable and a Parser is available
+     */
     public function replace($array)
     {
         $this->normalizeArray($array, __METHOD__);
@@ -159,6 +165,13 @@ abstract class NodeList extends Node implements ArrayAccess, Countable, Iterator
         }
     }
 
+    /**
+     * Normalizes the "array-like" argument of merge() / replace()
+     *
+     * @param array|\Traversable|string $array
+     * @param string                   $method calling method, used only for Exception messages
+     * @throws exceptions\InvalidArgumentException
+     */
     protected function normalizeArray(&$array, $method)
     {
         if (is_string($array) && $this instanceof Parseable) {
@@ -167,7 +180,7 @@ abstract class NodeList extends Node implements ArrayAccess, Countable, Iterator
             }
             $array = call_user_func(array(get_class($this), 'createFromString'), $parser, $array);
         }
-        if (!is_array($array) && !($array instanceof Traversable)) {
+        if (!is_array($array) && !($array instanceof \Traversable)) {
             throw new exceptions\InvalidArgumentException(sprintf(
                 "%s requires either an array or an instance of Traversable, %s given",
                 $method, is_object($array) ? 'object(' . get_class($array) . ')' : gettype($array)
@@ -175,6 +188,13 @@ abstract class NodeList extends Node implements ArrayAccess, Countable, Iterator
         }
     }
 
+    /**
+     * Normalizes the key and value of array element
+     *
+     * @param mixed $offset
+     * @param mixed $value
+     * @throws exceptions\InvalidArgumentException
+     */
     abstract protected function normalizeElement(&$offset, &$value);
 
     public function dispatch(TreeWalker $walker)
