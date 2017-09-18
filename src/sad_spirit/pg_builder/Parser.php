@@ -534,8 +534,7 @@ class Parser
 
         $parsed = call_user_func(array($this, $matches[1]));
 
-        // Can't use expect here: it will try to move stream position beyond the end
-        if (!$this->stream->matches(Token::TYPE_EOF)) {
+        if (!$this->stream->isEOF()) {
             throw exceptions\SyntaxException::expectationFailed(
                 Token::TYPE_EOF, null, $this->stream->getCurrent(), $this->stream->getSource()
             );
