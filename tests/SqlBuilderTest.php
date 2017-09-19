@@ -163,7 +163,7 @@ window win95 as (partition by anything range between unbounded preceding and cur
 order by 1 using >>> nulls first, 2 desc
 limit $3
 offset $4
-for no key update of quux, xyzzy
+for no key update of quux, xyzzy for share of anothertable skip locked
 QRY
         );
 

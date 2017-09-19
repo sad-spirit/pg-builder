@@ -942,6 +942,8 @@ class SqlBuilderWalker implements TreeWalker
         }
         if ($node->noWait) {
             $sql .= ' nowait';
+        } elseif ($node->skipLocked) {
+            $sql .= ' skip locked';
         }
         return $sql;
     }

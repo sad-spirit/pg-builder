@@ -182,13 +182,13 @@ QRY
     public function testLockingClauses()
     {
         $select = $this->parser->parseStatement(<<<QRY
-    select * from a.foo, b.bar, c.baz for share of a.foo, c.baz for no key update of b.bar
+    select * from a.foo, b.bar, c.baz for share of a.foo, c.baz for no key update of b.bar skip locked
 QRY
         );
         $this->assertEquals(
             new LockList(array(
                 new LockingElement('share', array(new QualifiedName(array('a', 'foo')), new QualifiedName(array('c', 'baz')))),
-                new LockingElement('no key update', array(new QualifiedName(array('b', 'bar'))))
+                new LockingElement('no key update', array(new QualifiedName(array('b', 'bar'))), false, true)
             )),
             clone $select->locking
         );

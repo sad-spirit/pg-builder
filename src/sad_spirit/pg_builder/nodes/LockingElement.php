@@ -27,6 +27,7 @@ use sad_spirit\pg_builder\Node,
  *
  * @property-read string $strength
  * @property-read bool   $noWait
+ * @property-read bool   $skipLocked
  */
 class LockingElement extends NonAssociativeList
 {
@@ -37,14 +38,18 @@ class LockingElement extends NonAssociativeList
         'key share'     => true
     );
 
-    public function __construct($strength, array $relations = array(), $noWait = false)
+    public function __construct($strength, array $relations = array(), $noWait = false, $skipLocked = false)
     {
         if (!isset(self::$allowedStrengths[$strength])) {
             throw new InvalidArgumentException("Unknown locking strength '{$strength}'");
         }
+        if ($noWait && $skipLocked) {
+            throw new InvalidArgumentException("Only one of NOWAIT or SKIP LOCKED is allowed in locking clause");
+        }
 
-        $this->props['strength'] = (string)$strength;
-        $this->props['noWait']   = (bool)$noWait;
+        $this->props['strength']   = (string)$strength;
+        $this->props['noWait']     = (bool)$noWait;
+        $this->props['skipLocked'] = (bool)$skipLocked;
         parent::__construct($relations);
     }
 

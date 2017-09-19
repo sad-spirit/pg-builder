@@ -848,8 +848,9 @@ class Parser
             $strength .= ' ' . $this->stream->expect(Token::TYPE_KEYWORD, 'share')->getValue();
         }
 
-        $relations = array();
-        $noWait    = false;
+        $relations  = array();
+        $noWait     = false;
+        $skipLocked = false;
 
         if ($this->stream->matches(Token::TYPE_KEYWORD, 'of')) {
             do {
@@ -861,9 +862,13 @@ class Parser
         if ($this->stream->matches(Token::TYPE_KEYWORD, 'nowait')) {
             $this->stream->next();
             $noWait = true;
+
+        } elseif ($this->stream->matchesSequence(array('skip', 'locked'))) {
+            $this->stream->skip(2);
+            $skipLocked = true;
         }
 
-        return new nodes\LockingElement($strength, $relations, $noWait);
+        return new nodes\LockingElement($strength, $relations, $noWait, $skipLocked);
     }
 
     protected function LimitOffsetClause(SelectCommon $stmt)
