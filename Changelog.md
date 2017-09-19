@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+* Added support for `SKIP LOCKED` construct in locking clause of `SELECT`. Missed when implementing syntax of Postgres 9.5
+* Added `BlankWalker` implementation of `TreeWalker` that only dispatches to child nodes. `ParameterWalker` is reimplemented as a subclass of `BlankWalker`.
+* `$statement` property of `CommonTableExpression` is now writable.
+
 ## 0.2.0
 
 * Support for new syntax added in PostgreSQL versions 9.5, 9.6 and 10
@@ -12,8 +18,8 @@
 
 ## 0.1.1
 
-Exceptions from `sad-spirit/pg-wrapper` are no longer thrown here
+Exceptions from `sad-spirit/pg-wrapper` are no longer thrown here.
 
 ## 0.1.0
 
-Initial release from GitHub
+Initial release on GitHub
