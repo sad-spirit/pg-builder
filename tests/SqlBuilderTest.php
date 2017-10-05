@@ -19,7 +19,9 @@ namespace sad_spirit\pg_builder\tests;
 
 use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\Lexer,
-    sad_spirit\pg_builder\SqlBuilderWalker;
+    sad_spirit\pg_builder\SqlBuilderWalker,
+    sad_spirit\pg_builder\nodes\Constant,
+    sad_spirit\pg_builder\nodes\lists\ExpressionList;
 
 /**
  * Tests building SQL from ASTs
@@ -203,5 +205,17 @@ QRY
     {
         $parsed = $this->parser->parseStatement('select somefoo from foo where idfoo = :id');
         $parsed->dispatch($this->builder);
+    }
+
+    public function testTrailingDollarInStringConstantBug()
+    {
+        $constants = new ExpressionList(array(
+            new Constant('^\\d{3}-\\d{2}$'),
+            new Constant('\'$$$_1')
+        ));
+        $this->assertEquals(
+            $constants,
+            $this->parser->parseExpressionList(implode(', ', $constants->dispatch($this->builder)))
+        );
     }
 }

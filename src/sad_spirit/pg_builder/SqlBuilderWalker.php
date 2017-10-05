@@ -876,12 +876,12 @@ class SqlBuilderWalker implements TreeWalker
             if (false === strpos($node->value, "'") && false === strpos($node->value, '\\')) {
                 return "'" . $node->value . "'";
 
-            } elseif (false === strpos($node->value, '$$')) {
+            } elseif (false === strpos($node->value . '$', '$$')) {
                 return '$$' . $node->value . '$$';
 
             } else {
                 $i = 1;
-                while (false !== strpos($node->value, '$_' . $i . '$')) {
+                while (false !== strpos($node->value . '$', '$_' . $i . '$')) {
                     $i++;
                 }
                 return '$_' . $i . '$' . $node->value . '$_' . $i . '$';
