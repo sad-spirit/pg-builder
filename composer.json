@@ -18,7 +18,8 @@
         "ext-pgsql": "*"
     },
     "suggest": {
-        "psr/cache-implementation": "Used for caching parsed queries"
+        "psr/cache-implementation": "Used for caching parsed queries",
+        "sad_spirit/pg_wrapper":    "Used for running built queries"
     },
     "require-dev":  {
         "phpunit/phpunit":       "~4.8",
