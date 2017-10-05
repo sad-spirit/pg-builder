@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.2
+
+* Invalid dollar-quoted strings created by `SqlBuilderWalker` if the string constant ended with dollar symbol (common thing with RegExps)
+* Make `sad-spirit/pg_wrapper` a suggested dependency in `composer.json`
+
 ## 0.2.1
 
 * Added support for `SKIP LOCKED` construct in locking clause of `SELECT`. Missed when implementing syntax of Postgres 9.5
