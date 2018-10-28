@@ -35,7 +35,7 @@ class RowsFromElement extends Node
     public function __construct(BaseFunctionCall $function, ColumnDefinitionList $columnAliases = null)
     {
         $this->setNamedProperty('function', $function);
-        $this->setNamedProperty('columnAliases', $columnAliases);
+        $this->setNamedProperty('columnAliases', $columnAliases ?: new ColumnDefinitionList());
     }
 
     public function dispatch(TreeWalker $walker)
