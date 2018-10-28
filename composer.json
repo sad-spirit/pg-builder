@@ -15,7 +15,8 @@
     },
     "require" : {
         "php":       ">=5.3.0",
-        "ext-pgsql": "*"
+        "ext-pgsql": "*",
+        "ext-ctype": "*"
     },
     "suggest": {
         "psr/cache-implementation": "Used for caching parsed queries",
