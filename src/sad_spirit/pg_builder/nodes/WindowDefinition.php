@@ -25,27 +25,23 @@ use sad_spirit\pg_builder\Node,
 /**
  * AST node representing a window definition (for function calls with OVER and for WINDOW clause)
  *
- * @property      Identifier       $name
- * @property-read Identifier       $refName
- * @property-read ExpressionList   $partition
- * @property-read OrderByList      $order
- * @property-read string           $frameType
- * @property-read WindowFrameBound $frameStart
- * @property-read WindowFrameBound $frameEnd
+ * @property      Identifier        $name
+ * @property-read Identifier        $refName
+ * @property      ExpressionList    $partition
+ * @property      OrderByList       $order
+ * @property-read WindowFrameClause $frame
  */
 class WindowDefinition extends Node
 {
     public function __construct(
         Identifier $refName = null, ExpressionList $partition = null, OrderByList $order = null,
-        $frameType = null, WindowFrameBound $frameStart = null, WindowFrameBound $frameEnd = null
+        WindowFrameClause $frame = null
     ) {
         $this->props['name']       = null;
         $this->setNamedProperty('refName', $refName);
         $this->setNamedProperty('partition', $partition ?: new ExpressionList());
         $this->setNamedProperty('order', $order ?: new OrderByList());
-        $this->props['frameType']  = $frameType;
-        $this->setNamedProperty('frameStart', $frameStart);
-        $this->setNamedProperty('frameEnd', $frameEnd);
+        $this->setNamedProperty('frame', $frame);
     }
 
     public function setName(Identifier $name = null)

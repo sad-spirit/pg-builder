@@ -29,6 +29,7 @@ use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\nodes\TypeName,
     sad_spirit\pg_builder\nodes\WindowDefinition,
     sad_spirit\pg_builder\nodes\WindowFrameBound,
+    sad_spirit\pg_builder\nodes\WindowFrameClause,
     sad_spirit\pg_builder\nodes\expressions\FunctionExpression,
     sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
     sad_spirit\pg_builder\nodes\expressions\TypecastExpression,
@@ -485,7 +486,7 @@ QRY
                 ),
                 new FunctionExpression(
                     new QualifiedName(array('agg2')),
-                    new FunctionArgumentList(array(new ColumnReference(array('blahblah'))), false),
+                    new FunctionArgumentList(array(new ColumnReference(array('blahblah')))),
                     true
                 ),
                 new FunctionExpression(
@@ -494,8 +495,7 @@ QRY
                         array(
                             new ColumnReference(array(new Identifier('foo'))),
                             new ColumnReference(array(new Identifier('bar')))
-                        ),
-                        false
+                        )
                     ),
                     true, false, new OrderByList(array(
                         new OrderByElement(new ColumnReference(array(new Identifier('foo'))), 'desc'),
@@ -546,9 +546,12 @@ QRY
                 new FunctionExpression(
                     new QualifiedName(array('something')), null, false, false, null,
                     false, null, new WindowDefinition(
-                        null, null, null, 'rows',
-                        new WindowFrameBound('preceding', new Constant(5)),
-                        new WindowFrameBound('following')
+                        null, null, null,
+                        new WindowFrameClause(
+                            'rows',
+                            new WindowFrameBound('preceding', new Constant(5)),
+                            new WindowFrameBound('following')
+                        )
                     )
                 ),
                 new FunctionExpression(

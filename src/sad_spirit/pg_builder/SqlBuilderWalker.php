@@ -1064,16 +1064,21 @@ class SqlBuilderWalker implements TreeWalker
         if (0 < count($node->order)) {
             $parts[] = 'order by ' . implode(', ', $node->order->dispatch($this));
         }
-        if ($node->frameType) {
-            $part = $node->frameType . ' ';
-            if (!$node->frameEnd) {
-                $part .= $node->frameStart->dispatch($this);
-            } else {
-                $part .= 'between ' . $node->frameStart->dispatch($this) . ' and ' . $node->frameEnd->dispatch($this);
-            }
-            $parts[] = $part;
+        if ($node->frame) {
+            $parts[] = $node->frame->dispatch($this);
         }
         return $sql . implode(' ', $parts) . ')';
+    }
+
+    public function walkWindowFrameClause(nodes\WindowFrameClause $node)
+    {
+        $sql = $node->type . ' ';
+        if (!$node->end) {
+            $sql .= $node->start->dispatch($this);
+        } else {
+            $sql .= 'between ' . $node->start->dispatch($this) . ' and ' . $node->end->dispatch($this);
+        }
+        return $sql;
     }
 
     public function walkWindowFrameBound(nodes\WindowFrameBound $node)

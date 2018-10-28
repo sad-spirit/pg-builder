@@ -73,6 +73,7 @@ use sad_spirit\pg_builder\Delete,
     sad_spirit\pg_builder\nodes\xml\XmlPi,
     sad_spirit\pg_builder\nodes\xml\XmlRoot,
     sad_spirit\pg_builder\nodes\xml\XmlSerialize;
+use sad_spirit\pg_builder\nodes\WindowFrameClause;
 
 /**
  * Tests that parent node is properly set on children
@@ -229,7 +230,7 @@ class SetParentNodeTest extends \PHPUnit_Framework_TestCase
     {
         $fn = new FunctionCall(
             new QualifiedName(array('foo', 'bar')),
-            new FunctionArgumentList(array(new Constant(1)), false),
+            new FunctionArgumentList(array(new Constant(1))),
             false,
             new OrderByList(array(new OrderByElement(new ColumnReference(array('baz')))))
         );
@@ -310,15 +311,16 @@ class SetParentNodeTest extends \PHPUnit_Framework_TestCase
 
         $window = new WindowDefinition(
             new Identifier('reference'), new ExpressionList(array(new ColumnReference(array('foo')))),
-            new OrderByList(array(new OrderByElement(new ColumnReference(array('bar'))))), 'rows',
-            $start, $end
+            new OrderByList(array(new OrderByElement(new ColumnReference(array('bar'))))),
+            $frame = new WindowFrameClause('rows', $start, $end)
         );
 
         $this->assertSame($window, $window->refName->getParentNode());
         $this->assertSame($window, $window->partition->getParentNode());
         $this->assertSame($window, $window->order->getParentNode());
-        $this->assertSame($window, $window->frameStart->getParentNode());
-        $this->assertSame($window, $window->frameEnd->getParentNode());
+        $this->assertSame($window, $window->frame->getParentNode());
+        $this->assertSame($frame, $frame->start->getParentNode());
+        $this->assertSame($frame, $frame->end->getParentNode());
 
         $name = new Identifier('myname');
         $window->name = $name;

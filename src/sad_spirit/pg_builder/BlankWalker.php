@@ -252,11 +252,18 @@ abstract class BlankWalker implements TreeWalker
         }
         $node->partition->dispatch($this);
         $node->order->dispatch($this);
-        if ($node->frameStart) {
-            $node->frameStart->dispatch($this);
+        if ($node->frame) {
+            $node->frame->dispatch($this);
         }
-        if ($node->frameEnd) {
-            $node->frameEnd->dispatch($this);
+    }
+
+    public function walkWindowFrameClause(nodes\WindowFrameClause $node)
+    {
+        if ($node->start) {
+            $node->start->dispatch($this);
+        }
+        if ($node->end) {
+            $node->end->dispatch($this);
         }
     }
 

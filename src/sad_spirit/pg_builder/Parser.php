@@ -1149,7 +1149,7 @@ class Parser
 
     protected function WindowSpecification()
     {
-        $refName = $partition = $frameType = $start = $end = $order = null;
+        $refName = $partition = $frame = $order = null;
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
         if ($this->stream->matches(Token::TYPE_IDENTIFIER)
             || ($this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
@@ -1168,74 +1168,80 @@ class Parser
             $order = $this->OrderByList();
         }
         if ($this->stream->matches(Token::TYPE_KEYWORD, array('range', 'rows'))) {
-            $frameType  = $this->stream->next();
-            $tokenStart = $this->stream->getCurrent();
-            if (!$this->stream->matches(Token::TYPE_KEYWORD, 'between')) {
-                $start = $this->WindowFrameBound();
-                if ('following' === $start->direction) {
-                    // like in frame_extent production in gram.y, reject invalid frame cases
-                    if (!$start->value) {
-                        throw exceptions\SyntaxException::atPosition(
-                            'Frame start cannot be UNBOUNDED FOLLOWING',
-                            $this->stream->getSource(), $tokenStart->getPosition()
-                        );
-                    } else {
-                        throw exceptions\SyntaxException::atPosition(
-                            'Frame starting from following row cannot end with current row',
-                            $this->stream->getSource(), $tokenStart->getPosition()
-                        );
-                    }
-                }
-
-            } else {
-                $this->stream->next();
-                $start    = $this->WindowFrameBound();
-                $this->stream->expect(Token::TYPE_KEYWORD, 'and');
-                $tokenEnd = $this->stream->getCurrent();
-                $end      = $this->WindowFrameBound();
-                // like in frame_extent production in gram.y, reject invalid frame cases
-                if ('following' === $start->direction && !$start->value) {
-                    throw exceptions\SyntaxException::atPosition(
-                        'Frame start cannot be UNBOUNDED FOLLOWING',
-                        $this->stream->getSource(), $tokenStart->getPosition()
-                    );
-                }
-                if ('preceding' === $end->direction && !$end->value) {
-                    throw exceptions\SyntaxException::atPosition(
-                        "Frame end cannot be UNBOUNDED PRECEDING",
-                        $this->stream->getSource(), $tokenEnd->getPosition()
-                    );
-                }
-                if ('current row' === $start->direction && 'preceding' === $end->direction) {
-                    throw exceptions\SyntaxException::atPosition(
-                        "Frame starting from current row cannot have preceding rows",
-                        $this->stream->getSource(), $tokenEnd->getPosition()
-                    );
-                }
-                if ('following' === $start->direction && in_array($end->direction, array('current row', 'preceding'))) {
-                    throw exceptions\SyntaxException::atPosition(
-                        "Frame starting from following row cannot have preceding rows",
-                        $this->stream->getSource(), $tokenEnd->getPosition()
-                    );
-                }
-            }
-            // like in opt_frame_clause production in gram.y, reject invalid frame cases
-            if ('range' === $frameType->getValue()
-                && ($start->value || isset($end) && $end->value)
-            ) {
-                $boundName = strtoupper($start->value ? $start->direction : $end->direction);
-                throw exceptions\SyntaxException::atPosition(
-                    "RANGE {$boundName} is only supported with UNBOUNDED",
-                    $this->stream->getSource(), $frameType->getPosition()
-                );
-            }
+            $frame = $this->WindowFrameClause();
         }
 
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
-        return new nodes\WindowDefinition(
-            $refName, $partition, $order, $frameType ? $frameType->getValue() : null, $start, $end
-        );
+        return new nodes\WindowDefinition($refName, $partition, $order, $frame);
+    }
+
+    protected function WindowFrameClause()
+    {
+        $frameType  = $this->stream->expect(Token::TYPE_KEYWORD, array('range', 'rows'));
+        $tokenStart = $this->stream->getCurrent();
+        if (!$this->stream->matches(Token::TYPE_KEYWORD, 'between')) {
+            $start = $this->WindowFrameBound();
+            $end   = null;
+            if ('following' === $start->direction) {
+                // like in frame_extent production in gram.y, reject invalid frame cases
+                if (!$start->value) {
+                    throw exceptions\SyntaxException::atPosition(
+                        'Frame start cannot be UNBOUNDED FOLLOWING',
+                        $this->stream->getSource(), $tokenStart->getPosition()
+                    );
+                } else {
+                    throw exceptions\SyntaxException::atPosition(
+                        'Frame starting from following row cannot end with current row',
+                        $this->stream->getSource(), $tokenStart->getPosition()
+                    );
+                }
+            }
+
+        } else {
+            $this->stream->next();
+            $start    = $this->WindowFrameBound();
+            $this->stream->expect(Token::TYPE_KEYWORD, 'and');
+            $tokenEnd = $this->stream->getCurrent();
+            $end      = $this->WindowFrameBound();
+            // like in frame_extent production in gram.y, reject invalid frame cases
+            if ('following' === $start->direction && !$start->value) {
+                throw exceptions\SyntaxException::atPosition(
+                    'Frame start cannot be UNBOUNDED FOLLOWING',
+                    $this->stream->getSource(), $tokenStart->getPosition()
+                );
+            }
+            if ('preceding' === $end->direction && !$end->value) {
+                throw exceptions\SyntaxException::atPosition(
+                    "Frame end cannot be UNBOUNDED PRECEDING",
+                    $this->stream->getSource(), $tokenEnd->getPosition()
+                );
+            }
+            if ('current row' === $start->direction && 'preceding' === $end->direction) {
+                throw exceptions\SyntaxException::atPosition(
+                    "Frame starting from current row cannot have preceding rows",
+                    $this->stream->getSource(), $tokenEnd->getPosition()
+                );
+            }
+            if ('following' === $start->direction && in_array($end->direction, array('current row', 'preceding'))) {
+                throw exceptions\SyntaxException::atPosition(
+                    "Frame starting from following row cannot have preceding rows",
+                    $this->stream->getSource(), $tokenEnd->getPosition()
+                );
+            }
+        }
+        // like in opt_frame_clause production in gram.y, reject invalid frame cases
+        if ('range' === $frameType->getValue()
+            && ($start->value || isset($end) && $end->value)
+        ) {
+            $boundName = strtoupper($start->value ? $start->direction : $end->direction);
+            throw exceptions\SyntaxException::atPosition(
+                "RANGE {$boundName} is only supported with UNBOUNDED",
+                $this->stream->getSource(), $frameType->getPosition()
+            );
+        }
+
+        return new nodes\WindowFrameClause($frameType->getValue(), $start, $end);
     }
 
     protected function WindowFrameBound()

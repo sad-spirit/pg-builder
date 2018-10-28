@@ -29,6 +29,7 @@ use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\nodes\TargetElement,
     sad_spirit\pg_builder\nodes\WindowDefinition,
     sad_spirit\pg_builder\nodes\WindowFrameBound,
+    sad_spirit\pg_builder\nodes\WindowFrameClause,
     sad_spirit\pg_builder\nodes\expressions\FunctionExpression,
     sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
     sad_spirit\pg_builder\nodes\lists\FunctionArgumentList,
@@ -230,7 +231,10 @@ QRY
             new WindowDefinition(new Identifier('foo')),
             new WindowDefinition(null, new ExpressionList(array(new ColumnReference(array('whatever'))))),
             new WindowDefinition(
-                null, null, null, 'range', new WindowFrameBound('preceding'), new WindowFrameBound('current row')
+                null, null, null,
+                new WindowFrameClause(
+                    'range', new WindowFrameBound('preceding'), new WindowFrameBound('current row')
+                )
             )
         );
         $windows[0]->setName(new Identifier('foo'));

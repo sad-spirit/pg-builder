@@ -76,6 +76,8 @@ interface TreeWalker
 
     public function walkWindowDefinition(nodes\WindowDefinition $node);
 
+    public function walkWindowFrameClause(nodes\WindowFrameClause $node);
+
     public function walkWindowFrameBound(nodes\WindowFrameBound $node);
 
     public function walkWithClause(nodes\WithClause $node);
