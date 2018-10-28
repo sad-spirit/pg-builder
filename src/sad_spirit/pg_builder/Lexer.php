@@ -652,16 +652,6 @@ class Lexer
                     $this->pushToken('.', Token::TYPE_SPECIAL_CHAR, $this->position++);
                 }
 
-            } elseif ('=' === $char && '>' === $nextChar) {
-                $this->pushToken('=>', Token::TYPE_EQUALS_GREATER, $this->position);
-                $this->position += 2;
-
-            } elseif ('=' === $nextChar && ('<' === $char || '>' === $char || '!' === $char)
-                      || '>' === $nextChar && '<' === $char
-            ) {
-                $this->pushToken($char . $nextChar, Token::TYPE_INEQUALITY, $this->position);
-                $this->position += 2;
-
             } elseif (ctype_digit($char)) {
                 $this->lexNumeric();
 
@@ -808,21 +798,40 @@ class Lexer
         if ($commentMulti = strpos($operator, '/*')) {
             $length = min($length, $commentMulti);
         }
-        while ($length > 1
-               && ('+' === $operator[$length - 1] || '-' === $operator[$length - 1])
+        if ($length > 1
+            && ('+' === $operator[$length - 1] || '-' === $operator[$length - 1])
         ) {
             for ($i = $length - 2; $i >= 0; $i--) {
                 if (strspn($operator[$i], "~!@#^&|`?%")) {
-                    break 2;
+                    break;
                 }
             }
-            $length--;
+            if ($i < 0) {
+                do {
+                    $length--;
+                } while ($length > 1
+                         && ('+' === $operator[$length - 1] || '-' === $operator[$length - 1]));
+            }
         }
 
         $operator = substr($operator, 0, $length);
         if (1 === $length && strspn($operator, self::CHARS_SPECIAL)) {
             $this->pushToken($operator, Token::TYPE_SPECIAL_CHAR, $this->position++);
             return;
+        }
+        if (2 === $length) {
+            if ('=' === $operator[0] && '>' === $operator[1]) {
+                $this->pushToken('=>', Token::TYPE_EQUALS_GREATER, $this->position);
+                $this->position += 2;
+                return;
+            }
+            if ('=' === $operator[1] && ('<' === $operator[0] || '>' === $operator[0] || '!' === $operator[0])
+                || '>' === $operator[1] && '<' === $operator[0]
+            ) {
+                $this->pushToken($operator, Token::TYPE_INEQUALITY, $this->position);
+                $this->position += 2;
+                return;
+            }
         }
 
         $this->pushToken($operator, Token::TYPE_OPERATOR, $this->position);

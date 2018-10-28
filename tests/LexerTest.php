@@ -96,6 +96,7 @@ QRY
 #!/*--
 */=- @+ <=
 +* *+--/*
+!=-
 QRY
 );
         $stream->expect(Token::TYPE_OPERATOR, '#!');
@@ -106,6 +107,7 @@ QRY
         $stream->expect(Token::TYPE_OPERATOR, '+*');
         $stream->expect(Token::TYPE_SPECIAL_CHAR, '*');
         $stream->expect(Token::TYPE_SPECIAL_CHAR, '+');
+        $stream->expect(Token::TYPE_OPERATOR, '!=-');
     }
 
     public function testStandardConformingStrings()
