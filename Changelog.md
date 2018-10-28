@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3
+
+* `Parser` clones parsed `Node` objects when storing them in cache or retrieving from cache. This prevents problems if the same query fragment is used multiple times.
+* Make `ext-ctype` a required dependency in `composer.json`
+
 ## 0.2.2
 
 * Invalid dollar-quoted strings created by `SqlBuilderWalker` if the string constant ended with dollar symbol (common thing with RegExps)
