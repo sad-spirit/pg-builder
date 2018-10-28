@@ -490,6 +490,11 @@ class Lexer
     protected $options = array();
     protected $mbEncoding;
 
+    private $_operatorCharHash;
+    private $_specialCharHash;
+    private $_stringPrefixCharHash;
+    private $_nonStandardCharHash;
+
     /**
      * Checks whether a given string is a recognized keyword
      *
@@ -532,6 +537,11 @@ class Lexer
             'standard_conforming_strings' => true,
             'ascii_only_downcasing'       => true
         ), $options);
+
+        $this->_operatorCharHash     = array_flip(str_split(self::CHARS_OPERATOR));
+        $this->_specialCharHash      = array_flip(str_split(self::CHARS_SPECIAL));
+        $this->_stringPrefixCharHash = array_flip(str_split('bBeEnNxX'));
+        $this->_nonStandardCharHash  = array_flip(str_split('~!@#^&|`?%'));
     }
 
     /**
@@ -603,7 +613,7 @@ class Lexer
             } elseif ('"' === $char) {
                 $this->lexDoubleQuoted();
 
-            } elseif (strspn($char, 'bBeEnNxX') && "'" === $nextChar) {
+            } elseif (isset($this->_stringPrefixCharHash[$char]) && "'" === $nextChar) {
                 $this->lexString(strtolower($char));
 
             } elseif ("'" === $char) {
@@ -655,10 +665,10 @@ class Lexer
             } elseif (ctype_digit($char)) {
                 $this->lexNumeric();
 
-            } elseif (strspn($char, self::CHARS_OPERATOR)) {
+            } elseif (isset($this->_operatorCharHash[$char])) {
                 $this->lexOperator();
 
-            } elseif (strspn($char, self::CHARS_SPECIAL)) {
+            } elseif (isset($this->_specialCharHash[$char])) {
                 $this->pushToken($char, Token::TYPE_SPECIAL_CHAR, $this->position++);
 
             } elseif (('u' === $char || 'U' === $char)
@@ -802,7 +812,7 @@ class Lexer
             && ('+' === $operator[$length - 1] || '-' === $operator[$length - 1])
         ) {
             for ($i = $length - 2; $i >= 0; $i--) {
-                if (strspn($operator[$i], "~!@#^&|`?%")) {
+                if (isset($this->_nonStandardCharHash[$operator[$i]])) {
                     break;
                 }
             }
@@ -815,7 +825,7 @@ class Lexer
         }
 
         $operator = substr($operator, 0, $length);
-        if (1 === $length && strspn($operator, self::CHARS_SPECIAL)) {
+        if (1 === $length && isset($this->_specialCharHash[$operator])) {
             $this->pushToken($operator, Token::TYPE_SPECIAL_CHAR, $this->position++);
             return;
         }
