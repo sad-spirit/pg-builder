@@ -522,7 +522,7 @@ class Parser
             $cacheKey  = 'parsetree-' . md5('{' . $name . '}{' . $this->precedence . '}' . $arguments[0]);
             $cacheItem = $this->_cache->getItem($cacheKey);
             if ($cacheItem->isHit()) {
-                return $cacheItem->get();
+                return clone $cacheItem->get();
             }
         }
 
@@ -541,7 +541,7 @@ class Parser
         }
 
         if ($cacheItem) {
-            $this->_cache->save($cacheItem->set($parsed));
+            $this->_cache->save($cacheItem->set(clone $parsed));
         }
 
         return $parsed;
