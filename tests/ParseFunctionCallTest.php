@@ -525,7 +525,8 @@ QRY
         $list = $this->parser->parseExpressionList(<<<QRY
     foo() over (), bar() over (blah), rank() over (partition by whatever),
     something() over (rows between 5 preceding and unbounded following),
-    count(bar) filter(where bar !@#&) over (partition by foo)
+    count(bar) filter(where bar !@#&) over (partition by foo),
+    foo() over (range between unbounded preceding and 3 following)
 QRY
         );
 
@@ -560,6 +561,17 @@ QRY
                     false, false, null, false,
                     new OperatorExpression('!@#&', new ColumnReference(array('bar'))),
                     new WindowDefinition(null, new ExpressionList(array(new ColumnReference(array('foo')))))
+                ),
+                new FunctionExpression(
+                    new QualifiedName(array('foo')), null, false, false, null, false, null,
+                    new WindowDefinition(
+                        null, null, null,
+                        new WindowFrameClause(
+                            'range',
+                            new WindowFrameBound('preceding'),
+                            new WindowFrameBound('following', new Constant(3))
+                        )
+                    )
                 )
             )),
             $list
@@ -581,14 +593,6 @@ QRY
     public function getInvalidWindowSpecification()
     {
         return array(
-            array(
-                'foo() over (range 2 preceding)',
-                'RANGE PRECEDING is only supported with UNBOUNDED'
-            ),
-            array(
-                'foo() over (range between unbounded preceding and 3 following)',
-                'RANGE FOLLOWING is only supported with UNBOUNDED'
-            ),
             array(
                 'foo() over (rows unbounded following)',
                 'Frame start cannot be UNBOUNDED FOLLOWING'

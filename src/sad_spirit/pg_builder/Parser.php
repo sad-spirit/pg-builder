@@ -1190,16 +1190,6 @@ class Parser
             $this->stream->expect(Token::TYPE_KEYWORD, 'and');
             $end   = $this->WindowFrameBound();
         }
-        // like in opt_frame_clause production in gram.y, reject invalid frame cases
-        if ('range' === $frameType->getValue()
-            && ($start->value || isset($end) && $end->value)
-        ) {
-            $boundName = strtoupper($start->value ? $start->direction : $end->direction);
-            throw exceptions\SyntaxException::atPosition(
-                "RANGE {$boundName} is only supported with UNBOUNDED",
-                $this->stream->getSource(), $frameType->getPosition()
-            );
-        }
 
         // Repackage exceptions thrown in WindowFrameClause constructor as syntax ones and provide context
         try {
