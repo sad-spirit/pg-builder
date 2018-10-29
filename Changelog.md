@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0
+
+* Support for new syntax of PostgreSQL 11
+* Ported fixes to multicharacter operators processing from Postgres lexer 
+* Fixed `BlankWalker` (and consequently `ParameterWalker`) not visiting nodes representing `ON CONFLICT` clause of `INSERT`
+* PHPDoc cleanup
+
 ## 0.2.3
 
 * `Parser` clones parsed `Node` objects when storing them in cache or retrieving from cache. This prevents problems if the same query fragment is used multiple times.

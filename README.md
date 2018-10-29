@@ -2,10 +2,10 @@
 
 [![Build Status](https://travis-ci.org/sad-spirit/pg-builder.svg?branch=master)](https://travis-ci.org/sad-spirit/pg-builder)
 
-This is a query builder for Postgres with a twist: it contains a (partial) reimplementation of PostgreSQL's own
+This is a query builder for Postgres with a twist: it contains a partial<sup>[1](#footnote1)</sup> reimplementation of PostgreSQL's own
 query parser. This sets it aside from usual breed of "write-only" query builders:
 
-* Almost all syntax available for `SELECT` (and `VALUES`) / `INSERT` / `UPDATE` / `DELETE` in PostgreSQL 10
+* Almost all syntax available for `SELECT` (and `VALUES`) / `INSERT` / `UPDATE` / `DELETE` in PostgreSQL 11
   is supported, query being built is automatically checked for correct syntax.
 * Query is represented as an Abstract Syntax Tree quite similar to PostgreSQL's internal representation.
 * Query parts can be added to the AST either as objects or as strings (that will be processed by Parser).
@@ -76,3 +76,7 @@ limit 5
 ## Documentation
 
 Is in the [wiki](https://github.com/sad-spirit/pg-builder/wiki)
+
+---
+<a name="footnote1">1</a>: "Partial" here means the following: PostgreSQL grammar file `src/backend/parser/gram.y` is about 16K lines long. 
+Of these about 3K lines are used for `SELECT` / `INSERT` / `UPDATE` / `DELETE` queries and are reimplemented here.
