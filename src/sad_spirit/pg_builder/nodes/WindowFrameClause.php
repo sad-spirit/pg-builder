@@ -41,6 +41,28 @@ class WindowFrameClause extends Node
             throw new InvalidArgumentException("Unknown window frame type '{$type}'");
         }
         $this->props['type'] = (string)$type;
+
+        // like in frame_extent production in gram.y, reject invalid frame cases
+        if ('following' === $start->direction && !$start->value) {
+            throw new InvalidArgumentException('Frame start cannot be UNBOUNDED FOLLOWING');
+        }
+        if (!$end) {
+            if ('following' === $start->direction && $start->value) {
+                throw new InvalidArgumentException('Frame starting from following row cannot end with current row');
+            }
+
+        } else {
+            if ('preceding' === $end->direction && !$end->value) {
+                throw new InvalidArgumentException("Frame end cannot be UNBOUNDED PRECEDING");
+            }
+            if ('current row' === $start->direction && 'preceding' === $end->direction) {
+                throw new InvalidArgumentException("Frame starting from current row cannot have preceding rows");
+            }
+            if ('following' === $start->direction && in_array($end->direction, array('current row', 'preceding'))) {
+                throw new InvalidArgumentException("Frame starting from following row cannot have preceding rows");
+            }
+        }
+
         $this->setNamedProperty('start', $start);
         $this->setNamedProperty('end', $end);
     }
