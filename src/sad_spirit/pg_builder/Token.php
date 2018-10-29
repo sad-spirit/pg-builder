@@ -153,7 +153,7 @@ class Token
     /**
      * Returns human readable representation of a token type
      *
-     * @param $type
+     * @param int $type
      * @return string
      * @throws exceptions\InvalidArgumentException
      */

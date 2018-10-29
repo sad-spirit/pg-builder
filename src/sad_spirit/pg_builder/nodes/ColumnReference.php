@@ -25,10 +25,10 @@ use sad_spirit\pg_builder\Node,
 /**
  * Represents a (possibly qualified) column reference. The last item may also be a '*'
  *
- * @property-read Identifier $catalog
- * @property-read Identifier $schema
- * @property-read Identifier $relation
- * @property-read Identifier $column
+ * @property-read Identifier|null $catalog
+ * @property-read Identifier|null $schema
+ * @property-read Identifier|null $relation
+ * @property-read Identifier|Star $column
  */
 class ColumnReference extends Node implements ScalarExpression
 {

@@ -28,8 +28,8 @@ use sad_spirit\pg_builder\Node,
  * clauses of INSERT statements and we do parse those.
  *
  * @property      ScalarExpression|Identifier $expression
- * @property-read QualifiedName               $collation
- * @property-read QualifiedName               $opClass
+ * @property-read QualifiedName|null          $collation
+ * @property-read QualifiedName|null          $opClass
  * @property-read string|null                 $direction
  * @property-read string|null                 $nullsOrder
  */

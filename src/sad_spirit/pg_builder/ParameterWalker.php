@@ -46,7 +46,7 @@ class ParameterWalker extends BlankWalker
                     . "found positional parameter \${$node->value} after named ones"
                 );
             }
-            $paramIdx = $node->value - 1;
+            $paramIdx = (int)$node->value - 1;
             break;
 
         case Token::TYPE_NAMED_PARAM:

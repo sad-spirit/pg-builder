@@ -71,7 +71,7 @@ class TokenStream
     /**
      * Moves the pointer to given number of positions after the current
      *
-     * @param $number
+     * @param int $number
      * @throws exceptions\SyntaxException
      * @return void
      */

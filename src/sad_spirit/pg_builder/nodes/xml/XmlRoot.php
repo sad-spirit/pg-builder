@@ -25,9 +25,9 @@ use sad_spirit\pg_builder\Node,
 /**
  * Represents xmlroot() expression (cannot be a FunctionCall due to special arguments format)
  *
- * @property      ScalarExpression $xml
- * @property      ScalarExpression $version
- * @property-read string|null      $standalone
+ * @property      ScalarExpression      $xml
+ * @property      ScalarExpression|null $version
+ * @property-read string|null           $standalone
  */
 class XmlRoot extends Node implements ScalarExpression
 {

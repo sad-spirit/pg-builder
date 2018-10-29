@@ -26,9 +26,9 @@ use sad_spirit\pg_builder\Node,
 /**
  * AST node representing column definition, used in a list column aliases for functions in FROM clause
  *
- * @property-read Identifier    $name
- * @property-read TypeName      $type
- * @property-read QualifiedName $collation
+ * @property-read Identifier         $name
+ * @property-read TypeName           $type
+ * @property-read QualifiedName|null $collation
  */
 class ColumnDefinition extends Node
 {

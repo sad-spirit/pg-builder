@@ -26,12 +26,12 @@ use sad_spirit\pg_builder\nodes\lists\TargetList,
 /**
  * AST node representing INSERT statement
  *
- * @property-read InsertTarget      $relation
- * @property      SetTargetList     $cols
- * @property      SelectCommon      $values
- * @property      string|null       $overriding
- * @property      OnConflictClause  $onConflict
- * @property      TargetList        $returning
+ * @property-read InsertTarget          $relation
+ * @property      SetTargetList         $cols
+ * @property      SelectCommon|null     $values
+ * @property      string|null           $overriding
+ * @property      OnConflictClause|null $onConflict
+ * @property      TargetList            $returning
  */
 class Insert extends Statement
 {

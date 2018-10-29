@@ -24,7 +24,7 @@ use sad_spirit\pg_builder\Node,
  * Represents a part of target list for a statement
  *
  * @property      ScalarExpression $expression
- * @property-read Identifier       $alias
+ * @property-read Identifier|null  $alias
  */
 class TargetElement extends Node
 {

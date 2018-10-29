@@ -25,7 +25,7 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
 /**
  * A wrapper around ScalarExpression Nodes providing helper methods for building WHERE and HAVING clauses
  *
- * @property ScalarExpression $condition
+ * @property ScalarExpression|null $condition
  */
 class WhereOrHavingClause extends Node
 {

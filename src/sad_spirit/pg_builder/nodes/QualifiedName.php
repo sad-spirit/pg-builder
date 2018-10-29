@@ -25,9 +25,9 @@ use sad_spirit\pg_builder\Node,
 /**
  * Represents a (possibly qualified) name of a database object like a relation, function or type name
  *
- * @property-read Identifier $catalog
- * @property-read Identifier $schema
- * @property-read Identifier $relation
+ * @property-read Identifier|null $catalog
+ * @property-read Identifier|null $schema
+ * @property-read Identifier      $relation
  */
 class QualifiedName extends Node
 {

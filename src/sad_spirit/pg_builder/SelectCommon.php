@@ -25,10 +25,10 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
 /**
  * Base class for SELECT-type statements
  *
- * @property OrderByList      $order
- * @property ScalarExpression $limit
- * @property ScalarExpression $offset
- * @property LockList         $locking
+ * @property OrderByList           $order
+ * @property ScalarExpression|null $limit
+ * @property ScalarExpression|null $offset
+ * @property LockList              $locking
  */
 abstract class SelectCommon extends Statement
 {

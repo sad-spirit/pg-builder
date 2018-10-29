@@ -25,8 +25,8 @@ use sad_spirit\pg_builder\Node,
 /**
  * Represents xmlpi() expression (cannot be a FunctionCall due to special arguments format)
  *
- * @property-read Identifier       $name
- * @property      ScalarExpression $content
+ * @property-read Identifier            $name
+ * @property      ScalarExpression|null $content
  */
 class XmlPi extends Node implements ScalarExpression
 {

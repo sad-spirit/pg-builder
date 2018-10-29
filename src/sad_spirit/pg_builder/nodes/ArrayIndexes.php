@@ -23,9 +23,9 @@ use sad_spirit\pg_builder\Node,
 /**
  * Represents an array subscript [foo] or array slice [foo:bar] operation
  *
- * @property ScalarExpression $lower
- * @property ScalarExpression $upper
- * @property bool             $isSlice
+ * @property ScalarExpression|null $lower
+ * @property ScalarExpression|null $upper
+ * @property bool                  $isSlice
  */
 class ArrayIndexes extends Node
 {
@@ -37,7 +37,7 @@ class ArrayIndexes extends Node
         $this->setIsSlice($isSlice);
     }
 
-    public function setLower(ScalarExpression $lower)
+    public function setLower(ScalarExpression $lower = null)
     {
         $this->setNamedProperty('lower', $lower);
     }

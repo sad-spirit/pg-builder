@@ -2017,10 +2017,6 @@ class Parser
         return null;
     }
 
-    /**
-     *
-     * @return string|bool
-     */
     protected function GenericTypeName()
     {
         if ($this->stream->matches(Token::TYPE_IDENTIFIER)
@@ -2152,9 +2148,6 @@ class Parser
         return $left;
     }
 
-    /**
-     * @return nodes\expressions\OperatorExpression|string
-     */
     protected function UnaryPlusMinusExpression()
     {
         if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, array('+', '-'))) {
@@ -3304,7 +3297,7 @@ class Parser
      * Corresponds to relation_expr_opt_alias production from grammar, see the
      * comment there.
      *
-     * @param $statementType
+     * @param string $statementType
      * @return nodes\Identifier|null
      */
     protected function DMLAliasClause($statementType)

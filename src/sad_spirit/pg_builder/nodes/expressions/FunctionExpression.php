@@ -26,9 +26,9 @@ use sad_spirit\pg_builder\nodes\FunctionCall,
 /**
  * AST node representing a function call in scalar context (func_expr in grammar)
  *
- * @property-read bool                 $withinGroup
- * @property-read ScalarExpression     $filter
- * @property-read WindowDefinition     $over
+ * @property-read bool                  $withinGroup
+ * @property-read ScalarExpression|null $filter
+ * @property-read WindowDefinition|null $over
  */
 class FunctionExpression extends FunctionCall implements ScalarExpression
 {

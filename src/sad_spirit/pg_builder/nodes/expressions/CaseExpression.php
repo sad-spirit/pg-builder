@@ -25,8 +25,8 @@ use sad_spirit\pg_builder\nodes\ScalarExpression,
 /**
  * Represents a CASE expression (with or without argument)
  *
- * @property ScalarExpression $argument
- * @property ScalarExpression $else
+ * @property ScalarExpression|null $argument
+ * @property ScalarExpression|null $else
  */
 class CaseExpression extends NonAssociativeList implements ScalarExpression
 {

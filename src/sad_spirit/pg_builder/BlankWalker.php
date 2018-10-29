@@ -43,10 +43,7 @@ abstract class BlankWalker implements TreeWalker
 
     public function walkSelectStatement(Select $statement)
     {
-        if ($statement->with) {
-            $statement->with->dispatch($this);
-        }
-
+        $statement->with->dispatch($this);
         $statement->list->dispatch($this);
         if ($statement->distinct instanceof Node) {
             $statement->distinct->dispatch($this);
@@ -62,10 +59,7 @@ abstract class BlankWalker implements TreeWalker
 
     public function walkSetOpSelectStatement(SetOpSelect $statement)
     {
-        if ($statement->with) {
-            $statement->with->dispatch($this);
-        }
-
+        $statement->with->dispatch($this);
         $statement->left->dispatch($this);
         $statement->right->dispatch($this);
 
@@ -81,9 +75,7 @@ abstract class BlankWalker implements TreeWalker
 
     public function walkDeleteStatement(Delete $statement)
     {
-        if ($statement->with) {
-            $statement->with->dispatch($this);
-        }
+        $statement->with->dispatch($this);
         $statement->using->dispatch($this);
         $statement->where->dispatch($this);
         $statement->returning->dispatch($this);
@@ -91,21 +83,20 @@ abstract class BlankWalker implements TreeWalker
 
     public function walkInsertStatement(Insert $statement)
     {
-        if ($statement->with) {
-            $statement->with->dispatch($this);
-        }
+        $statement->with->dispatch($this);
         $statement->cols->dispatch($this);
         if ($statement->values) {
             $statement->values->dispatch($this);
+        }
+        if ($statement->onConflict) {
+            $statement->onConflict->dispatch($this);
         }
         $statement->returning->dispatch($this);
     }
 
     public function walkUpdateStatement(Update $statement)
     {
-        if ($statement->with) {
-            $statement->with->dispatch($this);
-        }
+        $statement->with->dispatch($this);
         $statement->set->dispatch($this);
         $statement->from->dispatch($this);
         $statement->where->dispatch($this);
@@ -259,9 +250,7 @@ abstract class BlankWalker implements TreeWalker
 
     public function walkWindowFrameClause(nodes\WindowFrameClause $node)
     {
-        if ($node->start) {
-            $node->start->dispatch($this);
-        }
+        $node->start->dispatch($this);
         if ($node->end) {
             $node->end->dispatch($this);
         }

@@ -28,10 +28,10 @@ use sad_spirit\pg_builder\Node,
  * These cannot be represented by a standard Operator node as they can have a
  * trailing ESCAPE clause
  *
- * @property      ScalarExpression $argument
- * @property      ScalarExpression $pattern
- * @property      ScalarExpression $escape
- * @property-read string           $operator
+ * @property      ScalarExpression      $argument
+ * @property      ScalarExpression      $pattern
+ * @property      ScalarExpression|null $escape
+ * @property-read string                $operator
  */
 class PatternMatchingExpression extends Node implements ScalarExpression
 {

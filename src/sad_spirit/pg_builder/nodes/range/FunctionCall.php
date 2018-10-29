@@ -27,10 +27,10 @@ use sad_spirit\pg_builder\nodes\FunctionCall as BaseFunctionCall,
 /**
  * AST node representing a function call in FROM clause
  *
- * @property-read IdentifierList|ColumnDefinitionList $columnAliases
- * @property-read BaseFunctionCall                    $function
- * @property      bool                                $lateral
- * @property      bool                                $withOrdinality
+ * @property-read IdentifierList|ColumnDefinitionList|null $columnAliases
+ * @property-read BaseFunctionCall                         $function
+ * @property      bool                                     $lateral
+ * @property      bool                                     $withOrdinality
  */
 class FunctionCall extends FromElement
 {

@@ -147,14 +147,25 @@ QRY
     public function testReplaceParametersInInsert()
     {
         $statement = $this->parser->parseStatement(<<<QRY
-insert into foo (bar, baz) values (default, :bar), (:baz, default)
+insert into foo (bar, baz) values (default, :bar), (:baz, default) on conflict (shit) do update set baz = :baz
 QRY
         );
         $statement->dispatch($this->walker);
 
         $this->assertEquals(
-            'insert into foo (bar, baz) values (default, $1), ($2, default)',
+            'insert into foo (bar, baz) values (default, $1), ($2, default) on conflict (shit) do update set baz = $2',
             $statement->dispatch($this->builder)
         );
+    }
+
+    public function testLeavesNumericParametersAlone()
+    {
+        $statement = $this->parser->parseStatement('update foo set name = $1::text where id = $2');
+        $statement->dispatch($this->walker);
+        $result = $statement->dispatch($this->builder);
+        $types  = $this->walker->getParameterTypes();
+        $this->assertContains('$1', $result);
+        $this->assertContains('$2', $result);
+        $this->assertEquals(new TypeName(new QualifiedName(array('text'))), $types[0]);
     }
 }

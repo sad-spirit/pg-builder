@@ -25,11 +25,11 @@ use sad_spirit\pg_builder\Node,
 /**
  * AST node representing a window definition (for function calls with OVER and for WINDOW clause)
  *
- * @property      Identifier        $name
- * @property-read Identifier        $refName
- * @property      ExpressionList    $partition
- * @property      OrderByList       $order
- * @property-read WindowFrameClause $frame
+ * @property      Identifier|null        $name
+ * @property-read Identifier|null        $refName
+ * @property      ExpressionList         $partition
+ * @property      OrderByList            $order
+ * @property-read WindowFrameClause|null $frame
  */
 class WindowDefinition extends Node
 {

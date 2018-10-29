@@ -24,10 +24,10 @@ use sad_spirit\pg_builder\Node,
 /**
  * AST node representing the window frame (opt_frame_clause production in grammar)
  *
- * @property-read string           $type
- * @property-read WindowFrameBound $start
- * @property-read WindowFrameBound $end
- * @property-read string|null      $exclusion
+ * @property-read string                $type
+ * @property-read WindowFrameBound      $start
+ * @property-read WindowFrameBound|null $end
+ * @property-read string|null           $exclusion
  */
 class WindowFrameClause extends Node
 {

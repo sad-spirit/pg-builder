@@ -32,9 +32,9 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
  * that do not have their own nodes. "Operators" here are not just MathOp / all_Op / etc.
  * productions from grammar, but constructs like e.g. 'IS DISTINCT FROM' as well.
  *
- * @property      ScalarExpression $left
- * @property      ScalarExpression $right
- * @property-read string           $operator
+ * @property      ScalarExpression|null $left
+ * @property      ScalarExpression|null $right
+ * @property-read string                $operator
  */
 class OperatorExpression extends Node implements ScalarExpression
 {
