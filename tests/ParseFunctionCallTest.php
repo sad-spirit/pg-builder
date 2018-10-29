@@ -524,9 +524,10 @@ QRY
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     foo() over (), bar() over (blah), rank() over (partition by whatever),
-    something() over (rows between 5 preceding and unbounded following),
+    something() over (rows between 5 preceding and unbounded following exclude current row),
     count(bar) filter(where bar !@#&) over (partition by foo),
-    foo() over (range between unbounded preceding and 3 following)
+    foo() over (range between unbounded preceding and 3 following),
+    bar() over (groups between current row and unbounded following exclude ties)
 QRY
         );
 
@@ -551,7 +552,8 @@ QRY
                         new WindowFrameClause(
                             'rows',
                             new WindowFrameBound('preceding', new Constant(5)),
-                            new WindowFrameBound('following')
+                            new WindowFrameBound('following'),
+                            'current row'
                         )
                     )
                 ),
@@ -570,6 +572,18 @@ QRY
                             'range',
                             new WindowFrameBound('preceding'),
                             new WindowFrameBound('following', new Constant(3))
+                        )
+                    )
+                ),
+                new FunctionExpression(
+                    new QualifiedName(array('bar')), null, false, false, null, false, null,
+                    new WindowDefinition(
+                        null, null, null,
+                        new WindowFrameClause(
+                            'groups',
+                            new WindowFrameBound('current row'),
+                            new WindowFrameBound('following'),
+                            'ties'
                         )
                     )
                 )

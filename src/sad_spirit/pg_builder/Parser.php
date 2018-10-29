@@ -1154,7 +1154,7 @@ class Parser
         if ($this->stream->matches(Token::TYPE_IDENTIFIER)
             || ($this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
                 // See comment for opt_existing_window_name production in gram.y
-                && !in_array($this->stream->getCurrent()->getValue(), array('partition', 'range', 'rows')))
+                && !in_array($this->stream->getCurrent()->getValue(), array('partition', 'range', 'rows', 'groups')))
             || $this->stream->matches(Token::TYPE_COL_NAME_KEYWORD)
         ) {
             $refName = $this->ColId();
@@ -1167,7 +1167,7 @@ class Parser
             $this->stream->skip(2);
             $order = $this->OrderByList();
         }
-        if ($this->stream->matches(Token::TYPE_KEYWORD, array('range', 'rows'))) {
+        if ($this->stream->matches(Token::TYPE_KEYWORD, array('range', 'rows', 'groups'))) {
             $frame = $this->WindowFrameClause();
         }
 
@@ -1178,8 +1178,9 @@ class Parser
 
     protected function WindowFrameClause()
     {
-        $frameType  = $this->stream->expect(Token::TYPE_KEYWORD, array('range', 'rows'));
+        $frameType  = $this->stream->expect(Token::TYPE_KEYWORD, array('range', 'rows', 'groups'));
         $tokenStart = $this->stream->getCurrent();
+        $exclusion  = null;
         if (!$tokenStart->matches(Token::TYPE_KEYWORD, 'between')) {
             $start = $this->WindowFrameBound();
             $end   = null;
@@ -1191,9 +1192,27 @@ class Parser
             $end   = $this->WindowFrameBound();
         }
 
+        // opt_window_exclusion_clause from gram.y
+        if ($this->stream->matches(Token::TYPE_KEYWORD, 'exclude')) {
+            $this->stream->next();
+            $first = $this->stream->expect(Token::TYPE_KEYWORD, array('current', 'group', 'ties', 'no'));
+            switch ($first->getValue()) {
+            case 'current':
+                $this->stream->expect(Token::TYPE_KEYWORD, 'row');
+                $exclusion = 'current row';
+                break;
+            case 'no':
+                $this->stream->expect(Token::TYPE_KEYWORD, 'others');
+                // EXCLUDE NO OTHERS is noise
+                break;
+            default:
+                $exclusion = $first->getValue();
+            }
+        }
+
         // Repackage exceptions thrown in WindowFrameClause constructor as syntax ones and provide context
         try {
-            return new nodes\WindowFrameClause($frameType->getValue(), $start, $end);
+            return new nodes\WindowFrameClause($frameType->getValue(), $start, $end, $exclusion);
 
         } catch (exceptions\InvalidArgumentException $e) {
             throw exceptions\SyntaxException::atPosition(

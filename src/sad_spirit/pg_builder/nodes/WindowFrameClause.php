@@ -27,20 +27,33 @@ use sad_spirit\pg_builder\Node,
  * @property-read string           $type
  * @property-read WindowFrameBound $start
  * @property-read WindowFrameBound $end
+ * @property-read string|null      $exclusion
  */
 class WindowFrameClause extends Node
 {
     protected static $allowedTypes = array(
-        'range' => true,
-        'rows'  => true
+        'range'  => true,
+        'rows'   => true,
+        'groups' => true
     );
 
-    public function __construct($type, WindowFrameBound $start, WindowFrameBound $end = null)
+    protected static $allowedExclusions = array(
+        'current row' => true,
+        'group'       => true,
+        'ties'        => true
+    );
+
+    public function __construct($type, WindowFrameBound $start, WindowFrameBound $end = null, $exclusion = null)
     {
         if (!isset(self::$allowedTypes[$type])) {
             throw new InvalidArgumentException("Unknown window frame type '{$type}'");
         }
         $this->props['type'] = (string)$type;
+
+        if (null !== $exclusion && !isset(self::$allowedExclusions[$exclusion])) {
+            throw new InvalidArgumentException("Unknown window frame exclusion '{$exclusion}'");
+        }
+        $this->props['exclusion'] = $exclusion ? (string)$exclusion : null;
 
         // like in frame_extent production in gram.y, reject invalid frame cases
         if ('following' === $start->direction && !$start->value) {

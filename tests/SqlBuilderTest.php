@@ -161,7 +161,7 @@ where quux.id = ya.five and
       ya.six <= any(select stuff from setopstuff)
 group by quux.one, four, grouping sets(cube((one, two), three), rollup(four, (five, six)), seven, ())
 having count(quux.one) > over9000
-window win95 as (partition by anything range between unbounded preceding and current row)
+window win95 as (partition by anything range between unbounded preceding and current row exclude group)
 order by 1 using >>> nulls first, 2 desc
 limit $3
 offset $4

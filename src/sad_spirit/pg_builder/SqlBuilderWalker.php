@@ -1078,6 +1078,9 @@ class SqlBuilderWalker implements TreeWalker
         } else {
             $sql .= 'between ' . $node->start->dispatch($this) . ' and ' . $node->end->dispatch($this);
         }
+        if ($node->exclusion) {
+            $sql .= ' exclude ' . $node->exclusion;
+        }
         return $sql;
     }
 
