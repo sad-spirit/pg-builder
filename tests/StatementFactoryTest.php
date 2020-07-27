@@ -57,6 +57,9 @@ class StatementFactoryTest extends \PHPUnit_Framework_TestCase
         if (!TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING) {
             $this->markTestSkipped('Connection string is not configured');
         }
+        if (version_compare(phpversion(), '7.4.0', '>=')) {
+            $this->markTestSkipped('Disabled until PHPUnit update');
+        }
         /* @var $mockPool CacheItemPoolInterface|\PHPUnit_Framework_MockObject_MockObject */
         $cache      = $this->getMockBuilder('Psr\Cache\CacheItemPoolInterface')
             ->getMock();
