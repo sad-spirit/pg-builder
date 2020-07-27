@@ -1,13 +1,22 @@
 language: php
-php:
-  - 5.4
-  - 5.5
-  - 5.6
-  - 7.0
-  - 7.1
-  - 7.2
-  - 7.3
-  - 7.4
+sudo: false
+dist: xenial
+
+matrix:
+  include:
+    - php: "5.3"
+      dist: precise
+    - php: "5.4"
+      dist: trusty
+    - php: "5.5"
+      dist: trusty
+    - php: "5.6"
+    - php: "7.0"
+    - php: "7.1"
+    - php: "7.2"
+    - php: "7.3"
+    - php: "7.4"
+
 services: postgresql
 before_script:
   - psql -c 'create database pgbuilder_test' -U postgres -h 127.0.0.1

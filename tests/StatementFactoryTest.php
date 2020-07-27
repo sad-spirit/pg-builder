@@ -58,7 +58,8 @@ class StatementFactoryTest extends \PHPUnit_Framework_TestCase
             $this->markTestSkipped('Connection string is not configured');
         }
         /* @var $mockPool CacheItemPoolInterface|\PHPUnit_Framework_MockObject_MockObject */
-        $cache      = $this->getMock('Psr\Cache\CacheItemPoolInterface');
+        $cache      = $this->getMockBuilder('Psr\Cache\CacheItemPoolInterface')
+            ->getMock();
         $connection = new Connection(TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING);
         $connection->execute("set standard_conforming_strings = off");
         $connection->setMetadataCache($cache);
