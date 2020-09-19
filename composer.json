@@ -28,8 +28,13 @@
         "psr/cache":             "^1.0"
     },
     "autoload":     {
-        "psr-0":    {
-            "sad_spirit\\pg_builder\\": "src/"
+        "psr-4":    {
+            "sad_spirit\\pg_builder\\": "src/sad_spirit/pg_builder"
+        }
+    },
+    "autoload-dev": {
+        "psr-4":    {
+            "sad_spirit\\pg_builder\\tests\\": "tests/"
         }
     }
 }
