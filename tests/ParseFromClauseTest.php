@@ -324,7 +324,7 @@ QRY
         $list = $this->parser->parseFromList(
 <<<QRY
 XMLTABLE(
-    '//ROWS/ROW' PASSING data
+    '//ROWS/ROW' PASSING data by value
     COLUMNS id int PATH '@id',
             ordinality FOR ORDINALITY,
             "COUNTRY_NAME" text,
@@ -338,7 +338,7 @@ LATERAL XMLTABLE(
         'http://example.com/myns' AS x,
         'http://example.com/b' AS "B"
     ),
-    '/x:example/x:item' PASSING (SELECT data FROM xmldata)
+    '/x:example/x:item' PASSING by value (SELECT data FROM xmldata)
     COLUMNS foo int PATH '@foo',
             bar int PATH '@B:bar'
 ) AS baz                        

@@ -1545,8 +1545,7 @@ class SqlBuilderWalker implements TreeWalker
         }
 
         $lines[] = $this->getIndent() . $this->optionalParentheses($table->rowExpression, $this->_dummyTypecast, true)
-                   . ' passing by ref ' . $this->optionalParentheses($table->documentExpression, $this->_dummyTypecast, true)
-                   . ' by ref';
+                   . ' passing ' . $this->optionalParentheses($table->documentExpression, $this->_dummyTypecast, true);
         $glue    = $this->options['linebreak']
                    ? ',' . $this->options['linebreak'] . $this->getIndent() . '        ' // let's align columns
                    : ', ';

@@ -152,7 +152,7 @@ from quux, xyzzy left join (atable as one left join anothertable as two using (c
              'http://example.com/myns' AS x,
              'http://example.com/b' AS "B"
          ),
-         '/x:example/x:item' PASSING (SELECT data FROM xmldata)
+         '/x:example/x:item' PASSING by value (SELECT data FROM xmldata)
          COLUMNS foo int PATH '@foo' not null default 'foo default',
                  bar int PATH '@B:bar'
      ) AS baz

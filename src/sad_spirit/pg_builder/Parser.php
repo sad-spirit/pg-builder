@@ -3584,14 +3584,14 @@ class Parser
         $arguments = array($this->ExpressionAtom());
         // 'by ref' is noise in Postgres
         $this->stream->expect(Token::TYPE_KEYWORD, 'passing');
-        if ($this->stream->matchesSequence(array('by', 'ref'))) {
+        if ($this->stream->matches(Token::TYPE_KEYWORD, 'by')) {
             $this->stream->next();
-            $this->stream->next();
+            $this->stream->expect(Token::TYPE_KEYWORD, array('ref', 'value'));
         }
         $arguments[] = $this->ExpressionAtom();
-        if ($this->stream->matchesSequence(array('by', 'ref'))) {
+        if ($this->stream->matches(Token::TYPE_KEYWORD, 'by')) {
             $this->stream->next();
-            $this->stream->next();
+            $this->stream->expect(Token::TYPE_KEYWORD, array('ref', 'value'));
         }
 
         return $arguments;
