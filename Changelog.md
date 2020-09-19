@@ -1,8 +1,20 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+* Use composer's PSR-4 autoloaders for code and tests, drop home-grown ones 
+
+### Added
+* New keywords added in Postgres 12 and 13
+* Support for new syntax of Postgres 12
+  * `MATERIALIZED` / `NOT MATERIALIZED` modifiers of Common Table Expressions
+  * `BY VALUE` clause in `XMLEXISTS` and `XMLTABLE`
+* `.gitattributes` file to prevent installing tests with the package
+
 ## [0.3.0] - 2018-10-30
 
-## Added
+### Added
 * Support for new syntax of PostgreSQL 11
 
 ### Fixed
@@ -62,3 +74,4 @@ Initial release on GitHub
 [0.2.2]: https://github.com/sad-spirit/pg-builder/compare/v0.2.1...v0.2.2
 [0.2.3]: https://github.com/sad-spirit/pg-builder/compare/v0.2.2...v0.2.3
 [0.3.0]: https://github.com/sad-spirit/pg-builder/compare/v0.2.3...v0.3.0
+[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v0.3.0...master
