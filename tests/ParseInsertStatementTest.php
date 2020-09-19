@@ -69,7 +69,7 @@ class ParseInsertStatementTest extends \PHPUnit_Framework_TestCase
     public function testParseAllClauses()
     {
         $parsed = $this->parser->parseStatement(<<<QRY
-with foo (id) as (
+with foo (id) as materialized (
     select somefoo from basefoo
 ),
 bar (blah) as (
@@ -109,7 +109,7 @@ QRY
         ));
 
         $built->with = new WithClause(array(
-            new CommonTableExpression($foo, new Identifier('foo'), new IdentifierList(array(new Identifier('id')))),
+            new CommonTableExpression($foo, new Identifier('foo'), new IdentifierList(array(new Identifier('id'))), true),
             new CommonTableExpression($bar, new Identifier('bar'), new IdentifierList(array(new Identifier('blah'))))
         ));
 

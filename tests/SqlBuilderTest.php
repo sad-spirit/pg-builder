@@ -117,12 +117,12 @@ with xmlstuff as (
        xmlroot(doc, version '1.2', standalone yes),
        xmlserialize(document foo as pg_catalog.text)
 ),
-fnstuff as (
+fnstuff as materialized (
     select s.num,
         blah.foo(variadic a), blah.bar(a, variadic b), blah.baz(a, b := c, binary := d)
     from generate_series(1, 10) as s (num)
 ),
-setopstuff (stuff) as (
+setopstuff (stuff) as not materialized (
     (
     select foostuff
     from foo

@@ -843,9 +843,14 @@ class SqlBuilderWalker implements TreeWalker
     public function walkCommonTableExpression(nodes\CommonTableExpression $node)
     {
         $this->indentLevel++;
+        if (null === $node->materialized) {
+            $materialized = '';
+        } else {
+            $materialized = ($node->materialized ? '' : 'not ') . 'materialized ';
+        }
         $sql = $node->alias->dispatch($this) . ' '
                . (0 < count($node->columnAliases) ? '(' . implode(', ', $node->columnAliases->dispatch($this)) . ') ' : '')
-               . 'as (' . $this->options['linebreak'] . $node->statement->dispatch($this);
+               . 'as ' . $materialized . '(' . $this->options['linebreak'] . $node->statement->dispatch($this);
         $this->indentLevel--;
 
         return $sql . $this->options['linebreak'] . $this->getIndent() . ')';

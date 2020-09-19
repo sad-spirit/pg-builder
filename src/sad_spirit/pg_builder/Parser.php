@@ -789,6 +789,7 @@ class Parser
     {
         $alias         = $this->ColId();
         $columnAliases = new nodes\lists\IdentifierList();
+        $materialized  = null;
         if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
             do {
                 $this->stream->next();
@@ -797,11 +798,21 @@ class Parser
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
         }
         $this->stream->expect(Token::TYPE_KEYWORD, 'as');
+
+        if ($this->stream->matches(Token::TYPE_KEYWORD, 'materialized')) {
+            $materialized = true;
+            $this->stream->next();
+        } elseif ($this->stream->matches(Token::TYPE_KEYWORD, 'not')) {
+            $materialized = false;
+            $this->stream->next();
+            $this->stream->expect(Token::TYPE_KEYWORD, 'materialized');
+        }
+
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
         $statement = $this->Statement();
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
-        return new nodes\CommonTableExpression($statement, $alias, $columnAliases);
+        return new nodes\CommonTableExpression($statement, $alias, $columnAliases, $materialized);
     }
 
     protected function ForLockingClause(SelectCommon $stmt)

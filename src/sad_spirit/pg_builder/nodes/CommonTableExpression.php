@@ -31,19 +31,30 @@ use sad_spirit\pg_builder\Node,
  * @property      Statement      $statement
  * @property-read Identifier     $alias
  * @property-read IdentifierList $columnAliases
+ * @property      bool|null      $materialized
  */
 class CommonTableExpression extends Node
 {
-    public function __construct(Statement $statement, Identifier $alias, IdentifierList $columnAliases = null)
-    {
+    public function __construct(
+        Statement $statement,
+        Identifier $alias,
+        IdentifierList $columnAliases = null,
+        $materialized = null
+    ) {
         $this->setStatement($statement);
         $this->setNamedProperty('alias', $alias);
         $this->setNamedProperty('columnAliases', $columnAliases ?: new IdentifierList());
+        $this->setMaterialized($materialized);
     }
 
     public function setStatement(Statement $statement)
     {
         $this->setNamedProperty('statement', $statement);
+    }
+
+    public function setMaterialized($materialized)
+    {
+        $this->setNamedProperty('materialized', null === $materialized ? null : (bool)$materialized);
     }
 
     public function dispatch(TreeWalker $walker)

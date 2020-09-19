@@ -137,7 +137,7 @@ QRY
     public function testParseAllClauses()
     {
         $parsed = $this->parser->parseStatement(<<<QRY
-with foo as (
+with foo as not materialized (
     select somefoo from basefoo
 )
 update bar
@@ -173,7 +173,7 @@ QRY
         ));
 
         $built->with = new WithClause(array(
-            new CommonTableExpression($cte, new Identifier('foo'), new IdentifierList())
+            new CommonTableExpression($cte, new Identifier('foo'), new IdentifierList(), false)
         ));
 
         $this->assertEquals($built, $parsed);
