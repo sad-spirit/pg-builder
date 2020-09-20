@@ -624,7 +624,16 @@ class SqlBuilderWalker implements TreeWalker
             $clauses[] = $this->implode($indent . 'order by ', $statement->order->dispatch($this), ',');
         }
         if ($statement->limit) {
-            $clauses[] = $indent . 'limit ' . $statement->limit->dispatch($this);
+            if (!$statement->limitWithTies) {
+                $clauses[] = $indent . 'limit ' . $statement->limit->dispatch($this);
+            } else {
+                $parentheses = $this->getPrecedence($statement->limit) < self::PRECEDENCE_ATOM;
+                $clauses[]   = $indent . 'fetch first '
+                               . ($parentheses ? '(' : '')
+                               . $statement->limit->dispatch($this)
+                               . ($parentheses ? ')' : '')
+                               . ' rows with ties';
+            }
         }
         if ($statement->offset) {
             $clauses[] = $indent . 'offset ' . $statement->offset->dispatch($this);

@@ -133,6 +133,7 @@ setopstuff (stuff) as not materialized (
     intersect
     select bazstuff
     from baz
+    fetch first (3 + 2) rows with ties
 )
 select distinct on (something) quux.one, xyzzy.two[1], (quux.three).four, $1.blah, array[[1,2],[3,4]], row(3,4),
        1 + 2 * 3, (1 + 2) * 3, six between five and seven, quux.whatever is of (character varying, text, time with time zone),

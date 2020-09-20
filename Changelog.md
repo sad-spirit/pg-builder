@@ -2,15 +2,20 @@
 
 ## [Unreleased]
 
-### Changed
-* Use composer's PSR-4 autoloaders for code and tests, drop home-grown ones 
-
 ### Added
-* New keywords added in Postgres 12 and 13
+* New keywords from Postgres 12 and 13
 * Support for new syntax of Postgres 12
   * `MATERIALIZED` / `NOT MATERIALIZED` modifiers of Common Table Expressions
   * `BY VALUE` clause in `XMLEXISTS` and `XMLTABLE`
+* Support for new syntax of Postgres 13
+  * `FETCH FIRST ... WITH TIES` form of SQL:2008 limit clause
 * `.gitattributes` file to prevent installing tests with the package
+
+### Changed
+* Use composer's PSR-4 autoloaders for code and tests, drop home-grown ones
+
+### Fixed
+* Parsing of argument for SQL:2008 limit clause (`FETCH FIRST ...`) better follows behaviour of Postgres.  
 
 ## [0.3.0] - 2018-10-30
 
