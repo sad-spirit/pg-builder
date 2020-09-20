@@ -17,6 +17,8 @@
 
 namespace sad_spirit\pg_builder\tests;
 
+use sad_spirit\pg_builder\nodes\expressions\TypecastExpression;
+use sad_spirit\pg_builder\nodes\TypeName;
 use sad_spirit\pg_builder\Parser,
     sad_spirit\pg_builder\Lexer,
     sad_spirit\pg_builder\Select,
@@ -161,7 +163,11 @@ QRY
         $parsed = $this->parser->parseStatement($stmt);
 
         $built = new Select(new TargetList(array(new Star())));
-        $built->limit = new Constant($limit);
+        if (is_scalar($limit)) {
+            $built->limit = new Constant($limit);
+        } else {
+            $built->limit = $limit;
+        }
         if ($offset) {
             $built->offset = new Constant($offset);
         }
@@ -173,10 +179,20 @@ QRY
     {
         return array(
             array('select * limit 2 offset 3', 2, 3),
-            array('select * offset 3 limit 2', 2, 3),
+            array('select * offset 3 limit 1 + 1', new OperatorExpression('+', new Constant(1), new Constant(1)), 3),
             array('select * offset 2 rows fetch first row only', 1, 2),
             array('select * fetch first 5 rows only', 5, null),
-            array('select * fetch next (5) rows only', 5, null)
+            array('select * fetch next (4 + 1) rows only', new OperatorExpression('+', new Constant(4), new Constant(1)), null),
+            // fetch should allow float constant, not just integer
+            array('select * fetch next +6.66 rows only', 6.66, null),
+            // fetch should allow negative number, Postgres rejects that a bit later
+            array('select * fetch first -1 row only', -1, null),
+            // fetch should allow c_expr (our ExpressionAtom)
+            array(
+                'select * fetch next cast(5 as integer) rows only',
+                new TypecastExpression(new Constant(5), new TypeName(new QualifiedName(array('pg_catalog', 'int4')))),
+                null
+            )
         );
     }
 

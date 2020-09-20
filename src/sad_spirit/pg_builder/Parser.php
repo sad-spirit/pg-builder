@@ -921,21 +921,28 @@ class Parser
             $this->stream->expect(Token::TYPE_KEYWORD, 'fetch');
             $this->stream->expect(Token::TYPE_KEYWORD, array('first', 'next'));
 
-            if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
-                $this->stream->next();
-                $stmt->limit = $this->Expression();
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-
-            } elseif ($this->stream->matches(Token::TYPE_KEYWORD, array('row', 'rows'))) {
+            if ($this->stream->matches(Token::TYPE_KEYWORD, array('row', 'rows'))) {
                 // no limit specified -> 1 row
                 $stmt->limit = new nodes\Constant(1);
-
-            } else {
-                // Postgres won't allow a negative limit anyway
-                if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '+')) {
-                    $this->stream->next();
+            } elseif ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, array('+', '-'))) {
+                // signed numeric constant: that case is not handled by ExpressionAtom()
+                $sign = $this->stream->next();
+                if ($this->stream->matches(Token::TYPE_FLOAT)) {
+                    $constantToken = $this->stream->next();
+                } else {
+                    $constantToken = $this->stream->expect(Token::TYPE_INTEGER);
                 }
-                $stmt->limit = new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER));
+                if ('+' === $sign->getValue()) {
+                    $stmt->limit = new nodes\Constant($constantToken);
+                } else {
+                    $stmt->limit = new nodes\Constant(new Token(
+                        $constantToken->getType(),
+                        '-' . $constantToken->getValue(),
+                        $constantToken->getPosition()
+                    ));
+                }
+            } else {
+                $stmt->limit = $this->ExpressionAtom();
             }
 
             $this->stream->expect(Token::TYPE_KEYWORD, array('row', 'rows'));
