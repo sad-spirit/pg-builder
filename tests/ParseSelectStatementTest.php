@@ -158,7 +158,7 @@ QRY
     /**
      * @dataProvider getLimitOffsetClauses
      */
-    public function testLimitOffsetClauses($stmt, $limit, $offset)
+    public function testLimitOffsetClauses($stmt, $limit, $offset, $withTies = false)
     {
         $parsed = $this->parser->parseStatement($stmt);
 
@@ -170,6 +170,9 @@ QRY
         }
         if ($offset) {
             $built->offset = new Constant($offset);
+        }
+        if ($withTies) {
+            $built->limitWithTies = $withTies;
         }
 
         $this->assertEquals($built, $parsed);
@@ -192,7 +195,9 @@ QRY
                 'select * fetch next cast(5 as integer) rows only',
                 new TypecastExpression(new Constant(5), new TypeName(new QualifiedName(array('pg_catalog', 'int4')))),
                 null
-            )
+            ),
+            // WITH TIES clause added in Postgres 13
+            array('select * offset 5 rows fetch next 5 rows with ties', 5, 5, true)
         );
     }
 

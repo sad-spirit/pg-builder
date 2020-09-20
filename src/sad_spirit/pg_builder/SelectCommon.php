@@ -27,6 +27,7 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
  *
  * @property OrderByList           $order
  * @property ScalarExpression|null $limit
+ * @property bool                  $limitWithTies
  * @property ScalarExpression|null $offset
  * @property LockList              $locking
  */
@@ -36,10 +37,11 @@ abstract class SelectCommon extends Statement
     {
         parent::__construct();
 
-        $this->props['order']   = new OrderByList();
-        $this->props['limit']   = null;
-        $this->props['offset']  = null;
-        $this->props['locking'] = new nodes\lists\LockList();
+        $this->props['order']         = new OrderByList();
+        $this->props['limit']         = null;
+        $this->props['limitWithTies'] = false;
+        $this->props['offset']        = null;
+        $this->props['locking']       = new nodes\lists\LockList();
 
         $this->props['order']->setParentNode($this);
         $this->props['locking']->setParentNode($this);
@@ -65,6 +67,11 @@ abstract class SelectCommon extends Statement
     {
         $this->_normalizeExpression($limit, __METHOD__);
         $this->setNamedProperty('limit', $limit);
+    }
+
+    public function setLimitWithTies($withTies)
+    {
+        $this->setNamedProperty('limitWithTies', (bool)$withTies);
     }
 
     public function setOffset($offset = null)

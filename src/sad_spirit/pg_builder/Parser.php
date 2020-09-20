@@ -946,7 +946,12 @@ class Parser
             }
 
             $this->stream->expect(Token::TYPE_KEYWORD, array('row', 'rows'));
-            $this->stream->expect(Token::TYPE_KEYWORD, 'only');
+            if ($this->stream->matchesSequence(array('with', 'ties'))) {
+                $stmt->limitWithTies = true;
+                $this->stream->skip(2);
+            } else {
+                $this->stream->expect(Token::TYPE_KEYWORD, 'only');
+            }
         }
     }
 
