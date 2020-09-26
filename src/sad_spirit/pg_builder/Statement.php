@@ -56,7 +56,7 @@ abstract class Statement extends Node
      * Returns the parser
      * @return Parser|null
      */
-    protected function getParser()
+    public function getParser()
     {
         if (!$this->_parser && $this->parentNode && ($parser = $this->parentNode->getParser())) {
             $this->setParser($parser);
