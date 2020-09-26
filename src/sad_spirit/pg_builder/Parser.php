@@ -323,7 +323,7 @@ class Parser
         static $parens = array(
             'cast', 'extract', 'overlay', 'position', 'substring', 'treat', 'trim', 'nullif', 'coalesce',
             'greatest', 'least', 'xmlconcat', 'xmlelement', 'xmlexists', 'xmlforest', 'xmlparse',
-            'xmlpi', 'xmlroot', 'xmlserialize'
+            'xmlpi', 'xmlroot', 'xmlserialize', 'normalize'
         );
 
         if ($this->stream->matches(Token::TYPE_KEYWORD, $noParens) // function-like stuff that doesn't need parentheses
@@ -2468,7 +2468,8 @@ class Parser
         if (!$this->stream->matches(Token::TYPE_KEYWORD, array(
                 'cast', 'extract', 'overlay', 'position', 'substring', 'treat', 'trim',
                 'nullif', 'coalesce', 'greatest', 'least', 'xmlconcat', 'xmlelement',
-                'xmlexists', 'xmlforest', 'xmlparse', 'xmlpi', 'xmlroot', 'xmlserialize'
+                'xmlexists', 'xmlforest', 'xmlparse', 'xmlpi', 'xmlroot', 'xmlserialize',
+                'normalize'
             ))
         ) {
             return null;
@@ -2590,6 +2591,15 @@ class Parser
             $this->stream->expect(Token::TYPE_KEYWORD, 'as');
             $typeName     = $this->SimpleTypeName();
             $funcNode     = new nodes\xml\XmlSerialize($docOrContent, $value, $typeName);
+            break;
+
+        case 'normalize':
+            $arguments[] = $this->Expression();
+            if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
+                $this->stream->skip(1);
+                $form = $this->stream->expect(Token::TYPE_KEYWORD, array('nfc', 'nfd', 'nfkc', 'nfkd'));
+                $arguments[] = new nodes\Constant($form->getValue());
+            }
             break;
 
         default: // 'coalesce', 'greatest', 'least', 'xmlconcat'

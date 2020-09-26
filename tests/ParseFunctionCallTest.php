@@ -344,6 +344,27 @@ QRY
         );
     }
 
+    public function testNormalize()
+    {
+        $this::assertEquals(
+            new ExpressionList(array(
+                new FunctionExpression(
+                    new QualifiedName(array('pg_catalog', 'normalize')),
+                    new FunctionArgumentList(array(new ColumnReference(array('foo'))))
+                ),
+                new FunctionExpression(
+                    new QualifiedName(array('pg_catalog', 'normalize')),
+                    new FunctionArgumentList(array(new ColumnReference(array('bar')), new Constant('nfd')))
+                )
+            )),
+            $this->parser->parseExpressionList('normalize(foo), normalize(bar, nFd)')
+        );
+
+        $this::expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this::expectExceptionMessage("Unexpected special character ','");
+        $this->parser->parseExpression("normalize(baz, nfc, nfd)");
+    }
+
     public function testExplicitlyKnownFunctionNames()
     {
         $list = $this->parser->parseExpressionList(<<<QRY
