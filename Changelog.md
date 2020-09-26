@@ -1,14 +1,20 @@
 # Changelog
 
-## [Unreleased]
+## [0.4.0] - 2020-09-26
+
+This is the last feature release to support PHP 5 and Postgres versions below 9.5
 
 ### Added
 * New keywords from Postgres 12 and 13
-* Support for new syntax of Postgres 12
-  * `MATERIALIZED` / `NOT MATERIALIZED` modifiers of Common Table Expressions
-  * `BY VALUE` clause in `XMLEXISTS` and `XMLTABLE`
-* Support for new syntax of Postgres 13
-  * `FETCH FIRST ... WITH TIES` form of SQL:2008 limit clause
+* Support for new syntax of Postgres 12:
+  * `MATERIALIZED` / `NOT MATERIALIZED` modifiers of Common Table Expressions. Exposed as
+    `$materialized` property of `CommonTableExpression` node.
+  * `BY VALUE` clause in `XMLEXISTS` and `XMLTABLE`.
+* Support for new syntax of Postgres 13:
+  * `FETCH FIRST ... WITH TIES` form of SQL:2008 limit clause. Exposed as `$limitWithTies` property
+    of `SelectCommon` node.
+  * `IS [NOT] NORMALIZED` operator.
+  * `NORMALIZE(...)` function.
 * `.gitattributes` file to prevent installing tests with the package
 
 ### Changed
@@ -79,4 +85,4 @@ Initial release on GitHub
 [0.2.2]: https://github.com/sad-spirit/pg-builder/compare/v0.2.1...v0.2.2
 [0.2.3]: https://github.com/sad-spirit/pg-builder/compare/v0.2.2...v0.2.3
 [0.3.0]: https://github.com/sad-spirit/pg-builder/compare/v0.2.3...v0.3.0
-[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v0.3.0...master
+[0.4.0]: https://github.com/sad-spirit/pg-builder/compare/v0.3.0...v0.4.0

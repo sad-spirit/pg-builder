@@ -5,7 +5,7 @@
 This is a query builder for Postgres with a twist: it contains a partial<sup>[1](#footnote1)</sup> reimplementation of PostgreSQL's own
 query parser. This sets it aside from usual breed of "write-only" query builders:
 
-* Almost all syntax available for `SELECT` (and `VALUES`) / `INSERT` / `UPDATE` / `DELETE` in PostgreSQL 11
+* Almost all syntax available for `SELECT` (and `VALUES`) / `INSERT` / `UPDATE` / `DELETE` in PostgreSQL 13
   is supported, query being built is automatically checked for correct syntax.
 * Query is represented as an Abstract Syntax Tree quite similar to PostgreSQL's internal representation.
 * Query parts can be added to the AST either as objects or as strings (that will be processed by Parser).
