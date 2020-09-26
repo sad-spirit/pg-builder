@@ -498,7 +498,6 @@ class Lexer
     protected $length;
     protected $tokens;
     protected $options = array();
-    protected $mbEncoding;
 
     private $_operatorCharHash;
     private $_specialCharHash;
@@ -868,8 +867,8 @@ class Lexer
 
         } else {
             if (!$this->options['ascii_only_downcasing']) {
-                if ($this->mbEncoding) {
-                    $lowcase = mb_strtolower($lowcase, $this->mbEncoding);
+                if (extension_loaded('mbstring')) {
+                    $lowcase = mb_strtolower($lowcase);
                 } else {
                     $lowcase = strtolower($lowcase);
                 }

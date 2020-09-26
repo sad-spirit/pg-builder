@@ -210,11 +210,16 @@ QRY
             $this->markTestSkipped('The test requires mbstring extension');
         }
 
-        mb_internal_encoding('CP1251');
-        $this->lexer = new Lexer(array('ascii_only_downcasing' => false));
-        $stream = $this->lexer->tokenize(mb_convert_encoding('ИмЯ_бЕз_КаВыЧеК "ИмЯ_в_КаВыЧкАх"', 'CP1251', 'UTF8'));
-        $stream->expect(Token::TYPE_IDENTIFIER, mb_convert_encoding('имя_без_кавычек', 'CP1251', 'UTF8'));
-        $stream->expect(Token::TYPE_IDENTIFIER, mb_convert_encoding('ИмЯ_в_КаВыЧкАх', 'CP1251', 'UTF8'));
-        $this->assertTrue($stream->isEOF());
+        try {
+            $oldEncoding = mb_internal_encoding();
+            mb_internal_encoding('CP1251');
+            $this->lexer = new Lexer(array('ascii_only_downcasing' => false));
+            $stream = $this->lexer->tokenize(mb_convert_encoding('ИмЯ_бЕз_КаВыЧеК "ИмЯ_в_КаВыЧкАх"', 'CP1251', 'UTF8'));
+            $stream->expect(Token::TYPE_IDENTIFIER, mb_convert_encoding('имя_без_кавычек', 'CP1251', 'UTF8'));
+            $stream->expect(Token::TYPE_IDENTIFIER, mb_convert_encoding('ИмЯ_в_КаВыЧкАх', 'CP1251', 'UTF8'));
+            $this->assertTrue($stream->isEOF());
+        } finally {
+            mb_internal_encoding($oldEncoding);
+        }
     }
 }
