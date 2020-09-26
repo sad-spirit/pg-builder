@@ -401,7 +401,8 @@ QRY
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     foo is null isnull, bar is not null notnull, 'foo' is distinct from 'bar',
-    blah is of (character varying, text, time with time zone), 'xml' is not document
+    blah is of (character varying, text, time with time zone), 'xml' is not document,
+    foobar is normalized, barbaz is not nfkc normalized
 QRY
         );
         $this->assertEquals(
@@ -443,6 +444,14 @@ QRY
                     'is not document',
                     new Constant('xml'),
                     null
+                ),
+                new OperatorExpression(
+                    'is normalized',
+                    new ColumnReference(array(new Identifier('foobar')))
+                ),
+                new OperatorExpression(
+                    'is not nfkc normalized',
+                    new ColumnReference(array(new Identifier('barbaz')))
                 )
             )),
             $list

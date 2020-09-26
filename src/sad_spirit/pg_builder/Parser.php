@@ -1672,7 +1672,10 @@ class Parser
                 array('false'),
                 array('not', 'false'),
                 array('unknown'),
-                array('not', 'unknown')
+                array('not', 'unknown'),
+                array('normalized'),
+                array(array('not', 'nfc', 'nfd', 'nfkc', 'nfkd'), 'normalized'),
+                array('not', array('nfc', 'nfd', 'nfkc', 'nfkd'), 'normalized')
             );
         }
         $checks = array_merge($checks, array(
@@ -1694,8 +1697,11 @@ class Parser
 
             foreach ($checks as $check) {
                 if ($this->stream->matchesSequence($check)) {
-                    $this->stream->skip(count($check));
-                    $operand = new nodes\expressions\OperatorExpression('is ' . implode(' ', $check), $operand, null);
+                    $strOperator = 'is';
+                    for ($i = 0; $i < count($check); $i++) {
+                        $strOperator .= ' ' . $this->stream->next()->getValue();
+                    }
+                    $operand = new nodes\expressions\OperatorExpression($strOperator, $operand, null);
                     continue 2;
                 }
             }
