@@ -54,14 +54,14 @@ use sad_spirit\pg_builder\Parser,
 /**
  * Tests parsing all possible expressions appearing in FROM clause
  */
-class ParseFromClauseTest extends \PHPUnit_Framework_TestCase
+class ParseFromClauseTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }
@@ -199,21 +199,17 @@ QRY
         $this->assertEquals(new FromList(array($abcd, new JoinExpression($fg, $subselect, 'cross'))), $list);
     }
 
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\SyntaxException
-     * @expectedExceptionMessage Too many dots
-     */
     public function testNoMoreThanTwoDots()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectExceptionMessage('Too many dots');
         $this->parser->parseFromList('foo.bar.baz.quux');
     }
 
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\SyntaxException
-     * @expectedExceptionMessage should have an alias
-     */
     public function testSubselectsRequireAnAlias()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectExceptionMessage('should have an alias');
         $this->parser->parseFromList("(select 'foo')");
     }
 

@@ -22,7 +22,7 @@ use sad_spirit\pg_wrapper\Connection,
     sad_spirit\pg_builder\StatementFactory,
     sad_spirit\pg_builder\converters\ParserAwareTypeConverterFactory;
 
-class NativeStatementTest extends \PHPUnit_Framework_TestCase
+class NativeStatementTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Connection
@@ -34,7 +34,7 @@ class NativeStatementTest extends \PHPUnit_Framework_TestCase
      */
     protected $factory;
 
-    public function setUp()
+    public function setUp(): void
     {
         if (!TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING) {
             $this->markTestSkipped('Connection string is not configured');
@@ -50,30 +50,26 @@ class NativeStatementTest extends \PHPUnit_Framework_TestCase
         $native = $this->factory->createFromAST($this->factory->createFromString(
             'select typname from pg_catalog.pg_type where oid = :oid'
         ));
-        $this->assertContains('$1', $native->getSql());
+        $this->assertStringContainsString('$1', $native->getSql());
 
         $result = $native->executeParams($this->connection, array('oid' => 23));
         $this->assertEquals('int4', $result[0]['typname']);
     }
 
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\InvalidArgumentException
-     * @expectedExceptionMessage Missing parameter name
-     */
     public function testMissingNamedParameter()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\InvalidArgumentException');
+        $this->expectExceptionMessage('Missing parameter name');
         $native = $this->factory->createFromAST($this->factory->createFromString(
             'select * from pg_catalog.pg_type where oid = :oid or typname = :name'
         ));
         $native->executeParams($this->connection, array('name' => 'text'));
     }
 
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\InvalidArgumentException
-     * @expectedExceptionMessage Unknown keys
-     */
     public function testUnknownNamedParameter()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\InvalidArgumentException');
+        $this->expectExceptionMessage('Unknown keys');
         $native = $this->factory->createFromAST($this->factory->createFromString(
             'select typname from pg_catalog.pg_type where oid = :oid'
         ));
@@ -131,24 +127,20 @@ class NativeStatementTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('int4', $result[0]['typname']);
     }
 
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\RuntimeException
-     * @expectedExceptionMessage prepare() should be called first
-     */
     public function testCannotExecutePreparedWithoutPrepare()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\RuntimeException');
+        $this->expectExceptionMessage('prepare() should be called first');
         $native = $this->factory->createFromAST($this->factory->createFromString(
             'select typname from pg_catalog.pg_type where oid = :oid'
         ));
         $native->executePrepared(array('oid' => 23));
     }
 
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\RuntimeException
-     * @expectedExceptionMessage prepare() should be called first
-     */
     public function testPreparedStatementIsNotSerialized()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\RuntimeException');
+        $this->expectExceptionMessage('prepare() should be called first');
         $native = $this->factory->createFromAST($this->factory->createFromString(
             'select typname from pg_catalog.pg_type where oid = :oid'
         ));

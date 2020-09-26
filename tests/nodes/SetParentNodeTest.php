@@ -78,14 +78,12 @@ use sad_spirit\pg_builder\nodes\WindowFrameClause;
 /**
  * Tests that parent node is properly set on children
  */
-class SetParentNodeTest extends \PHPUnit_Framework_TestCase
+class SetParentNodeTest extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\InvalidArgumentException
-     * @expectedExceptionMessage Cannot set a Node or its descendant as its own parent
-     */
     public function testCannotCreateCycles()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\InvalidArgumentException');
+        $this->expectExceptionMessage('Cannot set a Node or its descendant as its own parent');
         $select = new Select(new TargetList(array(new TargetElement(new Constant('foo')))));
         $select->where->setCondition(new OperatorExpression(
             '=', new ColumnReference(array('foo')), new SubselectExpression($select, 'any')

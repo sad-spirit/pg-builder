@@ -24,7 +24,7 @@ use sad_spirit\pg_builder\Parser;
  */
 class OperatorPrecedencePre95Test extends OperatorPrecedenceTest
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->parser->setOperatorPrecedence(Parser::OPERATOR_PRECEDENCE_PRE_9_5);

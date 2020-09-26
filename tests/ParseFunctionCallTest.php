@@ -48,14 +48,14 @@ use sad_spirit\pg_builder\Parser,
 /**
  * Tests parsing all possible function calls and function-like constructs
  */
-class ParseFunctionCallTest extends \PHPUnit_Framework_TestCase
+class ParseFunctionCallTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }
@@ -116,10 +116,10 @@ QRY
             $list
         );
 
-        $this->setExpectedException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException',
-            'expecting integer literal'
+        $this->expectException(
+            'sad_spirit\pg_builder\exceptions\SyntaxException'
         );
+        $this->expectExceptionMessage('expecting integer literal');
         $this->parser->parseExpressionList('current_time(foo)');
     }
 
@@ -253,7 +253,7 @@ QRY
             $this->parser->parseExpression("nullif(a, 'b') ")
         );
 
-        $this->setExpectedException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
         $this->parser->parseExpression('nullif(a, b, c)');
     }
 
@@ -360,10 +360,10 @@ QRY
             $this->parser->parseExpressionList('normalize(foo), normalize(bar, nFd)')
         );
 
-        $this::setExpectedException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException',
-            "Unexpected special character ','"
+        $this::expectException(
+            'sad_spirit\pg_builder\exceptions\SyntaxException'
         );
+        $this::expectExceptionMessage("Unexpected special character ','");
         $this->parser->parseExpression("normalize(baz, nfc, nfd)");
     }
 
@@ -451,10 +451,10 @@ QRY
      */
     public function testInvalidNamedAndVariadicParameters($functionCall, $message)
     {
-        $this->setExpectedException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException',
-            $message
+        $this->expectException(
+            'sad_spirit\pg_builder\exceptions\SyntaxException'
         );
+        $this->expectExceptionMessage($message);
         $this->parser->parseExpression($functionCall);
     }
 
@@ -478,10 +478,10 @@ QRY
 
     /**
      * @dataProvider getInvalidFunctionNames
-     * @expectedException \sad_spirit\pg_builder\exceptions\SyntaxException
      */
     public function testInvalidFunctionNames($functionCall)
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
         $this->parser->parseExpression($functionCall);
     }
 
@@ -620,10 +620,10 @@ QRY
      */
     public function testInvalidWindowSpecifications($spec, $message)
     {
-        $this->setExpectedException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException',
-            $message
+        $this->expectException(
+            'sad_spirit\pg_builder\exceptions\SyntaxException'
         );
+        $this->expectExceptionMessage($message);
         $this->parser->parseExpression($spec);
     }
 
@@ -666,10 +666,10 @@ QRY
      */
     public function testInvalidWithinGroupUsage($expression, $message)
     {
-        $this->setExpectedException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException',
-            $message
+        $this->expectException(
+            'sad_spirit\pg_builder\exceptions\SyntaxException'
         );
+        $this->expectExceptionMessage($message);
         $this->parser->parseExpression($expression);
     }
 

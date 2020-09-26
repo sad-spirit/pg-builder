@@ -26,7 +26,7 @@ use sad_spirit\pg_builder\Lexer,
 /**
  * Tests helper methods of Select node
  */
-class SelectTest extends \PHPUnit_Framework_TestCase
+class SelectTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Parser
@@ -37,7 +37,7 @@ class SelectTest extends \PHPUnit_Framework_TestCase
      */
     protected $builder;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->parser  = new Parser(new Lexer());
         $this->builder = new SqlBuilderWalker(array(
@@ -52,7 +52,7 @@ class SelectTest extends \PHPUnit_Framework_TestCase
         $select = $this->parser->parseSelectStatement('select * from foo');
         $select->setParser($this->parser);
         $setOp = $select->union('select * from bar', false);
-        $this->assertAttributeSame($this->parser, '_parser', $setOp);
+        $this->assertSame($this->parser, $setOp->getParser());
         $this->assertEquals(
             'select * from foo union all select * from bar',
             $setOp->dispatch($this->builder)

@@ -32,14 +32,14 @@ use sad_spirit\pg_builder\Lexer,
 /**
  * Tests parsing all possible types of typecast expressions
  */
-class ParseTypecastTest extends \PHPUnit_Framework_TestCase
+class ParseTypecastTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }
@@ -275,10 +275,10 @@ QRY
      */
     public function testInvalidTypeSpecification($expression, $message)
     {
-        $this->setExpectedException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException',
-            $message
+        $this->expectException(
+            'sad_spirit\pg_builder\exceptions\SyntaxException'
         );
+        $this->expectExceptionMessage($message);
         $this->parser->parseExpression($expression);
     }
 

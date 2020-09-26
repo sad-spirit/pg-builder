@@ -31,7 +31,7 @@ use sad_spirit\pg_builder\SqlBuilderWalker,
  *
  * We use a base class with two subclasses to easily notice which building mode fails
  */
-abstract class SqlBuilderParenthesesTest extends \PHPUnit_Framework_TestCase
+abstract class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
 {
     /** @var SqlBuilderWalker */
     protected $builder;
@@ -66,6 +66,7 @@ abstract class SqlBuilderParenthesesTest extends \PHPUnit_Framework_TestCase
      *
      * @param Node   $ast
      * @param string $expected
+     * @doesNotPerformAssertions
      */
     abstract public function testCompatParenthesesForIsPrecedenceChanges(Node $ast, $expected);
 
@@ -74,6 +75,7 @@ abstract class SqlBuilderParenthesesTest extends \PHPUnit_Framework_TestCase
      *
      * @param Node   $ast
      * @param string $expected
+     * @doesNotPerformAssertions
      */
     abstract public function testCompatParenthesesForInequalityPrecedenceChanges(Node $ast, $expected);
 
@@ -86,6 +88,7 @@ abstract class SqlBuilderParenthesesTest extends \PHPUnit_Framework_TestCase
      *
      * @param Node $ast
      * @param $expected
+     * @doesNotPerformAssertions
      */
     abstract public function testCompatParenthesesForBuggyNotPrecedence(Node $ast, $expected);
 

@@ -34,12 +34,12 @@ use sad_spirit\pg_builder\converters\ParserAwareTypeConverterFactory,
 /**
  * Tests functionality added by ParserAwareTypeConverterFactory
  */
-class ParserAwareTypeConverterFactoryTest extends \PHPUnit_Framework_TestCase
+class ParserAwareTypeConverterFactoryTest extends \PHPUnit\Framework\TestCase
 {
     /** @var ParserAwareTypeConverterFactory */
     protected $factory;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->factory = new ParserAwareTypeConverterFactory(new Parser(new Lexer()));
     }

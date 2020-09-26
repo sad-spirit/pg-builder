@@ -45,14 +45,14 @@ use sad_spirit\pg_builder\Parser,
 /**
  * Tests parsing all possible parts of INSERT statement
  */
-class ParseInsertStatementTest extends \PHPUnit_Framework_TestCase
+class ParseInsertStatementTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }

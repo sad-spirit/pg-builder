@@ -39,14 +39,14 @@ use sad_spirit\pg_builder\nodes\ColumnReference,
  *
  * We use a base class with two subclasses to easily notice which parsing mode fails
  */
-abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
+abstract class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }
@@ -67,9 +67,10 @@ abstract class OperatorPrecedenceTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals($parsed, $this->parser->parseExpression($expression));
 
         } else {
-            $this->setExpectedException(
-                'sad_spirit\pg_builder\exceptions\SyntaxException', $parsed
+            $this->expectException(
+                'sad_spirit\pg_builder\exceptions\SyntaxException'
             );
+            $this->expectExceptionMessage($parsed);
             $this->parser->parseExpression($expression);
         }
     }

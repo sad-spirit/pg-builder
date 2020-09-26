@@ -23,14 +23,14 @@ use sad_spirit\pg_builder\Lexer,
 /**
  * Unit test for query lexer
  */
-class LexerTest extends \PHPUnit_Framework_TestCase
+class LexerTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Lexer
      */
     protected $lexer;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->lexer = new Lexer();
     }
@@ -90,6 +90,9 @@ QRY
         $this->assertEquals('foobarbaz', $stream->next()->getValue());
     }
 
+    /**
+     * @doesNotPerformAssertions
+     */
     public function testMulticharacterOperators()
     {
         $stream = $this->lexer->tokenize(<<<QRY
@@ -134,49 +137,41 @@ QRY
         $this->assertEquals(' another $$ string \' \\ ', $stream->next()->getValue());
     }
 
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\SyntaxException
-     * @expectedExceptionMessage Unterminated /* comment
-     */
     public function testUnterminatedCStyleComment()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectExceptionMessage('Unterminated /* comment');
         $this->lexer->tokenize('/* foo');
     }
 
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\SyntaxException
-     * @expectedExceptionMessage Unterminated quoted identifier
-     */
     public function testUnterminatedQuotedIdentifier()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectExceptionMessage('Unterminated quoted identifier');
         $this->lexer->tokenize('update "foo ');
     }
 
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\SyntaxException
-     * @expectedExceptionMessage Zero-length quoted identifier
-     */
     public function testZeroLengthQuotedIdentifier()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectExceptionMessage('Zero-length quoted identifier');
         $this->lexer->tokenize('select "" as foo');
     }
 
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\SyntaxException
-     * @expectedExceptionMessage Unterminated dollar-quoted string
-     */
     public function testUnterminatedDollarQuotedString()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectExceptionMessage('Unterminated dollar-quoted string');
         $this->lexer->tokenize('select $foo$ blah $$ blah');
     }
 
     /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\SyntaxException
-     * @expectedExceptionMessage Unterminated string literal
      * @dataProvider getUnterminatedLiterals
      */
     public function testUnterminatedStringLiteral($literal)
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectExceptionMessage('Unterminated string literal');
         $this->lexer->tokenize($literal);
     }
 
@@ -191,12 +186,10 @@ QRY
         );
     }
 
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\SyntaxException
-     * @expectedExceptionMessage Unexpected '{'
-     */
     public function testUnexpectedSymbol()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectExceptionMessage('Unexpected \'{\'');
         $this->lexer->tokenize('select foo{bar}');
     }
 

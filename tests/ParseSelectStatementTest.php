@@ -45,14 +45,14 @@ use sad_spirit\pg_builder\Parser,
 /**
  * Tests parsing all possible parts of SELECT statement
  */
-class ParseSelectStatementTest extends \PHPUnit_Framework_TestCase
+class ParseSelectStatementTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }
@@ -136,12 +136,12 @@ QRY
     }
 
     /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\SyntaxException
-     * @expectedExceptionMessage Multiple
      * @dataProvider getMultipleClausesQueries
      */
     public function testPreventMultipleClauses($query)
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectExceptionMessage('Multiple');
         $this->parser->parseStatement($query);
     }
 
@@ -231,12 +231,10 @@ QRY
         );
     }
 
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\SyntaxException
-     * @expectedExceptionMessage cannot be applied to VALUES
-     */
     public function testCannotLockValues()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectExceptionMessage('cannot be applied to VALUES');
         $this->parser->parseStatement('values (1), (2) for update of foo');
     }
 
@@ -266,12 +264,10 @@ QRY
         $this->assertEquals(new WindowList($windows), clone $select->window);
     }
 
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\NotImplementedException
-     * @expectedExceptionMessage SELECT INTO clauses are not supported
-     */
     public function testDisallowSelectInto()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\NotImplementedException');
+        $this->expectExceptionMessage('SELECT INTO clauses are not supported');
         $this->parser->parseStatement('select foo into bar from baz');
     }
 }

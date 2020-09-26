@@ -27,7 +27,7 @@ use sad_spirit\pg_builder\Parser,
 /**
  * Unit test for ParameterWalker
  */
-class ParameterWalkerTest extends \PHPUnit_Framework_TestCase
+class ParameterWalkerTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Parser
@@ -44,7 +44,7 @@ class ParameterWalkerTest extends \PHPUnit_Framework_TestCase
      */
     protected $walker;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->parser  = new Parser(new Lexer());
         $this->builder = new SqlBuilderWalker(array(
@@ -55,12 +55,10 @@ class ParameterWalkerTest extends \PHPUnit_Framework_TestCase
         $this->walker  = new ParameterWalker();
     }
 
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\InvalidArgumentException
-     * @expectedExceptionMessage Mixing named and positional parameters is not allowed
-     */
     public function testDisallowMixedParameters()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\InvalidArgumentException');
+        $this->expectExceptionMessage('Mixing named and positional parameters is not allowed');
         $statement = $this->parser->parseStatement(<<<QRY
     select foo, bar from foosource where foo = :foo or bar = $1
 QRY
@@ -164,8 +162,8 @@ QRY
         $statement->dispatch($this->walker);
         $result = $statement->dispatch($this->builder);
         $types  = $this->walker->getParameterTypes();
-        $this->assertContains('$1', $result);
-        $this->assertContains('$2', $result);
+        $this->assertStringContainsString('$1', $result);
+        $this->assertStringContainsString('$2', $result);
         $this->assertEquals(new TypeName(new QualifiedName(array('text'))), $types[0]);
     }
 }

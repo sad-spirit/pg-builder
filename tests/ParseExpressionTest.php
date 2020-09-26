@@ -53,14 +53,14 @@ use sad_spirit\pg_builder\nodes\expressions\GroupingExpression;
 /**
  * Tests parsing all possible scalar expressions
  */
-class ParseExpressionTest extends \PHPUnit_Framework_TestCase
+class ParseExpressionTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }
@@ -136,10 +136,10 @@ QRY
      */
     public function testUnbalanceParentheses($expr, $message)
     {
-        $this->setExpectedException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException',
-            $message
+        $this->expectException(
+            'sad_spirit\pg_builder\exceptions\SyntaxException'
         );
+        $this->expectExceptionMessage($message);
         $this->parser->parseExpression($expr);
     }
 
@@ -207,7 +207,7 @@ QRY
             $expr
         );
 
-        $this->setExpectedException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
         $this->parser->parseExpression(<<<QRY
     'foo' like 'bar' like 'baz'
 QRY
@@ -235,10 +235,10 @@ QRY
             $expr
         );
 
-        $this->setExpectedException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException',
-            'Wrong number of parameters'
+        $this->expectException(
+            'sad_spirit\pg_builder\exceptions\SyntaxException'
         );
+        $this->expectExceptionMessage('Wrong number of parameters');
         $this->parser->parseExpression(<<<QRY
     row(foo) overlaps (bar, baz)
 QRY

@@ -41,7 +41,7 @@ use sad_spirit\pg_wrapper\Connection,
 /**
  * Unit test for StatementFactory class
  */
-class StatementFactoryTest extends \PHPUnit_Framework_TestCase
+class StatementFactoryTest extends \PHPUnit\Framework\TestCase
 {
     public function testCreatesDefaultParser()
     {
@@ -57,12 +57,8 @@ class StatementFactoryTest extends \PHPUnit_Framework_TestCase
         if (!TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING) {
             $this->markTestSkipped('Connection string is not configured');
         }
-        if (version_compare(phpversion(), '7.4.0', '>=')) {
-            $this->markTestSkipped('Disabled until PHPUnit update');
-        }
-        /* @var $mockPool CacheItemPoolInterface|\PHPUnit_Framework_MockObject_MockObject */
-        $cache      = $this->getMockBuilder('Psr\Cache\CacheItemPoolInterface')
-            ->getMock();
+        /* @var $mockPool CacheItemPoolInterface|\PHPUnit\Framework\MockObject\MockObject */
+        $cache      = $this->createMock('Psr\Cache\CacheItemPoolInterface');
         $connection = new Connection(TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING);
         $connection->execute("set standard_conforming_strings = off");
         $connection->setMetadataCache($cache);
@@ -81,7 +77,7 @@ class StatementFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $factory = new StatementFactory();
         $select  = $factory->createFromString('select foo from bar');
-        $this->assertAttributeSame($factory->getParser(), '_parser', $select);
+        $this->assertSame($factory->getParser(), $select->getParser());
     }
 
     public function testCreateDeleteStatement()
@@ -93,7 +89,7 @@ class StatementFactoryTest extends \PHPUnit_Framework_TestCase
             new QualifiedName(array('foo')), new Identifier('bar'),false
         );
         $this->assertEquals($relation, clone $delete->relation);
-        $this->assertAttributeSame($factory->getParser(), '_parser', $delete);
+        $this->assertSame($factory->getParser(), $delete->getParser());
 
         $delete2 = $factory->delete($relation);
         $this->assertSame($relation, $delete2->relation);
@@ -109,7 +105,7 @@ class StatementFactoryTest extends \PHPUnit_Framework_TestCase
             new Identifier('aliaz')
         );
         $this->assertEquals($target, clone $insert->relation);
-        $this->assertAttributeSame($factory->getParser(), '_parser', $insert);
+        $this->assertSame($factory->getParser(), $insert->getParser());
 
         $insert2 = $factory->insert($target);
         $this->assertSame($target, $insert2->relation);
@@ -131,7 +127,7 @@ class StatementFactoryTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($targetList, clone $select->list);
         $this->assertEquals($fromList, clone $select->from);
-        $this->assertAttributeSame($factory->getParser(), '_parser', $select);
+        $this->assertSame($factory->getParser(), $select->getParser());
 
         $select2 = $factory->select(array(
             'foo as newfoo',
@@ -166,7 +162,7 @@ class StatementFactoryTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($relation, clone $update->relation);
         $this->assertEquals($setClauseList, clone $update->set);
-        $this->assertAttributeSame($factory->getParser(), '_parser', $update);
+        $this->assertSame($factory->getParser(), $update->getParser());
 
         $update2 = $factory->update($relation, $setClauseList);
         $this->assertSame($relation, $update2->relation);
@@ -184,6 +180,6 @@ class StatementFactoryTest extends \PHPUnit_Framework_TestCase
         ));
 
         $this->assertEquals($rows, clone $values->rows);
-        $this->assertAttributeSame($factory->getParser(), '_parser', $values);
+        $this->assertSame($factory->getParser(), $values->getParser());
     }
 }

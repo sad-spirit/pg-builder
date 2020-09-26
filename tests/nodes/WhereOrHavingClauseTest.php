@@ -26,7 +26,7 @@ use sad_spirit\pg_builder\Lexer,
 /**
  * Tests helper methods for WhereOrHavingClause
  */
-class WhereOrHavingClauseTest extends \PHPUnit_Framework_TestCase
+class WhereOrHavingClauseTest extends \PHPUnit\Framework\TestCase
 {
     public function testAddConditionsWithAnd()
     {
@@ -116,6 +116,9 @@ class WhereOrHavingClauseTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    /**
+     * @doesNotPerformAssertions
+     */
     public function testNestedWhereShouldHaveParser()
     {
         $parser = new Parser(new Lexer());

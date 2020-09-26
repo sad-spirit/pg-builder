@@ -25,7 +25,7 @@ use sad_spirit\pg_builder\SqlBuilderWalker,
  */
 class SqlBuilderParenthesesCurrentTest extends SqlBuilderParenthesesTest
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->builder = new SqlBuilderWalker(array('parentheses' => SqlBuilderWalker::PARENTHESES_CURRENT));
     }

@@ -29,7 +29,7 @@ use sad_spirit\pg_builder\Parser,
  * We assume that Parser works sufficiently well, so don't build ASTs by hand, but use
  * those created by Parser
  */
-class SqlBuilderTest extends \PHPUnit_Framework_TestCase
+class SqlBuilderTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Parser
@@ -41,7 +41,7 @@ class SqlBuilderTest extends \PHPUnit_Framework_TestCase
      */
     protected $builder;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->parser  = new Parser(new Lexer());
         $this->builder = new SqlBuilderWalker();
@@ -198,12 +198,10 @@ QRY
         );
     }
 
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\InvalidArgumentException
-     * @expectedExceptionMessage should not contain named parameters
-     */
     public function testPreventNamedParameters()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\InvalidArgumentException');
+        $this->expectExceptionMessage('should not contain named parameters');
         $parsed = $this->parser->parseStatement('select somefoo from foo where idfoo = :id');
         $parsed->dispatch($this->builder);
     }

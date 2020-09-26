@@ -47,14 +47,14 @@ use sad_spirit\pg_builder\Parser,
 /**
  * Tests parsing all possible parts of UPDATE statement
  */
-class ParseUpdateStatementTest extends \PHPUnit_Framework_TestCase
+class ParseUpdateStatementTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }
@@ -179,12 +179,10 @@ QRY
         $this->assertEquals($built, $parsed);
     }
 
-    /**
-     * @expectedException \sad_spirit\pg_builder\exceptions\NotImplementedException
-     * @expectedExceptionMessage WHERE CURRENT OF clause is not supported
-     */
     public function testDisallowWhereCurrentOf()
     {
+        $this->expectException('sad_spirit\pg_builder\exceptions\NotImplementedException');
+        $this->expectExceptionMessage('WHERE CURRENT OF clause is not supported');
         $this->parser->parseStatement("update foo set bar = 'bar' where current of blah");
     }
 }
