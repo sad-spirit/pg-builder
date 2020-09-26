@@ -27,19 +27,15 @@ use sad_spirit\pg_builder\nodes\ColumnReference,
     sad_spirit\pg_builder\nodes\QualifiedName,
     sad_spirit\pg_builder\nodes\expressions\BetweenExpression,
     sad_spirit\pg_builder\nodes\expressions\FunctionExpression,
-    sad_spirit\pg_builder\nodes\expressions\LogicalExpression,
     sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
     sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression,
-    sad_spirit\pg_builder\nodes\expressions\TypecastExpression,
     sad_spirit\pg_builder\nodes\lists\FunctionArgumentList,
     sad_spirit\pg_builder\nodes\lists\TypeModifierList;
 
 /**
- * Abstract base class for operator precedence tests
- *
- * We use a base class with two subclasses to easily notice which parsing mode fails
+ * Operator precedence tests (checking that precedence follows Postgres 9.5+)
  */
-abstract class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
+class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var Parser
@@ -55,14 +51,10 @@ abstract class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
      * Checks that $expression parses to either of $parsedLegacy or $parsedCurrent depending on precedence setting
      *
      * @param string      $expression
-     * @param string|Node $parsedLegacy
-     * @param string|Node $parsedCurrent
+     * @param string|Node $parsed
      */
-    protected function doTest($expression, $parsedLegacy, $parsedCurrent)
+    protected function doTest($expression, $parsed)
     {
-        $parsed = Parser::OPERATOR_PRECEDENCE_PRE_9_5 === $this->parser->getOperatorPrecedence()
-                  ? $parsedLegacy : $parsedCurrent;
-
         if (!is_string($parsed)) {
             $this->assertEquals($parsed, $this->parser->parseExpression($expression));
 
@@ -78,78 +70,71 @@ abstract class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider associativeEqualityProvider
      * @param string      $expression
-     * @param string|Node $parsedLegacy
      * @param string|Node $parsedCurrent
      */
-    public function testAssociativeEquality($expression, $parsedLegacy, $parsedCurrent)
+    public function testAssociativeEquality($expression, $parsedCurrent)
     {
-        $this->doTest($expression, $parsedLegacy, $parsedCurrent);
+        $this->doTest($expression, $parsedCurrent);
     }
 
     /**
      * @dataProvider inequalityPrecedenceProvider
      * @param string      $expression
-     * @param string|Node $parsedLegacy
      * @param string|Node $parsedCurrent
      */
-    public function testInequalityPrecedence($expression, $parsedLegacy, $parsedCurrent)
+    public function testInequalityPrecedence($expression, $parsedCurrent)
     {
-        $this->doTest($expression, $parsedLegacy, $parsedCurrent);
+        $this->doTest($expression, $parsedCurrent);
     }
 
     /**
      * @dataProvider inequalityWithCustomOperatorsPrecedenceProvider
      * @param string      $expression
-     * @param string|Node $parsedLegacy
      * @param string|Node $parsedCurrent
      */
-    public function testInequalityWithCustomOperatorsPrecedence($expression, $parsedLegacy, $parsedCurrent)
+    public function testInequalityWithCustomOperatorsPrecedence($expression, $parsedCurrent)
     {
-        $this->doTest($expression, $parsedLegacy, $parsedCurrent);
+        $this->doTest($expression, $parsedCurrent);
     }
 
     /**
      * @dataProvider isWhateverPrecedenceProvider
      * @param string      $expression
-     * @param string|Node $parsedLegacy
      * @param string|Node $parsedCurrent
      */
-    public function testIsWhateverPrecedence($expression, $parsedLegacy, $parsedCurrent)
+    public function testIsWhateverPrecedence($expression, $parsedCurrent)
     {
-        $this->doTest($expression, $parsedLegacy, $parsedCurrent);
+        $this->doTest($expression, $parsedCurrent);
     }
 
     /**
      * @dataProvider betweenPrecedenceProvider
      * @param string      $expression
-     * @param string|Node $parsedLegacy
      * @param string|Node $parsedCurrent
      */
-    public function testBetweenPrecedence($expression, $parsedLegacy, $parsedCurrent)
+    public function testBetweenPrecedence($expression, $parsedCurrent)
     {
-        $this->doTest($expression, $parsedLegacy, $parsedCurrent);
+        $this->doTest($expression, $parsedCurrent);
     }
 
     /**
      * @dataProvider equalsGreaterOperatorProvider
      * @param string      $expression
-     * @param string|Node $parsedLegacy
      * @param string|Node $parsedCurrent
      */
-    public function testEqualsGreaterOperator($expression, $parsedLegacy, $parsedCurrent)
+    public function testEqualsGreaterOperator($expression, $parsedCurrent)
     {
-        $this->doTest($expression, $parsedLegacy, $parsedCurrent);
+        $this->doTest($expression, $parsedCurrent);
     }
 
     /**
      * @dataProvider intervalTypeProvider
      * @param string      $expression
-     * @param string|Node $parsedLegacy
      * @param string|Node $parsedCurrent
      */
-    public function testIntervalTypeSpecification($expression, $parsedLegacy, $parsedCurrent)
+    public function testIntervalTypeSpecification($expression, $parsedCurrent)
     {
-        $this->doTest($expression, $parsedLegacy, $parsedCurrent);
+        $this->doTest($expression, $parsedCurrent);
     }
 
     public function associativeEqualityProvider()
@@ -157,15 +142,6 @@ abstract class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
         return array(
             array(
                 'foo = bar = baz',
-                new OperatorExpression(
-                    '=',
-                    new ColumnReference(array(new Identifier('foo'))),
-                    new OperatorExpression(
-                        '=',
-                        new ColumnReference(array(new Identifier('bar'))),
-                        new ColumnReference(array(new Identifier('baz')))
-                    )
-                ),
                 "Unexpected special character '='"
             )
         );
@@ -176,62 +152,20 @@ abstract class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
         return array(
             array(
                 'a < b and c = d > e',
-                new LogicalExpression(
-                    array(
-                        new OperatorExpression(
-                            '<',
-                            new ColumnReference(array(new Identifier('a'))),
-                            new ColumnReference(array(new Identifier('b')))
-                        ),
-                        new OperatorExpression(
-                            '=',
-                            new ColumnReference(array(new Identifier('c'))),
-                            new OperatorExpression(
-                                '>',
-                                new ColumnReference(array(new Identifier('d'))),
-                                new ColumnReference(array(new Identifier('e')))
-                            )
-                        )
-                    ),
-                    'and'
-                ),
                 "Unexpected special character '>'"
             ),
             // NB: in pre-9.5 Postgres '<=' and '>=' are treated as generic multicharacter operators,
             // so they are  left-associative and have higher precedence than '<' and '>'
             array(
                 'a >= b <= c',
-                new OperatorExpression(
-                    '<=',
-                    new OperatorExpression(
-                        '>=',
-                        new ColumnReference(array(new Identifier('a'))),
-                        new ColumnReference(array(new Identifier('b')))
-                    ),
-                    new ColumnReference(array(new Identifier('c')))
-                ),
                 "Unexpected comparison operator '<='"
             ),
             array(
                 'foo = bar > baz <= quux',
-                new OperatorExpression(
-                    '=',
-                    new ColumnReference(array(new Identifier('foo'))),
-                    new OperatorExpression(
-                        '>',
-                        new ColumnReference(array(new Identifier('bar'))),
-                        new OperatorExpression(
-                            '<=',
-                            new ColumnReference(array(new Identifier('baz'))),
-                            new ColumnReference(array(new Identifier('quux')))
-                        )
-                    )
-                ),
                 "Unexpected special character '>'"
             ),
             array(
                 'a < b > c',
-                "Unexpected special character '>'",
                 "Unexpected special character '>'"
             )
         );
@@ -244,14 +178,6 @@ abstract class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
             array(
                 'false = true is null',
                 new OperatorExpression(
-                    '=',
-                    new Constant(false),
-                    new OperatorExpression(
-                        'is null',
-                        new Constant(true)
-                    )
-                ),
-                new OperatorExpression(
                     'is null',
                     new OperatorExpression(
                         '=',
@@ -262,15 +188,6 @@ abstract class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
             ),
             array(
                 'foo @#! bar is distinct from baz',
-                new OperatorExpression(
-                    '@#!',
-                    new ColumnReference(array(new Identifier('foo'))),
-                    new OperatorExpression(
-                        'is distinct from',
-                        new ColumnReference(array(new Identifier('bar'))),
-                        new ColumnReference(array(new Identifier('baz')))
-                    )
-                ),
                 new OperatorExpression(
                     'is distinct from',
                     new OperatorExpression(
@@ -283,13 +200,6 @@ abstract class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
             ),
             array(
                 "'foo' like 'bar' is not true",
-                new PatternMatchingExpression(
-                    new Constant('foo'),
-                    new OperatorExpression(
-                        'is not true',
-                        new Constant('bar')
-                    )
-                ),
                 new OperatorExpression(
                     'is not true',
                     new PatternMatchingExpression(
@@ -306,20 +216,10 @@ abstract class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
         return array(
             array(
                 '1 between 0 and 2 between false and true',
-                new BetweenExpression(
-                    new BetweenExpression(
-                        new Constant(1),
-                        new Constant(0),
-                        new Constant(2)
-                    ),
-                    new Constant(false),
-                    new Constant(true)
-                ),
                 "Unexpected keyword 'between'"
             ),
             array(
                 'foo between false and true is not false',
-                "Unexpected keyword 'not'",
                 new OperatorExpression(
                     'is not false',
                     new BetweenExpression(
@@ -339,19 +239,6 @@ abstract class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
         return array(
             array(
                 "j->>'space' <= j->>'node'",
-                new OperatorExpression(
-                    '->>',
-                    new OperatorExpression(
-                        '<=',
-                        new OperatorExpression(
-                            '->>',
-                            new ColumnReference(array(new Identifier('j'))),
-                            new Constant('space')
-                        ),
-                        new ColumnReference(array(new Identifier('j')))
-                    ),
-                    new Constant('node')
-                ),
                 new OperatorExpression(
                     '<=',
                     new OperatorExpression(
@@ -374,25 +261,10 @@ abstract class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
         return array(
             array(
                 'foo => bar',
-                new OperatorExpression(
-                    '=>',
-                    new ColumnReference(array(new Identifier('foo'))),
-                    new ColumnReference(array(new Identifier('bar')))
-                ),
                 "Unexpected named argument mark"
             ),
             array(
                 "foo(bar => 'baz')",
-                new FunctionExpression(
-                    new QualifiedName(array(new Identifier('foo'))),
-                    new FunctionArgumentList(array(
-                        new OperatorExpression(
-                            '=>',
-                            new ColumnReference(array(new Identifier('bar'))),
-                            new Constant('baz')
-                        )
-                    ))
-                ),
                 new FunctionExpression(
                     new QualifiedName(array(new Identifier('foo'))),
                     new FunctionArgumentList(array(
@@ -412,12 +284,10 @@ abstract class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
         return array(
             array(
                 "cast (foo as interval (5) minute to second (6))",
-                'Interval precision specified twice',
                 "Unexpected keyword 'minute'"
             ),
             array(
                 "interval (10) 'a value' minute to second",
-                new TypecastExpression(new Constant('a value'), $interval),
                 "Unexpected keyword 'minute'"
             )
         );

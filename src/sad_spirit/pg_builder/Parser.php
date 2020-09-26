@@ -266,9 +266,6 @@ class Parser
     private function _matchesOperator()
     {
         return $this->stream->matches(Token::TYPE_OPERATOR)
-               || self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence
-                  && ($this->stream->matches(Token::TYPE_INEQUALITY)
-                      || $this->stream->matches(Token::TYPE_EQUALS_GREATER))
                || $this->stream->matches(Token::TYPE_KEYWORD, 'operator')
                   && $this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, '(');
     }
@@ -448,54 +445,6 @@ class Parser
     }
 
     /**
-     * Sets operator precedence to use when parsing expressions
-     *
-     * PostgreSQL 9.5 changed operator precedence to better follow SQL standard:
-     *  - The precedence of <=, >= and <> has been reduced to match that of <, > and =.
-     *  - The precedence of IS tests (e.g., x IS NULL) has been reduced to be just below these six
-     *    comparison operators.
-     *  - Also, multi-keyword operators beginning with NOT now have the precedence of their base operator
-     *    (for example, NOT BETWEEN now has the same precedence as BETWEEN) whereas before they had
-     *    inconsistent precedence, behaving like NOT with respect to their left operand but like
-     *    their base operator with respect to their right operand.
-     *
-     * This setting allows switching between pre-9.5 and 9.5+ operator precedence.
-     * Setting precedence to pre-9.5 will also allow using '=>' as custom operator
-     * and make equality operator right-associative so that
-     * <code>
-     * select true = true = true;
-     * </code>
-     * will parse.
-     *
-     * Note that even "pre 9.5" setting will not reproduce the buggy behaviour of
-     * "not whatever" constructs with left operands, e.g. expression
-     * <code>
-     * select true = 'foo' not like 'bar';
-     * </code>
-     * will parse properly using either precedence setting.
-     *
-     * @param string $precedence
-     */
-    public function setOperatorPrecedence($precedence)
-    {
-        if (self::OPERATOR_PRECEDENCE_PRE_9_5 !== $precedence) {
-            $precedence = self::OPERATOR_PRECEDENCE_CURRENT;
-        }
-        $this->precedence = $precedence;
-    }
-
-    /**
-     * Returns operator precedence used by the parser
-     *
-     * @return string
-     */
-    public function getOperatorPrecedence()
-    {
-        return $this->precedence;
-    }
-
-
-    /**
      * Magic method for function overloading
      *
      * The method allows calling parseWhatever() methods that map to protected Whatever() methods
@@ -519,7 +468,7 @@ class Parser
             $cacheItem = null;
 
         } else {
-            $cacheKey  = 'parsetree-' . md5('{' . $name . '}{' . $this->precedence . '}' . $arguments[0]);
+            $cacheKey  = 'parsetree-' . md5('{' . $name . '}' . $arguments[0]);
             $cacheItem = $this->_cache->getItem($cacheKey);
             if ($cacheItem->isHit()) {
                 return clone $cacheItem->get();
@@ -1316,9 +1265,7 @@ class Parser
             $this->stream->next();
             return new nodes\expressions\OperatorExpression('not', null, $this->LogicalExpressionFactor());
         }
-        return self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence
-               ? $this->ComparisonEquality()
-               : $this->IsWhateverExpression();
+        return $this->IsWhateverExpression();
     }
 
     /**
@@ -1490,24 +1437,18 @@ class Parser
 
         $value = $this->InExpression();
 
-        while ($this->stream->matches(Token::TYPE_KEYWORD, array('between', 'not'))) { // speedup
+        if ($this->stream->matches(Token::TYPE_KEYWORD, array('between', 'not'))) { // speedup
             foreach ($checks as $check) {
                 if ($this->stream->matchesSequence($check)) {
                     $this->stream->skip(count($check));
                     $left  = $this->GenericOperatorExpression(true);
                     $this->stream->expect(Token::TYPE_KEYWORD, 'and');
                     // right argument of BETWEEN is defined as 'b_expr' in pre-9.5 grammar and as 'a_expr' afterwards
-                    $right = $this->GenericOperatorExpression(self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence);
+                    $right = $this->GenericOperatorExpression(false);
                     $value = new nodes\expressions\BetweenExpression($value, $left, $right, implode(' ', $check));
-                    // perhaps non-associativity of 9.5+ BETWEEN is caused by above change to right argument?
-                    if (self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence) {
-                        continue 2;
-                    } else {
-                        break 2;
-                    }
+                    break;
                 }
             }
-            break;
         }
 
         return $value;
@@ -1515,9 +1456,7 @@ class Parser
 
     protected function RestrictedExpression()
     {
-        return self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence
-               ? $this->ComparisonEquality(true)
-               : $this->Comparison(true);
+        return $this->Comparison(true);
     }
 
     /**
@@ -1607,9 +1546,7 @@ class Parser
         while ($this->_matchesOperator()) {
             $operators[] = $this->Operator();
         }
-        $term = self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence
-                ? $this->IsWhateverExpression($restricted)
-                : $this->ArithmeticExpression($restricted);
+        $term = $this->ArithmeticExpression($restricted);
         // prefix operators are left-associative
         while (!empty($operators)) {
             $term = new nodes\expressions\OperatorExpression(array_pop($operators), null, $term);
@@ -1626,9 +1563,6 @@ class Parser
     protected function Operator($all = false)
     {
         if ($this->stream->matches(Token::TYPE_OPERATOR)
-            || (self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence
-                && ($this->stream->matches(Token::TYPE_INEQUALITY)
-                    || $this->stream->matches(Token::TYPE_EQUALS_GREATER)))
             || $all && $this->stream->matches(Token::TYPE_SPECIAL_CHAR, self::$mathOp)
         ) {
             return $this->stream->next()->getValue();
@@ -1656,9 +1590,7 @@ class Parser
 
     protected function IsWhateverExpression($restricted = false)
     {
-        $operand = self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence
-                   ? $this->ArithmeticExpression($restricted)
-                   : $this->Comparison($restricted);
+        $operand = $this->Comparison($restricted);
 
         if ($restricted) {
             $checks = array();
@@ -2001,7 +1933,7 @@ class Parser
                 $operand = new nodes\Constant($this->stream->expect(Token::TYPE_STRING));
             }
 
-            if ((!$modifiers || self::OPERATOR_PRECEDENCE_PRE_9_5 === $this->precedence)
+            if (!$modifiers
                 && $this->stream->matches(Token::TYPE_KEYWORD, array('year', 'month', 'day', 'hour', 'minute', 'second'))
             ) {
                 $trailing  = array($this->stream->next()->getValue());
@@ -2960,8 +2892,7 @@ class Parser
         $name = null;
         // it's the only place this shit can appear in
         if ($this->stream->look(1)->matches(Token::TYPE_COLON_EQUALS)
-            || self::OPERATOR_PRECEDENCE_PRE_9_5 !== $this->precedence
-               && $this->stream->look(1)->matches(Token::TYPE_EQUALS_GREATER)
+            || $this->stream->look(1)->matches(Token::TYPE_EQUALS_GREATER)
         ) {
             if ($this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
                 || $this->stream->matches(Token::TYPE_TYPE_FUNC_NAME_KEYWORD)

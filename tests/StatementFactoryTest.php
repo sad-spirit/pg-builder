@@ -65,10 +65,6 @@ class StatementFactoryTest extends \PHPUnit\Framework\TestCase
         $factory    = new StatementFactory($connection);
 
         $expected   = new Parser(new Lexer(array('standard_conforming_strings' => false)), $cache);
-        $expected->setOperatorPrecedence(
-            version_compare(pg_parameter_status($connection->getResource(), 'server_version'), '9.5.0', '>=')
-            ? Parser::OPERATOR_PRECEDENCE_CURRENT : Parser::OPERATOR_PRECEDENCE_PRE_9_5
-        );
 
         $this->assertEquals($expected, $factory->getParser());
     }
