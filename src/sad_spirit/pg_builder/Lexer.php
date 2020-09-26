@@ -564,11 +564,10 @@ class Lexer
      */
     public function tokenize($sql)
     {
-        if (extension_loaded('mbstring')) {
-            $this->mbEncoding = mb_internal_encoding();
-            if (2 & ini_get('mbstring.func_overload')) {
-                mb_internal_encoding('8bit');
-            }
+        if (extension_loaded('mbstring') && (2 & ini_get('mbstring.func_overload'))) {
+            throw new exceptions\RuntimeException(
+                'Multibyte function overloading must be disabled for correct parser operation'
+            );
         }
 
         $this->string   = $sql;
@@ -576,19 +575,7 @@ class Lexer
         $this->length   = strlen($sql);
         $this->tokens   = array();
 
-        try {
-            $this->doTokenize();
-
-        } catch (\Exception $e) {
-            if (2 & ini_get('mbstring.func_overload')) {
-                mb_internal_encoding($this->mbEncoding);
-            }
-            throw $e;
-        }
-
-        if (2 & ini_get('mbstring.func_overload')) {
-            mb_internal_encoding($this->mbEncoding);
-        }
+        $this->doTokenize();
 
         $this->pushToken('', Token::TYPE_EOF, $this->position);
 

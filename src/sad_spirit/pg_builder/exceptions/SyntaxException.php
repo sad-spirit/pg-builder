@@ -27,21 +27,10 @@ class SyntaxException extends \DomainException implements Exception
 {
     protected static function getContext($string, $position)
     {
-        if (extension_loaded('mbstring') && (2 & ini_get('mbstring.func_overload'))) {
-            $oldEncoding = mb_internal_encoding();
-            mb_internal_encoding('8bit');
-        }
-
-        $context = array(
+        return array(
             substr_count(substr($string, 0, $position), "\n") + 1,
             substr($string, $position)
         );
-
-        if (!empty($oldEncoding)) {
-            mb_internal_encoding($oldEncoding);
-        }
-
-        return $context;
     }
 
     public static function atPosition($message, $string, $position)
