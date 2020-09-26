@@ -27,14 +27,19 @@ use sad_spirit\pg_builder\SqlBuilderWalker,
     sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression;
 
 /**
- * Abstract base class for tests checking the proper addition of parentheses
+ * Tests checking the proper addition of parentheses (should follow Postgres 9.5+ operator precedence)
  *
  * We use a base class with two subclasses to easily notice which building mode fails
  */
-abstract class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
+class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
 {
     /** @var SqlBuilderWalker */
     protected $builder;
+
+    protected function setUp(): void
+    {
+        $this->builder = new SqlBuilderWalker();
+    }
 
     private function _normalizeWhitespace($string)
     {
@@ -62,36 +67,28 @@ abstract class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Checks that we add parentheses for IS SOMETHING arguments in 'compat' mode and don't add in 'current'
+     * Checks that we don't add parentheses for IS SOMETHING arguments
      *
      * @param Node   $ast
      * @param string $expected
-     * @doesNotPerformAssertions
+     * @dataProvider isPrecedenceProvider
      */
-    abstract public function testCompatParenthesesForIsPrecedenceChanges(Node $ast, $expected);
+    public function testCompatParenthesesForIsPrecedenceChanges(Node $ast, $expected)
+    {
+        $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builder));
+    }
 
     /**
-     * Checks that 'compat' mode properly adds parentheses to expressions with non-strict inequalities
+     * Checks that we don't adds parentheses to expressions with non-strict inequalities
      *
      * @param Node   $ast
      * @param string $expected
-     * @doesNotPerformAssertions
+     * @dataProvider inequalityPrecedenceProvider
      */
-    abstract public function testCompatParenthesesForInequalityPrecedenceChanges(Node $ast, $expected);
-
-    /**
-     * Checks that generated queries do not trigger a bug in pre-9.5 Postgres if 'compat' setting is used
-     *
-     * Multi-keyword operators beginning with NOT (e.g. NOT LIKE) had inconsistent
-     * precedence, behaving like NOT with respect to their left operand but like
-     * their base operator with respect to their right operand.
-     *
-     * @param Node $ast
-     * @param $expected
-     * @doesNotPerformAssertions
-     */
-    abstract public function testCompatParenthesesForBuggyNotPrecedence(Node $ast, $expected);
-
+    public function testCompatParenthesesForInequalityPrecedenceChanges(Node $ast, $expected)
+    {
+        $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builder));
+    }
 
     public function chainedComparisonProvider()
     {
@@ -147,7 +144,7 @@ abstract class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
                         new Constant(true)
                     )
                 ),
-                '(false = true) is null'
+                'false = true is null'
             ),
             array(
                 new OperatorExpression(
@@ -159,7 +156,7 @@ abstract class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
                     ),
                     new ColumnReference(array(new Identifier('baz')))
                 ),
-                '(foo @#! bar) is distinct from baz'
+                'foo @#! bar is distinct from baz'
             ),
             array(
                 new OperatorExpression(
@@ -169,7 +166,7 @@ abstract class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
                         new Constant('bar')
                     )
                 ),
-                "('foo' like 'bar') is not true"
+                "'foo' like 'bar' is not true"
             ),
             array(
                 new OperatorExpression(
@@ -180,7 +177,7 @@ abstract class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
                         new Constant(true)
                     )
                 ),
-                '(foo between false and true) is not false'
+                'foo between false and true is not false'
             )
         );
     }
@@ -202,25 +199,7 @@ abstract class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
                         new Constant('node')
                     )
                 ),
-                "j ->> 'space' <= (j ->> 'node')"
-            )
-        );
-    }
-
-    public function buggyNotPrecedenceProvider()
-    {
-        return array(
-            array(
-                new OperatorExpression(
-                    '=',
-                    new Constant(true),
-                    new PatternMatchingExpression(
-                        new Constant('foo'),
-                        new Constant('bar'),
-                        'not like'
-                    )
-                ),
-                "true = ('foo' not like 'bar')"
+                "j ->> 'space' <= j ->> 'node'"
             )
         );
     }
