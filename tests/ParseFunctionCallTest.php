@@ -360,8 +360,10 @@ QRY
             $this->parser->parseExpressionList('normalize(foo), normalize(bar, nFd)')
         );
 
-        $this::expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
-        $this::expectExceptionMessage("Unexpected special character ','");
+        $this::setExpectedException(
+            'sad_spirit\pg_builder\exceptions\SyntaxException',
+            "Unexpected special character ','"
+        );
         $this->parser->parseExpression("normalize(baz, nfc, nfd)");
     }
 
