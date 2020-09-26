@@ -28,7 +28,7 @@ use sad_spirit\pg_builder\nodes\lists\ExpressionList,
  */
 class CubeOrRollupClause extends ExpressionList implements GroupByElement
 {
-    public function __construct($array = null, $type)
+    public function __construct($array = null, $type = 'cube')
     {
         parent::__construct($array);
         $this->setType($type);
