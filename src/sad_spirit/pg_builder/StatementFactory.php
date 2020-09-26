@@ -69,9 +69,16 @@ class StatementFactory
             if (!$this->_connection) {
                 $cache         = null;
                 $lexerOptions  = array();
-                $serverVersion = '9.5.0';
 
             } else {
+                $serverVersion = pg_parameter_status($this->_connection->getResource(), 'server_version');
+                if (version_compare($serverVersion, '9.5', '<')) {
+                    throw new exceptions\RuntimeException(
+                        'PostgreSQL versions earlier than 9.5 are no longer supported, '
+                        . 'connected server reports version ' . $serverVersion
+                    );
+                }
+
                 $cache = $this->_connection->getMetadataCache();
                 try {
                     $res = $this->_connection->execute('show standard_conforming_strings');
@@ -82,15 +89,8 @@ class StatementFactory
                     // the server is not aware of the setting?
                     $lexerOptions = array('standard_conforming_strings' => false);
                 }
-
-                $serverVersion = pg_parameter_status($this->_connection->getResource(), 'server_version');
-
             }
             $this->_parser = new Parser(new Lexer($lexerOptions), $cache);
-            $this->_parser->setOperatorPrecedence(
-                version_compare($serverVersion, '9.5.0', '>=')
-                ? Parser::OPERATOR_PRECEDENCE_CURRENT : Parser::OPERATOR_PRECEDENCE_PRE_9_5
-            );
         }
         return $this->_parser;
     }
@@ -116,17 +116,7 @@ class StatementFactory
     public function getBuilder()
     {
         if (!$this->_builder) {
-            if (!$this->_connection) {
-                $serverVersion = '9.5.0';
-
-            } else {
-                $serverVersion = pg_parameter_status($this->_connection->getResource(), 'server_version');
-            }
-
-            $this->_builder = new SqlBuilderWalker(array(
-                'parentheses' => version_compare($serverVersion, '9.5.0', '>=')
-                                 ? SqlBuilderWalker::PARENTHESES_CURRENT : SqlBuilderWalker::PARENTHESES_COMPAT
-            ));
+            $this->_builder = new SqlBuilderWalker();
         }
         return $this->_builder;
     }
