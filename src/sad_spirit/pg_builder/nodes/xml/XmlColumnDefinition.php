@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,11 +18,11 @@
 
 namespace sad_spirit\pg_builder\nodes\xml;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_builder\nodes\ScalarExpression,
-    sad_spirit\pg_builder\nodes\TypeName,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\nodes\TypeName;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node for column definition in XMLTABLE clause
@@ -36,8 +37,12 @@ use sad_spirit\pg_builder\Node,
 class XmlColumnDefinition extends Node
 {
     public function __construct(
-        Identifier $name, $forOrdinality = false, TypeName $type = null, ScalarExpression $path = null,
-        $nullable = null, ScalarExpression $default = null
+        Identifier $name,
+        $forOrdinality = false,
+        TypeName $type = null,
+        ScalarExpression $path = null,
+        $nullable = null,
+        ScalarExpression $default = null
     ) {
         $this->setName($name);
         $this->setForOrdinality($forOrdinality);

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,10 +18,10 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\TreeWalker,
-    sad_spirit\pg_builder\nodes\expressions\LogicalExpression;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\nodes\expressions\LogicalExpression;
 
 /**
  * A wrapper around ScalarExpression Nodes providing helper methods for building WHERE and HAVING clauses
@@ -52,7 +53,8 @@ class WhereOrHavingClause extends Node
         if (!($condition instanceof ScalarExpression) && !($condition instanceof self)) {
             throw new InvalidArgumentException(sprintf(
                 '%s requires an SQL string or an instance of ScalarExpression or WhereOrHavingClause, %s given',
-                $method, is_object($condition) ? 'object(' . get_class($condition) . ')' : gettype($condition)
+                $method,
+                is_object($condition) ? 'object(' . get_class($condition) . ')' : gettype($condition)
             ));
         }
     }
@@ -83,12 +85,14 @@ class WhereOrHavingClause extends Node
     {
         $this->_normalizeCondition($condition, __METHOD__);
         if (!$this->props['condition']) {
-            if ($condition instanceof self
+            if (
+                $condition instanceof self
                 || ($condition instanceof LogicalExpression && 'and' !== $condition->operator)
             ) {
                 // nested condition, should always wrap in LogicalExpression
                 $this->setNamedProperty('condition', new LogicalExpression(
-                    [$condition instanceof self ? $condition->condition : $condition], 'and'
+                    [$condition instanceof self ? $condition->condition : $condition],
+                    'and'
                 ));
 
             } else {
@@ -98,7 +102,8 @@ class WhereOrHavingClause extends Node
         } else {
             if (!($this->props['condition'] instanceof LogicalExpression)) {
                 $this->setNamedProperty('condition', new LogicalExpression(
-                    [$this->props['condition']], 'and'
+                    [$this->props['condition']],
+                    'and'
                 ));
             }
             /* @var $recipient LogicalExpression */
@@ -138,11 +143,13 @@ class WhereOrHavingClause extends Node
 
         } else {
             $this->_normalizeCondition($condition, __METHOD__);
-            if (!($this->props['condition'] instanceof LogicalExpression)
+            if (
+                !($this->props['condition'] instanceof LogicalExpression)
                 || 'or' !== $this->props['condition']->operator
             ) {
                 $this->setNamedProperty('condition', new LogicalExpression(
-                    [$this->props['condition']], 'or'
+                    [$this->props['condition']],
+                    'or'
                 ));
             }
 

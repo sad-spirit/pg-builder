@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,11 +18,11 @@
 
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_builder\nodes\TypeName,
-    sad_spirit\pg_builder\nodes\QualifiedName,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\nodes\TypeName;
+use sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing column definition, used in a list column aliases for functions in FROM clause

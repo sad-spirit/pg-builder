@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,8 +18,8 @@
 
 namespace sad_spirit\pg_builder\nodes\group;
 
-use sad_spirit\pg_builder\nodes\lists\GroupByList,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\nodes\lists\GroupByList;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing GROUPING SETS(...) construct in GROUP BY clause

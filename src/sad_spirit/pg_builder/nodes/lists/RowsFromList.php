@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,8 +18,8 @@
 
 namespace sad_spirit\pg_builder\nodes\lists;
 
-use sad_spirit\pg_builder\nodes\range\RowsFromElement,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\nodes\range\RowsFromElement;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * List of elements appearing in ROWS FROM(...) construct
@@ -32,7 +33,8 @@ class RowsFromList extends NonAssociativeList
         if (!($value instanceof RowsFromElement)) {
             throw new InvalidArgumentException(sprintf(
                 '%s can contain only instances of RowsFromElement, %s given',
-                __CLASS__, is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
+                __CLASS__,
+                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
             ));
         }
     }

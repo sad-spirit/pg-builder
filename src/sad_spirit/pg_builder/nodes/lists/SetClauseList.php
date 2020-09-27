@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,12 +18,12 @@
 
 namespace sad_spirit\pg_builder\nodes\lists;
 
-use sad_spirit\pg_builder\ElementParseable,
-    sad_spirit\pg_builder\Parseable,
-    sad_spirit\pg_builder\Parser,
-    sad_spirit\pg_builder\nodes\MultipleSetClause,
-    sad_spirit\pg_builder\nodes\SingleSetClause,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\ElementParseable;
+use sad_spirit\pg_builder\Parseable;
+use sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\nodes\MultipleSetClause;
+use sad_spirit\pg_builder\nodes\SingleSetClause;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * Represents SET clause of UPDATE statement
@@ -36,7 +37,8 @@ class SetClauseList extends NonAssociativeList implements Parseable, ElementPars
         if (!($value instanceof SingleSetClause) && !($value instanceof MultipleSetClause)) {
             throw new InvalidArgumentException(sprintf(
                 '%s can contain only instances of SingleSetClause or MultipleSetClause, %s given',
-                __CLASS__, is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
+                __CLASS__,
+                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
             ));
             
         }

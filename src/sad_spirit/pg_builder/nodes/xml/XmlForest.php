@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,9 +18,9 @@
 
 namespace sad_spirit\pg_builder\nodes\xml;
 
-use sad_spirit\pg_builder\nodes\lists\TargetList,
-    sad_spirit\pg_builder\nodes\ScalarExpression,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\nodes\lists\TargetList;
+use sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents xmlforest() expression (cannot be a FunctionCall due to special arguments format)

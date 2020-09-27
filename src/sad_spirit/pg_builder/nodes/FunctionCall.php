@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,11 +18,11 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\nodes\lists\OrderByList,
-    sad_spirit\pg_builder\nodes\lists\FunctionArgumentList,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\nodes\lists\OrderByList;
+use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents a function call (func_application or func_expr_common_subexpr)
@@ -39,18 +40,24 @@ use sad_spirit\pg_builder\Node,
 class FunctionCall extends Node
 {
     public function __construct(
-        $funcName, $arguments = null, $distinct = false, $variadic = false, OrderByList $orderBy = null
+        $funcName,
+        $arguments = null,
+        $distinct = false,
+        $variadic = false,
+        OrderByList $orderBy = null
     ) {
         if (!is_string($funcName) && !($funcName instanceof QualifiedName)) {
             throw new InvalidArgumentException(sprintf(
                 '%s expects either a string or a QualifiedName as function name, %s given',
-                __CLASS__, is_object($funcName) ? 'object(' . get_class($funcName) . ')' : gettype($funcName)
+                __CLASS__,
+                is_object($funcName) ? 'object(' . get_class($funcName) . ')' : gettype($funcName)
             ));
         }
         if (null !== $arguments && !($arguments instanceof FunctionArgumentList) && !($arguments instanceof Star)) {
             throw new InvalidArgumentException(sprintf(
                 '%s expects an instance of either Star or FunctionArgumentList for function arguments, %s given',
-                __CLASS__, is_object($arguments) ? 'object(' . get_class($arguments) . ')' : gettype($arguments)
+                __CLASS__,
+                is_object($arguments) ? 'object(' . get_class($arguments) . ')' : gettype($arguments)
             ));
         }
 

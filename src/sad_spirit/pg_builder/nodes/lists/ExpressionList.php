@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,12 +18,12 @@
 
 namespace sad_spirit\pg_builder\nodes\lists;
 
-use sad_spirit\pg_builder\nodes\ScalarExpression,
-    sad_spirit\pg_builder\nodes\SetToDefault,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\Parseable,
-    sad_spirit\pg_builder\ElementParseable,
-    sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\nodes\SetToDefault;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\Parseable;
+use sad_spirit\pg_builder\ElementParseable;
+use sad_spirit\pg_builder\Parser;
 
 /**
  * List of scalar expressions, may appear e.g. in row constructors
@@ -48,13 +49,15 @@ class ExpressionList extends NonAssociativeList implements Parseable, ElementPar
     {
         parent::normalizeElement($offset, $value);
 
-        if (!($value instanceof ScalarExpression)
+        if (
+            !($value instanceof ScalarExpression)
             && (!$this->allowDefault || !($value instanceof SetToDefault))
         ) {
             throw new InvalidArgumentException(sprintf(
                 '%s can contain only instances of ScalarExpression'
-                . ($this->allowDefault ? ' or SetToDefault': '') . ', %s given',
-                __CLASS__, is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
+                . ($this->allowDefault ? ' or SetToDefault' : '') . ', %s given',
+                __CLASS__,
+                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
             ));
         }
     }

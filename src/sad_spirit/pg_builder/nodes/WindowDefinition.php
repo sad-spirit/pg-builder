@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,10 +18,10 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\nodes\lists\ExpressionList,
-    sad_spirit\pg_builder\nodes\lists\OrderByList,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\lists\ExpressionList;
+use sad_spirit\pg_builder\nodes\lists\OrderByList;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing a window definition (for function calls with OVER and for WINDOW clause)
@@ -34,7 +35,9 @@ use sad_spirit\pg_builder\Node,
 class WindowDefinition extends Node
 {
     public function __construct(
-        Identifier $refName = null, ExpressionList $partition = null, OrderByList $order = null,
+        Identifier $refName = null,
+        ExpressionList $partition = null,
+        OrderByList $order = null,
         WindowFrameClause $frame = null
     ) {
         $this->props['name']       = null;

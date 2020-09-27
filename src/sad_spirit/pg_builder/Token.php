@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -90,7 +91,9 @@ class Token
         }
         return sprintf(
             "%s '%s' at position %d",
-            self::typeToString($this->type), $this->value, $this->position
+            self::typeToString($this->type),
+            $this->value,
+            $this->position
         );
     }
 
@@ -160,41 +163,41 @@ class Token
     public static function typeToString($type)
     {
         switch ($type) {
-        case self::TYPE_EOF:
-            return 'end of input';
-        case self::TYPE_STRING:
-            return 'string literal';
-        case self::TYPE_BINARY_STRING:
-            return 'binary string literal';
-        case self::TYPE_HEX_STRING:
-            return 'hexadecimal string literal';
-        case self::TYPE_NCHAR_STRING:
-            return 'nchar string literal';
-        case self::TYPE_INTEGER:
-            return 'integer literal';
-        case self::TYPE_FLOAT:
-            return 'numeric literal';
-        case self::TYPE_POSITIONAL_PARAM:
-            return 'positional parameter';
-        case self::TYPE_NAMED_PARAM:
-            return 'named parameter';
-        case self::TYPE_OPERATOR:
-            return 'operator';
-        case self::TYPE_TYPECAST:
-            return 'typecast operator';
-        case self::TYPE_COLON_EQUALS:
-        case self::TYPE_EQUALS_GREATER:
-            return 'named argument mark';
-        case self::TYPE_SPECIAL_CHAR:
-            return 'special character';
-        case self::TYPE_INEQUALITY:
-            return 'comparison operator';
-        case self::TYPE_IDENTIFIER:
-            return 'identifier';
-        default:
-            if ($type & self::TYPE_KEYWORD) {
-                return 'keyword';
-            }
+            case self::TYPE_EOF:
+                return 'end of input';
+            case self::TYPE_STRING:
+                return 'string literal';
+            case self::TYPE_BINARY_STRING:
+                return 'binary string literal';
+            case self::TYPE_HEX_STRING:
+                return 'hexadecimal string literal';
+            case self::TYPE_NCHAR_STRING:
+                return 'nchar string literal';
+            case self::TYPE_INTEGER:
+                return 'integer literal';
+            case self::TYPE_FLOAT:
+                return 'numeric literal';
+            case self::TYPE_POSITIONAL_PARAM:
+                return 'positional parameter';
+            case self::TYPE_NAMED_PARAM:
+                return 'named parameter';
+            case self::TYPE_OPERATOR:
+                return 'operator';
+            case self::TYPE_TYPECAST:
+                return 'typecast operator';
+            case self::TYPE_COLON_EQUALS:
+            case self::TYPE_EQUALS_GREATER:
+                return 'named argument mark';
+            case self::TYPE_SPECIAL_CHAR:
+                return 'special character';
+            case self::TYPE_INEQUALITY:
+                return 'comparison operator';
+            case self::TYPE_IDENTIFIER:
+                return 'identifier';
+            default:
+                if ($type & self::TYPE_KEYWORD) {
+                    return 'keyword';
+                }
         }
         throw new exceptions\InvalidArgumentException("Unknown token type '{$type}'");
     }

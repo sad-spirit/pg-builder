@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -19,28 +20,28 @@ namespace sad_spirit\pg_builder\tests;
 
 use sad_spirit\pg_builder\nodes\expressions\TypecastExpression;
 use sad_spirit\pg_builder\nodes\TypeName;
-use sad_spirit\pg_builder\Parser,
-    sad_spirit\pg_builder\Lexer,
-    sad_spirit\pg_builder\Select,
-    sad_spirit\pg_builder\nodes\ColumnReference,
-    sad_spirit\pg_builder\nodes\Constant,
-    sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_builder\nodes\LockingElement,
-    sad_spirit\pg_builder\nodes\QualifiedName,
-    sad_spirit\pg_builder\nodes\Star,
-    sad_spirit\pg_builder\nodes\TargetElement,
-    sad_spirit\pg_builder\nodes\WindowDefinition,
-    sad_spirit\pg_builder\nodes\WindowFrameBound,
-    sad_spirit\pg_builder\nodes\WindowFrameClause,
-    sad_spirit\pg_builder\nodes\expressions\FunctionExpression,
-    sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
-    sad_spirit\pg_builder\nodes\lists\FunctionArgumentList,
-    sad_spirit\pg_builder\nodes\lists\TargetList,
-    sad_spirit\pg_builder\nodes\lists\ExpressionList,
-    sad_spirit\pg_builder\nodes\lists\LockList,
-    sad_spirit\pg_builder\nodes\lists\WindowList,
-    sad_spirit\pg_builder\nodes\range\RelationReference,
-    sad_spirit\pg_builder\SetOpSelect;
+use sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\Lexer;
+use sad_spirit\pg_builder\Select;
+use sad_spirit\pg_builder\nodes\ColumnReference;
+use sad_spirit\pg_builder\nodes\Constant;
+use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\nodes\LockingElement;
+use sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\nodes\Star;
+use sad_spirit\pg_builder\nodes\TargetElement;
+use sad_spirit\pg_builder\nodes\WindowDefinition;
+use sad_spirit\pg_builder\nodes\WindowFrameBound;
+use sad_spirit\pg_builder\nodes\WindowFrameClause;
+use sad_spirit\pg_builder\nodes\expressions\FunctionExpression;
+use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
+use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
+use sad_spirit\pg_builder\nodes\lists\TargetList;
+use sad_spirit\pg_builder\nodes\lists\ExpressionList;
+use sad_spirit\pg_builder\nodes\lists\LockList;
+use sad_spirit\pg_builder\nodes\lists\WindowList;
+use sad_spirit\pg_builder\nodes\range\RelationReference;
+use sad_spirit\pg_builder\SetOpSelect;
 
 /**
  * Tests parsing all possible parts of SELECT statement
@@ -75,8 +76,14 @@ QRY
                 new TargetElement(new ColumnReference(['bar'])),
                 new TargetElement(
                     new FunctionExpression(
-                        new QualifiedName(['baz']), null, false, false, null,
-                        null, null, new WindowDefinition(new Identifier('win95'))
+                        new QualifiedName(['baz']),
+                        null,
+                        false,
+                        false,
+                        null,
+                        null,
+                        null,
+                        new WindowDefinition(new Identifier('win95'))
                     ),
                     new Identifier('blah')
                 ),
@@ -90,16 +97,20 @@ QRY
             new RelationReference(new QualifiedName(['two']))
         ]);
         $built->where->condition = new OperatorExpression(
-            '=', new ColumnReference(['one', 'id']), new ColumnReference(['two', 'id'])
+            '=',
+            new ColumnReference(['one', 'id']),
+            new ColumnReference(['two', 'id'])
         );
         $built->group->replace([
             new ColumnReference(['bar'])
         ]);
         $built->having->condition = new OperatorExpression(
-            '>', new FunctionExpression(
+            '>',
+            new FunctionExpression(
                 new QualifiedName(['count']),
                 new FunctionArgumentList([new ColumnReference(['quux'])])
-            ), new Constant(1)
+            ),
+            new Constant(1)
         );
         $win95 = new WindowDefinition();
         $win95->setName(new Identifier('win95'));
@@ -250,9 +261,13 @@ QRY
             new WindowDefinition(new Identifier('foo')),
             new WindowDefinition(null, new ExpressionList([new ColumnReference(['whatever'])])),
             new WindowDefinition(
-                null, null, null,
+                null,
+                null,
+                null,
                 new WindowFrameClause(
-                    'range', new WindowFrameBound('preceding'), new WindowFrameBound('current row')
+                    'range',
+                    new WindowFrameBound('preceding'),
+                    new WindowFrameBound('current row')
                 )
             )
         ];

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,10 +18,10 @@
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\nodes\lists\LockList,
-    sad_spirit\pg_builder\nodes\lists\OrderByList,
-    sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\nodes\lists\LockList;
+use sad_spirit\pg_builder\nodes\lists\OrderByList;
+use sad_spirit\pg_builder\nodes\ScalarExpression;
 
 /**
  * Base class for SELECT-type statements
@@ -58,7 +59,8 @@ abstract class SelectCommon extends Statement
         if (!is_null($expression) && !($expression instanceof ScalarExpression)) {
             throw new InvalidArgumentException(sprintf(
                 '%s requires an SQL string or an instance of ScalarExpression, %s given',
-                $method, is_object($expression) ? 'object(' . get_class($expression) . ')' : gettype($expression)
+                $method,
+                is_object($expression) ? 'object(' . get_class($expression) . ')' : gettype($expression)
             ));
         }
     }
@@ -127,7 +129,8 @@ abstract class SelectCommon extends Statement
         if (!($select instanceof self)) {
             throw new InvalidArgumentException(sprintf(
                 '%s requires an SQL string or an instance of SelectCommon, %s given',
-                __METHOD__, is_object($select) ? 'object(' . get_class($select) . ')' : gettype($select)
+                __METHOD__,
+                is_object($select) ? 'object(' . get_class($select) . ')' : gettype($select)
             ));
         }
         if (!$this->getParentNode()) {

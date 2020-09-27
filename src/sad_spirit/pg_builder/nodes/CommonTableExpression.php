@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,10 +18,10 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\Statement,
-    sad_spirit\pg_builder\nodes\lists\IdentifierList,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\Statement;
+use sad_spirit\pg_builder\nodes\lists\IdentifierList;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing a CTE

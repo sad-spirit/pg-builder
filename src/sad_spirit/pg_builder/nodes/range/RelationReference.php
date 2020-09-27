@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,9 +18,9 @@
 
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\nodes\QualifiedName,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node for relation (table or view) reference in FROM clause

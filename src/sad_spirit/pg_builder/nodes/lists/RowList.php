@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,11 +18,11 @@
 
 namespace sad_spirit\pg_builder\nodes\lists;
 
-use sad_spirit\pg_builder\nodes\expressions\RowExpression,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\Parseable,
-    sad_spirit\pg_builder\ElementParseable,
-    sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\nodes\expressions\RowExpression;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\Parseable;
+use sad_spirit\pg_builder\ElementParseable;
+use sad_spirit\pg_builder\Parser;
 
 /**
  * A list of row expressions, base for VALUES statement
@@ -38,7 +39,8 @@ class RowList extends NonAssociativeList implements Parseable, ElementParseable
         } elseif (!($value instanceof RowExpression)) {
             throw new InvalidArgumentException(sprintf(
                 '%s can contain only instances of RowExpression, %s given',
-                __CLASS__, is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
+                __CLASS__,
+                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
             ));
         }
     }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,33 +18,33 @@
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\Parser,
-    sad_spirit\pg_builder\Lexer,
-    sad_spirit\pg_builder\nodes\ColumnReference,
-    sad_spirit\pg_builder\nodes\Constant,
-    sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_builder\nodes\OrderByElement,
-    sad_spirit\pg_builder\nodes\QualifiedName,
-    sad_spirit\pg_builder\nodes\Star,
-    sad_spirit\pg_builder\nodes\TargetElement,
-    sad_spirit\pg_builder\nodes\TypeName,
-    sad_spirit\pg_builder\nodes\WindowDefinition,
-    sad_spirit\pg_builder\nodes\WindowFrameBound,
-    sad_spirit\pg_builder\nodes\WindowFrameClause,
-    sad_spirit\pg_builder\nodes\expressions\FunctionExpression,
-    sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
-    sad_spirit\pg_builder\nodes\expressions\TypecastExpression,
-    sad_spirit\pg_builder\nodes\lists\ExpressionList,
-    sad_spirit\pg_builder\nodes\lists\FunctionArgumentList,
-    sad_spirit\pg_builder\nodes\lists\OrderByList,
-    sad_spirit\pg_builder\nodes\lists\TargetList,
-    sad_spirit\pg_builder\nodes\lists\TypeModifierList,
-    sad_spirit\pg_builder\nodes\xml\XmlElement,
-    sad_spirit\pg_builder\nodes\xml\XmlForest,
-    sad_spirit\pg_builder\nodes\xml\XmlParse,
-    sad_spirit\pg_builder\nodes\xml\XmlPi,
-    sad_spirit\pg_builder\nodes\xml\XmlRoot,
-    sad_spirit\pg_builder\nodes\xml\XmlSerialize;
+use sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\Lexer;
+use sad_spirit\pg_builder\nodes\ColumnReference;
+use sad_spirit\pg_builder\nodes\Constant;
+use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\nodes\OrderByElement;
+use sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\nodes\Star;
+use sad_spirit\pg_builder\nodes\TargetElement;
+use sad_spirit\pg_builder\nodes\TypeName;
+use sad_spirit\pg_builder\nodes\WindowDefinition;
+use sad_spirit\pg_builder\nodes\WindowFrameBound;
+use sad_spirit\pg_builder\nodes\WindowFrameClause;
+use sad_spirit\pg_builder\nodes\expressions\FunctionExpression;
+use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
+use sad_spirit\pg_builder\nodes\expressions\TypecastExpression;
+use sad_spirit\pg_builder\nodes\lists\ExpressionList;
+use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
+use sad_spirit\pg_builder\nodes\lists\OrderByList;
+use sad_spirit\pg_builder\nodes\lists\TargetList;
+use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
+use sad_spirit\pg_builder\nodes\xml\XmlElement;
+use sad_spirit\pg_builder\nodes\xml\XmlForest;
+use sad_spirit\pg_builder\nodes\xml\XmlParse;
+use sad_spirit\pg_builder\nodes\xml\XmlPi;
+use sad_spirit\pg_builder\nodes\xml\XmlRoot;
+use sad_spirit\pg_builder\nodes\xml\XmlSerialize;
 
 /**
  * Tests parsing all possible function calls and function-like constructs
@@ -72,7 +73,8 @@ QRY
                 new TypeName(new QualifiedName(['pg_catalog', 'date']))
             )
         ];
-        foreach (['current_user', 'current_user', 'session_user', 'current_user',
+        foreach (
+            ['current_user', 'current_user', 'session_user', 'current_user',
                        'current_database', 'current_schema'] as $fn
         ) {
             $expected[] = new FunctionExpression(new QualifiedName(['pg_catalog', $fn]));
@@ -424,14 +426,16 @@ QRY
                 new FunctionExpression(
                     new QualifiedName(['blah', 'foo']),
                     new FunctionArgumentList([new ColumnReference(['a'])]),
-                    false, true
+                    false,
+                    true
                 ),
                 new FunctionExpression(
                     new QualifiedName(['blah', 'bar']),
                     new FunctionArgumentList(
                         [new ColumnReference(['a']), new ColumnReference(['b'])]
                     ),
-                    false, true
+                    false,
+                    true
                 ),
                 new FunctionExpression(
                     new QualifiedName(['blah', 'baz']),
@@ -520,7 +524,9 @@ QRY
                             new ColumnReference([new Identifier('bar')])
                         ]
                     ),
-                    true, false, new OrderByList([
+                    true,
+                    false,
+                    new OrderByList([
                         new OrderByElement(new ColumnReference([new Identifier('foo')]), 'desc'),
                         new OrderByElement(new ColumnReference(['bar']), null, 'last')
                     ])
@@ -528,13 +534,17 @@ QRY
                 new FunctionExpression(
                     new QualifiedName(['count']),
                     new Star(),
-                    false, false, null, false,
+                    false,
+                    false,
+                    null,
+                    false,
                     new OperatorExpression('>', new ColumnReference(['foo']), new Constant(100))
                 ),
                 new FunctionExpression(
                     new QualifiedName(['percentile_disc']),
                     new FunctionArgumentList([new Constant(0.5)]),
-                    false, false,
+                    false,
+                    false,
                     new OrderByList([new OrderByElement(new ColumnReference(['foo']))]),
                     true
                 )
@@ -557,21 +567,47 @@ QRY
         $this->assertEquals(
             new ExpressionList([
                 new FunctionExpression(
-                    new QualifiedName(['foo']), null, false, false, null,
-                    false, null, new WindowDefinition()
+                    new QualifiedName(['foo']),
+                    null,
+                    false,
+                    false,
+                    null,
+                    false,
+                    null,
+                    new WindowDefinition()
                 ),
                 new FunctionExpression(
-                    new QualifiedName(['bar']), null, false, false, null,
-                    false, null, new WindowDefinition(new Identifier('blah'))
+                    new QualifiedName(['bar']),
+                    null,
+                    false,
+                    false,
+                    null,
+                    false,
+                    null,
+                    new WindowDefinition(new Identifier('blah'))
                 ),
                 new FunctionExpression(
-                    new QualifiedName(['rank']), null, false, false, null,
-                    false, null, new WindowDefinition(null, new ExpressionList([new ColumnReference([new Identifier('whatever')])]))
+                    new QualifiedName(['rank']),
+                    null,
+                    false,
+                    false,
+                    null,
+                    false,
+                    null,
+                    new WindowDefinition(null, new ExpressionList([new ColumnReference([new Identifier('whatever')])]))
                 ),
                 new FunctionExpression(
-                    new QualifiedName(['something']), null, false, false, null,
-                    false, null, new WindowDefinition(
-                        null, null, null,
+                    new QualifiedName(['something']),
+                    null,
+                    false,
+                    false,
+                    null,
+                    false,
+                    null,
+                    new WindowDefinition(
+                        null,
+                        null,
+                        null,
                         new WindowFrameClause(
                             'rows',
                             new WindowFrameBound('preceding', new Constant(5)),
@@ -583,14 +619,25 @@ QRY
                 new FunctionExpression(
                     new QualifiedName(['count']),
                     new FunctionArgumentList([new ColumnReference(['bar'])]),
-                    false, false, null, false,
+                    false,
+                    false,
+                    null,
+                    false,
                     new OperatorExpression('!@#&', new ColumnReference(['bar'])),
                     new WindowDefinition(null, new ExpressionList([new ColumnReference(['foo'])]))
                 ),
                 new FunctionExpression(
-                    new QualifiedName(['foo']), null, false, false, null, false, null,
+                    new QualifiedName(['foo']),
+                    null,
+                    false,
+                    false,
+                    null,
+                    false,
+                    null,
                     new WindowDefinition(
-                        null, null, null,
+                        null,
+                        null,
+                        null,
                         new WindowFrameClause(
                             'range',
                             new WindowFrameBound('preceding'),
@@ -599,9 +646,17 @@ QRY
                     )
                 ),
                 new FunctionExpression(
-                    new QualifiedName(['bar']), null, false, false, null, false, null,
+                    new QualifiedName(['bar']),
+                    null,
+                    false,
+                    false,
+                    null,
+                    false,
+                    null,
                     new WindowDefinition(
-                        null, null, null,
+                        null,
+                        null,
+                        null,
                         new WindowFrameClause(
                             'groups',
                             new WindowFrameBound('current row'),

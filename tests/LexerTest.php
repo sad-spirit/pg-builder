@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,8 +18,8 @@
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\Lexer,
-    sad_spirit\pg_builder\Token;
+use sad_spirit\pg_builder\Lexer;
+use sad_spirit\pg_builder\Token;
 
 /**
  * Unit test for query lexer
@@ -67,7 +68,7 @@ a multiline C-style comment */, "bA""z" /*
 this is a /* nested C-style */ comment */
 as quux -- another comment
 QRY
-);
+        );
         $stream->expect(Token::TYPE_KEYWORD, 'select');
         $stream->expect(Token::TYPE_IDENTIFIER, 'foo');
         $stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
@@ -86,7 +87,7 @@ QRY
     'bar' -- a comment
 'baz'
 QRY
-);
+        );
         $this->assertEquals('foobarbaz', $stream->next()->getValue());
     }
 
@@ -101,7 +102,7 @@ QRY
 +* *+--/*
 !=-
 QRY
-);
+        );
         $stream->expect(Token::TYPE_OPERATOR, '#!');
         $stream->expect(Token::TYPE_SPECIAL_CHAR, '=');
         $stream->expect(Token::TYPE_SPECIAL_CHAR, '-');
@@ -132,7 +133,7 @@ QRY
     $\$a string$$
     \$foo$ another $$ string ' \\ \$foo$
 QRY
-);
+        );
         $this->assertEquals('a string', $stream->next()->getValue());
         $this->assertEquals(' another $$ string \' \\ ', $stream->next()->getValue());
     }

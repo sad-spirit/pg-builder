@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,10 +18,10 @@
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_builder\nodes\lists\FromList,
-    sad_spirit\pg_builder\nodes\lists\TargetList,
-    sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget,
-    sad_spirit\pg_builder\nodes\WhereOrHavingClause;
+use sad_spirit\pg_builder\nodes\lists\FromList;
+use sad_spirit\pg_builder\nodes\lists\TargetList;
+use sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
+use sad_spirit\pg_builder\nodes\WhereOrHavingClause;
 
 /**
  * AST node representing DELETE statement

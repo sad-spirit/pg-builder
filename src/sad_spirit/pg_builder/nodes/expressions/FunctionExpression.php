@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,11 +18,11 @@
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\nodes\FunctionCall,
-    sad_spirit\pg_builder\nodes\ScalarExpression,
-    sad_spirit\pg_builder\nodes\WindowDefinition,
-    sad_spirit\pg_builder\nodes\lists\OrderByList,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\nodes\FunctionCall;
+use sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\nodes\WindowDefinition;
+use sad_spirit\pg_builder\nodes\lists\OrderByList;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing a function call in scalar context (func_expr in grammar)
@@ -33,8 +34,13 @@ use sad_spirit\pg_builder\nodes\FunctionCall,
 class FunctionExpression extends FunctionCall implements ScalarExpression
 {
     public function __construct(
-        $funcName, $arguments = null, $distinct = false, $variadic = false,
-        OrderByList $orderBy = null, $withinGroup = false, ScalarExpression $filter = null,
+        $funcName,
+        $arguments = null,
+        $distinct = false,
+        $variadic = false,
+        OrderByList $orderBy = null,
+        $withinGroup = false,
+        ScalarExpression $filter = null,
         WindowDefinition $over = null
     ) {
         parent::__construct($funcName, $arguments, $distinct, $variadic, $orderBy);

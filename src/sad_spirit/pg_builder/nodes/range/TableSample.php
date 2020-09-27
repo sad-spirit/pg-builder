@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,11 +18,11 @@
 
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_builder\nodes\QualifiedName,
-    sad_spirit\pg_builder\nodes\ScalarExpression,
-    sad_spirit\pg_builder\nodes\lists\ExpressionList,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\nodes\lists\ExpressionList;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node for TABLESAMPLE clause in FROM list
@@ -34,7 +35,9 @@ use sad_spirit\pg_builder\nodes\Identifier,
 class TableSample extends FromElement
 {
     public function __construct(
-        RelationReference $relation, QualifiedName $method, ExpressionList $arguments,
+        RelationReference $relation,
+        QualifiedName $method,
+        ExpressionList $arguments,
         ScalarExpression $repeatable = null
     ) {
         $this->setNamedProperty('relation', $relation);

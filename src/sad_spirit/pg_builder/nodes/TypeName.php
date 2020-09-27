@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,10 +18,10 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\nodes\lists\TypeModifierList,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents a type name with all bells and whistles
@@ -52,7 +53,9 @@ class TypeName extends Node
             if (!is_int($value) && !ctype_digit($value)) {
                 throw new InvalidArgumentException(sprintf(
                     "%s: array bounds should be an array of integers, %s given at key '%s'",
-                    __METHOD__, gettype($value), $key
+                    __METHOD__,
+                    gettype($value),
+                    $key
                 ));
             }
             $this->props['bounds'][] = (int)$value;

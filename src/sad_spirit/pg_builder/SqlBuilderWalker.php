@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -184,54 +185,54 @@ class SqlBuilderWalker implements TreeWalker
 
         } elseif ($expression instanceof nodes\expressions\OperatorExpression) {
             switch ($expression->operator) {
-            case 'not':
-                return self::PRECEDENCE_NOT;
+                case 'not':
+                    return self::PRECEDENCE_NOT;
 
-            case '=':
-            case '<':
-            case '>':
-            case '<=':
-            case '>=':
-            case '!=':
-            case '<>':
-                return self::PRECEDENCE_COMPARISON;
+                case '=':
+                case '<':
+                case '>':
+                case '<=':
+                case '>=':
+                case '!=':
+                case '<>':
+                    return self::PRECEDENCE_COMPARISON;
 
-            case 'overlaps':
-                return self::PRECEDENCE_OVERLAPS;
+                case 'overlaps':
+                    return self::PRECEDENCE_OVERLAPS;
 
-            case 'is null':
-            case 'is not null':
-            case 'is true':
-            case 'is not true':
-            case 'is false':
-            case 'is not false':
-            case 'is unknown':
-            case 'is not unknown':
-            case 'is document':
-            case 'is not document':
-            case 'is distinct from':
-            case 'is not distinct from':
-                return self::PRECEDENCE_IS;
+                case 'is null':
+                case 'is not null':
+                case 'is true':
+                case 'is not true':
+                case 'is false':
+                case 'is not false':
+                case 'is unknown':
+                case 'is not unknown':
+                case 'is document':
+                case 'is not document':
+                case 'is distinct from':
+                case 'is not distinct from':
+                    return self::PRECEDENCE_IS;
 
-            case '+':
-            case '-':
-                // if no left operand is present, then this is an unary variant with higher precedence
-                return $expression->left ? self::PRECEDENCE_ADDITION : self::PRECEDENCE_UNARY_MINUS;
+                case '+':
+                case '-':
+                    // if no left operand is present, then this is an unary variant with higher precedence
+                    return $expression->left ? self::PRECEDENCE_ADDITION : self::PRECEDENCE_UNARY_MINUS;
 
-            case '*':
-            case '/':
-            case '%':
-                return self::PRECEDENCE_MULTIPLICATION;
+                case '*':
+                case '/':
+                case '%':
+                    return self::PRECEDENCE_MULTIPLICATION;
 
-            case '^':
-                return self::PRECEDENCE_EXPONENTIATION;
+                case '^':
+                    return self::PRECEDENCE_EXPONENTIATION;
 
-            case 'at time zone':
-                return self::PRECEDENCE_TIME_ZONE;
+                case 'at time zone':
+                    return self::PRECEDENCE_TIME_ZONE;
 
-            default:
-                // generic operator
-                return $expression->right ? self::PRECEDENCE_GENERIC_OP : self::PRECEDENCE_POSTFIX_OP;
+                default:
+                    // generic operator
+                    return $expression->right ? self::PRECEDENCE_GENERIC_OP : self::PRECEDENCE_POSTFIX_OP;
             }
 
         } elseif ($expression instanceof nodes\expressions\CollateExpression) {
@@ -264,15 +265,15 @@ class SqlBuilderWalker implements TreeWalker
 
         } else {
             switch ($statement->operator) {
-            case 'intersect':
-            case 'intersect all':
-                return self::PRECEDENCE_SETOP_INTERSECT;
-            case 'union':
-            case 'union all':
-            case 'except':
-            case 'except all':
-            default:
-                return self::PRECEDENCE_SETOP_UNION;
+                case 'intersect':
+                case 'intersect all':
+                    return self::PRECEDENCE_SETOP_INTERSECT;
+                case 'union':
+                case 'union all':
+                case 'except':
+                case 'except all':
+                default:
+                    return self::PRECEDENCE_SETOP_UNION;
             }
         }
     }
@@ -301,7 +302,8 @@ class SqlBuilderWalker implements TreeWalker
      */
     protected function getAssociativity(nodes\ScalarExpression $expression)
     {
-        if ($expression instanceof nodes\expressions\TypecastExpression
+        if (
+            $expression instanceof nodes\expressions\TypecastExpression
             || $expression instanceof nodes\expressions\CollateExpression
             || $expression instanceof nodes\Indirection
         ) {
@@ -311,7 +313,8 @@ class SqlBuilderWalker implements TreeWalker
             if (!$expression->left && in_array($expression->operator, ['not', '+', '-'])) {
                 return self::ASSOCIATIVE_RIGHT;
 
-            } elseif (!in_array($expression->operator, [
+            } elseif (
+                !in_array($expression->operator, [
                           '=', '<', '>', '<=', '>=', '!=', '<>',
                           'overlaps', 'is null', 'is not null', 'is true', 'is not true',
                           'is false', 'is not false', 'is unknown', 'is not unknown',
@@ -334,7 +337,9 @@ class SqlBuilderWalker implements TreeWalker
      * @return bool
      */
     protected function argumentNeedsParentheses(
-        nodes\ScalarExpression $argument, nodes\ScalarExpression $expression, $right = false
+        nodes\ScalarExpression $argument,
+        nodes\ScalarExpression $expression,
+        $right = false
     ) {
         $argumentPrecedence = $this->getPrecedence($argument);
 
@@ -353,13 +358,13 @@ class SqlBuilderWalker implements TreeWalker
 
         $expressionPrecedence = $this->getPrecedence($expression);
         switch ($this->getAssociativity($expression)) {
-        case self::ASSOCIATIVE_NONE:
-            return $argumentPrecedence <= $expressionPrecedence;
-        case self::ASSOCIATIVE_RIGHT:
-            return $argumentPrecedence < $expressionPrecedence
+            case self::ASSOCIATIVE_NONE:
+                return $argumentPrecedence <= $expressionPrecedence;
+            case self::ASSOCIATIVE_RIGHT:
+                return $argumentPrecedence < $expressionPrecedence
                    || !$right && $argumentPrecedence === $expressionPrecedence;
-        case self::ASSOCIATIVE_LEFT:
-            return $argumentPrecedence < $expressionPrecedence
+            case self::ASSOCIATIVE_LEFT:
+                return $argumentPrecedence < $expressionPrecedence
                    || $right && $argumentPrecedence === $expressionPrecedence;
         }
     }
@@ -373,7 +378,9 @@ class SqlBuilderWalker implements TreeWalker
      * @return string
      */
     protected function optionalParentheses(
-        nodes\ScalarExpression $argument, nodes\ScalarExpression $expression, $right = false
+        nodes\ScalarExpression $argument,
+        nodes\ScalarExpression $expression,
+        $right = false
     ) {
         $needParens = $this->argumentNeedsParentheses($argument, $expression, $right);
 
@@ -536,7 +543,8 @@ class SqlBuilderWalker implements TreeWalker
             $parts[] = $statement->with->dispatch($this);
         }
 
-        if ($this->containsCommonClauses($statement->left)
+        if (
+            $this->containsCommonClauses($statement->left)
             || $this->getSetOpPrecedence($statement->left) < $this->getSetOpPrecedence($statement)
         ) {
             $this->indentLevel++;
@@ -550,7 +558,8 @@ class SqlBuilderWalker implements TreeWalker
 
         $parts[] = $indent . $statement->operator;
 
-        if ($this->containsCommonClauses($statement->right)
+        if (
+            $this->containsCommonClauses($statement->right)
             || $this->getSetOpPrecedence($statement->right) <= $this->getSetOpPrecedence($statement)
         ) {
             $this->indentLevel++;
@@ -708,36 +717,36 @@ class SqlBuilderWalker implements TreeWalker
     public function walkConstant(nodes\Constant $node)
     {
         switch ($node->type) {
-        case Token::TYPE_RESERVED_KEYWORD:
-        case Token::TYPE_INTEGER:
-        case Token::TYPE_FLOAT:
-            return $node->value;
+            case Token::TYPE_RESERVED_KEYWORD:
+            case Token::TYPE_INTEGER:
+            case Token::TYPE_FLOAT:
+                return $node->value;
 
-        case Token::TYPE_BINARY_STRING:
-            return "b'" . $node->value ."'";
+            case Token::TYPE_BINARY_STRING:
+                return "b'" . $node->value . "'";
 
-        case Token::TYPE_HEX_STRING:
-            return "x'" . $node->value . "'";
+            case Token::TYPE_HEX_STRING:
+                return "x'" . $node->value . "'";
 
-        case Token::TYPE_NCHAR_STRING: // don't bother with generating N'...'
-        case Token::TYPE_STRING:
-            if (false === strpos($node->value, "'") && false === strpos($node->value, '\\')) {
-                return "'" . $node->value . "'";
+            case Token::TYPE_NCHAR_STRING: // don't bother with generating N'...'
+            case Token::TYPE_STRING:
+                if (false === strpos($node->value, "'") && false === strpos($node->value, '\\')) {
+                    return "'" . $node->value . "'";
 
-            } elseif (false === strpos($node->value . '$', '$$')) {
-                return '$$' . $node->value . '$$';
+                } elseif (false === strpos($node->value . '$', '$$')) {
+                    return '$$' . $node->value . '$$';
 
-            } else {
-                $i = 1;
-                while (false !== strpos($node->value . '$', '$_' . $i . '$')) {
-                    $i++;
+                } else {
+                    $i = 1;
+                    while (false !== strpos($node->value . '$', '$_' . $i . '$')) {
+                        $i++;
+                    }
+                    return '$_' . $i . '$' . $node->value . '$_' . $i . '$';
                 }
-                return '$_' . $i . '$' . $node->value . '$_' . $i . '$';
-            }
-            break;
+                break;
 
-        default:
-            throw new exceptions\InvalidArgumentException(sprintf('Unexpected constant type %d', $node->type));
+            default:
+                throw new exceptions\InvalidArgumentException(sprintf('Unexpected constant type %d', $node->type));
         }
     }
 
@@ -814,15 +823,16 @@ class SqlBuilderWalker implements TreeWalker
     public function walkParameter(nodes\Parameter $node)
     {
         switch ($node->type) {
-        case Token::TYPE_POSITIONAL_PARAM:
-            return '$' . $node->value;
+            case Token::TYPE_POSITIONAL_PARAM:
+                return '$' . $node->value;
             break;
-        case Token::TYPE_NAMED_PARAM:
-            throw new exceptions\InvalidArgumentException(sprintf(
-                "Generated SQL should not contain named parameters, ':%s' still present", $node->value
-            ));
-        default:
-            throw new exceptions\InvalidArgumentException(sprintf('Unexpected parameter type %d', $node->type));
+            case Token::TYPE_NAMED_PARAM:
+                throw new exceptions\InvalidArgumentException(sprintf(
+                    "Generated SQL should not contain named parameters, ':%s' still present",
+                    $node->value
+                ));
+            default:
+                throw new exceptions\InvalidArgumentException(sprintf('Unexpected parameter type %d', $node->type));
         }
     }
 
@@ -949,7 +959,8 @@ class SqlBuilderWalker implements TreeWalker
     {
         return $this->implode(
             $this->getIndent() . 'with ' . ($node->recursive ? 'recursive ' : ''),
-            $this->walkGenericNodeList($node), ','
+            $this->walkGenericNodeList($node),
+            ','
         );
     }
 
@@ -1284,7 +1295,7 @@ class SqlBuilderWalker implements TreeWalker
     public function walkRangeSubselect(nodes\range\Subselect $rangeItem)
     {
         $this->indentLevel++;
-        $sql = ($rangeItem->lateral ? 'lateral (': '(') . $this->options['linebreak']
+        $sql = ($rangeItem->lateral ? 'lateral (' : '(') . $this->options['linebreak']
                . $rangeItem->query->dispatch($this);
         $this->indentLevel--;
 

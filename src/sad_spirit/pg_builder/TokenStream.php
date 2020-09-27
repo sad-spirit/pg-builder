@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -147,7 +148,8 @@ class TokenStream
     public function matchesSequence(array $sequence)
     {
         for ($i = 0; $i < count($sequence); $i++) {
-            if (!isset($this->tokens[$this->current + $i])
+            if (
+                !isset($this->tokens[$this->current + $i])
                 || !$this->tokens[$this->current + $i]->matches($sequence[$i])
             ) {
                 return false;

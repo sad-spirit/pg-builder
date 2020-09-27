@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,8 +18,8 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents an array subscript [foo] or array slice [foo:bar] operation
@@ -30,7 +31,9 @@ use sad_spirit\pg_builder\Node,
 class ArrayIndexes extends Node
 {
     public function __construct(
-        ScalarExpression $lower = null, ScalarExpression $upper = null, $isSlice = false
+        ScalarExpression $lower = null,
+        ScalarExpression $upper = null,
+        $isSlice = false
     ) {
         $this->setNamedProperty('lower', $lower);
         $this->setNamedProperty('upper', $upper);

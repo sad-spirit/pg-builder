@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,11 +18,11 @@
 
 namespace sad_spirit\pg_builder\tests\nodes;
 
-use sad_spirit\pg_builder\Lexer,
-    sad_spirit\pg_builder\Parser,
-    sad_spirit\pg_builder\nodes\ColumnReference,
-    sad_spirit\pg_builder\nodes\WhereOrHavingClause,
-    sad_spirit\pg_builder\nodes\expressions\LogicalExpression;
+use sad_spirit\pg_builder\Lexer;
+use sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\nodes\ColumnReference;
+use sad_spirit\pg_builder\nodes\WhereOrHavingClause;
+use sad_spirit\pg_builder\nodes\expressions\LogicalExpression;
 
 /**
  * Tests helper methods for WhereOrHavingClause
@@ -95,8 +96,8 @@ class WhereOrHavingClauseTest extends \PHPUnit\Framework\TestCase
         $where = new WhereOrHavingClause(new ColumnReference(['foo']));
         $where->and_(
             $where->nested(new ColumnReference(['bar']))
-                ->or_(new ColumnReference(['baz'])
-        ));
+                ->or_(new ColumnReference(['baz']))
+        );
 
         $this->assertEquals(
             new LogicalExpression(
@@ -136,8 +137,8 @@ class WhereOrHavingClauseTest extends \PHPUnit\Framework\TestCase
         $where = new WhereOrHavingClause();
         $where->and_(
             $where->nested(new ColumnReference(['foo']))
-                ->or_(new ColumnReference(['bar'])
-        ));
+                ->or_(new ColumnReference(['bar']))
+        );
         $where->and_(new ColumnReference(['baz']));
 
         $this->assertEquals(

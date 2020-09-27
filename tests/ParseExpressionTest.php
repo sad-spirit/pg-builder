@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,37 +18,37 @@
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\nodes\ColumnReference,
-    sad_spirit\pg_builder\nodes\Constant,
-    sad_spirit\pg_builder\nodes\lists\ExpressionList,
-    sad_spirit\pg_builder\nodes\lists\FunctionArgumentList,
-    sad_spirit\pg_builder\nodes\lists\TypeList,
-    sad_spirit\pg_builder\nodes\lists\TargetList,
-    sad_spirit\pg_builder\Parser,
-    sad_spirit\pg_builder\Lexer,
-    sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_builder\nodes\Indirection,
-    sad_spirit\pg_builder\nodes\Parameter,
-    sad_spirit\pg_builder\nodes\expressions\RowExpression,
-    sad_spirit\pg_builder\Select,
-    sad_spirit\pg_builder\nodes\ArrayIndexes,
-    sad_spirit\pg_builder\nodes\expressions\ArrayExpression,
-    sad_spirit\pg_builder\nodes\expressions\InExpression,
-    sad_spirit\pg_builder\nodes\expressions\IsOfExpression,
-    sad_spirit\pg_builder\nodes\expressions\LogicalExpression,
-    sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
-    sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression,
-    sad_spirit\pg_builder\nodes\expressions\BetweenExpression,
-    sad_spirit\pg_builder\nodes\expressions\CaseExpression,
-    sad_spirit\pg_builder\nodes\expressions\CollateExpression,
-    sad_spirit\pg_builder\nodes\expressions\FunctionExpression,
-    sad_spirit\pg_builder\nodes\expressions\SubselectExpression,
-    sad_spirit\pg_builder\nodes\expressions\TypecastExpression,
-    sad_spirit\pg_builder\nodes\expressions\WhenExpression,
-    sad_spirit\pg_builder\nodes\TypeName,
-    sad_spirit\pg_builder\nodes\TargetElement,
-    sad_spirit\pg_builder\nodes\QualifiedName,
-    sad_spirit\pg_builder\nodes\range\RelationReference;
+use sad_spirit\pg_builder\nodes\ColumnReference;
+use sad_spirit\pg_builder\nodes\Constant;
+use sad_spirit\pg_builder\nodes\lists\ExpressionList;
+use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
+use sad_spirit\pg_builder\nodes\lists\TypeList;
+use sad_spirit\pg_builder\nodes\lists\TargetList;
+use sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\Lexer;
+use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\nodes\Indirection;
+use sad_spirit\pg_builder\nodes\Parameter;
+use sad_spirit\pg_builder\nodes\expressions\RowExpression;
+use sad_spirit\pg_builder\Select;
+use sad_spirit\pg_builder\nodes\ArrayIndexes;
+use sad_spirit\pg_builder\nodes\expressions\ArrayExpression;
+use sad_spirit\pg_builder\nodes\expressions\InExpression;
+use sad_spirit\pg_builder\nodes\expressions\IsOfExpression;
+use sad_spirit\pg_builder\nodes\expressions\LogicalExpression;
+use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
+use sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression;
+use sad_spirit\pg_builder\nodes\expressions\BetweenExpression;
+use sad_spirit\pg_builder\nodes\expressions\CaseExpression;
+use sad_spirit\pg_builder\nodes\expressions\CollateExpression;
+use sad_spirit\pg_builder\nodes\expressions\FunctionExpression;
+use sad_spirit\pg_builder\nodes\expressions\SubselectExpression;
+use sad_spirit\pg_builder\nodes\expressions\TypecastExpression;
+use sad_spirit\pg_builder\nodes\expressions\WhenExpression;
+use sad_spirit\pg_builder\nodes\TypeName;
+use sad_spirit\pg_builder\nodes\TargetElement;
+use sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\nodes\range\RelationReference;
 use sad_spirit\pg_builder\nodes\expressions\GroupingExpression;
 
 /**
@@ -170,7 +171,9 @@ QRY
                     new LogicalExpression(
                         [
                             new OperatorExpression('not', null, new OperatorExpression(
-                                'not', null, new ColumnReference([new Identifier('c')])
+                                'not',
+                                null,
+                                new ColumnReference([new Identifier('c')])
                             )),
                             new ColumnReference([new Identifier('d')])
                         ]
@@ -323,13 +326,18 @@ QRY
         $this->assertEquals(
             new ExpressionList([
                 new OperatorExpression(
-                    '<', new ColumnReference(['foo']), new SubselectExpression($foo, 'any')
+                    '<',
+                    new ColumnReference(['foo']),
+                    new SubselectExpression($foo, 'any')
                 ),
                 new PatternMatchingExpression(
-                    new ColumnReference(['bar']), new SubselectExpression($bar, 'all'), 'like'
+                    new ColumnReference(['bar']),
+                    new SubselectExpression($bar, 'all'),
+                    'like'
                 ),
                 new OperatorExpression(
-                    '=', new ColumnReference(['baz']),
+                    '=',
+                    new ColumnReference(['baz']),
                     new FunctionExpression('some', new FunctionArgumentList([
                         new ArrayExpression([new ColumnReference(['one']), new ColumnReference(['two'])])
                     ]))
@@ -485,7 +493,6 @@ QRY
                                 new Constant(3)
                             )
                         )
-
                     ),
                     new OperatorExpression(
                         '/',
@@ -527,8 +534,7 @@ QRY
                         )
                     ],
                     new Constant(1)
-                )]
-            ),
+                )]),
             $list
         );
     }

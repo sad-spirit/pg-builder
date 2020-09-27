@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,8 +18,8 @@
 
 namespace sad_spirit\pg_builder\nodes\lists;
 
-use sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * List of identifiers, may appear in alias for FROM element
@@ -35,7 +36,8 @@ class IdentifierList extends NonAssociativeList
         if (!($value instanceof Identifier)) {
             throw new InvalidArgumentException(sprintf(
                 '%s can contain only instances of Identifier, %s given',
-                __CLASS__, is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
+                __CLASS__,
+                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
             ));
         }
     }

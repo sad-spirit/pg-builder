@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,9 +18,9 @@
 
 namespace sad_spirit\pg_builder\nodes\lists;
 
-use sad_spirit\pg_builder\ElementParseable,
-    sad_spirit\pg_builder\NodeList,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\ElementParseable;
+use sad_spirit\pg_builder\NodeList;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * Only allows numeric indexes in arrays

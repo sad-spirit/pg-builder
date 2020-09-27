@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,17 +18,17 @@
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\Lexer,
-    sad_spirit\pg_builder\Parser,
-    sad_spirit\pg_builder\nodes\ColumnReference,
-    sad_spirit\pg_builder\nodes\Constant,
-    sad_spirit\pg_builder\nodes\lists\ExpressionList,
-    sad_spirit\pg_builder\nodes\lists\TypeModifierList,
-    sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_builder\nodes\TypeName,
-    sad_spirit\pg_builder\nodes\IntervalTypeName,
-    sad_spirit\pg_builder\nodes\expressions\TypecastExpression,
-    sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\Lexer;
+use sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\nodes\ColumnReference;
+use sad_spirit\pg_builder\nodes\Constant;
+use sad_spirit\pg_builder\nodes\lists\ExpressionList;
+use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
+use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\nodes\TypeName;
+use sad_spirit\pg_builder\nodes\IntervalTypeName;
+use sad_spirit\pg_builder\nodes\expressions\TypecastExpression;
+use sad_spirit\pg_builder\nodes\QualifiedName;
 
 /**
  * Tests parsing all possible types of typecast expressions

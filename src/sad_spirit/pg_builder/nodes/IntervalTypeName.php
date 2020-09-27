@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,9 +18,8 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\nodes\lists\TypeModifierList,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-
+use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * Represents a type name for INTERVAL type

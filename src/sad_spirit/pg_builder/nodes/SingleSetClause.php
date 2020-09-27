@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,9 +18,9 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents a single "column_name = expression" clause of UPDATE statement
@@ -40,7 +41,8 @@ class SingleSetClause extends Node
         if (!($value instanceof ScalarExpression) && !($value instanceof SetToDefault)) {
             throw new InvalidArgumentException(sprintf(
                 '%s expects either a ScalarExpression or SetToDefault instance as value, %s given',
-                __CLASS__, is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
+                __CLASS__,
+                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
             ));
         }
         $this->setNamedProperty('value', $value);

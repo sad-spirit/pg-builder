@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,11 +18,11 @@
 
 namespace sad_spirit\pg_builder\nodes\lists;
 
-use sad_spirit\pg_builder\nodes\OrderByElement,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\Parseable,
-    sad_spirit\pg_builder\ElementParseable,
-    sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\nodes\OrderByElement;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\Parseable;
+use sad_spirit\pg_builder\ElementParseable;
+use sad_spirit\pg_builder\Parser;
 
 /**
  * List of elements appearing in ORDER BY clause
@@ -35,7 +36,8 @@ class OrderByList extends NonAssociativeList implements Parseable, ElementParsea
         if (!($value instanceof OrderByElement)) {
             throw new InvalidArgumentException(sprintf(
                 '%s can contain only instances of OrderByElement, %s given',
-                __CLASS__, is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
+                __CLASS__,
+                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
             ));
         }
     }

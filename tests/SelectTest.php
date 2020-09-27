@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,11 +18,11 @@
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\Lexer,
-    sad_spirit\pg_builder\Parser,
-    sad_spirit\pg_builder\SetOpSelect,
-    sad_spirit\pg_builder\Select,
-    sad_spirit\pg_builder\SqlBuilderWalker;
+use sad_spirit\pg_builder\Lexer;
+use sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\SetOpSelect;
+use sad_spirit\pg_builder\Select;
+use sad_spirit\pg_builder\SqlBuilderWalker;
 
 /**
  * Tests helper methods of Select node

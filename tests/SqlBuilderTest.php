@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,11 +18,11 @@
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\Parser,
-    sad_spirit\pg_builder\Lexer,
-    sad_spirit\pg_builder\SqlBuilderWalker,
-    sad_spirit\pg_builder\nodes\Constant,
-    sad_spirit\pg_builder\nodes\lists\ExpressionList;
+use sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\Lexer;
+use sad_spirit\pg_builder\SqlBuilderWalker;
+use sad_spirit\pg_builder\nodes\Constant;
+use sad_spirit\pg_builder\nodes\lists\ExpressionList;
 
 /**
  * Tests building SQL from ASTs
@@ -70,7 +71,8 @@ QRY
         );
         $built = $parsed->dispatch($this->builder);
         $this->assertEquals(
-            $parsed, $this->parser->parseStatement($built),
+            $parsed,
+            $this->parser->parseStatement($built),
             'AST of the built statement should be equal to that of the original statement'
         );
     }
@@ -100,7 +102,8 @@ QRY
         );
         $built = $parsed->dispatch($this->builder);
         $this->assertEquals(
-            $parsed, $this->parser->parseStatement($built),
+            $parsed,
+            $this->parser->parseStatement($built),
             'AST of the built statement should be equal to that of the original statement'
         );
     }
@@ -172,7 +175,8 @@ QRY
 
         $built = $parsed->dispatch($this->builder);
         $this->assertEquals(
-            $parsed, $this->parser->parseStatement($built),
+            $parsed,
+            $this->parser->parseStatement($built),
             'AST of the built statement should be equal to that of the original statement'
         );
     }
@@ -193,7 +197,8 @@ QRY
         );
         $built = $parsed->dispatch($this->builder);
         $this->assertEquals(
-            $parsed, $this->parser->parseStatement($built),
+            $parsed,
+            $this->parser->parseStatement($built),
             'AST of the built statement should be equal to that of the original statement'
         );
     }

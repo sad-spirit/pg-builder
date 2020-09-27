@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,12 +18,12 @@
 
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\nodes\FunctionCall as BaseFunctionCall,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_builder\nodes\lists\IdentifierList,
-    sad_spirit\pg_builder\nodes\lists\ColumnDefinitionList,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\nodes\FunctionCall as BaseFunctionCall;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\nodes\lists\IdentifierList;
+use sad_spirit\pg_builder\nodes\lists\ColumnDefinitionList;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing a function call in FROM clause
@@ -63,7 +64,8 @@ class FunctionCall extends FromElement
         } else {
             throw new InvalidArgumentException(sprintf(
                 '%s expects an instance of either IdentifierList or ColumnDefinitionList, %s given',
-                __METHOD__, is_object($columnAliases) ? 'object(' . get_class($columnAliases) . ')' : gettype($columnAliases)
+                __METHOD__,
+                is_object($columnAliases) ? 'object(' . get_class($columnAliases) . ')' : gettype($columnAliases)
             ));
         }
     }

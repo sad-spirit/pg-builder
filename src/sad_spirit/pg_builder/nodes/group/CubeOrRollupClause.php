@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,9 +18,9 @@
 
 namespace sad_spirit\pg_builder\nodes\group;
 
-use sad_spirit\pg_builder\nodes\lists\ExpressionList,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\nodes\lists\ExpressionList;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing CUBE(...) and ROLLUP(...) constructs in GROUP BY clause

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,10 +18,10 @@
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_wrapper\Connection,
-    sad_spirit\pg_builder\NativeStatement,
-    sad_spirit\pg_builder\StatementFactory,
-    sad_spirit\pg_builder\converters\ParserAwareTypeConverterFactory;
+use sad_spirit\pg_wrapper\Connection;
+use sad_spirit\pg_builder\NativeStatement;
+use sad_spirit\pg_builder\StatementFactory;
+use sad_spirit\pg_builder\converters\ParserAwareTypeConverterFactory;
 
 class NativeStatementTest extends \PHPUnit\Framework\TestCase
 {
@@ -82,7 +83,9 @@ class NativeStatementTest extends \PHPUnit\Framework\TestCase
             'select typname from pg_catalog.pg_type where oid = any(:oid) order by typname'
         ));
         $result = $native->executeParams(
-            $this->connection, ['oid' => [21, 23]], ['oid' => 'int4[]']
+            $this->connection,
+            ['oid' => [21, 23]],
+            ['oid' => 'int4[]']
         );
         $this->assertEquals('int2', $result[0]['typname']);
     }

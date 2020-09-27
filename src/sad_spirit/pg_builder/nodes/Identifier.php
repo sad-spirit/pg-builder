@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,10 +18,10 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\Token,
-    sad_spirit\pg_builder\TreeWalker,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\Token;
+use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * Represents an identifier (e.g. column name or field name)
@@ -32,12 +33,14 @@ class Identifier extends Node
     public function __construct($tokenOrValue)
     {
         if ($tokenOrValue instanceof Token) {
-            if (Token::TYPE_IDENTIFIER !== $tokenOrValue->getType()
+            if (
+                Token::TYPE_IDENTIFIER !== $tokenOrValue->getType()
                 && 0 === (Token::TYPE_KEYWORD & $tokenOrValue->getType())
             ) {
                 throw new InvalidArgumentException(sprintf(
                     '%s requires an identifier or keyword token, %s given',
-                    __CLASS__, Token::typeToString($tokenOrValue->getType())
+                    __CLASS__,
+                    Token::typeToString($tokenOrValue->getType())
                 ));
             }
             $this->props['value'] = $tokenOrValue->getValue();

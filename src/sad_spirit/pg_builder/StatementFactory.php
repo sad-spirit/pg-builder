@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,8 +18,8 @@
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_wrapper\Connection,
-    sad_spirit\pg_wrapper\exceptions\InvalidQueryException;
+use sad_spirit\pg_wrapper\Connection;
+use sad_spirit\pg_wrapper\exceptions\InvalidQueryException;
 
 /**
  * Helper class for creating statements and passing Parser object to them
@@ -149,7 +150,9 @@ class StatementFactory
         $ast->dispatch($pw);
 
         return new NativeStatement(
-            $ast->dispatch($this->getBuilder()), $pw->getParameterTypes(), $pw->getNamedParameterMap()
+            $ast->dispatch($this->getBuilder()),
+            $pw->getParameterTypes(),
+            $pw->getNamedParameterMap()
         );
     }
 

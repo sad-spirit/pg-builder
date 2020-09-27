@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,62 +18,62 @@
 
 namespace sad_spirit\pg_builder\tests\nodes;
 
-use sad_spirit\pg_builder\Delete,
-    sad_spirit\pg_builder\Insert,
-    sad_spirit\pg_builder\Select,
-    sad_spirit\pg_builder\SetOpSelect,
-    sad_spirit\pg_builder\Update,
-    sad_spirit\pg_builder\Values,
-    sad_spirit\pg_builder\nodes\ArrayIndexes,
-    sad_spirit\pg_builder\nodes\ColumnReference,
-    sad_spirit\pg_builder\nodes\CommonTableExpression,
-    sad_spirit\pg_builder\nodes\Constant,
-    sad_spirit\pg_builder\nodes\FunctionCall,
-    sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_builder\nodes\Indirection,
-    sad_spirit\pg_builder\nodes\IntervalTypeName,
-    sad_spirit\pg_builder\nodes\OrderByElement,
-    sad_spirit\pg_builder\nodes\Parameter,
-    sad_spirit\pg_builder\nodes\QualifiedName,
-    sad_spirit\pg_builder\nodes\SetTargetElement,
-    sad_spirit\pg_builder\nodes\SingleSetClause,
-    sad_spirit\pg_builder\nodes\TargetElement,
-    sad_spirit\pg_builder\nodes\TypeName,
-    sad_spirit\pg_builder\nodes\WindowDefinition,
-    sad_spirit\pg_builder\nodes\WindowFrameBound,
-    sad_spirit\pg_builder\nodes\WithClause,
-    sad_spirit\pg_builder\nodes\expressions\BetweenExpression,
-    sad_spirit\pg_builder\nodes\expressions\CaseExpression,
-    sad_spirit\pg_builder\nodes\expressions\CollateExpression,
-    sad_spirit\pg_builder\nodes\expressions\InExpression,
-    sad_spirit\pg_builder\nodes\expressions\IsOfExpression,
-    sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
-    sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression,
-    sad_spirit\pg_builder\nodes\expressions\SubselectExpression,
-    sad_spirit\pg_builder\nodes\expressions\TypecastExpression,
-    sad_spirit\pg_builder\nodes\expressions\WhenExpression,
-    sad_spirit\pg_builder\nodes\lists\ColumnDefinitionList,
-    sad_spirit\pg_builder\nodes\lists\RowList,
-    sad_spirit\pg_builder\nodes\lists\ExpressionList,
-    sad_spirit\pg_builder\nodes\lists\FunctionArgumentList,
-    sad_spirit\pg_builder\nodes\lists\IdentifierList,
-    sad_spirit\pg_builder\nodes\lists\OrderByList,
-    sad_spirit\pg_builder\nodes\lists\SetClauseList,
-    sad_spirit\pg_builder\nodes\lists\TargetList,
-    sad_spirit\pg_builder\nodes\lists\TypeList,
-    sad_spirit\pg_builder\nodes\lists\TypeModifierList,
-    sad_spirit\pg_builder\nodes\range\ColumnDefinition,
-    sad_spirit\pg_builder\nodes\range\FunctionCall as RangeFunctionCall,
-    sad_spirit\pg_builder\nodes\range\InsertTarget,
-    sad_spirit\pg_builder\nodes\range\JoinExpression,
-    sad_spirit\pg_builder\nodes\range\RelationReference,
-    sad_spirit\pg_builder\nodes\range\Subselect,
-    sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget,
-    sad_spirit\pg_builder\nodes\xml\XmlElement,
-    sad_spirit\pg_builder\nodes\xml\XmlParse,
-    sad_spirit\pg_builder\nodes\xml\XmlPi,
-    sad_spirit\pg_builder\nodes\xml\XmlRoot,
-    sad_spirit\pg_builder\nodes\xml\XmlSerialize;
+use sad_spirit\pg_builder\Delete;
+use sad_spirit\pg_builder\Insert;
+use sad_spirit\pg_builder\Select;
+use sad_spirit\pg_builder\SetOpSelect;
+use sad_spirit\pg_builder\Update;
+use sad_spirit\pg_builder\Values;
+use sad_spirit\pg_builder\nodes\ArrayIndexes;
+use sad_spirit\pg_builder\nodes\ColumnReference;
+use sad_spirit\pg_builder\nodes\CommonTableExpression;
+use sad_spirit\pg_builder\nodes\Constant;
+use sad_spirit\pg_builder\nodes\FunctionCall;
+use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\nodes\Indirection;
+use sad_spirit\pg_builder\nodes\IntervalTypeName;
+use sad_spirit\pg_builder\nodes\OrderByElement;
+use sad_spirit\pg_builder\nodes\Parameter;
+use sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\nodes\SetTargetElement;
+use sad_spirit\pg_builder\nodes\SingleSetClause;
+use sad_spirit\pg_builder\nodes\TargetElement;
+use sad_spirit\pg_builder\nodes\TypeName;
+use sad_spirit\pg_builder\nodes\WindowDefinition;
+use sad_spirit\pg_builder\nodes\WindowFrameBound;
+use sad_spirit\pg_builder\nodes\WithClause;
+use sad_spirit\pg_builder\nodes\expressions\BetweenExpression;
+use sad_spirit\pg_builder\nodes\expressions\CaseExpression;
+use sad_spirit\pg_builder\nodes\expressions\CollateExpression;
+use sad_spirit\pg_builder\nodes\expressions\InExpression;
+use sad_spirit\pg_builder\nodes\expressions\IsOfExpression;
+use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
+use sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression;
+use sad_spirit\pg_builder\nodes\expressions\SubselectExpression;
+use sad_spirit\pg_builder\nodes\expressions\TypecastExpression;
+use sad_spirit\pg_builder\nodes\expressions\WhenExpression;
+use sad_spirit\pg_builder\nodes\lists\ColumnDefinitionList;
+use sad_spirit\pg_builder\nodes\lists\RowList;
+use sad_spirit\pg_builder\nodes\lists\ExpressionList;
+use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
+use sad_spirit\pg_builder\nodes\lists\IdentifierList;
+use sad_spirit\pg_builder\nodes\lists\OrderByList;
+use sad_spirit\pg_builder\nodes\lists\SetClauseList;
+use sad_spirit\pg_builder\nodes\lists\TargetList;
+use sad_spirit\pg_builder\nodes\lists\TypeList;
+use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
+use sad_spirit\pg_builder\nodes\range\ColumnDefinition;
+use sad_spirit\pg_builder\nodes\range\FunctionCall as RangeFunctionCall;
+use sad_spirit\pg_builder\nodes\range\InsertTarget;
+use sad_spirit\pg_builder\nodes\range\JoinExpression;
+use sad_spirit\pg_builder\nodes\range\RelationReference;
+use sad_spirit\pg_builder\nodes\range\Subselect;
+use sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
+use sad_spirit\pg_builder\nodes\xml\XmlElement;
+use sad_spirit\pg_builder\nodes\xml\XmlParse;
+use sad_spirit\pg_builder\nodes\xml\XmlPi;
+use sad_spirit\pg_builder\nodes\xml\XmlRoot;
+use sad_spirit\pg_builder\nodes\xml\XmlSerialize;
 use sad_spirit\pg_builder\nodes\WindowFrameClause;
 
 /**
@@ -86,7 +87,9 @@ class SetParentNodeTest extends \PHPUnit\Framework\TestCase
         $this->expectExceptionMessage('Cannot set a Node or its descendant as its own parent');
         $select = new Select(new TargetList([new TargetElement(new Constant('foo'))]));
         $select->where->setCondition(new OperatorExpression(
-            '=', new ColumnReference(['foo']), new SubselectExpression($select, 'any')
+            '=',
+            new ColumnReference(['foo']),
+            new SubselectExpression($select, 'any')
         ));
     }
 
@@ -308,7 +311,8 @@ class SetParentNodeTest extends \PHPUnit\Framework\TestCase
         $this->assertNull($constant10->getParentNode());
 
         $window = new WindowDefinition(
-            new Identifier('reference'), new ExpressionList([new ColumnReference(['foo'])]),
+            new Identifier('reference'),
+            new ExpressionList([new ColumnReference(['foo'])]),
             new OrderByList([new OrderByElement(new ColumnReference(['bar']))]),
             $frame = new WindowFrameClause('rows', $start, $end)
         );
@@ -385,7 +389,9 @@ class SetParentNodeTest extends \PHPUnit\Framework\TestCase
     public function testOperatorExpression()
     {
         $operator = new OperatorExpression(
-            '=', new ColumnReference(['foo']), new Constant('foo')
+            '=',
+            new ColumnReference(['foo']),
+            new Constant('foo')
         );
 
         $this->assertSame($operator, $operator->left->getParentNode());
@@ -395,7 +401,10 @@ class SetParentNodeTest extends \PHPUnit\Framework\TestCase
     public function testPatternMatchingExpression()
     {
         $pattern = new PatternMatchingExpression(
-            new ColumnReference(['foo']), new Constant('blah%'), 'like', new Constant('!')
+            new ColumnReference(['foo']),
+            new Constant('blah%'),
+            'like',
+            new Constant('!')
         );
 
         $this->assertSame($pattern, $pattern->argument->getParentNode());
@@ -415,7 +424,8 @@ class SetParentNodeTest extends \PHPUnit\Framework\TestCase
     public function testTypecastExpression()
     {
         $typecast = new TypecastExpression(
-            new ColumnReference(['foo']), new TypeName(new QualifiedName(['bar', 'baz']))
+            new ColumnReference(['foo']),
+            new TypeName(new QualifiedName(['bar', 'baz']))
         );
 
         $this->assertSame($typecast, $typecast->argument->getParentNode());

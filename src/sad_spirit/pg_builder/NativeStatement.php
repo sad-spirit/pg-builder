@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,10 +18,10 @@
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_wrapper\Connection,
-    sad_spirit\pg_wrapper\PreparedStatement,
-    sad_spirit\pg_wrapper\ResultSet,
-    sad_spirit\pg_wrapper\exceptions\InvalidQueryException;
+use sad_spirit\pg_wrapper\Connection;
+use sad_spirit\pg_wrapper\PreparedStatement;
+use sad_spirit\pg_wrapper\ResultSet;
+use sad_spirit\pg_wrapper\exceptions\InvalidQueryException;
 
 /**
  * Wraps the results of query building process, can be serialized and stored in cache
@@ -165,15 +166,24 @@ class NativeStatement
      * @throws exceptions\InvalidArgumentException
      */
     public function executeParams(
-        Connection $connection, array $params, array $inputTypes = [], array $outputTypes = []
+        Connection $connection,
+        array $params,
+        array $inputTypes = [],
+        array $outputTypes = []
     ) {
         if (empty($this->_namedParameterMap)) {
             return $connection->executeParams(
-                $this->_sql, $params, $this->mergeInputTypes($inputTypes), $outputTypes
+                $this->_sql,
+                $params,
+                $this->mergeInputTypes($inputTypes),
+                $outputTypes
             );
         } else {
             return $connection->executeParams(
-                $this->_sql, $this->mapNamedParameters($params), $this->mergeInputTypes($inputTypes), $outputTypes
+                $this->_sql,
+                $this->mapNamedParameters($params),
+                $this->mergeInputTypes($inputTypes),
+                $outputTypes
             );
         }
     }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,10 +18,10 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\Token,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\Token;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents a constant (a literal value)
@@ -33,12 +34,14 @@ class Constant extends Node implements ScalarExpression
     public function __construct($tokenOrConstant)
     {
         if ($tokenOrConstant instanceof Token) {
-            if (0 === (Token::TYPE_LITERAL & $tokenOrConstant->getType())
+            if (
+                0 === (Token::TYPE_LITERAL & $tokenOrConstant->getType())
                 && !$tokenOrConstant->matches(Token::TYPE_KEYWORD, ['null', 'false', 'true'])
             ) {
                 throw new InvalidArgumentException(sprintf(
                     '%s requires a literal token, %s given',
-                    __CLASS__, Token::typeToString($tokenOrConstant->getType())
+                    __CLASS__,
+                    Token::typeToString($tokenOrConstant->getType())
                 ));
             }
             $this->props['type']  = $tokenOrConstant->getType();
@@ -51,7 +54,8 @@ class Constant extends Node implements ScalarExpression
         } elseif (!is_scalar($tokenOrConstant)) {
             throw new InvalidArgumentException(sprintf(
                 '%s requires a Token instance or a scalar value, %s given',
-                __CLASS__, is_object($tokenOrConstant) ? 'object(' . get_class($tokenOrConstant) . ')'
+                __CLASS__,
+                is_object($tokenOrConstant) ? 'object(' . get_class($tokenOrConstant) . ')'
                            : gettype($tokenOrConstant)
             ));
 

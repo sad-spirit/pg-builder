@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,13 +18,13 @@
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\nodes\lists\ExpressionList,
-    sad_spirit\pg_builder\nodes\lists\FromList,
-    sad_spirit\pg_builder\nodes\lists\GroupByList,
-    sad_spirit\pg_builder\nodes\lists\TargetList,
-    sad_spirit\pg_builder\nodes\lists\WindowList,
-    sad_spirit\pg_builder\nodes\WhereOrHavingClause;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\nodes\lists\ExpressionList;
+use sad_spirit\pg_builder\nodes\lists\FromList;
+use sad_spirit\pg_builder\nodes\lists\GroupByList;
+use sad_spirit\pg_builder\nodes\lists\TargetList;
+use sad_spirit\pg_builder\nodes\lists\WindowList;
+use sad_spirit\pg_builder\nodes\WhereOrHavingClause;
 
 /**
  * Represents a (simple) SELECT statement
@@ -69,7 +70,8 @@ class Select extends SelectCommon
         if (!is_null($distinct) && !is_bool($distinct) && !($distinct instanceof ExpressionList)) {
             throw new InvalidArgumentException(sprintf(
                 '%s expects either a boolean or an instance of ExpressionList, %s given',
-                __METHOD__, is_object($distinct) ? 'object(' . get_class($distinct) . ')' : gettype($distinct)
+                __METHOD__,
+                is_object($distinct) ? 'object(' . get_class($distinct) . ')' : gettype($distinct)
             ));
         }
         $this->setNamedProperty('distinct', !$distinct ? null : $distinct);

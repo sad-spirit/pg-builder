@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,19 +18,19 @@
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\converters\ParserAwareTypeConverterFactory,
-    sad_spirit\pg_builder\Lexer,
-    sad_spirit\pg_builder\Parser,
-    sad_spirit\pg_builder\nodes\QualifiedName,
-    sad_spirit\pg_builder\nodes\TypeName,
-    sad_spirit\pg_wrapper\Connection,
-    sad_spirit\pg_wrapper\TypeConverter,
-    sad_spirit\pg_wrapper\converters\containers\ArrayConverter,
-    sad_spirit\pg_wrapper\converters\datetime\IntervalConverter,
-    sad_spirit\pg_wrapper\converters\datetime\TimeStampTzConverter,
-    sad_spirit\pg_wrapper\converters\IntegerConverter,
-    sad_spirit\pg_wrapper\converters\NumericConverter,
-    sad_spirit\pg_wrapper\converters\StringConverter;
+use sad_spirit\pg_builder\converters\ParserAwareTypeConverterFactory;
+use sad_spirit\pg_builder\Lexer;
+use sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\nodes\TypeName;
+use sad_spirit\pg_wrapper\Connection;
+use sad_spirit\pg_wrapper\TypeConverter;
+use sad_spirit\pg_wrapper\converters\containers\ArrayConverter;
+use sad_spirit\pg_wrapper\converters\datetime\IntervalConverter;
+use sad_spirit\pg_wrapper\converters\datetime\TimeStampTzConverter;
+use sad_spirit\pg_wrapper\converters\IntegerConverter;
+use sad_spirit\pg_wrapper\converters\NumericConverter;
+use sad_spirit\pg_wrapper\converters\StringConverter;
 
 /**
  * Tests functionality added by ParserAwareTypeConverterFactory

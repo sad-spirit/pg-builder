@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,11 +18,11 @@
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_builder\nodes\lists\TargetList,
-    sad_spirit\pg_builder\nodes\lists\SetTargetList,
-    sad_spirit\pg_builder\nodes\range\InsertTarget,
-    sad_spirit\pg_builder\nodes\OnConflictClause,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\nodes\lists\TargetList;
+use sad_spirit\pg_builder\nodes\lists\SetTargetList;
+use sad_spirit\pg_builder\nodes\range\InsertTarget;
+use sad_spirit\pg_builder\nodes\OnConflictClause;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * AST node representing INSERT statement
@@ -66,7 +67,8 @@ class Insert extends Statement
         if (null !== $onConflict && !($onConflict instanceof OnConflictClause)) {
             throw new InvalidArgumentException(sprintf(
                 '%s expects an instance of OnConflictClause, %s given',
-                __METHOD__, is_object($onConflict) ? 'object(' . get_class($onConflict) . ')' : gettype($onConflict)
+                __METHOD__,
+                is_object($onConflict) ? 'object(' . get_class($onConflict) . ')' : gettype($onConflict)
             ));
         }
         $this->setNamedProperty('onConflict', $onConflict);

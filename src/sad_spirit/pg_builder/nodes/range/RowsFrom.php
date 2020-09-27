@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,8 +18,8 @@
 
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\nodes\lists\RowsFromList,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\nodes\lists\RowsFromList;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents a ROWS FROM() construct in FROM clause (PostgreSQL 9.4+)

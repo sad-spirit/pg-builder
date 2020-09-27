@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,11 +18,11 @@
 
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_builder\nodes\QualifiedName,
-    sad_spirit\pg_builder\nodes\lists\IdentifierList;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\nodes\lists\IdentifierList;
 
 /**
  * Base class for alias-able items in FROM clause
@@ -41,7 +42,8 @@ abstract class FromElement extends Node
         if (null !== $columnAliases && !($columnAliases instanceof IdentifierList)) {
             throw new InvalidArgumentException(sprintf(
                 '%s expects an instance of IdentifierList for $columnAliases, %s given',
-                __METHOD__, is_object($columnAliases) ? 'object(' . get_class($columnAliases) . ')' : gettype($columnAliases)
+                __METHOD__,
+                is_object($columnAliases) ? 'object(' . get_class($columnAliases) . ')' : gettype($columnAliases)
             ));
         }
         $this->setNamedProperty('tableAlias', $tableAlias);
@@ -67,7 +69,8 @@ abstract class FromElement extends Node
         if (!($fromElement instanceof self)) {
             throw new InvalidArgumentException(sprintf(
                 '%s requires an SQL string or an instance of FromElement, %s given',
-                __METHOD__, is_object($fromElement) ? 'object(' . get_class($fromElement) . ')' : gettype($fromElement)
+                __METHOD__,
+                is_object($fromElement) ? 'object(' . get_class($fromElement) . ')' : gettype($fromElement)
             ));
         }
         if (!$this->getParentNode()) {
@@ -78,7 +81,8 @@ abstract class FromElement extends Node
             // control reaches replaceChild() $this will not be a child of parentNode anymore.
             $dummy = new RelationReference(new QualifiedName(['dummy']));
             $join  = $this->getParentNode()->replaceChild(
-                $this, new JoinExpression($dummy, $fromElement, strtolower($joinType))
+                $this,
+                new JoinExpression($dummy, $fromElement, strtolower($joinType))
             );
             $join->replaceChild($dummy, $this);
 

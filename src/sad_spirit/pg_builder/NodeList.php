@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -183,7 +184,8 @@ abstract class NodeList extends Node implements \ArrayAccess, \Countable, \Itera
         if (!is_array($array) && !($array instanceof \Traversable)) {
             throw new exceptions\InvalidArgumentException(sprintf(
                 "%s requires either an array or an instance of Traversable, %s given",
-                $method, is_object($array) ? 'object(' . get_class($array) . ')' : gettype($array)
+                $method,
+                is_object($array) ? 'object(' . get_class($array) . ')' : gettype($array)
             ));
         }
     }

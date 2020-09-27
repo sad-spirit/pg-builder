@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,26 +18,26 @@
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_wrapper\Connection,
-    sad_spirit\pg_builder\Lexer,
-    sad_spirit\pg_builder\Parser,
-    sad_spirit\pg_builder\StatementFactory,
-    sad_spirit\pg_builder\nodes\ColumnReference,
-    sad_spirit\pg_builder\nodes\Constant,
-    sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_builder\nodes\QualifiedName,
-    sad_spirit\pg_builder\nodes\SetTargetElement,
-    sad_spirit\pg_builder\nodes\SetToDefault,
-    sad_spirit\pg_builder\nodes\SingleSetClause,
-    sad_spirit\pg_builder\nodes\TargetElement,
-    sad_spirit\pg_builder\nodes\lists\RowList,
-    sad_spirit\pg_builder\nodes\lists\FromList,
-    sad_spirit\pg_builder\nodes\lists\SetClauseList,
-    sad_spirit\pg_builder\nodes\lists\TargetList,
-    sad_spirit\pg_builder\nodes\range\InsertTarget,
-    sad_spirit\pg_builder\nodes\range\RelationReference,
-    sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget,
-    Psr\Cache\CacheItemPoolInterface;
+use sad_spirit\pg_wrapper\Connection;
+use sad_spirit\pg_builder\Lexer;
+use sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\StatementFactory;
+use sad_spirit\pg_builder\nodes\ColumnReference;
+use sad_spirit\pg_builder\nodes\Constant;
+use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\nodes\SetTargetElement;
+use sad_spirit\pg_builder\nodes\SetToDefault;
+use sad_spirit\pg_builder\nodes\SingleSetClause;
+use sad_spirit\pg_builder\nodes\TargetElement;
+use sad_spirit\pg_builder\nodes\lists\RowList;
+use sad_spirit\pg_builder\nodes\lists\FromList;
+use sad_spirit\pg_builder\nodes\lists\SetClauseList;
+use sad_spirit\pg_builder\nodes\lists\TargetList;
+use sad_spirit\pg_builder\nodes\range\InsertTarget;
+use sad_spirit\pg_builder\nodes\range\RelationReference;
+use sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Unit test for StatementFactory class
@@ -82,7 +83,9 @@ class StatementFactoryTest extends \PHPUnit\Framework\TestCase
 
         $delete   = $factory->delete('only foo as bar');
         $relation = new UpdateOrDeleteTarget(
-            new QualifiedName(['foo']), new Identifier('bar'),false
+            new QualifiedName(['foo']),
+            new Identifier('bar'),
+            false
         );
         $this->assertEquals($relation, clone $delete->relation);
         $this->assertSame($factory->getParser(), $delete->getParser());
@@ -143,7 +146,8 @@ class StatementFactoryTest extends \PHPUnit\Framework\TestCase
 
         $update   = $factory->update('someschema.foo as bar', 'blah = default, blahblah = 42');
         $relation = new UpdateOrDeleteTarget(
-            new QualifiedName(['someschema', 'foo']), new Identifier('bar')
+            new QualifiedName(['someschema', 'foo']),
+            new Identifier('bar')
         );
         $setClauseList = new SetClauseList([
             new SingleSetClause(

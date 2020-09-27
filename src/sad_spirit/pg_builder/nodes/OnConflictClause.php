@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,10 +18,10 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\nodes\lists\SetClauseList,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\lists\SetClauseList;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing ON CONFLICT clause of INSERT statement
@@ -60,7 +61,8 @@ class OnConflictClause extends Node
         if ('update' === $this->props['action'] && null === $target) {
             throw new InvalidArgumentException("Target must be provided for ON CONFLICT ... DO UPDATE clause");
 
-        } elseif (null !== $target
+        } elseif (
+            null !== $target
                   && !($target instanceof Identifier) && !($target instanceof IndexParameters)
         ) {
             throw new InvalidArgumentException(sprintf(

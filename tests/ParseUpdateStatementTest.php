@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,32 +18,32 @@
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\Parser,
-    sad_spirit\pg_builder\Lexer,
-    sad_spirit\pg_builder\Select,
-    sad_spirit\pg_builder\Update,
-    sad_spirit\pg_builder\nodes\ColumnReference,
-    sad_spirit\pg_builder\nodes\CommonTableExpression,
-    sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
-    sad_spirit\pg_builder\nodes\expressions\RowExpression,
-    sad_spirit\pg_builder\nodes\expressions\SubselectExpression,
-    sad_spirit\pg_builder\nodes\Star,
-    sad_spirit\pg_builder\nodes\WithClause,
-    sad_spirit\pg_builder\nodes\QualifiedName,
-    sad_spirit\pg_builder\nodes\Constant,
-    sad_spirit\pg_builder\nodes\SetTargetElement,
-    sad_spirit\pg_builder\nodes\MultipleSetClause,
-    sad_spirit\pg_builder\nodes\SingleSetClause,
-    sad_spirit\pg_builder\nodes\TargetElement,
-    sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_builder\nodes\ArrayIndexes,
-    sad_spirit\pg_builder\nodes\SetToDefault,
-    sad_spirit\pg_builder\nodes\lists\IdentifierList,
-    sad_spirit\pg_builder\nodes\lists\SetClauseList,
-    sad_spirit\pg_builder\nodes\lists\SetTargetList,
-    sad_spirit\pg_builder\nodes\lists\TargetList,
-    sad_spirit\pg_builder\nodes\range\RelationReference,
-    sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
+use sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\Lexer;
+use sad_spirit\pg_builder\Select;
+use sad_spirit\pg_builder\Update;
+use sad_spirit\pg_builder\nodes\ColumnReference;
+use sad_spirit\pg_builder\nodes\CommonTableExpression;
+use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
+use sad_spirit\pg_builder\nodes\expressions\RowExpression;
+use sad_spirit\pg_builder\nodes\expressions\SubselectExpression;
+use sad_spirit\pg_builder\nodes\Star;
+use sad_spirit\pg_builder\nodes\WithClause;
+use sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\nodes\Constant;
+use sad_spirit\pg_builder\nodes\SetTargetElement;
+use sad_spirit\pg_builder\nodes\MultipleSetClause;
+use sad_spirit\pg_builder\nodes\SingleSetClause;
+use sad_spirit\pg_builder\nodes\TargetElement;
+use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\nodes\ArrayIndexes;
+use sad_spirit\pg_builder\nodes\SetToDefault;
+use sad_spirit\pg_builder\nodes\lists\IdentifierList;
+use sad_spirit\pg_builder\nodes\lists\SetClauseList;
+use sad_spirit\pg_builder\nodes\lists\SetTargetList;
+use sad_spirit\pg_builder\nodes\lists\TargetList;
+use sad_spirit\pg_builder\nodes\range\RelationReference;
+use sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
 
 /**
  * Tests parsing all possible parts of UPDATE statement
@@ -161,7 +162,9 @@ QRY
             new RelationReference(new QualifiedName(['foo']))
         ]);
         $built->where->condition = new OperatorExpression(
-            '=', new ColumnReference(['foo', 'id']), new ColumnReference(['bar', 'foo_id'])
+            '=',
+            new ColumnReference(['foo', 'id']),
+            new ColumnReference(['bar', 'foo_id'])
         );
         $built->returning->replace([new Star()]);
 

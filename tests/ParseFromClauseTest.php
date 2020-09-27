@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,39 +18,39 @@
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\Parser,
-    sad_spirit\pg_builder\Lexer,
-    sad_spirit\pg_builder\Select,
-    sad_spirit\pg_builder\nodes\TargetElement,
-    sad_spirit\pg_builder\nodes\FunctionCall,
-    sad_spirit\pg_builder\nodes\Constant,
-    sad_spirit\pg_builder\nodes\ColumnReference,
-    sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_builder\nodes\TypeName,
-    sad_spirit\pg_builder\nodes\QualifiedName,
-    sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
-    sad_spirit\pg_builder\nodes\expressions\SubselectExpression,
-    sad_spirit\pg_builder\nodes\range\JoinExpression,
-    sad_spirit\pg_builder\nodes\range\RelationReference,
-    sad_spirit\pg_builder\nodes\range\FunctionCall as RangeFunctionCall,
-    sad_spirit\pg_builder\nodes\range\RowsFrom,
-    sad_spirit\pg_builder\nodes\range\RowsFromElement,
-    sad_spirit\pg_builder\nodes\range\Subselect,
-    sad_spirit\pg_builder\nodes\range\ColumnDefinition,
-    sad_spirit\pg_builder\nodes\range\TableSample,
-    sad_spirit\pg_builder\nodes\range\XmlTable,
-    sad_spirit\pg_builder\nodes\lists\ExpressionList,
-    sad_spirit\pg_builder\nodes\lists\FromList,
-    sad_spirit\pg_builder\nodes\lists\FunctionArgumentList,
-    sad_spirit\pg_builder\nodes\lists\IdentifierList,
-    sad_spirit\pg_builder\nodes\lists\ColumnDefinitionList,
-    sad_spirit\pg_builder\nodes\lists\RowsFromList,
-    sad_spirit\pg_builder\nodes\lists\TargetList,
-    sad_spirit\pg_builder\nodes\lists\TypeModifierList,
-    sad_spirit\pg_builder\nodes\xml\XmlColumnDefinition,
-    sad_spirit\pg_builder\nodes\xml\XmlColumnList,
-    sad_spirit\pg_builder\nodes\xml\XmlNamespace,
-    sad_spirit\pg_builder\nodes\xml\XmlNamespaceList;
+use sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\Lexer;
+use sad_spirit\pg_builder\Select;
+use sad_spirit\pg_builder\nodes\TargetElement;
+use sad_spirit\pg_builder\nodes\FunctionCall;
+use sad_spirit\pg_builder\nodes\Constant;
+use sad_spirit\pg_builder\nodes\ColumnReference;
+use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\nodes\TypeName;
+use sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
+use sad_spirit\pg_builder\nodes\expressions\SubselectExpression;
+use sad_spirit\pg_builder\nodes\range\JoinExpression;
+use sad_spirit\pg_builder\nodes\range\RelationReference;
+use sad_spirit\pg_builder\nodes\range\FunctionCall as RangeFunctionCall;
+use sad_spirit\pg_builder\nodes\range\RowsFrom;
+use sad_spirit\pg_builder\nodes\range\RowsFromElement;
+use sad_spirit\pg_builder\nodes\range\Subselect;
+use sad_spirit\pg_builder\nodes\range\ColumnDefinition;
+use sad_spirit\pg_builder\nodes\range\TableSample;
+use sad_spirit\pg_builder\nodes\range\XmlTable;
+use sad_spirit\pg_builder\nodes\lists\ExpressionList;
+use sad_spirit\pg_builder\nodes\lists\FromList;
+use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
+use sad_spirit\pg_builder\nodes\lists\IdentifierList;
+use sad_spirit\pg_builder\nodes\lists\ColumnDefinitionList;
+use sad_spirit\pg_builder\nodes\lists\RowsFromList;
+use sad_spirit\pg_builder\nodes\lists\TargetList;
+use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
+use sad_spirit\pg_builder\nodes\xml\XmlColumnDefinition;
+use sad_spirit\pg_builder\nodes\xml\XmlColumnList;
+use sad_spirit\pg_builder\nodes\xml\XmlNamespace;
+use sad_spirit\pg_builder\nodes\xml\XmlNamespaceList;
 
 /**
  * Tests parsing all possible expressions appearing in FROM clause
@@ -128,25 +129,31 @@ QRY
         ));
         $blah->setAlias(new Identifier('select'), new ColumnDefinitionList([
             new ColumnDefinition(
-                new Identifier('abort'), new TypeName(new QualifiedName(['pg_catalog', 'int4']))
+                new Identifier('abort'),
+                new TypeName(new QualifiedName(['pg_catalog', 'int4']))
             ),
             new ColumnDefinition(
-                new Identifier('alter'), new TypeName(new QualifiedName(['text'])),
+                new Identifier('alter'),
+                new TypeName(new QualifiedName(['text'])),
                 new QualifiedName(['foo'])
             ),
             new ColumnDefinition(
-                new Identifier('begin'), new TypeName(new QualifiedName(['pg_catalog', 'float8']))
+                new Identifier('begin'),
+                new TypeName(new QualifiedName(['pg_catalog', 'float8']))
             )
         ]));
         $blahblah = new RangeFunctionCall(new FunctionCall(
-            new QualifiedName(['blahblah']), new FunctionArgumentList([new Constant(null)])
+            new QualifiedName(['blahblah']),
+            new FunctionArgumentList([new Constant(null)])
         ));
         $blahblah->setAlias(null, new ColumnDefinitionList([
             new ColumnDefinition(
-                new Identifier('start'), new TypeName(new QualifiedName(['pg_catalog', 'varchar']))
+                new Identifier('start'),
+                new TypeName(new QualifiedName(['pg_catalog', 'varchar']))
             ),
             new ColumnDefinition(
-                new Identifier('temporary'), new TypeName(
+                new Identifier('temporary'),
+                new TypeName(
                     new QualifiedName(['pg_catalog', 'bit']),
                     new TypeModifierList([new Constant(1)])
                 )
@@ -185,8 +192,9 @@ QRY
         $fg = new JoinExpression(
             new RelationReference(new QualifiedName(['f'])),
             new RangeFunctionCall(new FunctionCall(
-                new QualifiedName(['g']), new FunctionArgumentList([new Constant(1)]))
-            ),
+                new QualifiedName(['g']),
+                new FunctionArgumentList([new Constant(1)])
+            )),
             'full'
         );
         $fg->setOn(new OperatorExpression('<>', new Constant(false), new Constant(true)));
@@ -243,19 +251,23 @@ QRY
         $rowsOne = new RowsFrom(new RowsFromList([
             new RowsFromElement(
                 new FunctionCall(
-                    new QualifiedName(['foo']), new FunctionArgumentList([new Constant(1)])
+                    new QualifiedName(['foo']),
+                    new FunctionArgumentList([new Constant(1)])
                 ),
                 new ColumnDefinitionList([
                     new ColumnDefinition(
-                        new Identifier('fooid'), new TypeName(new QualifiedName(['pg_catalog', 'int4']))
+                        new Identifier('fooid'),
+                        new TypeName(new QualifiedName(['pg_catalog', 'int4']))
                     ),
                     new ColumnDefinition(
-                        new Identifier('fooname'), new TypeName(new QualifiedName(['text']))
+                        new Identifier('fooname'),
+                        new TypeName(new QualifiedName(['text']))
                     ),
                 ])
             ),
             new RowsFromElement(new FunctionCall(
-                    new QualifiedName(['foo']), new FunctionArgumentList([new Constant(2)])
+                new QualifiedName(['foo']),
+                new FunctionArgumentList([new Constant(2)])
             ))
         ]));
         $rowsTwo = new RowsFrom(new RowsFromList([
@@ -275,8 +287,7 @@ QRY
 
     public function testTableSample()
     {
-        $list = $this->parser->parseFromList(
-<<<QRY
+        $list = $this->parser->parseFromList(<<<QRY
 foo tablesample system (bar.baz * 100),
 quux natural join xyzzy as a (b,c) tablesample bernoulli (50) repeatable (seed)
 QRY
@@ -317,8 +328,7 @@ QRY
     public function testXmlTable()
     {
         // from docs
-        $list = $this->parser->parseFromList(
-<<<QRY
+        $list = $this->parser->parseFromList(<<<QRY
 XMLTABLE(
     '//ROWS/ROW' PASSING data by value
     COLUMNS id int PATH '@id',

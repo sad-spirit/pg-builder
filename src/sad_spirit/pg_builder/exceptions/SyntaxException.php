@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,8 +18,8 @@
 
 namespace sad_spirit\pg_builder\exceptions;
 
-use sad_spirit\pg_builder\Exception,
-    sad_spirit\pg_builder\Token;
+use sad_spirit\pg_builder\Exception;
+use sad_spirit\pg_builder\Token;
 
 /**
  * Thrown for parsing failures
@@ -38,7 +39,10 @@ class SyntaxException extends \DomainException implements Exception
         list($line, $fragment) = self::getContext($string, $position);
         return new self(sprintf(
             "%s at position %d (line %d): %s",
-            $message, $position, $line, $fragment
+            $message,
+            $position,
+            $line,
+            $fragment
         ));
     }
 

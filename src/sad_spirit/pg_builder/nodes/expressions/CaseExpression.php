@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,10 +18,10 @@
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\nodes\ScalarExpression,
-    sad_spirit\pg_builder\nodes\lists\NonAssociativeList,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents a CASE expression (with or without argument)
@@ -57,7 +58,8 @@ class CaseExpression extends NonAssociativeList implements ScalarExpression
         if (!($value instanceof WhenExpression)) {
             throw new InvalidArgumentException(sprintf(
                 '%s can contain only instances of WhenExpression, %s given',
-                __CLASS__, is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
+                __CLASS__,
+                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
             ));
         }
     }

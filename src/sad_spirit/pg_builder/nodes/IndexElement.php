@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,9 +18,9 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing a column description in CREATE INDEX statement
@@ -36,8 +37,11 @@ use sad_spirit\pg_builder\Node,
 class IndexElement extends Node
 {
     public function __construct(
-        $expression, QualifiedName $collation = null, QualifiedName $opClass = null,
-        $direction = null, $nullsOrder = null
+        $expression,
+        QualifiedName $collation = null,
+        QualifiedName $opClass = null,
+        $direction = null,
+        $nullsOrder = null
     ) {
         if (null !== $direction && !in_array($direction, ['asc', 'desc'], true)) {
             throw new InvalidArgumentException("Unknown sort direction '{$direction}'");

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,10 +18,10 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\exceptions\SyntaxException,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\exceptions\SyntaxException;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents a (possibly qualified) name of a database object like a relation, function or type name
@@ -46,26 +47,28 @@ class QualifiedName extends Node
             } elseif (!($part instanceof Identifier)) {
                 throw new InvalidArgumentException(sprintf(
                     '%s expects an array containing strings or Identifiers, %s given at index %s',
-                    __CLASS__, is_object($part) ? 'object(' . get_class($part) . ')' : gettype($part), $idx
+                    __CLASS__,
+                    is_object($part) ? 'object(' . get_class($part) . ')' : gettype($part),
+                    $idx
                 ));
             }
         }
 
         switch (count($nameParts)) {
         // fall-through is intentional here
-        case 3:
-            $this->setNamedProperty('catalog', array_shift($nameParts));
-        case 2:
-            $this->setNamedProperty('schema', array_shift($nameParts));
-        case 1:
-            $this->setNamedProperty('relation', array_shift($nameParts));
-            break;
-        case 0:
-            throw new InvalidArgumentException(
-                __CLASS__ . ' expects an array containing strings or Identifiers, empty array given'
-            );
-        default:
-            throw new SyntaxException("Too many dots in qualified name: " . implode('.', $nameParts));
+            case 3:
+                $this->setNamedProperty('catalog', array_shift($nameParts));
+            case 2:
+                $this->setNamedProperty('schema', array_shift($nameParts));
+            case 1:
+                $this->setNamedProperty('relation', array_shift($nameParts));
+                break;
+            case 0:
+                throw new InvalidArgumentException(
+                    __CLASS__ . ' expects an array containing strings or Identifiers, empty array given'
+                );
+            default:
+                throw new SyntaxException("Too many dots in qualified name: " . implode('.', $nameParts));
         }
     }
 

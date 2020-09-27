@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,10 +18,10 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\exceptions\SyntaxException,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\exceptions\SyntaxException;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents a (possibly qualified) column reference. The last item may also be a '*'
@@ -49,7 +50,9 @@ class ColumnReference extends Node implements ScalarExpression
             } elseif (!($part instanceof Identifier) && !($part instanceof Star)) {
                 throw new InvalidArgumentException(sprintf(
                     '%s expects an array containing strings, Identifiers or Stars, %s given at index %s',
-                    __CLASS__, is_object($part) ? 'object(' . get_class($part) . ')' : gettype($part), $idx
+                    __CLASS__,
+                    is_object($part) ? 'object(' . get_class($part) . ')' : gettype($part),
+                    $idx
                 ));
             }
             if (null === $starIdx && $part instanceof Star) {
@@ -62,23 +65,23 @@ class ColumnReference extends Node implements ScalarExpression
 
         switch (count($parts)) {
         // fall-through is intentional here
-        case 4:
-            $this->setNamedProperty('catalog', array_shift($parts));
-        case 3:
-            $this->setNamedProperty('schema', array_shift($parts));
-        case 2:
-            $this->setNamedProperty('relation', array_shift($parts));
-        case 1:
-            $this->setNamedProperty('column', array_shift($parts));
-            break;
+            case 4:
+                $this->setNamedProperty('catalog', array_shift($parts));
+            case 3:
+                $this->setNamedProperty('schema', array_shift($parts));
+            case 2:
+                $this->setNamedProperty('relation', array_shift($parts));
+            case 1:
+                $this->setNamedProperty('column', array_shift($parts));
+                break;
 
-        case 0:
-            throw new InvalidArgumentException(
-                __CLASS__ . ' expects an array containing strings or Identifiers, empty array given'
-            );
+            case 0:
+                throw new InvalidArgumentException(
+                    __CLASS__ . ' expects an array containing strings or Identifiers, empty array given'
+                );
 
-        default:
-            throw new SyntaxException("Too many dots in column reference: " . implode('.', $parts));
+            default:
+                throw new SyntaxException("Too many dots in column reference: " . implode('.', $parts));
         }
     }
 

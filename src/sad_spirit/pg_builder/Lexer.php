@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -598,10 +599,15 @@ class Lexer
 
             } elseif ('/' === $char && '*' === $nextChar) {
                 // multiline comment, skip
-                if (!preg_match(
-                    '!/\* ( (?>[^/*]+ | /[^*] | \*[^/] ) | (?R) )* \*/!Ax',
-                    $this->string, $m, 0, $this->position
-                )) {
+                if (
+                    !preg_match(
+                        '!/\* ( (?>[^/*]+ | /[^*] | \*[^/] ) | (?R) )* \*/!Ax',
+                        $this->string,
+                        $m,
+                        0,
+                        $this->position
+                    )
+                ) {
                     throw exceptions\SyntaxException::atPosition('Unterminated /* comment', $this->string, $this->position);
                 }
                 $this->position += strlen($m[0]);
@@ -616,10 +622,15 @@ class Lexer
                 $this->lexString();
 
             } elseif ('$' === $char) {
-                if (preg_match(
-                    '/\$([A-Za-z\x80-\xFF_][A-Za-z\x80-\xFF_0-9]*)?\$/A',
-                    $this->string, $m, 0, $this->position
-                )) {
+                if (
+                    preg_match(
+                        '/\$([A-Za-z\x80-\xFF_][A-Za-z\x80-\xFF_0-9]*)?\$/A',
+                        $this->string,
+                        $m,
+                        0,
+                        $this->position
+                    )
+                ) {
                     $this->lexDollarQuoted($m[0]);
 
                 } elseif (preg_match('/\$(\d+)/A', $this->string, $m, 0, $this->position)) {
@@ -638,10 +649,15 @@ class Lexer
                 } elseif ('=' === $nextChar) {
                     $this->pushToken(':=', Token::TYPE_COLON_EQUALS, $this->position);
                     $this->position += 2;
-                } elseif (preg_match(
-                    '/:([A-Za-z\x80-\xFF_][A-Za-z\x80-\xFF_0-9]*)/A',
-                    $this->string, $m, 0, $this->position
-                )) {
+                } elseif (
+                    preg_match(
+                        '/:([A-Za-z\x80-\xFF_][A-Za-z\x80-\xFF_0-9]*)/A',
+                        $this->string,
+                        $m,
+                        0,
+                        $this->position
+                    )
+                ) {
                     $this->pushToken($m[1], Token::TYPE_NAMED_PARAM, $this->position);
                     $this->position += strlen($m[0]);
                 } else {
@@ -667,7 +683,8 @@ class Lexer
             } elseif (isset($this->_specialCharHash[$char])) {
                 $this->pushToken($char, Token::TYPE_SPECIAL_CHAR, $this->position++);
 
-            } elseif (('u' === $char || 'U' === $char)
+            } elseif (
+                ('u' === $char || 'U' === $char)
                       && preg_match('/[uU]&["\']/A', $this->string, $m, 0, $this->position)
             ) {
                 throw new exceptions\NotImplementedException('Support for unicode escapes not implemented yet');
@@ -711,7 +728,8 @@ class Lexer
         }
         $this->pushToken(
             substr($this->string, $this->position + $delimiterLength, $pos - $this->position - $delimiterLength),
-            Token::TYPE_STRING, $this->position
+            Token::TYPE_STRING,
+            $this->position
         );
         $this->position = $pos + $delimiterLength;
     }
@@ -730,26 +748,26 @@ class Lexer
         $regexSlashes   = "' ( (?>[^'\\\\]+ | '' | \\\\.)* ) '";
         $regexNoSlashes = "' ( (?>[^']+ | '')* ) '";
         switch ($char) {
-        case 'b':
-            $type  = Token::TYPE_BINARY_STRING;
-            $regex = $regexNoQuotes;
-            break;
+            case 'b':
+                $type  = Token::TYPE_BINARY_STRING;
+                $regex = $regexNoQuotes;
+                break;
 
-        case 'e':
-            $regex = $regexSlashes;
-            break;
+            case 'e':
+                $regex = $regexSlashes;
+                break;
 
-        case 'x':
-            $regex = $regexNoQuotes;
-            $type  = Token::TYPE_HEX_STRING;
-            break;
+            case 'x':
+                $regex = $regexNoQuotes;
+                $type  = Token::TYPE_HEX_STRING;
+                break;
 
-        case 'n':
-            $type  = Token::TYPE_NCHAR_STRING;
-            // fall-through is intentional here
+            case 'n':
+                $type  = Token::TYPE_NCHAR_STRING;
+                // fall-through is intentional here
 
-        default:
-            $regex = $this->options['standard_conforming_strings'] ? $regexNoSlashes : $regexSlashes;
+            default:
+                $regex = $this->options['standard_conforming_strings'] ? $regexNoSlashes : $regexSlashes;
         }
 
         if (!preg_match("/{$regex}/Ax", $this->string, $m, 0, $this->position + ('' === $char ? 0 : 1))) {
@@ -781,7 +799,10 @@ class Lexer
         // this will always match as lexNumeric is called on either 'digit' or '.digit'
         preg_match(
             '/(\d+ (\.\d+|\.(?!.))? | \.\d+) ( [eE][+-]\d+ )?/Ax',
-            $this->string, $m, 0, $this->position
+            $this->string,
+            $m,
+            0,
+            $this->position
         );
         if (ctype_digit($m[0])) {
             $this->pushToken($m[0], Token::TYPE_INTEGER, $this->position);
@@ -804,7 +825,8 @@ class Lexer
         if ($commentMulti = strpos($operator, '/*')) {
             $length = min($length, $commentMulti);
         }
-        if ($length > 1
+        if (
+            $length > 1
             && ('+' === $operator[$length - 1] || '-' === $operator[$length - 1])
         ) {
             for ($i = $length - 2; $i >= 0; $i--) {
@@ -815,8 +837,10 @@ class Lexer
             if ($i < 0) {
                 do {
                     $length--;
-                } while ($length > 1
-                         && ('+' === $operator[$length - 1] || '-' === $operator[$length - 1]));
+                } while (
+                    $length > 1
+                         && ('+' === $operator[$length - 1] || '-' === $operator[$length - 1])
+                );
             }
         }
 
@@ -831,7 +855,8 @@ class Lexer
                 $this->position += 2;
                 return;
             }
-            if ('=' === $operator[1] && ('<' === $operator[0] || '>' === $operator[0] || '!' === $operator[0])
+            if (
+                '=' === $operator[1] && ('<' === $operator[0] || '>' === $operator[0] || '!' === $operator[0])
                 || '>' === $operator[1] && '<' === $operator[0]
             ) {
                 $this->pushToken($operator, Token::TYPE_INEQUALITY, $this->position);
@@ -851,12 +876,19 @@ class Lexer
      */
     protected function lexIdentifier()
     {
-        if (!preg_match(
-            '/[A-Za-z\x80-\xff_][A-Za-z\x80-\xff_0-9\$]*/A',
-            $this->string, $m, 0, $this->position
-        )) {
+        if (
+            !preg_match(
+                '/[A-Za-z\x80-\xff_][A-Za-z\x80-\xff_0-9\$]*/A',
+                $this->string,
+                $m,
+                0,
+                $this->position
+            )
+        ) {
             throw exceptions\SyntaxException::atPosition(
-                "Unexpected '{$this->string[$this->position]}'", $this->string, $this->position
+                "Unexpected '{$this->string[$this->position]}'",
+                $this->string,
+                $this->position
             );
         }
 

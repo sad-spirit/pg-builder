@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,14 +18,14 @@
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\SqlBuilderWalker,
-    sad_spirit\pg_builder\nodes\ColumnReference,
-    sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\nodes\Constant,
-    sad_spirit\pg_builder\nodes\Identifier,
-    sad_spirit\pg_builder\nodes\expressions\BetweenExpression,
-    sad_spirit\pg_builder\nodes\expressions\OperatorExpression,
-    sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression;
+use sad_spirit\pg_builder\SqlBuilderWalker;
+use sad_spirit\pg_builder\nodes\ColumnReference;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\Constant;
+use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\nodes\expressions\BetweenExpression;
+use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
+use sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression;
 
 /**
  * Tests checking the proper addition of parentheses (should follow Postgres 9.5+ operator precedence)

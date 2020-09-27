@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,12 +18,12 @@
 
 namespace sad_spirit\pg_builder\nodes\lists;
 
-use sad_spirit\pg_builder\nodes\TargetElement,
-    sad_spirit\pg_builder\nodes\Star,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\Parseable,
-    sad_spirit\pg_builder\ElementParseable,
-    sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\nodes\TargetElement;
+use sad_spirit\pg_builder\nodes\Star;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\Parseable;
+use sad_spirit\pg_builder\ElementParseable;
+use sad_spirit\pg_builder\Parser;
 
 /**
  * List of elements in SELECT's target list
@@ -36,7 +37,8 @@ class TargetList extends NonAssociativeList implements Parseable, ElementParseab
         if (!($value instanceof TargetElement) && !($value instanceof Star)) {
             throw new InvalidArgumentException(sprintf(
                 '%s can contain only instances of TargetElement or Star, %s given',
-                __CLASS__, is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
+                __CLASS__,
+                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
             ));
         }
     }

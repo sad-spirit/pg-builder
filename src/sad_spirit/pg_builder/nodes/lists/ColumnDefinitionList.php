@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,8 +18,8 @@
 
 namespace sad_spirit\pg_builder\nodes\lists;
 
-use sad_spirit\pg_builder\nodes\range\ColumnDefinition,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\nodes\range\ColumnDefinition;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * Column definition list, may appear in aliases for functions in FROM
@@ -32,7 +33,8 @@ class ColumnDefinitionList extends NonAssociativeList
         if (!($value instanceof ColumnDefinition)) {
             throw new InvalidArgumentException(sprintf(
                 '%s can contain only instances of ColumnDefinition, %s given',
-                __CLASS__, is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
+                __CLASS__,
+                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
             ));
         }
     }

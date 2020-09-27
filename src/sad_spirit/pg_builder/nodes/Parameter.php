@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,10 +18,10 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\Token,
-    sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\Token;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents a named ':foo' or positional '$1' query parameter
@@ -36,7 +37,8 @@ class Parameter extends Node implements ScalarExpression
             if (0 === (Token::TYPE_PARAMETER & $tokenOrName->getType())) {
                 throw new InvalidArgumentException(sprintf(
                     '%s expects a parameter token, %s given',
-                    __CLASS__, Token::typeToString($tokenOrName->getType())
+                    __CLASS__,
+                    Token::typeToString($tokenOrName->getType())
                 ));
             }
             $this->props['type']  = $tokenOrName->getType();
@@ -53,7 +55,8 @@ class Parameter extends Node implements ScalarExpression
         } else {
             throw new InvalidArgumentException(sprintf(
                 '%s requires a Token instance or parameter number / name, %s given',
-                __CLASS__, is_object($tokenOrName) ? 'object(' . get_class($tokenOrName) . ')'
+                __CLASS__,
+                is_object($tokenOrName) ? 'object(' . get_class($tokenOrName) . ')'
                            : gettype($tokenOrName)
             ));
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,10 +18,10 @@
 
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
-    sad_spirit\pg_builder\nodes\lists\IdentifierList,
-    sad_spirit\pg_builder\nodes\ScalarExpression,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\nodes\lists\IdentifierList;
+use sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node for JOIN expression in FROM clause
@@ -99,7 +100,8 @@ class JoinExpression extends FromElement
             if (!($using instanceof IdentifierList)) {
                 throw new InvalidArgumentException(sprintf(
                     '%s requires an SQL string, an array of identifiers or an instance of IdentifierList, %s given',
-                    __METHOD__, is_object($using) ? 'object(' . get_class($using) . ')' : gettype($using)
+                    __METHOD__,
+                    is_object($using) ? 'object(' . get_class($using) . ')' : gettype($using)
                 ));
             }
         }
@@ -123,7 +125,8 @@ class JoinExpression extends FromElement
             if (!($on instanceof ScalarExpression)) {
                 throw new InvalidArgumentException(sprintf(
                     '%s requires an SQL expression string or an instance of ScalarExpression, %s given',
-                    __METHOD__, is_object($on) ? 'object(' . get_class($on) . ')' : gettype($on)
+                    __METHOD__,
+                    is_object($on) ? 'object(' . get_class($on) . ')' : gettype($on)
                 ));
             }
         }

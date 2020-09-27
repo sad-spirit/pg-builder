@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,8 +18,8 @@
 
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\SelectCommon,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\SelectCommon;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing a subselect in FROM clause

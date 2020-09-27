@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -17,9 +18,9 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node,
-    sad_spirit\pg_builder\nodes\lists\SetTargetList,
-    sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\lists\SetTargetList;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents a (column_name, ...) = (sub-select|row-expression) construct in SET clause of UPDATE statement

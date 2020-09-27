@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -39,33 +40,33 @@ class ParameterWalker extends BlankWalker
     public function walkParameter(nodes\Parameter $node)
     {
         switch ($node->type) {
-        case Token::TYPE_POSITIONAL_PARAM:
-            if (!empty($this->namedParameterMap)) {
-                throw new exceptions\InvalidArgumentException(
-                    "Mixing named and positional parameters is not allowed; "
-                    . "found positional parameter \${$node->value} after named ones"
-                );
-            }
-            $paramIdx = (int)$node->value - 1;
-            break;
+            case Token::TYPE_POSITIONAL_PARAM:
+                if (!empty($this->namedParameterMap)) {
+                    throw new exceptions\InvalidArgumentException(
+                        "Mixing named and positional parameters is not allowed; "
+                        . "found positional parameter \${$node->value} after named ones"
+                    );
+                }
+                $paramIdx = (int)$node->value - 1;
+                break;
 
-        case Token::TYPE_NAMED_PARAM:
-            if (empty($this->namedParameterMap) && !empty($this->parameterTypes)) {
-                throw new exceptions\InvalidArgumentException(
-                    "Mixing named and positional parameters is not allowed; "
-                    . "found named parameter :{$node->value} after positional ones"
-                );
-            }
-            if (isset($this->namedParameterMap[$node->value])) {
-                $paramIdx = $this->namedParameterMap[$node->value];
-            } else {
-                $paramIdx = count($this->namedParameterMap);
-                $this->namedParameterMap[$node->value] = $paramIdx;
-            }
-            break;
+            case Token::TYPE_NAMED_PARAM:
+                if (empty($this->namedParameterMap) && !empty($this->parameterTypes)) {
+                    throw new exceptions\InvalidArgumentException(
+                        "Mixing named and positional parameters is not allowed; "
+                        . "found named parameter :{$node->value} after positional ones"
+                    );
+                }
+                if (isset($this->namedParameterMap[$node->value])) {
+                    $paramIdx = $this->namedParameterMap[$node->value];
+                } else {
+                    $paramIdx = count($this->namedParameterMap);
+                    $this->namedParameterMap[$node->value] = $paramIdx;
+                }
+                break;
 
-        default:
-            throw new exceptions\InvalidArgumentException(sprintf('Unexpected parameter type %d', $node->type));
+            default:
+                throw new exceptions\InvalidArgumentException(sprintf('Unexpected parameter type %d', $node->type));
         }
 
         if (!($parent = $node->getParentNode())) {
@@ -84,21 +85,48 @@ class ParameterWalker extends BlankWalker
 
     /* Optimization: these may have child nodes but will not have parameters. No sense in visiting. */
 
-    public function walkColumnReference(nodes\ColumnReference $node) { /* No Parameters here */ }
+    public function walkColumnReference(nodes\ColumnReference $node)
+    {
+ /* No Parameters here */
+    }
 
-    public function walkLockingElement(nodes\LockingElement $node) { /* No Parameters here */ }
+    public function walkLockingElement(nodes\LockingElement $node)
+    {
+ /* No Parameters here */
+    }
 
-    public function walkQualifiedName(nodes\QualifiedName $node) { /* No Parameters here */ }
+    public function walkQualifiedName(nodes\QualifiedName $node)
+    {
+ /* No Parameters here */
+    }
 
-    public function walkTypeName(nodes\TypeName $node) { /* No Parameters here */ }
+    public function walkTypeName(nodes\TypeName $node)
+    {
+ /* No Parameters here */
+    }
 
-    public function walkColumnDefinition(nodes\range\ColumnDefinition $node) { /* No Parameters here */ }
+    public function walkColumnDefinition(nodes\range\ColumnDefinition $node)
+    {
+ /* No Parameters here */
+    }
 
-    protected function walkRangeItemAliases(nodes\range\FromElement $rangeItem) { /* No Parameters here */ }
+    protected function walkRangeItemAliases(nodes\range\FromElement $rangeItem)
+    {
+ /* No Parameters here */
+    }
 
-    public function walkRelationReference(nodes\range\RelationReference $rangeItem) { /* No Parameters here */ }
+    public function walkRelationReference(nodes\range\RelationReference $rangeItem)
+    {
+ /* No Parameters here */
+    }
 
-    public function walkInsertTarget(nodes\range\InsertTarget $target) { /* No Parameters here */ }
+    public function walkInsertTarget(nodes\range\InsertTarget $target)
+    {
+ /* No Parameters here */
+    }
 
-    public function walkUpdateOrDeleteTarget(nodes\range\UpdateOrDeleteTarget $target) { /* No Parameters here */ }
+    public function walkUpdateOrDeleteTarget(nodes\range\UpdateOrDeleteTarget $target)
+    {
+ /* No Parameters here */
+    }
 }
