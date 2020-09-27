@@ -294,22 +294,6 @@ class SqlBuilderWalker implements TreeWalker
     }
 
     /**
-     * Returns whether the given Node represents a right-associative operator in pre-9.5 Postgres
-     *
-     * @param nodes\ScalarExpression $expression a node that can appear in scalar expression
-     * @return bool
-     */
-    protected function isRightAssociativeCompat(nodes\ScalarExpression $expression)
-    {
-        if (!($expression instanceof nodes\expressions\OperatorExpression)) {
-            return false;
-        } else {
-            return in_array($expression->operator, array('=', 'not'))
-                   || (!$expression->left && in_array($expression->operator, array('+', '-')));
-        }
-    }
-
-    /**
      * Returns associativity of operator represented by a given Node in Postgres 9.5+
      *
      * @param nodes\ScalarExpression $expression

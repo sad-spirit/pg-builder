@@ -71,16 +71,6 @@ use Psr\Cache\CacheItemPoolInterface;
 class Parser
 {
     /**
-     * Use operator precedence for PostgreSQL releases before 9.5
-     */
-    const OPERATOR_PRECEDENCE_PRE_9_5 = 'pre-9.5';
-
-    /**
-     * Use operator precedence for PostgreSQL 9.5 and up
-     */
-    const OPERATOR_PRECEDENCE_CURRENT = 'current';
-
-    /**
      * mathOp production from grammar
      * @var array
      */
@@ -151,11 +141,6 @@ class Parser
      * @var TokenStream
      */
     protected $stream;
-
-    /**
-     * @var string
-     */
-    protected $precedence = self::OPERATOR_PRECEDENCE_CURRENT;
 
     /**
      * Guesses the type of parenthesised expression
@@ -1283,32 +1268,6 @@ class Parser
         if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, array('<', '>', '='))
             || $this->stream->matches(Token::TYPE_INEQUALITY)
         ) {
-            return new nodes\expressions\OperatorExpression(
-                $this->stream->next()->getValue(), $argument,
-                $restricted ? $this->GenericOperatorExpression(true) : $this->PatternMatchingExpression()
-            );
-        }
-
-        return $argument;
-    }
-
-    protected function ComparisonEquality($restricted = false)
-    {
-        $term = $this->ComparisonInEquality($restricted);
-        if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '=')) {
-            $this->stream->next();
-            return new nodes\expressions\OperatorExpression('=', $term, $this->ComparisonEquality($restricted));
-        }
-        return $term;
-    }
-
-    protected function ComparisonInEquality($restricted = false)
-    {
-        $argument = $restricted
-                    ? $this->GenericOperatorExpression(true)
-                    : $this->PatternMatchingExpression();
-
-        if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, array('<', '>'))) {
             return new nodes\expressions\OperatorExpression(
                 $this->stream->next()->getValue(), $argument,
                 $restricted ? $this->GenericOperatorExpression(true) : $this->PatternMatchingExpression()
