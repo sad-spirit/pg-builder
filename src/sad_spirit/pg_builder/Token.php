@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder;
 
 /**
@@ -62,18 +64,18 @@ class Token
      */
     public const TYPE_EOF                    = 1 << 16;
 
-    protected $type;
-    protected $value;
-    protected $position;
+    private $type;
+    private $value;
+    private $position;
 
     /**
      * Constructor.
      *
-     * @param integer $type     Token type, one of TYPE_* constants
-     * @param string  $value    Token value
-     * @param integer $position Position of token in the source
+     * @param int    $type     Token type, one of TYPE_* constants
+     * @param string $value    Token value
+     * @param int    $position Position of token in the source
      */
-    public function __construct($type, $value, $position)
+    public function __construct(int $type, string $value, int $position)
     {
         $this->type     = $type;
         $this->value    = $value;
@@ -111,7 +113,7 @@ class Token
      * @param array|string|null    $values
      * @return bool
      */
-    public function matches($type, $values = null)
+    public function matches($type, $values = null): bool
     {
         if (null === $values && !is_int($type)) {
             return $this->matches(self::TYPE_KEYWORD, $type)
@@ -129,7 +131,7 @@ class Token
      *
      * @return int
      */
-    public function getPosition()
+    public function getPosition(): int
     {
         return $this->position;
     }
@@ -139,7 +141,7 @@ class Token
      *
      * @return int
      */
-    public function getType()
+    public function getType(): int
     {
         return $this->type;
     }
@@ -149,7 +151,7 @@ class Token
      *
      * @return string
      */
-    public function getValue()
+    public function getValue(): string
     {
         return $this->value;
     }
@@ -161,7 +163,7 @@ class Token
      * @return string
      * @throws exceptions\InvalidArgumentException
      */
-    public static function typeToString($type)
+    public static function typeToString(int $type): string
     {
         switch ($type) {
             case self::TYPE_EOF:

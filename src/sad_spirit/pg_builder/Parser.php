@@ -2146,7 +2146,8 @@ class Parser
     protected function UnaryPlusMinusExpression()
     {
         if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ['+', '-'])) {
-            $operator = $this->stream->next()->getValue();
+            $token    = $this->stream->next();
+            $operator = $token->getValue();
             $operand  = $this->UnaryPlusMinusExpression();
             if (
                 !$operand instanceof nodes\Constant
@@ -2157,9 +2158,9 @@ class Parser
 
             } else {
                 if ('-' === $operand->value[0]) {
-                    return new nodes\Constant(new Token($operand->type, substr($operand->value, 1), null));
+                    return new nodes\Constant(new Token($operand->type, substr($operand->value, 1), $token->getPosition()));
                 } else {
-                    return new nodes\Constant(new Token($operand->type, '-' . $operand->value, null));
+                    return new nodes\Constant(new Token($operand->type, '-' . $operand->value, $token->getPosition()));
                 }
             }
         }

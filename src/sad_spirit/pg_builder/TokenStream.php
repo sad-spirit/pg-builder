@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder;
 
 /**
@@ -26,9 +28,9 @@ class TokenStream
     /**
      * @var Token[]
      */
-    protected $tokens;
-    protected $current;
-    protected $source;
+    private $tokens;
+    private $current;
+    private $source;
 
     /**
      * Constructor
@@ -37,7 +39,7 @@ class TokenStream
      * @param string $source Source of SQL statement, mostly for exceptions
      * @throws exceptions\SyntaxException
      */
-    public function __construct(array $tokens, $source)
+    public function __construct(array $tokens, string $source)
     {
         $this->tokens  = $tokens;
         $this->source  = $source;
@@ -60,7 +62,7 @@ class TokenStream
      * @return Token
      * @throws exceptions\SyntaxException if no more tokens are available
      */
-    public function next()
+    public function next(): Token
     {
         if (!isset($this->tokens[++$this->current])) {
             throw new exceptions\SyntaxException('Unexpected end of input');
@@ -76,7 +78,7 @@ class TokenStream
      * @throws exceptions\SyntaxException
      * @return void
      */
-    public function skip($number)
+    public function skip(int $number): void
     {
         if (!isset($this->tokens[$this->current + $number])) {
             throw new exceptions\SyntaxException('Unexpected end of input');
@@ -90,7 +92,7 @@ class TokenStream
      *
      * @return bool
      */
-    public function isEOF()
+    public function isEOF(): bool
     {
         return $this->tokens[$this->current]->getType() === Token::TYPE_EOF;
     }
@@ -100,7 +102,7 @@ class TokenStream
      *
      * @return Token
      */
-    public function getCurrent()
+    public function getCurrent(): Token
     {
         return $this->tokens[$this->current];
     }
@@ -108,11 +110,11 @@ class TokenStream
     /**
      * Looks at the next token
      *
-     * @param integer $number Look that many positions after the current token
+     * @param int $number Look that many positions after the current token
      * @return Token
      * @throws exceptions\SyntaxException
      */
-    public function look($number = 1)
+    public function look(int $number = 1): Token
     {
         if (!isset($this->tokens[$this->current + $number])) {
             throw new exceptions\SyntaxException('Unexpected end of input');
@@ -134,7 +136,7 @@ class TokenStream
      * @param array|string|null    $values
      * @return bool
      */
-    public function matches($type, $values = null)
+    public function matches($type, $values = null): bool
     {
         return $this->tokens[$this->current]->matches($type, $values);
     }
@@ -145,7 +147,7 @@ class TokenStream
      * @param array $sequence
      * @return bool
      */
-    public function matchesSequence(array $sequence)
+    public function matchesSequence(array $sequence): bool
     {
         for ($i = 0; $i < count($sequence); $i++) {
             if (
@@ -168,7 +170,7 @@ class TokenStream
      * @return Token
      * @throws exceptions\SyntaxException
      */
-    public function expect(int $type, $values = null)
+    public function expect(int $type, $values = null): Token
     {
         $token = $this->tokens[$this->current];
         if (!$token->matches($type, $values)) {
@@ -184,7 +186,7 @@ class TokenStream
      *
      * @return string
      */
-    public function getSource()
+    public function getSource(): string
     {
         return $this->source;
     }
