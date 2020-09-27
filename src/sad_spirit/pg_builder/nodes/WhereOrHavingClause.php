@@ -81,7 +81,7 @@ class WhereOrHavingClause extends Node
      * @param string|ScalarExpression|WhereOrHavingClause $condition
      * @return $this
      */
-    public function and_($condition)
+    public function and($condition)
     {
         $this->_normalizeCondition($condition, __METHOD__);
         if (!$this->props['condition']) {
@@ -136,7 +136,7 @@ class WhereOrHavingClause extends Node
      * @param string|ScalarExpression|WhereOrHavingClause $condition
      * @return $this
      */
-    public function or_($condition)
+    public function or($condition)
     {
         if (!$this->props['condition']) {
             $this->setCondition($condition);

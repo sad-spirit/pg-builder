@@ -32,8 +32,8 @@ class WhereOrHavingClauseTest extends \PHPUnit\Framework\TestCase
     public function testAddConditionsWithAnd()
     {
         $where = new WhereOrHavingClause(new ColumnReference(['foo']));
-        $where->and_(new ColumnReference(['bar']))
-            ->and_(new LogicalExpression([
+        $where->and(new ColumnReference(['bar']))
+            ->and(new LogicalExpression([
                 new ColumnReference(['baz']),
                 new ColumnReference(['quux'])
             ], 'and'));
@@ -51,8 +51,8 @@ class WhereOrHavingClauseTest extends \PHPUnit\Framework\TestCase
     public function testAddConditionsWithOr()
     {
         $where = new WhereOrHavingClause(new ColumnReference(['foo']));
-        $where->or_(new ColumnReference(['bar']))
-            ->or_(new LogicalExpression([
+        $where->or(new ColumnReference(['bar']))
+            ->or(new LogicalExpression([
                 new ColumnReference(['baz']),
                 new ColumnReference(['quux'])
             ], 'or'));
@@ -70,8 +70,8 @@ class WhereOrHavingClauseTest extends \PHPUnit\Framework\TestCase
     public function testAddConditionsWithAndAndOr()
     {
         $where = new WhereOrHavingClause(new ColumnReference(['foo']));
-        $where->and_(new ColumnReference(['bar']))
-            ->or_(new ColumnReference(['baz']));
+        $where->and(new ColumnReference(['bar']))
+            ->or(new ColumnReference(['baz']));
 
         $this->assertEquals(
             new LogicalExpression(
@@ -94,9 +94,9 @@ class WhereOrHavingClauseTest extends \PHPUnit\Framework\TestCase
     public function testAddNestedConditions()
     {
         $where = new WhereOrHavingClause(new ColumnReference(['foo']));
-        $where->and_(
+        $where->and(
             $where->nested(new ColumnReference(['bar']))
-                ->or_(new ColumnReference(['baz']))
+                ->or(new ColumnReference(['baz']))
         );
 
         $this->assertEquals(
@@ -127,19 +127,19 @@ class WhereOrHavingClauseTest extends \PHPUnit\Framework\TestCase
         $select = $parser->parseSelectStatement("select * from foo where bar = 'baz'");
         $select->setParser($parser);
 
-        $select->where->and_(
-            $select->where->nested("some_field > 'some value'")->or_("other_field < 'other value'")
+        $select->where->and(
+            $select->where->nested("some_field > 'some value'")->or("other_field < 'other value'")
         );
     }
 
     public function testBugWhenFirstConditionIsNested()
     {
         $where = new WhereOrHavingClause();
-        $where->and_(
+        $where->and(
             $where->nested(new ColumnReference(['foo']))
-                ->or_(new ColumnReference(['bar']))
+                ->or(new ColumnReference(['bar']))
         );
-        $where->and_(new ColumnReference(['baz']));
+        $where->and(new ColumnReference(['baz']));
 
         $this->assertEquals(
             new LogicalExpression(
@@ -162,8 +162,8 @@ class WhereOrHavingClauseTest extends \PHPUnit\Framework\TestCase
     public function testExplicitOrExpressionsShouldBeAutoNestedInAnd()
     {
         $where = new WhereOrHavingClause();
-        $where->and_(new ColumnReference(['foo']));
-        $where->and_(new LogicalExpression(
+        $where->and(new ColumnReference(['foo']));
+        $where->and(new LogicalExpression(
             [
                 new ColumnReference(['bar']),
                 new ColumnReference(['baz']),
@@ -189,14 +189,14 @@ class WhereOrHavingClauseTest extends \PHPUnit\Framework\TestCase
         );
 
         $where = new WhereOrHavingClause();
-        $where->and_(new LogicalExpression(
+        $where->and(new LogicalExpression(
             [
                 new ColumnReference(['bar']),
                 new ColumnReference(['baz']),
             ],
             'or'
         ));
-        $where->and_(new ColumnReference(['foo']));
+        $where->and(new ColumnReference(['foo']));
 
         $this->assertEquals(
             new LogicalExpression(
