@@ -470,7 +470,7 @@ QRY
         return [
             [
                 'foo(variadic bar, baz)',
-                "expecting special character with value ')'"
+                "expecting special character ')'"
             ],
             [
                 'foo(a := b, c)',

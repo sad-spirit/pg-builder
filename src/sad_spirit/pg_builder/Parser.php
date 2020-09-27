@@ -1579,7 +1579,8 @@ class Parser
         }
 
         // we don't really give a fuck about qualified operator's structure, so just return it as string
-        $operator = $this->stream->expect('operator')->getValue() . $this->stream->expect('(')->getValue();
+        $operator = $this->stream->expect(Token::TYPE_KEYWORD, 'operator')->getValue()
+                    . $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(')->getValue();
         while (
             $this->stream->matches(Token::TYPE_IDENTIFIER)
                || $this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
@@ -1675,7 +1676,7 @@ class Parser
                     $this->stream->skip(count($check));
                     array_pop($check); // remove '('
                     $right = $this->TypeList();
-                    $this->stream->expect(')');
+                    $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
                     $operand = new nodes\expressions\IsOfExpression($operand, $right, 'is ' . implode(' ', $check));
                     continue 2;
                 }
@@ -2640,8 +2641,16 @@ class Parser
         $arguments = new nodes\lists\FunctionArgumentList([$this->Expression()]);
         $from  = $for = null;
         if (!$this->stream->matches(Token::TYPE_KEYWORD, ['from', 'for'])) {
-            // generic expr_list, 'from' and 'for' are intended for exception message
-            $this->stream->expect([',', 'from', 'for']);
+            if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
+                $this->stream->next();
+            } else {
+                $token = $this->stream->getCurrent();
+                throw exceptions\SyntaxException::atPosition(
+                    "Unexpected {$token}, expecting ',' or 'from' or 'for'",
+                    $this->stream->getSource(),
+                    $token->getPosition()
+                );
+            }
             $arguments->merge($this->ExpressionList());
 
         } else {

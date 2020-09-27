@@ -51,24 +51,20 @@ class SyntaxException extends \DomainException implements Exception
     }
 
     /**
-     * @param int|string|string[]  $type
+     * Thrown when an actual Token in TokenStream does not match expectations
+     *
+     * @param int                  $type
      * @param string|string[]|null $value
      * @param Token                $actual
      * @param string               $source
      * @return SyntaxException
      */
-    public static function expectationFailed($type, $value, Token $actual, string $source): self
+    public static function expectationFailed(int $type, $value, Token $actual, string $source): self
     {
         [$line, $fragment] = self::getContext($source, $actual->getPosition());
-        if (null === $value) {
-            if (is_int($type)) {
-                $expected = Token::typeToString($type);
-            } else {
-                $expected = "'" . (is_array($type) ? implode("' or '", $type) : $type) . "'";
-            }
-        } else {
-            $expected = Token::typeToString($type) . " with value '"
-                        . (is_array($value) ? implode("' or '", $value) : $value) . "'";
+        $expected          = Token::typeToString($type);
+        if (null !== $value) {
+            $expected .= " '" . (is_array($value) ? implode("' or '", $value) : $value) . "'";
         }
         return new self("Unexpected {$actual} (line {$line}), expecting {$expected}: {$fragment}");
     }

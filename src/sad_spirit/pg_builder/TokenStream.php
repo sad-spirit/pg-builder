@@ -163,12 +163,12 @@ class TokenStream
      *
      * Parameters have the same meaning as those for matches()
      *
-     * @param array|string|integer $type
-     * @param array|string|null    $values
+     * @param int                  $type
+     * @param string|string[]|null $values
      * @return Token
      * @throws exceptions\SyntaxException
      */
-    public function expect($type, $values = null)
+    public function expect(int $type, $values = null)
     {
         $token = $this->tokens[$this->current];
         if (!$token->matches($type, $values)) {
