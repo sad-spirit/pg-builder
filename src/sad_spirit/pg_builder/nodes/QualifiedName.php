@@ -33,11 +33,11 @@ class QualifiedName extends Node
 {
     public function __construct(array $nameParts)
     {
-        $this->props = array(
+        $this->props = [
             'catalog'  => null,
             'schema'   => null,
             'relation' => null
-        );
+        ];
 
         foreach ($nameParts as $idx => &$part) {
             if (is_string($part)) {

@@ -39,10 +39,10 @@ class IndexElement extends Node
         $expression, QualifiedName $collation = null, QualifiedName $opClass = null,
         $direction = null, $nullsOrder = null
     ) {
-        if (null !== $direction && !in_array($direction, array('asc', 'desc'), true)) {
+        if (null !== $direction && !in_array($direction, ['asc', 'desc'], true)) {
             throw new InvalidArgumentException("Unknown sort direction '{$direction}'");
         }
-        if (null !== $nullsOrder && !in_array($nullsOrder, array('first', 'last'), true)) {
+        if (null !== $nullsOrder && !in_array($nullsOrder, ['first', 'last'], true)) {
             throw new InvalidArgumentException("Unknown nulls order '{$nullsOrder}'");
         }
         $this->setExpression($expression);

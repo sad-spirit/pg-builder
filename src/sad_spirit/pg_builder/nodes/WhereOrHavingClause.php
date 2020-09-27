@@ -88,7 +88,7 @@ class WhereOrHavingClause extends Node
             ) {
                 // nested condition, should always wrap in LogicalExpression
                 $this->setNamedProperty('condition', new LogicalExpression(
-                    array($condition instanceof self ? $condition->condition : $condition), 'and'
+                    [$condition instanceof self ? $condition->condition : $condition], 'and'
                 ));
 
             } else {
@@ -98,7 +98,7 @@ class WhereOrHavingClause extends Node
         } else {
             if (!($this->props['condition'] instanceof LogicalExpression)) {
                 $this->setNamedProperty('condition', new LogicalExpression(
-                    array($this->props['condition']), 'and'
+                    [$this->props['condition']], 'and'
                 ));
             }
             /* @var $recipient LogicalExpression */
@@ -110,7 +110,7 @@ class WhereOrHavingClause extends Node
                 foreach ($this->props['condition'] as $key => $recipient) {
                 }
                 if (!($recipient instanceof LogicalExpression) || 'and' !== $recipient->operator) {
-                    $this->props['condition'][$key] = $recipient = new LogicalExpression(array($recipient), 'and');
+                    $this->props['condition'][$key] = $recipient = new LogicalExpression([$recipient], 'and');
                 }
             }
             if ($condition instanceof LogicalExpression && 'and' === $condition->operator) {
@@ -142,7 +142,7 @@ class WhereOrHavingClause extends Node
                 || 'or' !== $this->props['condition']->operator
             ) {
                 $this->setNamedProperty('condition', new LogicalExpression(
-                    array($this->props['condition']), 'or'
+                    [$this->props['condition']], 'or'
                 ));
             }
 

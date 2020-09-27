@@ -31,14 +31,14 @@ use sad_spirit\pg_builder\Node,
  */
 class LockingElement extends NonAssociativeList
 {
-    protected static $allowedStrengths = array(
+    protected static $allowedStrengths = [
         'update'        => true,
         'no key update' => true,
         'share'         => true,
         'key share'     => true
-    );
+    ];
 
-    public function __construct($strength, array $relations = array(), $noWait = false, $skipLocked = false)
+    public function __construct($strength, array $relations = [], $noWait = false, $skipLocked = false)
     {
         if (!isset(self::$allowedStrengths[$strength])) {
             throw new InvalidArgumentException("Unknown locking strength '{$strength}'");

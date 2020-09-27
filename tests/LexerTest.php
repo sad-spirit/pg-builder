@@ -120,7 +120,7 @@ QRY
         $this->assertEquals('foo\\\\bar', $stream->next()->getValue());
         $this->assertEquals('foo\\bar', $stream->next()->getValue());
 
-        $this->lexer = new Lexer(array('standard_conforming_strings' => false));
+        $this->lexer = new Lexer(['standard_conforming_strings' => false]);
         $stream2 = $this->lexer->tokenize($string);
         $this->assertEquals('foo\\bar', $stream2->next()->getValue());
         $this->assertEquals('foo\\bar', $stream2->next()->getValue());
@@ -177,13 +177,13 @@ QRY
 
     public function getUnterminatedLiterals()
     {
-        return array(
-            array("select 'foo  "),
-            array(" 'foo \\' '"), // standards_conforming_string is on by default
-            array(" e'foo "),
-            array(" e'foo\\'"),
-            array(" x'1234")
-        );
+        return [
+            ["select 'foo  "],
+            [" 'foo \\' '"], // standards_conforming_string is on by default
+            [" e'foo "],
+            [" e'foo\\'"],
+            [" x'1234"]
+        ];
     }
 
     public function testUnexpectedSymbol()
@@ -213,7 +213,7 @@ QRY
         try {
             $oldEncoding = mb_internal_encoding();
             mb_internal_encoding('CP1251');
-            $this->lexer = new Lexer(array('ascii_only_downcasing' => false));
+            $this->lexer = new Lexer(['ascii_only_downcasing' => false]);
             $stream = $this->lexer->tokenize(mb_convert_encoding('ИмЯ_бЕз_КаВыЧеК "ИмЯ_в_КаВыЧкАх"', 'CP1251', 'UTF8'));
             $stream->expect(Token::TYPE_IDENTIFIER, mb_convert_encoding('имя_без_кавычек', 'CP1251', 'UTF8'));
             $stream->expect(Token::TYPE_IDENTIFIER, mb_convert_encoding('ИмЯ_в_КаВыЧкАх', 'CP1251', 'UTF8'));

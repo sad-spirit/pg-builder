@@ -70,35 +70,35 @@ QRY
         );
 
         $built = new Select(
-            new TargetList(array(
-                new TargetElement(new ColumnReference(array('foo'))),
-                new TargetElement(new ColumnReference(array('bar'))),
+            new TargetList([
+                new TargetElement(new ColumnReference(['foo'])),
+                new TargetElement(new ColumnReference(['bar'])),
                 new TargetElement(
                     new FunctionExpression(
-                        new QualifiedName(array('baz')), null, false, false, null,
+                        new QualifiedName(['baz']), null, false, false, null,
                         null, null, new WindowDefinition(new Identifier('win95'))
                     ),
                     new Identifier('blah')
                 ),
-                new TargetElement(new ColumnReference(array('quux')), new Identifier('alias'))
-            )),
-            new ExpressionList(array(new ColumnReference(array('foo'))))
+                new TargetElement(new ColumnReference(['quux']), new Identifier('alias'))
+            ]),
+            new ExpressionList([new ColumnReference(['foo'])])
         );
 
-        $built->from->replace(array(
-            new RelationReference(new QualifiedName(array('one'))),
-            new RelationReference(new QualifiedName(array('two')))
-        ));
+        $built->from->replace([
+            new RelationReference(new QualifiedName(['one'])),
+            new RelationReference(new QualifiedName(['two']))
+        ]);
         $built->where->condition = new OperatorExpression(
-            '=', new ColumnReference(array('one', 'id')), new ColumnReference(array('two', 'id'))
+            '=', new ColumnReference(['one', 'id']), new ColumnReference(['two', 'id'])
         );
-        $built->group->replace(array(
-            new ColumnReference(array('bar'))
-        ));
+        $built->group->replace([
+            new ColumnReference(['bar'])
+        ]);
         $built->having->condition = new OperatorExpression(
             '>', new FunctionExpression(
-                new QualifiedName(array('count')),
-                new FunctionArgumentList(array(new ColumnReference(array('quux'))))
+                new QualifiedName(['count']),
+                new FunctionArgumentList([new ColumnReference(['quux'])])
             ), new Constant(1)
         );
         $win95 = new WindowDefinition();
@@ -119,11 +119,11 @@ QRY
 QRY
         );
 
-        $foo = new Select(new TargetList(array(new TargetElement(new Constant('foo')))));
+        $foo = new Select(new TargetList([new TargetElement(new Constant('foo'))]));
 
-        $bar = new Select(new TargetList(array(new TargetElement(new Constant('bar')))));
+        $bar = new Select(new TargetList([new TargetElement(new Constant('bar'))]));
 
-        $baz = new Select(new TargetList(array(new TargetElement(new Constant('baz')))));
+        $baz = new Select(new TargetList([new TargetElement(new Constant('baz'))]));
 
         $this->assertEquals(
             new SetOpSelect($foo, new SetOpSelect($bar, $baz, 'intersect'), 'union'),
@@ -147,12 +147,12 @@ QRY
 
     public function getMultipleClausesQueries()
     {
-        return array(
-            array('(select * from foo order by 1) order by 2'),
-            array('(select * from foo limit 1) limit 2'),
-            array('(select * from foo offset 1) offset 2'),
-            array('with a as (select * from foo) (with b as (select * from bar) select * from a natural join b)')
-        );
+        return [
+            ['(select * from foo order by 1) order by 2'],
+            ['(select * from foo limit 1) limit 2'],
+            ['(select * from foo offset 1) offset 2'],
+            ['with a as (select * from foo) (with b as (select * from bar) select * from a natural join b)']
+        ];
     }
 
     /**
@@ -162,7 +162,7 @@ QRY
     {
         $parsed = $this->parser->parseStatement($stmt);
 
-        $built = new Select(new TargetList(array(new Star())));
+        $built = new Select(new TargetList([new Star()]));
         if (is_scalar($limit)) {
             $built->limit = new Constant($limit);
         } else {
@@ -180,25 +180,25 @@ QRY
 
     public function getLimitOffsetClauses()
     {
-        return array(
-            array('select * limit 2 offset 3', 2, 3),
-            array('select * offset 3 limit 1 + 1', new OperatorExpression('+', new Constant(1), new Constant(1)), 3),
-            array('select * offset 2 rows fetch first row only', 1, 2),
-            array('select * fetch first 5 rows only', 5, null),
-            array('select * fetch next (4 + 1) rows only', new OperatorExpression('+', new Constant(4), new Constant(1)), null),
+        return [
+            ['select * limit 2 offset 3', 2, 3],
+            ['select * offset 3 limit 1 + 1', new OperatorExpression('+', new Constant(1), new Constant(1)), 3],
+            ['select * offset 2 rows fetch first row only', 1, 2],
+            ['select * fetch first 5 rows only', 5, null],
+            ['select * fetch next (4 + 1) rows only', new OperatorExpression('+', new Constant(4), new Constant(1)), null],
             // fetch should allow float constant, not just integer
-            array('select * fetch next +6.66 rows only', 6.66, null),
+            ['select * fetch next +6.66 rows only', 6.66, null],
             // fetch should allow negative number, Postgres rejects that a bit later
-            array('select * fetch first -1 row only', -1, null),
+            ['select * fetch first -1 row only', -1, null],
             // fetch should allow c_expr (our ExpressionAtom)
-            array(
+            [
                 'select * fetch next cast(5 as integer) rows only',
-                new TypecastExpression(new Constant(5), new TypeName(new QualifiedName(array('pg_catalog', 'int4')))),
+                new TypecastExpression(new Constant(5), new TypeName(new QualifiedName(['pg_catalog', 'int4']))),
                 null
-            ),
+            ],
             // WITH TIES clause added in Postgres 13
-            array('select * offset 5 rows fetch next 5 rows with ties', 5, 5, true)
-        );
+            ['select * offset 5 rows fetch next 5 rows with ties', 5, 5, true]
+        ];
     }
 
     public function testLockingClauses()
@@ -208,10 +208,10 @@ QRY
 QRY
         );
         $this->assertEquals(
-            new LockList(array(
-                new LockingElement('share', array(new QualifiedName(array('a', 'foo')), new QualifiedName(array('c', 'baz')))),
-                new LockingElement('no key update', array(new QualifiedName(array('b', 'bar'))), false, true)
-            )),
+            new LockList([
+                new LockingElement('share', [new QualifiedName(['a', 'foo']), new QualifiedName(['c', 'baz'])]),
+                new LockingElement('no key update', [new QualifiedName(['b', 'bar'])], false, true)
+            ]),
             clone $select->locking
         );
     }
@@ -223,10 +223,10 @@ QRY
 QRY
         );
         $this->assertEquals(
-            new LockList(array(
-                new LockingElement('update', array(new QualifiedName(array('foo')))),
-                new LockingElement('update', array(new QualifiedName(array('bar'))), true)
-            )),
+            new LockList([
+                new LockingElement('update', [new QualifiedName(['foo'])]),
+                new LockingElement('update', [new QualifiedName(['bar'])], true)
+            ]),
             clone $select->locking
         );
     }
@@ -245,17 +245,17 @@ QRY
                     quux as (range between unbounded preceding and current row)
 QRY
         );
-        $windows = array(
+        $windows = [
             new WindowDefinition(),
             new WindowDefinition(new Identifier('foo')),
-            new WindowDefinition(null, new ExpressionList(array(new ColumnReference(array('whatever'))))),
+            new WindowDefinition(null, new ExpressionList([new ColumnReference(['whatever'])])),
             new WindowDefinition(
                 null, null, null,
                 new WindowFrameClause(
                     'range', new WindowFrameBound('preceding'), new WindowFrameBound('current row')
                 )
             )
-        );
+        ];
         $windows[0]->setName(new Identifier('foo'));
         $windows[1]->setName(new Identifier('bar'));
         $windows[2]->setName(new Identifier('baz'));

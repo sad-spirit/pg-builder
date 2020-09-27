@@ -31,7 +31,7 @@ class WindowFrameBound extends Node
 {
     public function __construct($direction, ScalarExpression $value = null)
     {
-        if (!in_array($direction, array('preceding', 'following', 'current row'), true)) {
+        if (!in_array($direction, ['preceding', 'following', 'current row'], true)) {
             throw new InvalidArgumentException("Unknown window frame direction '{$direction}'");
         }
         $this->props['direction'] = $direction;
@@ -40,7 +40,7 @@ class WindowFrameBound extends Node
 
     public function setValue(ScalarExpression $value = null)
     {
-        if (!is_null($value) && !in_array($this->props['direction'], array('preceding', 'following'))) {
+        if (!is_null($value) && !in_array($this->props['direction'], ['preceding', 'following'])) {
             throw new InvalidArgumentException("Value can only be set for PRECEDING or FOLLOWING direction");
         }
         $this->setNamedProperty('value', $value);

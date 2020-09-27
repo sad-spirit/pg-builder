@@ -31,17 +31,17 @@ use sad_spirit\pg_builder\Node,
  */
 class WindowFrameClause extends Node
 {
-    protected static $allowedTypes = array(
+    protected static $allowedTypes = [
         'range'  => true,
         'rows'   => true,
         'groups' => true
-    );
+    ];
 
-    protected static $allowedExclusions = array(
+    protected static $allowedExclusions = [
         'current row' => true,
         'group'       => true,
         'ties'        => true
-    );
+    ];
 
     public function __construct($type, WindowFrameBound $start, WindowFrameBound $end = null, $exclusion = null)
     {
@@ -71,7 +71,7 @@ class WindowFrameClause extends Node
             if ('current row' === $start->direction && 'preceding' === $end->direction) {
                 throw new InvalidArgumentException("Frame starting from current row cannot have preceding rows");
             }
-            if ('following' === $start->direction && in_array($end->direction, array('current row', 'preceding'))) {
+            if ('following' === $start->direction && in_array($end->direction, ['current row', 'preceding'])) {
                 throw new InvalidArgumentException("Frame starting from following row cannot have preceding rows");
             }
         }

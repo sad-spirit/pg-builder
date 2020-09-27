@@ -53,10 +53,10 @@ $query->where->and_('age(news_added) < :age::interval');
 $generated = $factory->createFromAST($query);
 
 // Note that we don't have to specify parameter types, these are extracted from query
-$result = $generated->executeParams($connection, array(
-    'rubric' => array(19, 20, 21),
+$result = $generated->executeParams($connection, [
+    'rubric' => [19, 20, 21],
     'age'    => 30 * 24 * 3600
-));
+]);
 
 foreach ($result as $row) {
     print_r($row);

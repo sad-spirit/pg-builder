@@ -62,25 +62,25 @@ returning *
 QRY
         );
 
-        $built = new Delete(new UpdateOrDeleteTarget(new QualifiedName(array('bar'))));
-        $built->using->merge(array(
-            new RelationReference(new QualifiedName(array('foo')))
-        ));
+        $built = new Delete(new UpdateOrDeleteTarget(new QualifiedName(['bar'])));
+        $built->using->merge([
+            new RelationReference(new QualifiedName(['foo']))
+        ]);
         $built->where->condition = new OperatorExpression(
-            '=', new ColumnReference(array('foo', 'id')), new ColumnReference(array('bar', 'foo_id'))
+            '=', new ColumnReference(['foo', 'id']), new ColumnReference(['bar', 'foo_id'])
         );
-        $built->returning->merge(new TargetList(array(new Star())));
+        $built->returning->merge(new TargetList([new Star()]));
 
-        $cte = new Select(new TargetList(array(
-            new TargetElement(new ColumnReference(array('somefoo')))
-        )));
-        $cte->from->replace(array(
-            new RelationReference(new QualifiedName(array('basefoo')))
-        ));
+        $cte = new Select(new TargetList([
+            new TargetElement(new ColumnReference(['somefoo']))
+        ]));
+        $cte->from->replace([
+            new RelationReference(new QualifiedName(['basefoo']))
+        ]);
 
-        $built->with = new WithClause(array(new CommonTableExpression(
-            $cte, new Identifier('foo'), new IdentifierList(array(new Identifier('id')))
-        )));
+        $built->with = new WithClause([new CommonTableExpression(
+            $cte, new Identifier('foo'), new IdentifierList([new Identifier('id')])
+        )]);
 
         $this->assertEquals($built, $parsed);
     }

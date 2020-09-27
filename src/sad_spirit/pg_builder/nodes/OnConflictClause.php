@@ -49,7 +49,7 @@ class OnConflictClause extends Node
 
     public function setAction($action)
     {
-        if (!in_array($action, array('nothing', 'update'), true)) {
+        if (!in_array($action, ['nothing', 'update'], true)) {
             throw new InvalidArgumentException("Unknown ON CONFLICT action '{$action}'");
         }
         $this->props['action'] = $action;

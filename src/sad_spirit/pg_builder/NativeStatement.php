@@ -69,7 +69,7 @@ class NativeStatement
      */
     function __sleep()
     {
-        return array('_sql', '_parameterTypes', '_namedParameterMap');
+        return ['_sql', '_parameterTypes', '_namedParameterMap'];
     }
 
     /**
@@ -111,7 +111,7 @@ class NativeStatement
      */
     public function mapNamedParameters(array $parameters)
     {
-        $positional = array();
+        $positional = [];
         foreach ($this->_namedParameterMap as $name => $position) {
             if (!array_key_exists($name, $parameters)) {
                 throw new exceptions\InvalidArgumentException("Missing parameter name '{$name}'");
@@ -165,7 +165,7 @@ class NativeStatement
      * @throws exceptions\InvalidArgumentException
      */
     public function executeParams(
-        Connection $connection, array $params, array $inputTypes = array(), array $outputTypes = array()
+        Connection $connection, array $params, array $inputTypes = [], array $outputTypes = []
     ) {
         if (empty($this->_namedParameterMap)) {
             return $connection->executeParams(
@@ -186,7 +186,7 @@ class NativeStatement
      *                               array take precedence over types from parameterTypes
      * @return PreparedStatement
      */
-    public function prepare(Connection $connection, array $types = array())
+    public function prepare(Connection $connection, array $types = [])
     {
         $this->_prepared = $connection->prepare($this->_sql, $this->mergeInputTypes($types));
         return $this->_prepared;
@@ -201,7 +201,7 @@ class NativeStatement
      * @throws exceptions\RuntimeException
      * @throws InvalidQueryException
      */
-    public function executePrepared(array $params = array(), array $resultTypes = array())
+    public function executePrepared(array $params = [], array $resultTypes = [])
     {
         if (!$this->_prepared) {
             throw new exceptions\RuntimeException(__METHOD__ . '(): prepare() should be called first');

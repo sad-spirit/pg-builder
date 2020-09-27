@@ -31,11 +31,11 @@ use sad_spirit\pg_builder\Node,
  */
 class XmlRoot extends Node implements ScalarExpression
 {
-    protected static $standaloneOptions = array(
+    protected static $standaloneOptions = [
         'yes'      => true,
         'no'       => true,
         'no value' => true
-    );
+    ];
 
     public function __construct(ScalarExpression $xml, ScalarExpression $version = null, $standalone = null)
     {

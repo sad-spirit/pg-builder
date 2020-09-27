@@ -34,7 +34,7 @@ class Constant extends Node implements ScalarExpression
     {
         if ($tokenOrConstant instanceof Token) {
             if (0 === (Token::TYPE_LITERAL & $tokenOrConstant->getType())
-                && !$tokenOrConstant->matches(Token::TYPE_KEYWORD, array('null', 'false', 'true'))
+                && !$tokenOrConstant->matches(Token::TYPE_KEYWORD, ['null', 'false', 'true'])
             ) {
                 throw new InvalidArgumentException(sprintf(
                     '%s requires a literal token, %s given',

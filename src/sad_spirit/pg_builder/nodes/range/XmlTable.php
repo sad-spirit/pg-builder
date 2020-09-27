@@ -42,7 +42,7 @@ class XmlTable extends FromElement
         $this->setRowExpression($rowExpression);
         $this->setDocumentExpression($documentExpression);
         $this->setNamedProperty('columns', $columns);
-        $this->setNamedProperty('namespaces', $namespaces ?: new XmlNamespaceList(array()));
+        $this->setNamedProperty('namespaces', $namespaces ?: new XmlNamespaceList([]));
     }
 
     public function setRowExpression(ScalarExpression $rowExpression)

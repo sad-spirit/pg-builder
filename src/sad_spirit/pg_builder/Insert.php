@@ -74,7 +74,7 @@ class Insert extends Statement
 
     public function setOverriding($overriding = null)
     {
-        if (null !== $overriding && !in_array($overriding, array('user', 'system'))) {
+        if (null !== $overriding && !in_array($overriding, ['user', 'system'])) {
             throw new InvalidArgumentException("Unknown override kind '{$overriding}'");
         }
         $this->props['overriding'] = $overriding;

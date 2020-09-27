@@ -54,7 +54,7 @@ class ParserAwareTypeConverterFactoryTest extends \PHPUnit\Framework\TestCase
         $connection->setTypeConverterFactory($this->factory);
 
         $this->assertEquals(
-            new TypeName(new QualifiedName(array('int4'))),
+            new TypeName(new QualifiedName(['int4'])),
             $this->factory->createTypeNameNodeForOid(23)
         );
     }
@@ -63,7 +63,7 @@ class ParserAwareTypeConverterFactoryTest extends \PHPUnit\Framework\TestCase
     {
         $this->assertEquals(
             new IntegerConverter(),
-            $this->factory->getConverterForTypeSpecification(new TypeName(new QualifiedName(array('int4'))))
+            $this->factory->getConverterForTypeSpecification(new TypeName(new QualifiedName(['int4'])))
         );
     }
 
@@ -79,12 +79,12 @@ class ParserAwareTypeConverterFactoryTest extends \PHPUnit\Framework\TestCase
 
     public function complexTypeNamesProvider()
     {
-        return array(
-            array("decimal(1,2)",                   new NumericConverter()),
-            array("timestamp (0) with time zone",   new TimeStampTzConverter()),
-            array("national character varying(13)", new StringConverter()),
-            array("postgres.pg_catalog.int4 array", new ArrayConverter(new IntegerConverter())),
-            array("interval hour to second(10)",    new IntervalConverter())
-        );
+        return [
+            ["decimal(1,2)",                   new NumericConverter()],
+            ["timestamp (0) with time zone",   new TimeStampTzConverter()],
+            ["national character varying(13)", new StringConverter()],
+            ["postgres.pg_catalog.int4 array", new ArrayConverter(new IntegerConverter())],
+            ["interval hour to second(10)",    new IntervalConverter()]
+        ];
     }
 }

@@ -31,14 +31,14 @@ use sad_spirit\pg_builder\Node,
  */
 class SubselectExpression extends Node implements ScalarExpression
 {
-    protected static $allowedExpressions = array(
+    protected static $allowedExpressions = [
         'exists' => true,
         'any'    => true,
         'all'    => true,
         'some'   => true,
         'array'  => true
         // "in" is served by InExpression
-    );
+    ];
 
     public function __construct(SelectCommon $query, $operator = null)
     {

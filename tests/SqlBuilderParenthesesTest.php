@@ -92,32 +92,32 @@ class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
 
     public function chainedComparisonProvider()
     {
-        return array(
-            array(
+        return [
+            [
                 new OperatorExpression(
                     '=',
-                    new ColumnReference(array(new Identifier('foo'))),
+                    new ColumnReference([new Identifier('foo')]),
                     new OperatorExpression(
                         '=',
-                        new ColumnReference(array(new Identifier('bar'))),
-                        new ColumnReference(array(new Identifier('baz')))
+                        new ColumnReference([new Identifier('bar')]),
+                        new ColumnReference([new Identifier('baz')])
                     )
                 ),
                 'foo = (bar = baz)'
-            ),
-            array(
+            ],
+            [
                 new OperatorExpression(
                     '<=',
                     new OperatorExpression(
                         '>=',
-                        new ColumnReference(array(new Identifier('a'))),
-                        new ColumnReference(array(new Identifier('b')))
+                        new ColumnReference([new Identifier('a')]),
+                        new ColumnReference([new Identifier('b')])
                     ),
-                    new ColumnReference(array(new Identifier('c')))
+                    new ColumnReference([new Identifier('c')])
                 ),
                 '(a >= b) <= c',
-            ),
-            array(
+            ],
+            [
                 new OperatorExpression(
                     '=',
                     new OperatorExpression(
@@ -128,14 +128,14 @@ class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
                     new Constant(true)
                 ),
                 '(2 < 3) = true'
-            )
-        );
+            ]
+        ];
     }
 
     public function isPrecedenceProvider()
     {
-        return array(
-            array(
+        return [
+            [
                 new OperatorExpression(
                     'is null',
                     new OperatorExpression(
@@ -145,20 +145,20 @@ class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
                     )
                 ),
                 'false = true is null'
-            ),
-            array(
+            ],
+            [
                 new OperatorExpression(
                     'is distinct from',
                     new OperatorExpression(
                         '@#!',
-                        new ColumnReference(array(new Identifier('foo'))),
-                        new ColumnReference(array(new Identifier('bar')))
+                        new ColumnReference([new Identifier('foo')]),
+                        new ColumnReference([new Identifier('bar')])
                     ),
-                    new ColumnReference(array(new Identifier('baz')))
+                    new ColumnReference([new Identifier('baz')])
                 ),
                 'foo @#! bar is distinct from baz'
-            ),
-            array(
+            ],
+            [
                 new OperatorExpression(
                     'is not true',
                     new PatternMatchingExpression(
@@ -167,40 +167,40 @@ class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
                     )
                 ),
                 "'foo' like 'bar' is not true"
-            ),
-            array(
+            ],
+            [
                 new OperatorExpression(
                     'is not false',
                     new BetweenExpression(
-                        new ColumnReference(array(new Identifier('foo'))),
+                        new ColumnReference([new Identifier('foo')]),
                         new Constant(false),
                         new Constant(true)
                     )
                 ),
                 'foo between false and true is not false'
-            )
-        );
+            ]
+        ];
     }
 
     public function inequalityPrecedenceProvider()
     {
-        return array(
-            array(
+        return [
+            [
                 new OperatorExpression(
                     '<=',
                     new OperatorExpression(
                         '->>',
-                        new ColumnReference(array(new Identifier('j'))),
+                        new ColumnReference([new Identifier('j')]),
                         new Constant('space')
                     ),
                     new OperatorExpression(
                         '->>',
-                        new ColumnReference(array(new Identifier('j'))),
+                        new ColumnReference([new Identifier('j')]),
                         new Constant('node')
                     )
                 ),
                 "j ->> 'space' <= j ->> 'node'"
-            )
-        );
+            ]
+        ];
     }
 }

@@ -26,7 +26,7 @@ abstract class Node
      * Properties accessible through magic __get() and (sometimes) __set() methods
      * @var Node[]
      */
-    protected $props = array();
+    protected $props = [];
 
     /**
      * Link to the Node containing current one
@@ -103,7 +103,7 @@ abstract class Node
      */
     function __sleep()
     {
-        return array('props');
+        return ['props'];
     }
 
     /**

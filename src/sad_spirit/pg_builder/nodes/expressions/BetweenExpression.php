@@ -32,14 +32,14 @@ use sad_spirit\pg_builder\Node,
  */
 class BetweenExpression extends Node implements ScalarExpression
 {
-    protected static $allowedOperators = array(
+    protected static $allowedOperators = [
         'between symmetric'      => true,
         'between asymmetric'     => true,
         'not between symmetric'  => true,
         'not between asymmetric' => true,
         'between'                => true,
         'not between'            => true
-    );
+    ];
 
     public function __construct(
         ScalarExpression $argument, ScalarExpression $left, ScalarExpression $right, $operator = 'between'

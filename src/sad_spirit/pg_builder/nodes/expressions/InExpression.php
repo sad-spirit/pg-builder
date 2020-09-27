@@ -37,7 +37,7 @@ class InExpression extends Node implements ScalarExpression
 {
     public function __construct(ScalarExpression $left, $right, $operator = 'in')
     {
-        if (!in_array($operator, array('in', 'not in'), true)) {
+        if (!in_array($operator, ['in', 'not in'], true)) {
             throw new InvalidArgumentException("Unknown operator '{$operator}' for IN-style expression");
         }
         $this->setRight($right);

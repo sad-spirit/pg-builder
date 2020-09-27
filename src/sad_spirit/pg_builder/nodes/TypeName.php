@@ -35,7 +35,7 @@ class TypeName extends Node
     public function __construct(QualifiedName $typeName, TypeModifierList $typeModifiers = null)
     {
         $this->props['setOf']     = false;
-        $this->props['bounds']    = array();
+        $this->props['bounds']    = [];
         $this->setNamedProperty('name', $typeName);
         $this->setNamedProperty('modifiers', $typeModifiers ?: new TypeModifierList());
     }
@@ -47,7 +47,7 @@ class TypeName extends Node
 
     public function setBounds(array $bounds)
     {
-        $this->props['bounds'] = array();
+        $this->props['bounds'] = [];
         foreach ($bounds as $key => $value) {
             if (!is_int($value) && !ctype_digit($value)) {
                 throw new InvalidArgumentException(sprintf(

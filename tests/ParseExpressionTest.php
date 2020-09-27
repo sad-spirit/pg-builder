@@ -73,30 +73,30 @@ class ParseExpressionTest extends \PHPUnit\Framework\TestCase
 QRY
         );
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new Constant('foo'),
-                new ColumnReference(array(new Identifier('bar'), new Identifier('baz'))),
-                new ArrayExpression(new ExpressionList(array(new Constant(1), new Constant(2)))),
+                new ColumnReference([new Identifier('bar'), new Identifier('baz')]),
+                new ArrayExpression(new ExpressionList([new Constant(1), new Constant(2)])),
                 new ArrayExpression(
-                    array(array(new Constant(1), new Constant(2)), array(new Constant(3), new Constant(4)))
+                    [[new Constant(1), new Constant(2)], [new Constant(3), new Constant(4)]]
                 ),
-                new RowExpression(array(new Constant(3), new Constant(4))),
-                new Indirection(array(new Identifier('blah')), new Parameter(1)),
+                new RowExpression([new Constant(3), new Constant(4)]),
+                new Indirection([new Identifier('blah')], new Parameter(1)),
                 new Parameter('foo'),
                 new Constant(null),
-                new GroupingExpression(array(
-                    new ColumnReference(array(new Identifier('a'))),
-                    new ColumnReference(array(new Identifier('b')))
-                )),
+                new GroupingExpression([
+                    new ColumnReference([new Identifier('a')]),
+                    new ColumnReference([new Identifier('b')])
+                ]),
                 new Indirection(
-                    array(new ArrayIndexes(new Constant(1), null, true)),
-                    new ColumnReference(array(new Identifier('ary')))
+                    [new ArrayIndexes(new Constant(1), null, true)],
+                    new ColumnReference([new Identifier('ary')])
                 ),
                 new Indirection(
-                    array(new ArrayIndexes(new Constant(1), null, false)),
-                    new ColumnReference(array(new Identifier('ary')))
+                    [new ArrayIndexes(new Constant(1), null, false)],
+                    new ColumnReference([new Identifier('ary')])
                 )
-            )),
+            ]),
             $list
         );
     }
@@ -107,26 +107,26 @@ QRY
     (1), (2,3), (foo(4,5)).bar, (array[6,7])[1], ((select 1), 2), (select 1)
 QRY
         );
-        $select = new Select(new TargetList(array(new TargetElement(new Constant(1)))));
+        $select = new Select(new TargetList([new TargetElement(new Constant(1))]));
 
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new Constant(1),
-                new RowExpression(array(new Constant(2), new Constant(3))),
+                new RowExpression([new Constant(2), new Constant(3)]),
                 new Indirection(
-                    array(new Identifier('bar')),
+                    [new Identifier('bar')],
                     new FunctionExpression(
-                        new QualifiedName(array('foo')),
-                        new FunctionArgumentList(array(new Constant(4), new Constant(5)))
+                        new QualifiedName(['foo']),
+                        new FunctionArgumentList([new Constant(4), new Constant(5)])
                     )
                 ),
                 new Indirection(
-                    array(new ArrayIndexes(new Constant(1))),
-                    new ArrayExpression(new ExpressionList(array(new Constant(6), new Constant(7))))
+                    [new ArrayIndexes(new Constant(1))],
+                    new ArrayExpression(new ExpressionList([new Constant(6), new Constant(7)]))
                 ),
-                new RowExpression(array(new SubselectExpression($select), new Constant(2))),
+                new RowExpression([new SubselectExpression($select), new Constant(2)]),
                 new SubselectExpression(clone $select)
-            )),
+            ]),
             $list
         );
     }
@@ -145,10 +145,10 @@ QRY
 
     public function getUnbalancedParentheses()
     {
-        return array(
-            array('(foo', "Unbalanced '('"),
-            array('(array[1,2)', "Unbalanced '['")
-        );
+        return [
+            ['(foo', "Unbalanced '('"],
+            ['(array[1,2)', "Unbalanced '['"]
+        ];
     }
 
     public function testLogicalExpression()
@@ -159,24 +159,24 @@ QRY
         );
         $this->assertEquals(
             new LogicalExpression(
-                array(
+                [
                     new LogicalExpression(
-                        array(
-                            new ColumnReference(array(new Identifier('a'))),
-                            new OperatorExpression('not', null, new ColumnReference(array(new Identifier('b'))))
-                        ),
+                        [
+                            new ColumnReference([new Identifier('a')]),
+                            new OperatorExpression('not', null, new ColumnReference([new Identifier('b')]))
+                        ],
                         'and'
                     ),
                     new LogicalExpression(
-                        array(
+                        [
                             new OperatorExpression('not', null, new OperatorExpression(
-                                'not', null, new ColumnReference(array(new Identifier('c')))
+                                'not', null, new ColumnReference([new Identifier('c')])
                             )),
-                            new ColumnReference(array(new Identifier('d')))
-                        )
+                            new ColumnReference([new Identifier('d')])
+                        ]
                     ),
-                    new ColumnReference(array(new Identifier('e')))
-                ),
+                    new ColumnReference([new Identifier('e')])
+                ],
                 'or'
             ),
             $expr
@@ -223,14 +223,14 @@ QRY
         $this->assertEquals(
             new OperatorExpression(
                 'overlaps',
-                new RowExpression(array(
-                    new ColumnReference(array(new Identifier('foo'))),
-                    new ColumnReference(array(new Identifier('bar')))
-                )),
-                new RowExpression(array(
-                    new ColumnReference(array(new Identifier('baz'))),
-                    new ColumnReference(array(new Identifier('quux')))
-                ))
+                new RowExpression([
+                    new ColumnReference([new Identifier('foo')]),
+                    new ColumnReference([new Identifier('bar')])
+                ]),
+                new RowExpression([
+                    new ColumnReference([new Identifier('baz')]),
+                    new ColumnReference([new Identifier('quux')])
+                ])
             ),
             $expr
         );
@@ -253,19 +253,19 @@ QRY
         );
         $this->assertEquals(
             new LogicalExpression(
-                array(
+                [
                     new BetweenExpression(
-                        new ColumnReference(array(new Identifier('foo'))),
+                        new ColumnReference([new Identifier('foo')]),
                         new Constant('bar'),
                         new Constant('baz')
                     ),
                     new BetweenExpression(
-                        new ColumnReference(array(new Identifier('foofoo'))),
+                        new ColumnReference([new Identifier('foofoo')]),
                         new Constant('quux'),
                         new Constant('xyzzy'),
                         'not between symmetric'
                     )
-                ),
+                ],
                 'and'
             ),
             $expression
@@ -279,29 +279,29 @@ QRY
 QRY
         );
 
-        $select = new Select(new TargetList(array(new TargetElement(new Constant('baz')))));
+        $select = new Select(new TargetList([new TargetElement(new Constant('baz'))]));
 
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new InExpression(
                     new InExpression(
-                        new ColumnReference(array(new Identifier('foo'))),
-                        new ExpressionList(array(
+                        new ColumnReference([new Identifier('foo')]),
+                        new ExpressionList([
                             new Constant('foo'),
                             new Constant('bar')
-                        ))
+                        ])
                     ),
-                    new ExpressionList(array(
+                    new ExpressionList([
                         new Constant(true),
                         new Constant(false)
-                    ))
+                    ])
                 ),
                 new InExpression(
-                    new ColumnReference(array(new Identifier('bar'))),
+                    new ColumnReference([new Identifier('bar')]),
                     $select,
                     'not in'
                 )
-            )),
+            ]),
             $list
         );
     }
@@ -314,44 +314,44 @@ QRY
 QRY
         );
 
-        $foo = new Select(new TargetList(array(new TargetElement(new ColumnReference(array('otherfoo'))))));
-        $foo->from[] = new RelationReference(new QualifiedName(array('foosource')));
+        $foo = new Select(new TargetList([new TargetElement(new ColumnReference(['otherfoo']))]));
+        $foo->from[] = new RelationReference(new QualifiedName(['foosource']));
 
-        $bar = new Select(new TargetList(array(new TargetElement(new ColumnReference(array('barpattern'))))));
-        $bar->from[] = new RelationReference(new QualifiedName(array('barsource')));
+        $bar = new Select(new TargetList([new TargetElement(new ColumnReference(['barpattern']))]));
+        $bar->from[] = new RelationReference(new QualifiedName(['barsource']));
 
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new OperatorExpression(
-                    '<', new ColumnReference(array('foo')), new SubselectExpression($foo, 'any')
+                    '<', new ColumnReference(['foo']), new SubselectExpression($foo, 'any')
                 ),
                 new PatternMatchingExpression(
-                    new ColumnReference(array('bar')), new SubselectExpression($bar, 'all'), 'like'
+                    new ColumnReference(['bar']), new SubselectExpression($bar, 'all'), 'like'
                 ),
                 new OperatorExpression(
-                    '=', new ColumnReference(array('baz')),
-                    new FunctionExpression('some', new FunctionArgumentList(array(
-                        new ArrayExpression(array(new ColumnReference(array('one')), new ColumnReference(array('two'))))
-                    )))
+                    '=', new ColumnReference(['baz']),
+                    new FunctionExpression('some', new FunctionArgumentList([
+                        new ArrayExpression([new ColumnReference(['one']), new ColumnReference(['two'])])
+                    ]))
                 ),
                 new OperatorExpression(
                     '=',
                     new OperatorExpression(
                         '=',
-                        new ColumnReference(array(new Identifier('foo'))),
+                        new ColumnReference([new Identifier('foo')]),
                         new FunctionExpression(
                             'any',
-                            new FunctionArgumentList(array(
-                                new ArrayExpression(new ExpressionList(array(
-                                    new ColumnReference(array(new Identifier('bar'))),
-                                    new ColumnReference(array(new Identifier('baz')))
-                                )))
-                            ))
+                            new FunctionArgumentList([
+                                new ArrayExpression(new ExpressionList([
+                                    new ColumnReference([new Identifier('bar')]),
+                                    new ColumnReference([new Identifier('baz')])
+                                ]))
+                            ])
                         )
                     ),
-                    new ColumnReference(array(new Identifier('quux')))
+                    new ColumnReference([new Identifier('quux')])
                 )
-            )),
+            ]),
             $list
         );
     }
@@ -363,36 +363,36 @@ QRY
 QRY
         );
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new OperatorExpression(
                     '?',
                     new OperatorExpression(
                         '#',
-                        new ColumnReference(array(new Identifier('w'))),
+                        new ColumnReference([new Identifier('w')]),
                         new OperatorExpression(
                             '@',
                             null,
-                            new ColumnReference(array(new Identifier('v')))
+                            new ColumnReference([new Identifier('v')])
                         )
                     ),
-                    new ColumnReference(array(new Identifier('u')))
+                    new ColumnReference([new Identifier('u')])
                 ),
                 new OperatorExpression(
                     '!',
-                    new ColumnReference(array(new Identifier('q'))),
+                    new ColumnReference([new Identifier('q')]),
                     null
                 ),
                 new OperatorExpression(
                     '!',
                     null,
-                    new ColumnReference(array(new Identifier('q')))
+                    new ColumnReference([new Identifier('q')])
                 ),
                 new OperatorExpression(
                     'operator("blah".###)',
-                    new ColumnReference(array(new Identifier('r'))),
-                    new ColumnReference(array(new Identifier('s')))
+                    new ColumnReference([new Identifier('r')]),
+                    new ColumnReference([new Identifier('s')])
                 ),
-            )),
+            ]),
             $list
         );
     }
@@ -406,12 +406,12 @@ QRY
 QRY
         );
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new OperatorExpression(
                     'is null',
                     new OperatorExpression(
                         'is null',
-                        new ColumnReference(array(new Identifier('foo'))),
+                        new ColumnReference([new Identifier('foo')]),
                         null
                     ),
                     null
@@ -420,7 +420,7 @@ QRY
                     'is not null',
                     new OperatorExpression(
                         'is not null',
-                        new ColumnReference(array(new Identifier('bar'))),
+                        new ColumnReference([new Identifier('bar')]),
                         null
                     ),
                     null
@@ -431,13 +431,13 @@ QRY
                     new Constant('bar')
                 ),
                 new IsOfExpression(
-                    new ColumnReference(array(new Identifier('blah'))),
+                    new ColumnReference([new Identifier('blah')]),
                     new TypeList(
-                        array(
-                            new TypeName(new QualifiedName(array('pg_catalog', 'varchar'))),
-                            new TypeName(new QualifiedName(array('text'))),
-                            new TypeName(new QualifiedName(array('pg_catalog', 'timetz')))
-                        )
+                        [
+                            new TypeName(new QualifiedName(['pg_catalog', 'varchar'])),
+                            new TypeName(new QualifiedName(['text'])),
+                            new TypeName(new QualifiedName(['pg_catalog', 'timetz']))
+                        ]
                     )
                 ),
                 new OperatorExpression(
@@ -447,13 +447,13 @@ QRY
                 ),
                 new OperatorExpression(
                     'is normalized',
-                    new ColumnReference(array(new Identifier('foobar')))
+                    new ColumnReference([new Identifier('foobar')])
                 ),
                 new OperatorExpression(
                     'is not nfkc normalized',
-                    new ColumnReference(array(new Identifier('barbaz')))
+                    new ColumnReference([new Identifier('barbaz')])
                 )
-            )),
+            ]),
             $list
         );
     }
@@ -466,7 +466,7 @@ QRY
         );
 
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new OperatorExpression(
                     '-',
                     new OperatorExpression(
@@ -493,7 +493,7 @@ QRY
                         new Constant(6)
                     )
                 )
-            )),
+            ]),
             $expr
         );
     }
@@ -506,28 +506,28 @@ QRY
 QRY
         );
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new CaseExpression(
-                    array(
+                    [
                         new WhenExpression(new Constant('bar'), new Constant(10)),
                         new WhenExpression(new Constant('baz'), new Constant(100))
-                    ),
+                    ],
                     new Constant(1),
-                    new ColumnReference(array('foo'))
+                    new ColumnReference(['foo'])
                 ),
                 new CaseExpression(
-                    array(
+                    [
                         new WhenExpression(
-                            new OperatorExpression('=', new ColumnReference(array('foo')), new Constant('bar')),
+                            new OperatorExpression('=', new ColumnReference(['foo']), new Constant('bar')),
                             new Constant(10)
                         ),
                         new WhenExpression(
-                            new OperatorExpression('=', new ColumnReference(array('foo')), new Constant('baz')),
+                            new OperatorExpression('=', new ColumnReference(['foo']), new Constant('baz')),
                             new Constant(100)
                         )
-                    ),
+                    ],
                     new Constant(1)
-                ))
+                )]
             ),
             $list
         );
@@ -536,7 +536,7 @@ QRY
     public function testCollate()
     {
         $this->assertEquals(
-            new CollateExpression(new Constant('foo'), new QualifiedName(array('bar', 'baz'))),
+            new CollateExpression(new Constant('foo'), new QualifiedName(['bar', 'baz'])),
             $this->parser->parseExpression("'foo' collate bar.baz")
         );
     }
@@ -544,7 +544,7 @@ QRY
     public function testAtTimeZone()
     {
         $this->assertEquals(
-            new OperatorExpression('at time zone', new ColumnReference(array('foo', 'bar')), new Constant('baz')),
+            new OperatorExpression('at time zone', new ColumnReference(['foo', 'bar']), new Constant('baz')),
             $this->parser->parseExpression("foo.bar at time zone 'baz'")
         );
     }
@@ -554,10 +554,10 @@ QRY
         $this->assertEquals(
             new OperatorExpression(
                 '>=',
-                new ColumnReference(array('news_expire')),
+                new ColumnReference(['news_expire']),
                 new TypecastExpression(
                     new Constant('now'),
-                    new TypeName(new QualifiedName(array('pg_catalog', 'date')))
+                    new TypeName(new QualifiedName(['pg_catalog', 'date']))
                 )
             ),
             $this->parser->parseExpression('news_expire >= current_date')

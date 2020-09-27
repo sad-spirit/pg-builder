@@ -47,11 +47,11 @@ class ParameterWalkerTest extends \PHPUnit\Framework\TestCase
     public function setUp(): void
     {
         $this->parser  = new Parser(new Lexer());
-        $this->builder = new SqlBuilderWalker(array(
+        $this->builder = new SqlBuilderWalker([
             'indent'    => '',
             'linebreak' => '',
             'wrap'      => null
-        ));
+        ]);
         $this->walker  = new ParameterWalker();
     }
 
@@ -106,10 +106,10 @@ QRY
         $this->assertEquals(37, count($types));
         $this->assertEquals(37, count($matches[0]));
 
-        $text = new TypeName(new QualifiedName(array('text')));
-        $text->setBounds(array(-1));
+        $text = new TypeName(new QualifiedName(['text']));
+        $text->setBounds([-1]);
         $this->assertEquals($text, $types[$map['typecast']]);
-        $this->assertEquals(new TypeName(new QualifiedName(array('foo'))), $types[$map['typecastop']]);
+        $this->assertEquals(new TypeName(new QualifiedName(['foo'])), $types[$map['typecastop']]);
     }
 
     public function testReplaceMultipleOccurences()
@@ -164,6 +164,6 @@ QRY
         $types  = $this->walker->getParameterTypes();
         $this->assertStringContainsString('$1', $result);
         $this->assertStringContainsString('$2', $result);
-        $this->assertEquals(new TypeName(new QualifiedName(array('text'))), $types[0]);
+        $this->assertEquals(new TypeName(new QualifiedName(['text'])), $types[0]);
     }
 }

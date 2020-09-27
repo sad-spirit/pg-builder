@@ -208,10 +208,10 @@ QRY
 
     public function testTrailingDollarInStringConstantBug()
     {
-        $constants = new ExpressionList(array(
+        $constants = new ExpressionList([
             new Constant('^\\d{3}-\\d{2}$'),
             new Constant('\'$$$_1')
-        ));
+        ]);
         $this->assertEquals(
             $constants,
             $this->parser->parseExpressionList(implode(', ', $constants->dispatch($this->builder)))

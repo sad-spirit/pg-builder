@@ -72,19 +72,19 @@ class ParseFromClauseTest extends \PHPUnit\Framework\TestCase
     foo.bar, baz(1, 'string'), (select 'quux') as quux
 QRY
         );
-        $select = new Select(new TargetList(array(new TargetElement(new Constant('quux')))));
+        $select = new Select(new TargetList([new TargetElement(new Constant('quux'))]));
         $subselect = new Subselect($select);
         $subselect->setAlias(new Identifier('quux'));
 
         $this->assertEquals(
-            new FromList(array(
-                new RelationReference(new QualifiedName(array('foo', 'bar'))),
+            new FromList([
+                new RelationReference(new QualifiedName(['foo', 'bar'])),
                 new RangeFunctionCall(new FunctionCall(
-                    new QualifiedName(array('baz')),
-                    new FunctionArgumentList(array(new Constant(1), new Constant('string')))
+                    new QualifiedName(['baz']),
+                    new FunctionArgumentList([new Constant(1), new Constant('string')])
                 )),
                 $subselect
-            )),
+            ]),
             $list
         );
     }
@@ -96,22 +96,22 @@ QRY
     quuxschema.quux * quuxalias (three, four)
 QRY
         );
-        $foo = new RelationReference(new QualifiedName(array('foo')));
+        $foo = new RelationReference(new QualifiedName(['foo']));
         $foo->setAlias(new Identifier('fooalias'));
-        $bar = new RelationReference(new QualifiedName(array('barschema', 'bar')), false);
+        $bar = new RelationReference(new QualifiedName(['barschema', 'bar']), false);
         $bar->setAlias(new Identifier('baralias'));
-        $baz = new RelationReference(new QualifiedName(array('baz')), true);
+        $baz = new RelationReference(new QualifiedName(['baz']), true);
         $baz->setAlias(
             new Identifier('bazalias'),
-            new IdentifierList(array('one', 'two'))
+            new IdentifierList(['one', 'two'])
         );
-        $quux = new RelationReference(new QualifiedName(array('quuxschema', 'quux')), true);
+        $quux = new RelationReference(new QualifiedName(['quuxschema', 'quux']), true);
         $quux->setAlias(
             new Identifier('quuxalias'),
-            new IdentifierList(array('three', 'four'))
+            new IdentifierList(['three', 'four'])
         );
 
-        $this->assertEquals(new FromList(array($foo, $bar, $baz, $quux)), $list);
+        $this->assertEquals(new FromList([$foo, $bar, $baz, $quux]), $list);
     }
 
     public function testAliasedFunctions()
@@ -123,37 +123,37 @@ QRY
 QRY
         );
         $blah = new RangeFunctionCall(new FunctionCall(
-            new QualifiedName(array('blah', 'blah')),
-            new FunctionArgumentList(array(new Constant(1), new Constant(2), new Constant(3)))
+            new QualifiedName(['blah', 'blah']),
+            new FunctionArgumentList([new Constant(1), new Constant(2), new Constant(3)])
         ));
-        $blah->setAlias(new Identifier('select'), new ColumnDefinitionList(array(
+        $blah->setAlias(new Identifier('select'), new ColumnDefinitionList([
             new ColumnDefinition(
-                new Identifier('abort'), new TypeName(new QualifiedName(array('pg_catalog', 'int4')))
+                new Identifier('abort'), new TypeName(new QualifiedName(['pg_catalog', 'int4']))
             ),
             new ColumnDefinition(
-                new Identifier('alter'), new TypeName(new QualifiedName(array('text'))),
-                new QualifiedName(array('foo'))
+                new Identifier('alter'), new TypeName(new QualifiedName(['text'])),
+                new QualifiedName(['foo'])
             ),
             new ColumnDefinition(
-                new Identifier('begin'), new TypeName(new QualifiedName(array('pg_catalog', 'float8')))
+                new Identifier('begin'), new TypeName(new QualifiedName(['pg_catalog', 'float8']))
             )
-        )));
+        ]));
         $blahblah = new RangeFunctionCall(new FunctionCall(
-            new QualifiedName(array('blahblah')), new FunctionArgumentList(array(new Constant(null)))
+            new QualifiedName(['blahblah']), new FunctionArgumentList([new Constant(null)])
         ));
-        $blahblah->setAlias(null, new ColumnDefinitionList(array(
+        $blahblah->setAlias(null, new ColumnDefinitionList([
             new ColumnDefinition(
-                new Identifier('start'), new TypeName(new QualifiedName(array('pg_catalog', 'varchar')))
+                new Identifier('start'), new TypeName(new QualifiedName(['pg_catalog', 'varchar']))
             ),
             new ColumnDefinition(
                 new Identifier('temporary'), new TypeName(
-                    new QualifiedName(array('pg_catalog', 'bit')),
-                    new TypeModifierList(array(new Constant(1)))
+                    new QualifiedName(['pg_catalog', 'bit']),
+                    new TypeModifierList([new Constant(1)])
                 )
             )
-        )));
+        ]));
 
-        $this->assertEquals(new FromList(array($blah, $blahblah)), $list);
+        $this->assertEquals(new FromList([$blah, $blahblah]), $list);
     }
 
     public function testJoins()
@@ -164,39 +164,39 @@ QRY
 QRY
         );
 
-        $a = new RelationReference(new QualifiedName(array('a')));
+        $a = new RelationReference(new QualifiedName(['a']));
         $a->setAlias(new Identifier('aa'));
-        $b = new RelationReference(new QualifiedName(array('b')));
+        $b = new RelationReference(new QualifiedName(['b']));
         $b->setAlias(new Identifier('bb'));
         $ab = new JoinExpression($a, $b, 'inner');
         $ab->setNatural(true);
 
         $cd = new JoinExpression(
-            new RelationReference(new QualifiedName(array('c'))),
-            new RelationReference(new QualifiedName(array('d'))),
+            new RelationReference(new QualifiedName(['c'])),
+            new RelationReference(new QualifiedName(['d'])),
             'right'
         );
         $cd->setOn(new OperatorExpression('=', new Constant(true), new Constant(false)));
         $cd->setAlias(new Identifier('joinalias'));
 
         $abcd = new JoinExpression($ab, $cd, 'left');
-        $abcd->setUsing(new IdentifierList(array('blah')));
+        $abcd->setUsing(new IdentifierList(['blah']));
 
         $fg = new JoinExpression(
-            new RelationReference(new QualifiedName(array('f'))),
+            new RelationReference(new QualifiedName(['f'])),
             new RangeFunctionCall(new FunctionCall(
-                new QualifiedName(array('g')), new FunctionArgumentList(array(new Constant(1))))
+                new QualifiedName(['g']), new FunctionArgumentList([new Constant(1)]))
             ),
             'full'
         );
         $fg->setOn(new OperatorExpression('<>', new Constant(false), new Constant(true)));
 
-        $select = new Select(new TargetList(array(new TargetElement(new Constant('blah')))));
+        $select = new Select(new TargetList([new TargetElement(new Constant('blah'))]));
         $subselect = new Subselect($select);
         $subselect->setAlias(new Identifier('h'));
         $subselect->setLateral(true);
 
-        $this->assertEquals(new FromList(array($abcd, new JoinExpression($fg, $subselect, 'cross'))), $list);
+        $this->assertEquals(new FromList([$abcd, new JoinExpression($fg, $subselect, 'cross')]), $list);
     }
 
     public function testNoMoreThanTwoDots()
@@ -219,18 +219,18 @@ QRY
             'foo(1) with ordinality, bar(2) with ordinality as blah'
         );
         $foo = new RangeFunctionCall(new FunctionCall(
-            new QualifiedName(array('foo')),
-            new FunctionArgumentList(array(new Constant(1)))
+            new QualifiedName(['foo']),
+            new FunctionArgumentList([new Constant(1)])
         ));
         $foo->withOrdinality = true;
         $bar = new RangeFunctionCall(new FunctionCall(
-            new QualifiedName(array('bar')),
-            new FunctionArgumentList(array(new Constant(2)))
+            new QualifiedName(['bar']),
+            new FunctionArgumentList([new Constant(2)])
         ));
         $bar->setWithOrdinality(true);
         $bar->setAlias(new Identifier('blah'));
 
-        $this->assertEquals(new FromList(array($foo, $bar)), $list);
+        $this->assertEquals(new FromList([$foo, $bar]), $list);
     }
 
     public function testRowsFrom()
@@ -240,37 +240,37 @@ QRY
     rows from (generate_series(1, 5), generate_series(1,10)) with ordinality
 QRY
         );
-        $rowsOne = new RowsFrom(new RowsFromList(array(
+        $rowsOne = new RowsFrom(new RowsFromList([
             new RowsFromElement(
                 new FunctionCall(
-                    new QualifiedName(array('foo')), new FunctionArgumentList(array(new Constant(1)))
+                    new QualifiedName(['foo']), new FunctionArgumentList([new Constant(1)])
                 ),
-                new ColumnDefinitionList(array(
+                new ColumnDefinitionList([
                     new ColumnDefinition(
-                        new Identifier('fooid'), new TypeName(new QualifiedName(array('pg_catalog', 'int4')))
+                        new Identifier('fooid'), new TypeName(new QualifiedName(['pg_catalog', 'int4']))
                     ),
                     new ColumnDefinition(
-                        new Identifier('fooname'), new TypeName(new QualifiedName(array('text')))
+                        new Identifier('fooname'), new TypeName(new QualifiedName(['text']))
                     ),
-                ))
+                ])
             ),
             new RowsFromElement(new FunctionCall(
-                    new QualifiedName(array('foo')), new FunctionArgumentList(array(new Constant(2)))
+                    new QualifiedName(['foo']), new FunctionArgumentList([new Constant(2)])
             ))
-        )));
-        $rowsTwo = new RowsFrom(new RowsFromList(array(
+        ]));
+        $rowsTwo = new RowsFrom(new RowsFromList([
             new RowsFromElement(new FunctionCall(
-                new QualifiedName(array('generate_series')),
-                new FunctionArgumentList(array(new Constant(1), new Constant(5)))
+                new QualifiedName(['generate_series']),
+                new FunctionArgumentList([new Constant(1), new Constant(5)])
             )),
             new RowsFromElement(new FunctionCall(
-                new QualifiedName(array('generate_series')),
-                new FunctionArgumentList(array(new Constant(1), new Constant(10)))
+                new QualifiedName(['generate_series']),
+                new FunctionArgumentList([new Constant(1), new Constant(10)])
             ))
-        )));
+        ]));
         $rowsTwo->setWithOrdinality(true);
 
-        $this->assertEquals(new FromList(array($rowsOne, $rowsTwo)), $list);
+        $this->assertEquals(new FromList([$rowsOne, $rowsTwo]), $list);
     }
 
     public function testTableSample()
@@ -283,35 +283,35 @@ QRY
         );
 
         $sample1 = new TableSample(
-            new RelationReference(new QualifiedName(array('foo'))),
-            new QualifiedName(array('system')),
-            new ExpressionList(array(
+            new RelationReference(new QualifiedName(['foo'])),
+            new QualifiedName(['system']),
+            new ExpressionList([
                 new OperatorExpression(
                     '*',
-                    new ColumnReference(array('bar', 'baz')),
+                    new ColumnReference(['bar', 'baz']),
                     new Constant(100)
                 )
-            ))
+            ])
         );
 
         $sample2 = new JoinExpression(
-            new RelationReference(new QualifiedName(array('quux'))),
+            new RelationReference(new QualifiedName(['quux'])),
             new TableSample(
-                new RelationReference(new QualifiedName(array('xyzzy'))),
-                new QualifiedName(array('bernoulli')),
-                new ExpressionList(array(
+                new RelationReference(new QualifiedName(['xyzzy'])),
+                new QualifiedName(['bernoulli']),
+                new ExpressionList([
                     new Constant(50)
-                )),
-                new ColumnReference(array('seed'))
+                ]),
+                new ColumnReference(['seed'])
             )
         );
         $sample2->setNatural(true);
         $sample2->right->setAlias(
             new Identifier('a'),
-            new IdentifierList(array('b', 'c'))
+            new IdentifierList(['b', 'c'])
         );
 
-        $this->assertEquals(new FromList(array($sample1, $sample2)), $list);
+        $this->assertEquals(new FromList([$sample1, $sample2]), $list);
     }
 
     public function testXmlTable()
@@ -343,12 +343,12 @@ QRY
 
         $table1 = new XmlTable(
             new Constant('//ROWS/ROW'),
-            new ColumnReference(array('data')),
-            new XmlColumnList(array(
+            new ColumnReference(['data']),
+            new XmlColumnList([
                 new XmlColumnDefinition(
                     new Identifier('id'),
                     false,
-                    new TypeName(new QualifiedName(array('pg_catalog', 'int4'))),
+                    new TypeName(new QualifiedName(['pg_catalog', 'int4'])),
                     new Constant('@id')
                 ),
                 new XmlColumnDefinition(
@@ -358,65 +358,65 @@ QRY
                 new XmlColumnDefinition(
                     new Identifier('COUNTRY_NAME'),
                     false,
-                    new TypeName(new QualifiedName(array('text')))
+                    new TypeName(new QualifiedName(['text']))
                 ),
                 new XmlColumnDefinition(
                     new Identifier('country_id'),
                     false,
-                    new TypeName(new QualifiedName(array('text'))),
+                    new TypeName(new QualifiedName(['text'])),
                     new Constant('COUNTRY_ID')
                 ),
                 new XmlColumnDefinition(
                     new Identifier('size_sq_km'),
                     false,
-                    new TypeName(new QualifiedName(array('pg_catalog', 'float8'))),
+                    new TypeName(new QualifiedName(['pg_catalog', 'float8'])),
                     new Constant('SIZE[@unit = "sq_km"]')
                 ),
                 new XmlColumnDefinition(
                     new Identifier('size_other'),
                     false,
-                    new TypeName(new QualifiedName(array('text'))),
+                    new TypeName(new QualifiedName(['text'])),
                     new Constant('concat(SIZE[@unit!="sq_km"], " ", SIZE[@unit!="sq_km"]/@unit)')
                 ),
                 new XmlColumnDefinition(
                     new Identifier('premier_name'),
                     false,
-                    new TypeName(new QualifiedName(array('text'))),
+                    new TypeName(new QualifiedName(['text'])),
                     new Constant('PREMIER_NAME'),
                     null,
                     new Constant('not specified')
                 )
-            ))
+            ])
         );
 
-        $subselect = new Select(new TargetList(array(new TargetElement(new ColumnReference(array('data'))))));
-        $subselect->from[] = new RelationReference(new QualifiedName(array('xmldata')));
+        $subselect = new Select(new TargetList([new TargetElement(new ColumnReference(['data']))]));
+        $subselect->from[] = new RelationReference(new QualifiedName(['xmldata']));
         $table2 = new XmlTable(
             new Constant('/x:example/x:item'),
             new SubselectExpression($subselect),
-            new XmlColumnList(array(
+            new XmlColumnList([
                 new XmlColumnDefinition(
                     new Identifier('foo'),
                     false,
-                    new TypeName(new QualifiedName(array('pg_catalog', 'int4'))),
+                    new TypeName(new QualifiedName(['pg_catalog', 'int4'])),
                     new Constant('@foo')
                 ),
                 new XmlColumnDefinition(
                     new Identifier('bar'),
                     false,
-                    new TypeName(new QualifiedName(array('pg_catalog', 'int4'))),
+                    new TypeName(new QualifiedName(['pg_catalog', 'int4'])),
                     new Constant('@B:bar')
                 )
-            )),
-            new XmlNamespaceList(array(
+            ]),
+            new XmlNamespaceList([
                 new XmlNamespace(new Constant('http://example.com/myns'), new Identifier('x')),
                 new XmlNamespace(new Constant('http://example.com/b'), new Identifier('B'))
-            ))
+            ])
         );
 
         $table2->setLateral(true);
         $table2->setAlias(new Identifier('baz'));
 
-        $this->assertEquals(new FromList(array($table1, $table2)), $list);
+        $this->assertEquals(new FromList([$table1, $table2]), $list);
     }
 }

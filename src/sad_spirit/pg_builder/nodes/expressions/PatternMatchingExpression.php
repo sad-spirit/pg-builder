@@ -35,14 +35,14 @@ use sad_spirit\pg_builder\Node,
  */
 class PatternMatchingExpression extends Node implements ScalarExpression
 {
-    protected static $allowedOperators = array(
+    protected static $allowedOperators = [
         'like'           => true,
         'not like'       => true,
         'ilike'          => true,
         'not ilike'      => true,
         'similar to'     => true,
         'not similar to' => true
-    );
+    ];
 
     public function __construct(
         ScalarExpression $argument, ScalarExpression $pattern, $operator = 'like', ScalarExpression $escape = null

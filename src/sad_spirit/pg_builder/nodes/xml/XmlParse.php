@@ -33,7 +33,7 @@ class XmlParse extends Node implements ScalarExpression
 {
     public function __construct($documentOrContent, ScalarExpression $argument, $preserveWhitespace = false)
     {
-        if (!in_array($documentOrContent, array('document', 'content'), true)) {
+        if (!in_array($documentOrContent, ['document', 'content'], true)) {
             throw new InvalidArgumentException(
                 "Either 'document' or 'content' option required, '{$documentOrContent}' given"
             );

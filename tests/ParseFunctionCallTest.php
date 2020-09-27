@@ -66,16 +66,16 @@ class ParseFunctionCallTest extends \PHPUnit\Framework\TestCase
     current_date, current_role, current_user, session_user, user, current_catalog, current_schema
 QRY
         );
-        $expected = array(
+        $expected = [
             new TypecastExpression(
                 new Constant('now'),
-                new TypeName(new QualifiedName(array('pg_catalog', 'date')))
+                new TypeName(new QualifiedName(['pg_catalog', 'date']))
             )
-        );
-        foreach (array('current_user', 'current_user', 'session_user', 'current_user',
-                       'current_database', 'current_schema') as $fn
+        ];
+        foreach (['current_user', 'current_user', 'session_user', 'current_user',
+                       'current_database', 'current_schema'] as $fn
         ) {
-            $expected[] = new FunctionExpression(new QualifiedName(array('pg_catalog', $fn)));
+            $expected[] = new FunctionExpression(new QualifiedName(['pg_catalog', $fn]));
         }
 
         $this->assertEquals(new ExpressionList($expected), $list);
@@ -89,30 +89,30 @@ QRY
         );
 
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new TypecastExpression(
                     new Constant('now'),
-                    new TypeName(new QualifiedName(array('pg_catalog', 'timetz')))
+                    new TypeName(new QualifiedName(['pg_catalog', 'timetz']))
                 ),
                 new TypecastExpression(
                     new Constant('now'),
                     new TypeName(
-                        new QualifiedName(array('pg_catalog', 'timestamptz')),
-                        new TypeModifierList(array(new Constant(1)))
+                        new QualifiedName(['pg_catalog', 'timestamptz']),
+                        new TypeModifierList([new Constant(1)])
                     )
                 ),
                 new TypecastExpression(
                     new Constant('now'),
                     new TypeName(
-                        new QualifiedName(array('pg_catalog', 'time')),
-                        new TypeModifierList(array(new Constant(2)))
+                        new QualifiedName(['pg_catalog', 'time']),
+                        new TypeModifierList([new Constant(2)])
                     )
                 ),
                 new TypecastExpression(
                     new Constant('now'),
-                    new TypeName(new QualifiedName(array('pg_catalog', 'timestamp')))
+                    new TypeName(new QualifiedName(['pg_catalog', 'timestamp']))
                 )
-            )),
+            ]),
             $list
         );
 
@@ -130,20 +130,20 @@ QRY
 QRY
         );
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new FunctionExpression(
-                    new QualifiedName(array('pg_catalog', 'date_part')),
-                    new FunctionArgumentList(array(new Constant('epoch'), new ColumnReference(array('foo'))))
+                    new QualifiedName(['pg_catalog', 'date_part']),
+                    new FunctionArgumentList([new Constant('epoch'), new ColumnReference(['foo'])])
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('pg_catalog', 'date_part')),
-                    new FunctionArgumentList(array(new Constant('minute'), new ColumnReference(array('bar'))))
+                    new QualifiedName(['pg_catalog', 'date_part']),
+                    new FunctionArgumentList([new Constant('minute'), new ColumnReference(['bar'])])
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('pg_catalog', 'date_part')),
-                    new FunctionArgumentList(array(new Constant('whatever'), new ColumnReference(array('baz'))))
+                    new QualifiedName(['pg_catalog', 'date_part']),
+                    new FunctionArgumentList([new Constant('whatever'), new ColumnReference(['baz'])])
                 )
-            )),
+            ]),
             $list
         );
     }
@@ -155,20 +155,20 @@ QRY
 QRY
         );
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new FunctionExpression(
-                    new QualifiedName(array('pg_catalog', 'overlay')),
-                    new FunctionArgumentList(array(
+                    new QualifiedName(['pg_catalog', 'overlay']),
+                    new FunctionArgumentList([
                         new Constant('fooxxxbaz'), new Constant('bar'), new Constant(3), new Constant(3)
-                    ))
+                    ])
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('pg_catalog', 'overlay')),
-                    new FunctionArgumentList(array(
+                    new QualifiedName(['pg_catalog', 'overlay']),
+                    new FunctionArgumentList([
                         new Constant('adc'), new Constant('b'), new Constant(2)
-                    ))
+                    ])
                 )
-            )),
+            ]),
             $list
         );
     }
@@ -177,8 +177,8 @@ QRY
     {
         $this->assertEquals(
             new FunctionExpression(
-                new QualifiedName(array('pg_catalog', 'position')),
-                new FunctionArgumentList(array(new Constant('foobar'), new Constant('a')))
+                new QualifiedName(['pg_catalog', 'position']),
+                new FunctionArgumentList([new Constant('foobar'), new Constant('a')])
             ),
             $this->parser->parseExpression("position('a' in 'foobar')")
         );
@@ -192,24 +192,24 @@ QRY
 QRY
         );
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new FunctionExpression(
-                    new QualifiedName(array('pg_catalog', 'substring')),
-                    new FunctionArgumentList(array(new Constant('foobar'), new Constant(2), new Constant(3)))
+                    new QualifiedName(['pg_catalog', 'substring']),
+                    new FunctionArgumentList([new Constant('foobar'), new Constant(2), new Constant(3)])
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('pg_catalog', 'substring')),
-                    new FunctionArgumentList(array(new Constant('foobar'), new Constant(2), new Constant(3)))
+                    new QualifiedName(['pg_catalog', 'substring']),
+                    new FunctionArgumentList([new Constant('foobar'), new Constant(2), new Constant(3)])
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('pg_catalog', 'substring')),
-                    new FunctionArgumentList(array(new Constant('foobar'), new Constant(2), new Constant(3)))
+                    new QualifiedName(['pg_catalog', 'substring']),
+                    new FunctionArgumentList([new Constant('foobar'), new Constant(2), new Constant(3)])
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('pg_catalog', 'substring')),
-                    new FunctionArgumentList(array(new Constant('foobar'), new Constant(1), new Constant(3)))
+                    new QualifiedName(['pg_catalog', 'substring']),
+                    new FunctionArgumentList([new Constant('foobar'), new Constant(1), new Constant(3)])
                 )
-            )),
+            ]),
             $list
         );
     }
@@ -221,24 +221,24 @@ QRY
 QRY
         );
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new FunctionExpression(
-                    new QualifiedName(array('pg_catalog', 'btrim')),
-                    new FunctionArgumentList(array(new Constant(' foo ')))
+                    new QualifiedName(['pg_catalog', 'btrim']),
+                    new FunctionArgumentList([new Constant(' foo ')])
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('pg_catalog', 'ltrim')),
-                    new FunctionArgumentList(array(new Constant('_foo_'), new Constant('_')))
+                    new QualifiedName(['pg_catalog', 'ltrim']),
+                    new FunctionArgumentList([new Constant('_foo_'), new Constant('_')])
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('pg_catalog', 'rtrim')),
-                    new FunctionArgumentList(array(new Constant('foo ')))
+                    new QualifiedName(['pg_catalog', 'rtrim']),
+                    new FunctionArgumentList([new Constant('foo ')])
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('pg_catalog', 'rtrim')),
-                    new FunctionArgumentList(array(new Constant('foo'), new Constant('o')))
+                    new QualifiedName(['pg_catalog', 'rtrim']),
+                    new FunctionArgumentList([new Constant('foo'), new Constant('o')])
                 ),
-            )),
+            ]),
             $list
         );
     }
@@ -248,7 +248,7 @@ QRY
         $this->assertEquals(
             new FunctionExpression(
                 'nullif',
-                new FunctionArgumentList(array(new ColumnReference(array('a')), new Constant('b')))
+                new FunctionArgumentList([new ColumnReference(['a']), new Constant('b')])
             ),
             $this->parser->parseExpression("nullif(a, 'b') ")
         );
@@ -265,21 +265,21 @@ QRY
         );
 
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new XmlElement(
                     new Identifier('foo'),
                     null,
-                    new ExpressionList(array(new ColumnReference(array('bar')), new Constant('content')))
+                    new ExpressionList([new ColumnReference(['bar']), new Constant('content')])
                 ),
                 new XmlElement(
                     new Identifier('blah'),
-                    new TargetList(array(
-                        new TargetElement(new ColumnReference(array('baz'))),
-                        new TargetElement(new ColumnReference(array('quux')), new Identifier('xyzzy'))
-                    )),
-                    new ExpressionList(array(new Constant('content')))
+                    new TargetList([
+                        new TargetElement(new ColumnReference(['baz'])),
+                        new TargetElement(new ColumnReference(['quux']), new Identifier('xyzzy'))
+                    ]),
+                    new ExpressionList([new Constant('content')])
                 )
-            )),
+            ]),
             $list
         );
     }
@@ -288,8 +288,8 @@ QRY
     {
         $this->assertEquals(
             new FunctionExpression(
-                new QualifiedName(array('pg_catalog', 'xmlexists')),
-                new FunctionArgumentList(array(new Constant("//foo[text() = 'bar']"), new Constant('<blah><foo>bar</foo></blah>')))
+                new QualifiedName(['pg_catalog', 'xmlexists']),
+                new FunctionArgumentList([new Constant("//foo[text() = 'bar']"), new Constant('<blah><foo>bar</foo></blah>')])
             ),
             $this->parser->parseExpression(
                 "xmlexists('//foo[text() = ''bar'']' passing by ref '<blah><foo>bar</foo></blah>')"
@@ -300,10 +300,10 @@ QRY
     public function testXmlForest()
     {
         $this->assertEquals(
-            new XmlForest(array(
-                new TargetElement(new ColumnReference(array('foo'))),
+            new XmlForest([
+                new TargetElement(new ColumnReference(['foo'])),
                 new TargetElement(new Constant('bar'), new Identifier('baz'))
-            )),
+            ]),
             $this->parser->parseExpression("xmlforest(foo, 'bar' as baz)")
         );
     }
@@ -311,7 +311,7 @@ QRY
     public function testXmlParse()
     {
         $this->assertEquals(
-            new XmlParse('document', new ColumnReference(array('xml', 'doc')), true),
+            new XmlParse('document', new ColumnReference(['xml', 'doc']), true),
             $this->parser->parseExpression("xmlparse(document xml.doc preserve whitespace)")
         );
     }
@@ -327,7 +327,7 @@ QRY
     public function testXmlRoot()
     {
         $this->assertEquals(
-            new XmlRoot(new ColumnReference(array('doc')), new Constant('1.2'), 'yes'),
+            new XmlRoot(new ColumnReference(['doc']), new Constant('1.2'), 'yes'),
             $this->parser->parseExpression("xmlroot(doc, version '1.2', standalone yes)")
         );
     }
@@ -337,8 +337,8 @@ QRY
         $this->assertEquals(
             new XmlSerialize(
                 'document',
-                new ColumnReference(array('foo')),
-                new TypeName(new QualifiedName(array('pg_catalog', 'text')))
+                new ColumnReference(['foo']),
+                new TypeName(new QualifiedName(['pg_catalog', 'text']))
             ),
             $this->parser->parseExpression('xmlserialize(document foo as pg_catalog.text)')
         );
@@ -347,16 +347,16 @@ QRY
     public function testNormalize()
     {
         $this::assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new FunctionExpression(
-                    new QualifiedName(array('pg_catalog', 'normalize')),
-                    new FunctionArgumentList(array(new ColumnReference(array('foo'))))
+                    new QualifiedName(['pg_catalog', 'normalize']),
+                    new FunctionArgumentList([new ColumnReference(['foo'])])
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('pg_catalog', 'normalize')),
-                    new FunctionArgumentList(array(new ColumnReference(array('bar')), new Constant('nfd')))
+                    new QualifiedName(['pg_catalog', 'normalize']),
+                    new FunctionArgumentList([new ColumnReference(['bar']), new Constant('nfd')])
                 )
-            )),
+            ]),
             $this->parser->parseExpressionList('normalize(foo), normalize(bar, nFd)')
         );
 
@@ -375,28 +375,28 @@ QRY
         );
 
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new FunctionExpression(
                     'coalesce',
-                    new FunctionArgumentList(array(new ColumnReference(array('a')), new Constant('b')))
+                    new FunctionArgumentList([new ColumnReference(['a']), new Constant('b')])
                 ),
                 new FunctionExpression(
                     'greatest',
-                    new FunctionArgumentList(array(new Constant('c'), new ColumnReference(array('d'))))
+                    new FunctionArgumentList([new Constant('c'), new ColumnReference(['d'])])
                 ),
                 new FunctionExpression(
                     'least',
-                    new FunctionArgumentList(array(
-                        new ColumnReference(array('e')), new ColumnReference(array('f'))
-                    ))
+                    new FunctionArgumentList([
+                        new ColumnReference(['e']), new ColumnReference(['f'])
+                    ])
                 ),
                 new FunctionExpression(
                     'xmlconcat',
-                    new FunctionArgumentList(array(
-                        new ColumnReference(array('x')), new ColumnReference(array('m')), new ColumnReference(array('l'))
-                    ))
+                    new FunctionArgumentList([
+                        new ColumnReference(['x']), new ColumnReference(['m']), new ColumnReference(['l'])
+                    ])
                 )
-            )),
+            ]),
             $list
         );
     }
@@ -405,8 +405,8 @@ QRY
     {
         $this->assertEquals(
             new FunctionExpression(
-                new QualifiedName(array('pg_catalog', 'pg_collation_for')),
-                new FunctionArgumentList(array(new ColumnReference(array('foo', 'bar'))))
+                new QualifiedName(['pg_catalog', 'pg_collation_for']),
+                new FunctionArgumentList([new ColumnReference(['foo', 'bar'])])
             ),
             $this->parser->parseExpression('collation for (foo.bar)')
         );
@@ -420,28 +420,28 @@ QRY
         );
 
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new FunctionExpression(
-                    new QualifiedName(array('blah', 'foo')),
-                    new FunctionArgumentList(array(new ColumnReference(array('a')))),
+                    new QualifiedName(['blah', 'foo']),
+                    new FunctionArgumentList([new ColumnReference(['a'])]),
                     false, true
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('blah', 'bar')),
+                    new QualifiedName(['blah', 'bar']),
                     new FunctionArgumentList(
-                        array(new ColumnReference(array('a')), new ColumnReference(array('b')))
+                        [new ColumnReference(['a']), new ColumnReference(['b'])]
                     ),
                     false, true
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('blah', 'baz')),
-                    new FunctionArgumentList(array(
-                        new ColumnReference(array('a')),
-                        '"b"'      => new ColumnReference(array('c')),
-                        '"binary"' => new ColumnReference(array('d'))
-                    ))
+                    new QualifiedName(['blah', 'baz']),
+                    new FunctionArgumentList([
+                        new ColumnReference(['a']),
+                        '"b"'      => new ColumnReference(['c']),
+                        '"binary"' => new ColumnReference(['d'])
+                    ])
                 )
-            )),
+            ]),
             $list
         );
     }
@@ -460,20 +460,20 @@ QRY
 
     public function getInvalidNamedAndVariadicParameters()
     {
-        return array(
-            array(
+        return [
+            [
                 'foo(variadic bar, baz)',
                 "expecting special character with value ')'"
-            ),
-            array(
+            ],
+            [
                 'foo(a := b, c)',
                 'Positional argument cannot follow named argument'
-            ),
-            array(
+            ],
+            [
                 'foo(a := b, a := c)',
                 'used more than once'
-            )
-        );
+            ]
+        ];
     }
 
     /**
@@ -487,10 +487,10 @@ QRY
 
     public function getInvalidFunctionNames()
     {
-        return array(
-            array('out()'), // TYPE_COL_NAME_KEYWORD
-            array('outer.foo()') // first part is TYPE_TYPE_FUNC_NAME_KEYWORD
-        );
+        return [
+            ['out()'], // TYPE_COL_NAME_KEYWORD
+            ['outer.foo()'] // first part is TYPE_TYPE_FUNC_NAME_KEYWORD
+        ];
     }
 
     public function testAggregateFunctionCalls()
@@ -502,43 +502,43 @@ QRY
         );
 
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new FunctionExpression(
-                    new QualifiedName(array('agg1')),
-                    new FunctionArgumentList(array(new ColumnReference(array('blah'))))
+                    new QualifiedName(['agg1']),
+                    new FunctionArgumentList([new ColumnReference(['blah'])])
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('agg2')),
-                    new FunctionArgumentList(array(new ColumnReference(array('blahblah')))),
+                    new QualifiedName(['agg2']),
+                    new FunctionArgumentList([new ColumnReference(['blahblah'])]),
                     true
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('agg3')),
+                    new QualifiedName(['agg3']),
                     new FunctionArgumentList(
-                        array(
-                            new ColumnReference(array(new Identifier('foo'))),
-                            new ColumnReference(array(new Identifier('bar')))
-                        )
+                        [
+                            new ColumnReference([new Identifier('foo')]),
+                            new ColumnReference([new Identifier('bar')])
+                        ]
                     ),
-                    true, false, new OrderByList(array(
-                        new OrderByElement(new ColumnReference(array(new Identifier('foo'))), 'desc'),
-                        new OrderByElement(new ColumnReference(array('bar')), null, 'last')
-                    ))
+                    true, false, new OrderByList([
+                        new OrderByElement(new ColumnReference([new Identifier('foo')]), 'desc'),
+                        new OrderByElement(new ColumnReference(['bar']), null, 'last')
+                    ])
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('count')),
+                    new QualifiedName(['count']),
                     new Star(),
                     false, false, null, false,
-                    new OperatorExpression('>', new ColumnReference(array('foo')), new Constant(100))
+                    new OperatorExpression('>', new ColumnReference(['foo']), new Constant(100))
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('percentile_disc')),
-                    new FunctionArgumentList(array(new Constant(0.5))),
+                    new QualifiedName(['percentile_disc']),
+                    new FunctionArgumentList([new Constant(0.5)]),
                     false, false,
-                    new OrderByList(array(new OrderByElement(new ColumnReference(array('foo'))))),
+                    new OrderByList([new OrderByElement(new ColumnReference(['foo']))]),
                     true
                 )
-            )),
+            ]),
             $list
         );
     }
@@ -555,21 +555,21 @@ QRY
         );
 
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new FunctionExpression(
-                    new QualifiedName(array('foo')), null, false, false, null,
+                    new QualifiedName(['foo']), null, false, false, null,
                     false, null, new WindowDefinition()
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('bar')), null, false, false, null,
+                    new QualifiedName(['bar']), null, false, false, null,
                     false, null, new WindowDefinition(new Identifier('blah'))
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('rank')), null, false, false, null,
-                    false, null, new WindowDefinition(null, new ExpressionList(array(new ColumnReference(array(new Identifier('whatever'))))))
+                    new QualifiedName(['rank']), null, false, false, null,
+                    false, null, new WindowDefinition(null, new ExpressionList([new ColumnReference([new Identifier('whatever')])]))
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('something')), null, false, false, null,
+                    new QualifiedName(['something']), null, false, false, null,
                     false, null, new WindowDefinition(
                         null, null, null,
                         new WindowFrameClause(
@@ -581,14 +581,14 @@ QRY
                     )
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('count')),
-                    new FunctionArgumentList(array(new ColumnReference(array('bar')))),
+                    new QualifiedName(['count']),
+                    new FunctionArgumentList([new ColumnReference(['bar'])]),
                     false, false, null, false,
-                    new OperatorExpression('!@#&', new ColumnReference(array('bar'))),
-                    new WindowDefinition(null, new ExpressionList(array(new ColumnReference(array('foo')))))
+                    new OperatorExpression('!@#&', new ColumnReference(['bar'])),
+                    new WindowDefinition(null, new ExpressionList([new ColumnReference(['foo'])]))
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('foo')), null, false, false, null, false, null,
+                    new QualifiedName(['foo']), null, false, false, null, false, null,
                     new WindowDefinition(
                         null, null, null,
                         new WindowFrameClause(
@@ -599,7 +599,7 @@ QRY
                     )
                 ),
                 new FunctionExpression(
-                    new QualifiedName(array('bar')), null, false, false, null, false, null,
+                    new QualifiedName(['bar']), null, false, false, null, false, null,
                     new WindowDefinition(
                         null, null, null,
                         new WindowFrameClause(
@@ -610,7 +610,7 @@ QRY
                         )
                     )
                 )
-            )),
+            ]),
             $list
         );
     }
@@ -629,36 +629,36 @@ QRY
 
     public function getInvalidWindowSpecification()
     {
-        return array(
-            array(
+        return [
+            [
                 'foo() over (rows unbounded following)',
                 'Frame start cannot be UNBOUNDED FOLLOWING'
-            ),
-            array(
+            ],
+            [
                 'foo() over (rows 5 following)',
                 'Frame starting from following row cannot end with current row'
-            ),
-            array(
+            ],
+            [
                 'foo() over (rows between unbounded following and unbounded following)',
                 'Frame start cannot be UNBOUNDED FOLLOWING'
-            ),
-            array(
+            ],
+            [
                 'foo() over (rows between unbounded preceding and unbounded preceding)',
                 'Frame end cannot be UNBOUNDED PRECEDING'
-            ),
-            array(
+            ],
+            [
                 'foo() over (rows between current row and 5 preceding)',
                 'Frame starting from current row cannot have preceding rows'
-            ),
-            array(
+            ],
+            [
                 'foo() over (rows between 5 following and current row)',
                 'Frame starting from following row cannot have preceding rows'
-            ),
-            array(
+            ],
+            [
                 'foo() over (rows between 5 following and 4 preceding)',
                 'Frame starting from following row cannot have preceding rows'
-            )
-        );
+            ]
+        ];
     }
 
     /**
@@ -675,19 +675,19 @@ QRY
 
     public function getInvalidWithinGroupUsage()
     {
-        return array(
-            array(
+        return [
+            [
                 'foo(a, b order by a) within group (order by b)',
                 'Cannot use multiple ORDER BY clauses'
-            ),
-            array(
+            ],
+            [
                 'foo(distinct a) within group (order by a)',
                 'Cannot use DISTINCT'
-            ),
-            array(
+            ],
+            [
                 'foo(variadic array[1,2,3]) within group (order by a)',
                 'Cannot use VARIADIC'
-            )
-        );
+            ]
+        ];
     }
 }

@@ -68,7 +68,7 @@ class StatementFactory
         if (!$this->_parser) {
             if (!$this->_connection) {
                 $cache         = null;
-                $lexerOptions  = array();
+                $lexerOptions  = [];
 
             } else {
                 $serverVersion = pg_parameter_status($this->_connection->getResource(), 'server_version');
@@ -82,12 +82,12 @@ class StatementFactory
                 $cache = $this->_connection->getMetadataCache();
                 try {
                     $res = $this->_connection->execute('show standard_conforming_strings');
-                    $lexerOptions = array(
+                    $lexerOptions = [
                         'standard_conforming_strings' => 'on' === $res[0]['standard_conforming_strings']
-                    );
+                    ];
                 } catch (InvalidQueryException $e) {
                     // the server is not aware of the setting?
-                    $lexerOptions = array('standard_conforming_strings' => false);
+                    $lexerOptions = ['standard_conforming_strings' => false];
                 }
             }
             $this->_parser = new Parser(new Lexer($lexerOptions), $cache);

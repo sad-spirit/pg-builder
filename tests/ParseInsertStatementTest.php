@@ -61,7 +61,7 @@ class ParseInsertStatementTest extends \PHPUnit\Framework\TestCase
     {
         $parsed = $this->parser->parseStatement("insert into foo as bar default values");
 
-        $built = new Insert(new InsertTarget(new QualifiedName(array('foo')), new Identifier('bar')));
+        $built = new Insert(new InsertTarget(new QualifiedName(['foo']), new Identifier('bar')));
 
         $this->assertEquals($built, $parsed);
     }
@@ -85,44 +85,44 @@ returning *
 QRY
         );
 
-        $built = new Insert(new InsertTarget(new QualifiedName(array('baz')), new Identifier('bzzz')));
-        $built->cols->replace(array(
+        $built = new Insert(new InsertTarget(new QualifiedName(['baz']), new Identifier('bzzz')));
+        $built->cols->replace([
             new SetTargetElement(new Identifier('one')),
-            new SetTargetElement(new Identifier('two'), array(new ArrayIndexes(new Constant(1))))
-        ));
+            new SetTargetElement(new Identifier('two'), [new ArrayIndexes(new Constant(1))])
+        ]);
         $built->overriding = 'system';
-        $built->returning->replace(array(new Star()));
+        $built->returning->replace([new Star()]);
         $built->onConflict = new OnConflictClause('nothing');
 
-        $foo = new Select(new TargetList(array(
-            new TargetElement(new ColumnReference(array('somefoo')))
-        )));
-        $foo->from->replace(array(
-            new RelationReference(new QualifiedName(array('basefoo')))
-        ));
+        $foo = new Select(new TargetList([
+            new TargetElement(new ColumnReference(['somefoo']))
+        ]));
+        $foo->from->replace([
+            new RelationReference(new QualifiedName(['basefoo']))
+        ]);
 
-        $bar = new Select(new TargetList(array(
-            new TargetElement(new ColumnReference(array('somebar')))
-        )));
-        $bar->from->replace(array(
-            new RelationReference(new QualifiedName(array('basebar')))
-        ));
+        $bar = new Select(new TargetList([
+            new TargetElement(new ColumnReference(['somebar']))
+        ]));
+        $bar->from->replace([
+            new RelationReference(new QualifiedName(['basebar']))
+        ]);
 
-        $built->with = new WithClause(array(
-            new CommonTableExpression($foo, new Identifier('foo'), new IdentifierList(array(new Identifier('id'))), true),
-            new CommonTableExpression($bar, new Identifier('bar'), new IdentifierList(array(new Identifier('blah'))))
-        ));
+        $built->with = new WithClause([
+            new CommonTableExpression($foo, new Identifier('foo'), new IdentifierList([new Identifier('id')]), true),
+            new CommonTableExpression($bar, new Identifier('bar'), new IdentifierList([new Identifier('blah')]))
+        ]);
 
-        $built->values = new Select(new TargetList(array(
-            new TargetElement(new ColumnReference(array('id'))),
-            new TargetElement(new ColumnReference(array('blah')))
-        )));
-        $built->values->from->replace(array(
-            new RelationReference(new QualifiedName(array('foo'))),
-            new RelationReference(new QualifiedName(array('bar')))
-        ));
+        $built->values = new Select(new TargetList([
+            new TargetElement(new ColumnReference(['id'])),
+            new TargetElement(new ColumnReference(['blah']))
+        ]));
+        $built->values->from->replace([
+            new RelationReference(new QualifiedName(['foo'])),
+            new RelationReference(new QualifiedName(['bar']))
+        ]);
         $built->values->where->condition = new OperatorExpression(
-            '<', new ColumnReference(array('id')), new ColumnReference(array('blah'))
+            '<', new ColumnReference(['id']), new ColumnReference(['blah'])
         );
 
         $this->assertEquals($built, $parsed);
@@ -141,32 +141,32 @@ QRY
     public function onConflictClauseProvider()
     {
         // directly from Postgres docs on the clause
-        return array(
-            array(
+        return [
+            [
                 '(did) DO UPDATE SET dname = EXCLUDED.dname',
                 new OnConflictClause(
                     'update',
-                    new IndexParameters(array(
+                    new IndexParameters([
                         new IndexElement(new Identifier('did'))
-                    )),
-                    new SetClauseList(array(
+                    ]),
+                    new SetClauseList([
                         new SingleSetClause(
                             new SetTargetElement(new Identifier('dname')),
-                            new ColumnReference(array('excluded', 'dname'))
+                            new ColumnReference(['excluded', 'dname'])
                         )
-                    ))
+                    ])
                 )
-            ),
-            array(
+            ],
+            [
                 '(did) DO UPDATE
                  SET dname = EXCLUDED.dname || \' (formerly \' || d.dname || \')\'
                  WHERE d.zipcode <> \'21201\'',
                 new OnConflictClause(
                     'update',
-                    new IndexParameters(array(
+                    new IndexParameters([
                         new IndexElement(new Identifier('did'))
-                    )),
-                    new SetClauseList(array(
+                    ]),
+                    new SetClauseList([
                         new SingleSetClause(
                             new SetTargetElement(new Identifier('dname')),
                             new OperatorExpression(
@@ -175,29 +175,29 @@ QRY
                                     '||',
                                     new OperatorExpression(
                                         '||',
-                                        new ColumnReference(array('excluded', 'dname')),
+                                        new ColumnReference(['excluded', 'dname']),
                                         new Constant(" (formerly ")
                                     ),
-                                    new ColumnReference(array('d', 'dname'))
+                                    new ColumnReference(['d', 'dname'])
                                 ),
                                 new Constant(")")
                             )
                         )
-                    )),
+                    ]),
                     new OperatorExpression(
                         '<>',
-                        new ColumnReference(array('d', 'zipcode')),
+                        new ColumnReference(['d', 'zipcode']),
                         new Constant("21201")
                     )
                 )
-            ),
-            array(
+            ],
+            [
                 'ON CONSTRAINT distributors_pkey DO NOTHING',
                 new OnConflictClause(
                     'nothing',
                     new Identifier('distributors_pkey')
                 )
-            )
-        );
+            ]
+        ];
     }
 }

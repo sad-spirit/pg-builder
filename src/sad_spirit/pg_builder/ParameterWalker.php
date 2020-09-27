@@ -23,8 +23,8 @@ namespace sad_spirit\pg_builder;
  */
 class ParameterWalker extends BlankWalker
 {
-    protected $namedParameterMap = array();
-    protected $parameterTypes    = array();
+    protected $namedParameterMap = [];
+    protected $parameterTypes    = [];
 
     public function getNamedParameterMap()
     {

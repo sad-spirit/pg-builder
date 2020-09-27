@@ -152,11 +152,11 @@ class SqlBuilderWalker implements TreeWalker
 
     protected $indentLevel = 0;
 
-    protected $options = array(
+    protected $options = [
         'indent'      => "    ",
         'linebreak'   => "\n",
         'wrap'        => 120
-    );
+    ];
 
     /**
      * Dummy typecast expression used for checks with argumentNeedsParentheses()
@@ -308,15 +308,15 @@ class SqlBuilderWalker implements TreeWalker
             return self::ASSOCIATIVE_LEFT;
 
         } elseif ($expression instanceof nodes\expressions\OperatorExpression) {
-            if (!$expression->left && in_array($expression->operator, array('not', '+', '-'))) {
+            if (!$expression->left && in_array($expression->operator, ['not', '+', '-'])) {
                 return self::ASSOCIATIVE_RIGHT;
 
-            } elseif (!in_array($expression->operator, array(
+            } elseif (!in_array($expression->operator, [
                           '=', '<', '>', '<=', '>=', '!=', '<>',
                           'overlaps', 'is null', 'is not null', 'is true', 'is not true',
                           'is false', 'is not false', 'is unknown', 'is not unknown',
                           'is document', 'is not document', 'is distinct from', 'is not distinct from'
-                      ))
+                      ])
             ) {
                 return self::ASSOCIATIVE_LEFT;
             }
@@ -478,19 +478,19 @@ class SqlBuilderWalker implements TreeWalker
         $this->indentLevel--;
     }
 
-    public function __construct(array $options = array())
+    public function __construct(array $options = [])
     {
         $this->options = array_merge($this->options, $options);
 
         $this->_dummyTypecast = new nodes\expressions\TypecastExpression(
             new nodes\Constant('dummy'),
-            new nodes\TypeName(new nodes\QualifiedName(array('dummy')))
+            new nodes\TypeName(new nodes\QualifiedName(['dummy']))
         );
     }
 
     public function walkSelectStatement(Select $statement)
     {
-        $clauses = array();
+        $clauses = [];
         if (0 < count($statement->with)) {
             $clauses[] = $statement->with->dispatch($this);
         }
@@ -530,7 +530,7 @@ class SqlBuilderWalker implements TreeWalker
     public function walkSetOpSelectStatement(SetOpSelect $statement)
     {
         $indent = $this->getIndent();
-        $parts  = array();
+        $parts  = [];
 
         if (0 < count($statement->with)) {
             $parts[] = $statement->with->dispatch($this);
@@ -574,7 +574,7 @@ class SqlBuilderWalker implements TreeWalker
         $rows = $statement->rows->dispatch($this);
         $this->indentLevel--;
 
-        $parts = array($sql . implode(',' . ($this->options['linebreak'] ?: ' '), $rows));
+        $parts = [$sql . implode(',' . ($this->options['linebreak'] ?: ' '), $rows)];
 
         $this->addCommonSelectClauses($parts, $statement);
 
@@ -583,7 +583,7 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkDeleteStatement(Delete $statement)
     {
-        $clauses = array();
+        $clauses = [];
         if (0 < count($statement->with)) {
             $clauses[] = $statement->with->dispatch($this);
         }
@@ -607,7 +607,7 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkInsertStatement(Insert $statement)
     {
-        $clauses = array();
+        $clauses = [];
         if (0 < count($statement->with)) {
             $clauses[] = $statement->with->dispatch($this);
         }
@@ -642,7 +642,7 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkUpdateStatement(Update $statement)
     {
-        $clauses = array();
+        $clauses = [];
         if (0 < count($statement->with)) {
             $clauses[] = $statement->with->dispatch($this);
         }
@@ -902,7 +902,7 @@ class SqlBuilderWalker implements TreeWalker
         } else {
             $sql = '(';
         }
-        $parts = array();
+        $parts = [];
         if ($node->refName) {
             $parts[] = $node->refName->dispatch($this);
         }
@@ -937,7 +937,7 @@ class SqlBuilderWalker implements TreeWalker
         if ($node->value) {
             return $node->value->dispatch($this) . ' ' . $node->direction;
 
-        } elseif (in_array($node->direction, array('preceding', 'following'))) {
+        } elseif (in_array($node->direction, ['preceding', 'following'])) {
             return 'unbounded ' . $node->direction;
 
         } else {
@@ -955,7 +955,7 @@ class SqlBuilderWalker implements TreeWalker
 
     protected function recursiveArrayExpression(nodes\expressions\ArrayExpression $expression, $keyword = true)
     {
-        $items = array();
+        $items = [];
         foreach ($expression as $item) {
             if ($item instanceof nodes\expressions\ArrayExpression) {
                 $items[] = $this->recursiveArrayExpression($item, false);
@@ -986,7 +986,7 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkCaseExpression(nodes\expressions\CaseExpression $expression)
     {
-        $clauses = array();
+        $clauses = [];
         if ($expression->argument) {
             $clauses[] = $expression->argument->dispatch($this);
         }
@@ -1071,7 +1071,7 @@ class SqlBuilderWalker implements TreeWalker
             $delimiter = ($this->options['linebreak'] ?: ' ') . $this->getIndent() . $expression->operator . ' ';
         }
 
-        $items     = array();
+        $items     = [];
 
         /* @var nodes\ScalarExpression $item */
         foreach ($expression as $item) {
@@ -1159,7 +1159,7 @@ class SqlBuilderWalker implements TreeWalker
      */
     public function walkGenericNodeList(NodeList $list)
     {
-        $items = array();
+        $items = [];
         /* @var Node $item */
         foreach ($list as $item) {
             $items[] = $item->dispatch($this);
@@ -1169,7 +1169,7 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkFunctionArgumentList(nodes\lists\FunctionArgumentList $list)
     {
-        $items = array();
+        $items = [];
         /* @var nodes\ScalarExpression $argument */
         foreach ($list as $key => $argument) {
             if (is_int($key)) {
@@ -1375,7 +1375,7 @@ class SqlBuilderWalker implements TreeWalker
     public function walkXmlTable(nodes\range\XmlTable $table)
     {
         $this->indentLevel++;
-        $lines = array(($table->lateral ? 'lateral ' : '') . 'xmltable(');
+        $lines = [($table->lateral ? 'lateral ' : '') . 'xmltable('];
         if (0 < count($table->namespaces)) {
             $lines[] = $this->getIndent() . 'xmlnamespaces(';
 
@@ -1448,7 +1448,7 @@ class SqlBuilderWalker implements TreeWalker
             $indent = $this->getIndent();
             $this->indentLevel++;
 
-            $clauses = array('');
+            $clauses = [''];
             $clauses[] = $this->implode($indent . 'set ', $onConflict->set->dispatch($this), ',');
             if ($onConflict->where->condition) {
                 $clauses[] = $indent . 'where ' . $onConflict->where->dispatch($this);

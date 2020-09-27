@@ -39,7 +39,7 @@ class Lexer
      * Source: src/include/parser/kwlist.h
      * @var array
      */
-    protected static $keywords = array(
+    protected static $keywords = [
         'abort'              => Token::TYPE_UNRESERVED_KEYWORD,
         'absolute'           => Token::TYPE_UNRESERVED_KEYWORD,
         'access'             => Token::TYPE_UNRESERVED_KEYWORD,
@@ -490,14 +490,14 @@ class Lexer
         'year'               => Token::TYPE_UNRESERVED_KEYWORD,
         'yes'                => Token::TYPE_UNRESERVED_KEYWORD,
         'zone'               => Token::TYPE_UNRESERVED_KEYWORD
-    );
+    ];
 
 
     protected $string;
     protected $position;
     protected $length;
     protected $tokens;
-    protected $options = array();
+    protected $options = [];
 
     private $_operatorCharHash;
     private $_specialCharHash;
@@ -540,12 +540,12 @@ class Lexer
      *
      * @param array $options
      */
-    public function __construct(array $options = array())
+    public function __construct(array $options = [])
     {
-        $this->options  = array_merge(array(
+        $this->options  = array_merge([
             'standard_conforming_strings' => true,
             'ascii_only_downcasing'       => true
-        ), $options);
+        ], $options);
 
         $this->_operatorCharHash     = array_flip(str_split(self::CHARS_OPERATOR));
         $this->_specialCharHash      = array_flip(str_split(self::CHARS_SPECIAL));
@@ -572,7 +572,7 @@ class Lexer
         $this->string   = $sql;
         $this->position = strspn($this->string, " \r\n\t\f", 0);
         $this->length   = strlen($sql);
-        $this->tokens   = array();
+        $this->tokens   = [];
 
         $this->doTokenize();
 
@@ -693,7 +693,7 @@ class Lexer
         } elseif (!strlen($m[1])) {
             throw exceptions\SyntaxException::atPosition('Zero-length quoted identifier', $this->string, $this->position);
         }
-        $this->pushToken(strtr($m[1], array('""' => '"')), Token::TYPE_IDENTIFIER, $this->position);
+        $this->pushToken(strtr($m[1], ['""' => '"']), Token::TYPE_IDENTIFIER, $this->position);
         $this->position += strlen($m[0]);
     }
 
@@ -762,9 +762,9 @@ class Lexer
             if ($regex === $regexNoQuotes) {
                 $value .= $m[1];
             } elseif ($regex === $regexNoSlashes) {
-                $value .= strtr($m[1], array("''" => "'"));
+                $value .= strtr($m[1], ["''" => "'"]);
             } else {
-                $value .= strtr(stripcslashes($m[1]), array("''" => "'"));
+                $value .= strtr(stripcslashes($m[1]), ["''" => "'"]);
             }
             $this->position += ('' === $char ? 0 : 1) + strlen($m[0]);
             $char            = '';

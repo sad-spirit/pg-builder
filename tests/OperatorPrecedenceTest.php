@@ -139,43 +139,43 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
 
     public function associativeEqualityProvider()
     {
-        return array(
-            array(
+        return [
+            [
                 'foo = bar = baz',
                 "Unexpected special character '='"
-            )
-        );
+            ]
+        ];
     }
 
     public function inequalityPrecedenceProvider()
     {
-        return array(
-            array(
+        return [
+            [
                 'a < b and c = d > e',
                 "Unexpected special character '>'"
-            ),
+            ],
             // NB: in pre-9.5 Postgres '<=' and '>=' are treated as generic multicharacter operators,
             // so they are  left-associative and have higher precedence than '<' and '>'
-            array(
+            [
                 'a >= b <= c',
                 "Unexpected comparison operator '<='"
-            ),
-            array(
+            ],
+            [
                 'foo = bar > baz <= quux',
                 "Unexpected special character '>'"
-            ),
-            array(
+            ],
+            [
                 'a < b > c',
                 "Unexpected special character '>'"
-            )
-        );
+            ]
+        ];
     }
 
 
     public function isWhateverPrecedenceProvider()
     {
-        return array(
-            array(
+        return [
+            [
                 'false = true is null',
                 new OperatorExpression(
                     'is null',
@@ -185,20 +185,20 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
                         new Constant(true)
                     )
                 )
-            ),
-            array(
+            ],
+            [
                 'foo @#! bar is distinct from baz',
                 new OperatorExpression(
                     'is distinct from',
                     new OperatorExpression(
                         '@#!',
-                        new ColumnReference(array(new Identifier('foo'))),
-                        new ColumnReference(array(new Identifier('bar')))
+                        new ColumnReference([new Identifier('foo')]),
+                        new ColumnReference([new Identifier('bar')])
                     ),
-                    new ColumnReference(array(new Identifier('baz')))
+                    new ColumnReference([new Identifier('baz')])
                 )
-            ),
-            array(
+            ],
+            [
                 "'foo' like 'bar' is not true",
                 new OperatorExpression(
                     'is not true',
@@ -207,89 +207,89 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
                         new Constant('bar')
                     )
                 )
-            )
-        );
+            ]
+        ];
     }
 
     public function betweenPrecedenceProvider()
     {
-        return array(
-            array(
+        return [
+            [
                 '1 between 0 and 2 between false and true',
                 "Unexpected keyword 'between'"
-            ),
-            array(
+            ],
+            [
                 'foo between false and true is not false',
                 new OperatorExpression(
                     'is not false',
                     new BetweenExpression(
-                        new ColumnReference(array(new Identifier('foo'))),
+                        new ColumnReference([new Identifier('foo')]),
                         new Constant(false),
                         new Constant(true)
                     )
                 )
-            )
-        );
+            ]
+        ];
     }
 
     public function inequalityWithCustomOperatorsPrecedenceProvider()
     {
         // Based on Tom Lane's message to pgsql-hackers which started the whole precedence brouhaha
         // https://www.postgresql.org/message-id/12603.1424360914%40sss.pgh.pa.us
-        return array(
-            array(
+        return [
+            [
                 "j->>'space' <= j->>'node'",
                 new OperatorExpression(
                     '<=',
                     new OperatorExpression(
                         '->>',
-                        new ColumnReference(array(new Identifier('j'))),
+                        new ColumnReference([new Identifier('j')]),
                         new Constant('space')
                     ),
                     new OperatorExpression(
                         '->>',
-                        new ColumnReference(array(new Identifier('j'))),
+                        new ColumnReference([new Identifier('j')]),
                         new Constant('node')
                     )
                 )
-            )
-        );
+            ]
+        ];
     }
 
     public function equalsGreaterOperatorProvider()
     {
-        return array(
-            array(
+        return [
+            [
                 'foo => bar',
                 "Unexpected named argument mark"
-            ),
-            array(
+            ],
+            [
                 "foo(bar => 'baz')",
                 new FunctionExpression(
-                    new QualifiedName(array(new Identifier('foo'))),
-                    new FunctionArgumentList(array(
+                    new QualifiedName([new Identifier('foo')]),
+                    new FunctionArgumentList([
                         '"bar"' => new Constant('baz')
-                    ))
+                    ])
                 )
-            )
-        );
+            ]
+        ];
     }
 
     public function intervalTypeProvider()
     {
-        $interval = new IntervalTypeName(new TypeModifierList(array(
+        $interval = new IntervalTypeName(new TypeModifierList([
             new Constant(10)
-        )));
+        ]));
         $interval->setMask('minute to second');
-        return array(
-            array(
+        return [
+            [
                 "cast (foo as interval (5) minute to second (6))",
                 "Unexpected keyword 'minute'"
-            ),
-            array(
+            ],
+            [
                 "interval (10) 'a value' minute to second",
                 "Unexpected keyword 'minute'"
-            )
-        );
+            ]
+        ];
     }
 }

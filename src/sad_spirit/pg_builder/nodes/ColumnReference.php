@@ -34,12 +34,12 @@ class ColumnReference extends Node implements ScalarExpression
 {
     public function __construct(array $parts)
     {
-        $this->props = array(
+        $this->props = [
             'catalog'  => null,
             'schema'   => null,
             'relation' => null,
             'column'   => null
-        );
+        ];
 
         $starIdx = null;
         foreach ($parts as $idx => &$part) {

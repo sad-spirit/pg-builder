@@ -52,7 +52,7 @@ abstract class NodeList extends Node implements \ArrayAccess, \Countable, \Itera
      */
     function __sleep()
     {
-        return array_merge(parent::__sleep(), array('nodes'));
+        return array_merge(parent::__sleep(), ['nodes']);
     }
 
     /**
@@ -70,7 +70,7 @@ abstract class NodeList extends Node implements \ArrayAccess, \Countable, \Itera
 
     public function __construct($array = null)
     {
-        $this->replace($array ?: array());
+        $this->replace($array ?: []);
     }
 
     public function offsetExists($offset)
@@ -159,7 +159,7 @@ abstract class NodeList extends Node implements \ArrayAccess, \Countable, \Itera
     {
         $this->normalizeArray($array, __METHOD__);
 
-        $this->nodes = array();
+        $this->nodes = [];
         foreach ($array as $offset => $value) {
             $this->offsetSet($offset, $value);
         }
@@ -178,7 +178,7 @@ abstract class NodeList extends Node implements \ArrayAccess, \Countable, \Itera
             if (!($parser = $this->getParser())) {
                 throw new exceptions\InvalidArgumentException("Passed a string to method '{$method}' without a Parser available");
             }
-            $array = call_user_func(array(get_class($this), 'createFromString'), $parser, $array);
+            $array = call_user_func([get_class($this), 'createFromString'], $parser, $array);
         }
         if (!is_array($array) && !($array instanceof \Traversable)) {
             throw new exceptions\InvalidArgumentException(sprintf(

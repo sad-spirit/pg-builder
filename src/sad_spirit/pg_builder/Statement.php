@@ -34,7 +34,7 @@ abstract class Statement extends Node
 
     public function __construct()
     {
-        $this->props['with'] = new WithClause(array());
+        $this->props['with'] = new WithClause([]);
         $this->props['with']->setParentNode($this);
     }
 

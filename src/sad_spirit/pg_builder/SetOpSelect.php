@@ -26,14 +26,14 @@ namespace sad_spirit\pg_builder;
  */
 class SetOpSelect extends SelectCommon
 {
-    protected static $allowedOperators = array(
+    protected static $allowedOperators = [
         'union'         => true,
         'union all'     => true,
         'intersect'     => true,
         'intersect all' => true,
         'except'        => true,
         'except all'    => true
-    );
+    ];
 
     public function __construct(SelectCommon $left, SelectCommon $right, $operator = 'union')
     {

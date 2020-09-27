@@ -50,32 +50,32 @@ class ParseTypecastTest extends \PHPUnit\Framework\TestCase
     foo.bar::baz, foo::bar.baz, foo::bar::baz(666), foo::int array, foo::int[]
 QRY
         );
-        $arrayOfInt = new TypeName(new QualifiedName(array('pg_catalog', 'int4')));
-        $arrayOfInt->setBounds(array(-1));
+        $arrayOfInt = new TypeName(new QualifiedName(['pg_catalog', 'int4']));
+        $arrayOfInt->setBounds([-1]);
 
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new TypecastExpression(
-                    new ColumnReference(array('foo', 'bar')),
-                    new TypeName(new QualifiedName(array('baz')))
+                    new ColumnReference(['foo', 'bar']),
+                    new TypeName(new QualifiedName(['baz']))
                 ),
                 new TypecastExpression(
-                    new ColumnReference(array('foo')),
-                    new TypeName(new QualifiedName(array('bar', 'baz')))
+                    new ColumnReference(['foo']),
+                    new TypeName(new QualifiedName(['bar', 'baz']))
                 ),
                 new TypecastExpression(
                     new TypecastExpression(
-                        new ColumnReference(array(new Identifier('foo'))),
-                        new TypeName(new QualifiedName(array('bar')))
+                        new ColumnReference([new Identifier('foo')]),
+                        new TypeName(new QualifiedName(['bar']))
                     ),
                     new TypeName(
-                        new QualifiedName(array('baz')),
-                        new TypeModifierList(array(new Constant(666)))
+                        new QualifiedName(['baz']),
+                        new TypeModifierList([new Constant(666)])
                     )
                 ),
-                new TypecastExpression(new ColumnReference(array('foo')), clone $arrayOfInt),
-                new TypecastExpression(new ColumnReference(array('foo')), clone $arrayOfInt)
-            )),
+                new TypecastExpression(new ColumnReference(['foo']), clone $arrayOfInt),
+                new TypecastExpression(new ColumnReference(['foo']), clone $arrayOfInt)
+            ]),
             $list
         );
     }
@@ -88,28 +88,28 @@ QRY
     foo::decimal(1,2), foo::dec(3), cast (foo as numeric), foo::boolean
 QRY
         );
-        $foo = new ColumnReference(array('foo'));
+        $foo = new ColumnReference(['foo']);
         $this->assertEquals(
-            new ExpressionList(array(
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'int4')))),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'int4')))),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'int2')))),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'int8')))),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'float4')))),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'float4')))),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'float8')))),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'float8')))),
+            new ExpressionList([
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'int4']))),
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'int4']))),
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'int2']))),
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'int8']))),
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'float4']))),
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'float4']))),
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'float8']))),
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'float8']))),
                 new TypecastExpression(clone $foo, new TypeName(
-                    new QualifiedName(array('pg_catalog', 'numeric')),
-                    new TypeModifierList(array(new Constant(1), new Constant(2)))
+                    new QualifiedName(['pg_catalog', 'numeric']),
+                    new TypeModifierList([new Constant(1), new Constant(2)])
                 )),
                 new TypecastExpression(clone $foo, new TypeName(
-                    new QualifiedName(array('pg_catalog', 'numeric')),
-                    new TypeModifierList(array(new Constant(3)))
+                    new QualifiedName(['pg_catalog', 'numeric']),
+                    new TypeModifierList([new Constant(3)])
                 )),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'numeric')))),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'bool'))))
-            )),
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'numeric']))),
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'bool'])))
+            ]),
             $list
         );
     }
@@ -120,18 +120,18 @@ QRY
     foo::bit, cast(foo as bit varying), foo::bit varying(10), cast (foo as bit(10))
 QRY
         );
-        $foo   = new ColumnReference(array('foo'));
-        $mod10 = new TypeModifierList(array(new Constant(10)));
+        $foo   = new ColumnReference(['foo']);
+        $mod10 = new TypeModifierList([new Constant(10)]);
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new TypecastExpression(clone $foo, new TypeName(
-                    new QualifiedName(array('pg_catalog', 'bit')),
-                    new TypeModifierList(array(new Constant(1)))
+                    new QualifiedName(['pg_catalog', 'bit']),
+                    new TypeModifierList([new Constant(1)])
                 )),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'varbit')))),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'varbit')), clone $mod10)),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'bit')), clone $mod10))
-            )),
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'varbit']))),
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'varbit']), clone $mod10)),
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'bit']), clone $mod10))
+            ]),
             $list
         );
     }
@@ -143,20 +143,20 @@ QRY
     blah::char(13), blah::varchar, blah::nchar, cast(blah as national character varying(13))
 QRY
         );
-        $blah  = new ColumnReference(array('blah'));
-        $mod13 = new TypeModifierList(array(new Constant(13)));
-        $mod1  = new TypeModifierList(array(new Constant(1)));
+        $blah  = new ColumnReference(['blah']);
+        $mod13 = new TypeModifierList([new Constant(13)]);
+        $mod1  = new TypeModifierList([new Constant(1)]);
 
         $this->assertEquals(
-            new ExpressionList(array(
-                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(array('pg_catalog', 'bpchar')), clone $mod1)),
-                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(array('pg_catalog', 'varchar')))),
-                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(array('pg_catalog', 'varchar')), clone $mod13)),
-                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(array('pg_catalog', 'bpchar')), clone $mod13)),
-                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(array('pg_catalog', 'varchar')))),
-                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(array('pg_catalog', 'bpchar')), clone $mod1)),
-                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(array('pg_catalog', 'varchar')), clone $mod13)),
-            )),
+            new ExpressionList([
+                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(['pg_catalog', 'bpchar']), clone $mod1)),
+                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(['pg_catalog', 'varchar']))),
+                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(['pg_catalog', 'varchar']), clone $mod13)),
+                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(['pg_catalog', 'bpchar']), clone $mod13)),
+                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(['pg_catalog', 'varchar']))),
+                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(['pg_catalog', 'bpchar']), clone $mod1)),
+                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(['pg_catalog', 'varchar']), clone $mod13)),
+            ]),
             $list
         );
     }
@@ -168,16 +168,16 @@ QRY
     cast (foo as timestamp(3) with time zone)
 QRY
         );
-        $foo  = new ColumnReference(array('foo'));
-        $mod3 = new TypeModifierList(array(new Constant(3)));
+        $foo  = new ColumnReference(['foo']);
+        $mod3 = new TypeModifierList([new Constant(3)]);
         $this->assertEquals(
-            new ExpressionList(array(
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'time')))),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'timestamp')), clone $mod3)),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'timetz')))),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'timestamp')))),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(array('pg_catalog', 'timestamptz')), clone $mod3)),
-            )),
+            new ExpressionList([
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'time']))),
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'timestamp']), clone $mod3)),
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'timetz']))),
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'timestamp']))),
+                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'timestamptz']), clone $mod3)),
+            ]),
             $list
         );
     }
@@ -189,17 +189,17 @@ QRY
 QRY
         );
 
-        $foo    = new ColumnReference(array('foo'));
-        $mod10  = new TypeModifierList(array(new Constant(10)));
+        $foo    = new ColumnReference(['foo']);
+        $mod10  = new TypeModifierList([new Constant(10)]);
         $masked = new IntervalTypeName($mod10);
         $masked->setMask('hour to second');
 
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new TypecastExpression(clone $foo, new IntervalTypeName()),
                 new TypecastExpression(clone $foo, new IntervalTypeName(clone $mod10)),
                 new TypecastExpression(clone $foo, $masked)
-            )),
+            ]),
             $list
         );
     }
@@ -211,18 +211,18 @@ QRY
 QRY
         );
 
-        $foo    = new ColumnReference(array('foo'));
-        $array5 = new TypeName(new QualifiedName(array('text')));
-        $array5->setBounds(array(5));
-        $setof  = new TypeName(new QualifiedName(array('text')));
+        $foo    = new ColumnReference(['foo']);
+        $array5 = new TypeName(new QualifiedName(['text']));
+        $array5->setBounds([5]);
+        $setof  = new TypeName(new QualifiedName(['text']));
         $setof->setSetOf(true);
 
         $this->assertEquals(
-            new ExpressionList(array(
+            new ExpressionList([
                 new TypecastExpression(clone $foo, $setof),
                 new TypecastExpression(clone $foo, clone $array5),
                 new TypecastExpression(clone $foo, clone $array5)
-            )),
+            ]),
             $list
         );
     }
@@ -233,8 +233,8 @@ QRY
             new TypecastExpression(
                 new Constant('a value'),
                 new TypeName(
-                    new QualifiedName(array('foo', 'bar', 'baz')),
-                    new TypeModifierList(array(new Identifier('quux'), new Constant('xyzzy'), new Constant(42)))
+                    new QualifiedName(['foo', 'bar', 'baz']),
+                    new TypeModifierList([new Identifier('quux'), new Constant('xyzzy'), new Constant(42)])
                 )
             ),
             $this->parser->parseExpression("cast('a value' as foo.bar.baz(quux, 'xyzzy', 42))")
@@ -250,22 +250,22 @@ QRY
 QRY
         );
         $val      = new Constant('a value');
-        $mod10    = new TypeModifierList(array(new Constant(10)));
+        $mod10    = new TypeModifierList([new Constant(10)]);
         $interval = new IntervalTypeName($mod10);
         $interval->setMask('minute to second');
         $this->assertEquals(
-            new ExpressionList(array(
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(array('pg_catalog', 'float8')))),
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(array('pg_catalog', 'varchar')))),
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(array('pg_catalog', 'varchar')), clone $mod10)),
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(array('pg_catalog', 'bpchar')))),
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(array('pg_catalog', 'bit')))),
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(array('pg_catalog', 'varbit')), clone $mod10)),
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(array('pg_catalog', 'timetz')), clone $mod10)),
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(array('pg_catalog', 'timestamp')))),
+            new ExpressionList([
+                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['pg_catalog', 'float8']))),
+                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['pg_catalog', 'varchar']))),
+                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['pg_catalog', 'varchar']), clone $mod10)),
+                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['pg_catalog', 'bpchar']))),
+                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['pg_catalog', 'bit']))),
+                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['pg_catalog', 'varbit']), clone $mod10)),
+                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['pg_catalog', 'timetz']), clone $mod10)),
+                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['pg_catalog', 'timestamp']))),
                 new TypecastExpression(clone $val, $interval),
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(array('quux', 'xyzzy'))))
-            )),
+                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['quux', 'xyzzy'])))
+            ]),
             $list
         );
     }
@@ -284,43 +284,43 @@ QRY
 
     public function getInvalidTypeSpecifications()
     {
-        return array(
-            array(
+        return [
+            [
                 'cast(foo as float(0))',
                 'Precision for type float must be at least 1 bit'
-            ),
-            array(
+            ],
+            [
                 'cast(foo as float(666))',
                 'Precision for type float must be less than 54 bits'
-            ),
-            array(
+            ],
+            [
                 'cast(foo as numeric(1,2,3))',
                 "Unexpected special character ','"
-            ),
-            array(
+            ],
+            [
                 'cast(foo as bit(1, 2))',
                 "Unexpected special character ','"
-            ),
-            array(
+            ],
+            [
                 "cast(foo as 'bar')",
                 'Expecting type name'
-            ),
-            array(
+            ],
+            [
                 "cast(foo as select)",
                 'Expecting type name'
-            ),
-            array(
+            ],
+            [
                 "cast('bar' as foo())",
                 'Expecting a constant or an identifier'
-            ),
-            array(
+            ],
+            [
                 "foo() 'bar'",
                 'Unexpected string literal'
-            ),
-            array(
+            ],
+            [
                 "cast (foo as interval day to hour (5))",
                 "Unexpected special character '('"
-            )
-        );
+            ]
+        ];
     }
 }

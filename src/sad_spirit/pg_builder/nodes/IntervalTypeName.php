@@ -36,7 +36,7 @@ use sad_spirit\pg_builder\nodes\lists\TypeModifierList,
  */
 class IntervalTypeName extends TypeName
 {
-    protected static $allowedMasks = array(
+    protected static $allowedMasks = [
         'year'             => true,
         'month'            => true,
         'day'              => true,
@@ -50,12 +50,12 @@ class IntervalTypeName extends TypeName
         'hour to minute'   => true,
         'hour to second'   => true,
         'minute to second' => true
-    );
+    ];
 
     public function __construct(TypeModifierList $typeModifiers = null)
     {
         $this->props['setOf']     = false;
-        $this->props['bounds']    = array();
+        $this->props['bounds']    = [];
         $this->props['name']      = null;
         $this->props['mask']      = '';
         $this->setNamedProperty('modifiers', $typeModifiers ?: new TypeModifierList());

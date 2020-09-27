@@ -64,7 +64,7 @@ class StatementFactoryTest extends \PHPUnit\Framework\TestCase
         $connection->setMetadataCache($cache);
         $factory    = new StatementFactory($connection);
 
-        $expected   = new Parser(new Lexer(array('standard_conforming_strings' => false)), $cache);
+        $expected   = new Parser(new Lexer(['standard_conforming_strings' => false]), $cache);
 
         $this->assertEquals($expected, $factory->getParser());
     }
@@ -82,7 +82,7 @@ class StatementFactoryTest extends \PHPUnit\Framework\TestCase
 
         $delete   = $factory->delete('only foo as bar');
         $relation = new UpdateOrDeleteTarget(
-            new QualifiedName(array('foo')), new Identifier('bar'),false
+            new QualifiedName(['foo']), new Identifier('bar'),false
         );
         $this->assertEquals($relation, clone $delete->relation);
         $this->assertSame($factory->getParser(), $delete->getParser());
@@ -97,7 +97,7 @@ class StatementFactoryTest extends \PHPUnit\Framework\TestCase
 
         $insert   = $factory->insert('someschema.target as aliaz');
         $target   = new InsertTarget(
-            new QualifiedName(array('someschema', 'target')),
+            new QualifiedName(['someschema', 'target']),
             new Identifier('aliaz')
         );
         $this->assertEquals($target, clone $insert->relation);
@@ -112,23 +112,23 @@ class StatementFactoryTest extends \PHPUnit\Framework\TestCase
         $factory = new StatementFactory();
 
         $select = $factory->select('foo as newfoo, barsource.bar', 'someschema.foosource, otherschema.barsource');
-        $targetList = new TargetList(array(
-            new TargetElement(new ColumnReference(array('foo')), new Identifier('newfoo')),
-            new TargetElement(new ColumnReference(array('barsource', 'bar')))
-        ));
-        $fromList = new FromList(array(
-            new RelationReference(new QualifiedName(array('someschema', 'foosource'))),
-            new RelationReference(new QualifiedName(array('otherschema', 'barsource')))
-        ));
+        $targetList = new TargetList([
+            new TargetElement(new ColumnReference(['foo']), new Identifier('newfoo')),
+            new TargetElement(new ColumnReference(['barsource', 'bar']))
+        ]);
+        $fromList = new FromList([
+            new RelationReference(new QualifiedName(['someschema', 'foosource'])),
+            new RelationReference(new QualifiedName(['otherschema', 'barsource']))
+        ]);
 
         $this->assertEquals($targetList, clone $select->list);
         $this->assertEquals($fromList, clone $select->from);
         $this->assertSame($factory->getParser(), $select->getParser());
 
-        $select2 = $factory->select(array(
+        $select2 = $factory->select([
             'foo as newfoo',
-            new TargetElement(new ColumnReference(array('barsource', 'bar')))
-        ));
+            new TargetElement(new ColumnReference(['barsource', 'bar']))
+        ]);
         $this->assertEquals($targetList, clone $select2->list);
         $this->assertEquals(0, count($select2->from));
 
@@ -143,9 +143,9 @@ class StatementFactoryTest extends \PHPUnit\Framework\TestCase
 
         $update   = $factory->update('someschema.foo as bar', 'blah = default, blahblah = 42');
         $relation = new UpdateOrDeleteTarget(
-            new QualifiedName(array('someschema', 'foo')), new Identifier('bar')
+            new QualifiedName(['someschema', 'foo']), new Identifier('bar')
         );
-        $setClauseList = new SetClauseList(array(
+        $setClauseList = new SetClauseList([
             new SingleSetClause(
                 new SetTargetElement(new Identifier('blah')),
                 new SetToDefault()
@@ -154,7 +154,7 @@ class StatementFactoryTest extends \PHPUnit\Framework\TestCase
                 new SetTargetElement(new Identifier('blahblah')),
                 new Constant(42)
             )
-        ));
+        ]);
 
         $this->assertEquals($relation, clone $update->relation);
         $this->assertEquals($setClauseList, clone $update->set);
@@ -170,10 +170,10 @@ class StatementFactoryTest extends \PHPUnit\Framework\TestCase
         $factory = new StatementFactory();
 
         $values = $factory->values("('foo', 42), ('bar', default)");
-        $rows   = new RowList(array(
-            array(new Constant('foo'), new Constant(42)),
-            array(new Constant('bar'), new SetToDefault())
-        ));
+        $rows   = new RowList([
+            [new Constant('foo'), new Constant(42)],
+            [new Constant('bar'), new SetToDefault()]
+        ]);
 
         $this->assertEquals($rows, clone $values->rows);
         $this->assertSame($factory->getParser(), $values->getParser());

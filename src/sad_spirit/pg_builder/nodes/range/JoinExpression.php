@@ -34,13 +34,13 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
  */
 class JoinExpression extends FromElement
 {
-    protected static $allowedTypes = array(
+    protected static $allowedTypes = [
         'cross' => true,
         'left'  => true,
         'right' => true,
         'full'  => true,
         'inner' => true
-    );
+    ];
 
     public function __construct(FromElement $left, FromElement $right, $joinType = 'inner')
     {
@@ -50,12 +50,12 @@ class JoinExpression extends FromElement
 
         $this->setLeft($left);
         $this->setRight($right);
-        $this->props = array_merge($this->props, array(
+        $this->props = array_merge($this->props, [
             'type'    => $joinType,
             'natural' => null,
             'using'   => null,
             'on'      => null
-        ));
+        ]);
     }
 
     public function setLeft(FromElement $left)

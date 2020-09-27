@@ -32,7 +32,7 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList,
  */
 class SetTargetElement extends NonAssociativeList
 {
-    public function __construct($name, array $indirection = array())
+    public function __construct($name, array $indirection = [])
     {
         parent::__construct($indirection);
         $this->setName($name);

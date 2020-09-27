@@ -36,7 +36,7 @@ class CubeOrRollupClause extends ExpressionList implements GroupByElement
 
     public function setType($type)
     {
-        if (!in_array($type, array('cube', 'rollup'), true)) {
+        if (!in_array($type, ['cube', 'rollup'], true)) {
             throw new InvalidArgumentException("Unknown grouping set type '{$type}'");
         }
         $this->props['type'] = $type;

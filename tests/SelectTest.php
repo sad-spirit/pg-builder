@@ -40,11 +40,11 @@ class SelectTest extends \PHPUnit\Framework\TestCase
     public function setUp(): void
     {
         $this->parser  = new Parser(new Lexer());
-        $this->builder = new SqlBuilderWalker(array(
+        $this->builder = new SqlBuilderWalker([
             'indent'    => '',
             'linebreak' => '',
             'wrap'      => null
-        ));
+        ]);
     }
 
     public function testSimpleUnion()

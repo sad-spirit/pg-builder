@@ -36,7 +36,7 @@ class IsOfExpression extends Node implements ScalarExpression
 {
     public function __construct(ScalarExpression $left, TypeList $right, $operator = 'is of')
     {
-        if (!in_array($operator, array('is of', 'is not of'), true)) {
+        if (!in_array($operator, ['is of', 'is not of'], true)) {
             throw new InvalidArgumentException("Unknown operator '{$operator}' for IS OF-style expression");
         }
         $this->setNamedProperty('left', $left);

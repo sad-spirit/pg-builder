@@ -31,7 +31,7 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
 {
     public function __construct($terms = null, $operator = 'and')
     {
-        if (!in_array($operator, array('and', 'or'), true)) {
+        if (!in_array($operator, ['and', 'or'], true)) {
             throw new InvalidArgumentException("Unknown logical operator '{$operator}'");
         }
         parent::__construct($terms);

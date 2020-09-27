@@ -27,10 +27,10 @@ class SyntaxException extends \DomainException implements Exception
 {
     protected static function getContext($string, $position)
     {
-        return array(
+        return [
             substr_count(substr($string, 0, $position), "\n") + 1,
             substr($string, $position)
-        );
+        ];
     }
 
     public static function atPosition($message, $string, $position)

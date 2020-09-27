@@ -31,10 +31,10 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException,
  */
 abstract class FromElement extends Node
 {
-    protected $props = array(
+    protected $props = [
         'tableAlias'    => null,
         'columnAliases' => null
-    );
+    ];
 
     public function setAlias(Identifier $tableAlias = null, $columnAliases = null)
     {
@@ -76,7 +76,7 @@ abstract class FromElement extends Node
         } else {
             // $dummy is required here: if we pass $this to JoinExpression's constructor, then by the time
             // control reaches replaceChild() $this will not be a child of parentNode anymore.
-            $dummy = new RelationReference(new QualifiedName(array('dummy')));
+            $dummy = new RelationReference(new QualifiedName(['dummy']));
             $join  = $this->getParentNode()->replaceChild(
                 $this, new JoinExpression($dummy, $fromElement, strtolower($joinType))
             );

@@ -52,7 +52,7 @@ class NativeStatementTest extends \PHPUnit\Framework\TestCase
         ));
         $this->assertStringContainsString('$1', $native->getSql());
 
-        $result = $native->executeParams($this->connection, array('oid' => 23));
+        $result = $native->executeParams($this->connection, ['oid' => 23]);
         $this->assertEquals('int4', $result[0]['typname']);
     }
 
@@ -63,7 +63,7 @@ class NativeStatementTest extends \PHPUnit\Framework\TestCase
         $native = $this->factory->createFromAST($this->factory->createFromString(
             'select * from pg_catalog.pg_type where oid = :oid or typname = :name'
         ));
-        $native->executeParams($this->connection, array('name' => 'text'));
+        $native->executeParams($this->connection, ['name' => 'text']);
     }
 
     public function testUnknownNamedParameter()
@@ -73,7 +73,7 @@ class NativeStatementTest extends \PHPUnit\Framework\TestCase
         $native = $this->factory->createFromAST($this->factory->createFromString(
             'select typname from pg_catalog.pg_type where oid = :oid'
         ));
-        $native->executeParams($this->connection, array('oid' => 23, 'name' => 'text'));
+        $native->executeParams($this->connection, ['oid' => 23, 'name' => 'text']);
     }
 
     public function testMapInputTypes()
@@ -82,7 +82,7 @@ class NativeStatementTest extends \PHPUnit\Framework\TestCase
             'select typname from pg_catalog.pg_type where oid = any(:oid) order by typname'
         ));
         $result = $native->executeParams(
-            $this->connection, array('oid' => array(21, 23)), array('oid' => 'int4[]')
+            $this->connection, ['oid' => [21, 23]], ['oid' => 'int4[]']
         );
         $this->assertEquals('int2', $result[0]['typname']);
     }
@@ -92,12 +92,12 @@ class NativeStatementTest extends \PHPUnit\Framework\TestCase
         $native = $this->factory->createFromAST($this->factory->createFromString(
             'select typname from pg_catalog.pg_type where oid = any(:oid::integer[]) order by typname'
         ));
-        $result = $native->executeParams($this->connection, array('oid' => array(21, 23)));
+        $result = $native->executeParams($this->connection, ['oid' => [21, 23]]);
         $this->assertEquals('int2', $result[0]['typname']);
 
         /* @var $native2 NativeStatement */
         $native2 = unserialize(serialize($native));
-        $result2 = $native2->executeParams($this->connection, array('oid' => array(25)));
+        $result2 = $native2->executeParams($this->connection, ['oid' => [25]]);
         $this->assertEquals('text', $result2[0]['typname']);
     }
 
@@ -109,10 +109,10 @@ class NativeStatementTest extends \PHPUnit\Framework\TestCase
         $prepared = $native->prepare($this->connection);
         $this->assertInstanceOf('\sad_spirit\pg_wrapper\PreparedStatement', $prepared);
 
-        $resultOne = $native->executePrepared(array('oid' => 21));
+        $resultOne = $native->executePrepared(['oid' => 21]);
         $this->assertEquals('int2', $resultOne[0]['typname']);
 
-        $resultTwo = $native->executePrepared(array('oid' => 23));
+        $resultTwo = $native->executePrepared(['oid' => 23]);
         $this->assertEquals('int4', $resultTwo[0]['typname']);
     }
 
@@ -121,9 +121,9 @@ class NativeStatementTest extends \PHPUnit\Framework\TestCase
         $native = $this->factory->createFromAST($this->factory->createFromString(
             'select typname from pg_catalog.pg_type where oid = any(:oid)'
         ));
-        $native->prepare($this->connection, array('oid' => 'integer[]'));
+        $native->prepare($this->connection, ['oid' => 'integer[]']);
 
-        $result = $native->executePrepared(array('oid' => array(23)));
+        $result = $native->executePrepared(['oid' => [23]]);
         $this->assertEquals('int4', $result[0]['typname']);
     }
 
@@ -134,7 +134,7 @@ class NativeStatementTest extends \PHPUnit\Framework\TestCase
         $native = $this->factory->createFromAST($this->factory->createFromString(
             'select typname from pg_catalog.pg_type where oid = :oid'
         ));
-        $native->executePrepared(array('oid' => 23));
+        $native->executePrepared(['oid' => 23]);
     }
 
     public function testPreparedStatementIsNotSerialized()
@@ -148,6 +148,6 @@ class NativeStatementTest extends \PHPUnit\Framework\TestCase
 
         /* @var $native2 NativeStatement */
         $native2 = unserialize(serialize($native));
-        $native2->executePrepared(array('oid' => 23));
+        $native2->executePrepared(['oid' => 23]);
     }
 }

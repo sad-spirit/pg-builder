@@ -33,12 +33,12 @@ class OrderByElement extends Node
 {
     public function __construct(ScalarExpression $expression, $direction = null, $nullsOrder = null, $operator = null)
     {
-        if (null !== $direction && !in_array($direction, array('asc', 'desc', 'using'), true)) {
+        if (null !== $direction && !in_array($direction, ['asc', 'desc', 'using'], true)) {
             throw new InvalidArgumentException("Unknown sort direction '{$direction}'");
         } elseif ('using' === $direction && !$operator) {
             throw new InvalidArgumentException("Operator required for USING sort direction");
         }
-        if (null !== $nullsOrder && !in_array($nullsOrder, array('first', 'last'), true)) {
+        if (null !== $nullsOrder && !in_array($nullsOrder, ['first', 'last'], true)) {
             throw new InvalidArgumentException("Unknown nulls order '{$nullsOrder}'");
         }
 

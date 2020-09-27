@@ -55,7 +55,7 @@ class FunctionCall extends Node
         }
 
         $this->setNamedProperty('name', $funcName);
-        $this->setNamedProperty('arguments', $arguments ?: new FunctionArgumentList(array()));
+        $this->setNamedProperty('arguments', $arguments ?: new FunctionArgumentList([]));
         $this->props['distinct'] = (bool)$distinct;
         $this->props['variadic'] = (bool)$variadic;
         $this->setNamedProperty('order', $orderBy ?: new OrderByList());
