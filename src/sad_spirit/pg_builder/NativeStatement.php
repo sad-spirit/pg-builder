@@ -21,7 +21,7 @@ namespace sad_spirit\pg_builder;
 use sad_spirit\pg_wrapper\Connection;
 use sad_spirit\pg_wrapper\PreparedStatement;
 use sad_spirit\pg_wrapper\ResultSet;
-use sad_spirit\pg_wrapper\exceptions\InvalidQueryException;
+use sad_spirit\pg_wrapper\exceptions\ServerException;
 
 /**
  * Wraps the results of query building process, can be serialized and stored in cache
@@ -162,7 +162,7 @@ class NativeStatement
      *                                array take precedence over types from parameterTypes
      * @param array      $outputTypes Result types to pass to ResultSet (keys can be either names or positions)
      * @return bool|ResultSet|int
-     * @throws InvalidQueryException
+     * @throws ServerException
      * @throws exceptions\InvalidArgumentException
      */
     public function executeParams(
@@ -209,7 +209,7 @@ class NativeStatement
      * @param array $resultTypes
      * @return bool|ResultSet|int
      * @throws exceptions\RuntimeException
-     * @throws InvalidQueryException
+     * @throws ServerException
      */
     public function executePrepared(array $params = [], array $resultTypes = [])
     {

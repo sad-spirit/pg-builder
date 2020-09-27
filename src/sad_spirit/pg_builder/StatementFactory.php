@@ -19,7 +19,7 @@
 namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_wrapper\Connection;
-use sad_spirit\pg_wrapper\exceptions\InvalidQueryException;
+use sad_spirit\pg_wrapper\exceptions\ServerException;
 
 /**
  * Helper class for creating statements and passing Parser object to them
@@ -86,7 +86,7 @@ class StatementFactory
                     $lexerOptions = [
                         'standard_conforming_strings' => 'on' === $res[0]['standard_conforming_strings']
                     ];
-                } catch (InvalidQueryException $e) {
+                } catch (ServerException $e) {
                     // the server is not aware of the setting?
                     $lexerOptions = ['standard_conforming_strings' => false];
                 }
