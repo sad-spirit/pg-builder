@@ -16,27 +16,31 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\exceptions;
 
-use sad_spirit\pg_builder\Exception;
-use sad_spirit\pg_builder\Token;
+use sad_spirit\pg_builder\{
+    Exception,
+    Token
+};
 
 /**
  * Thrown for parsing failures
  */
 class SyntaxException extends \DomainException implements Exception
 {
-    protected static function getContext($string, $position)
+    protected static function getContext(string $source, int $position): array
     {
         return [
-            substr_count(substr($string, 0, $position), "\n") + 1,
-            substr($string, $position)
+            substr_count(substr($source, 0, $position), "\n") + 1,
+            substr($source, $position)
         ];
     }
 
-    public static function atPosition($message, $string, $position)
+    public static function atPosition(string $message, string $source, int $position): self
     {
-        list($line, $fragment) = self::getContext($string, $position);
+        [$line, $fragment] = self::getContext($source, $position);
         return new self(sprintf(
             "%s at position %d (line %d): %s",
             $message,
@@ -46,9 +50,16 @@ class SyntaxException extends \DomainException implements Exception
         ));
     }
 
-    public static function expectationFailed($type, $value, Token $actual, $string)
+    /**
+     * @param int|string|string[]  $type
+     * @param string|string[]|null $value
+     * @param Token                $actual
+     * @param string               $source
+     * @return SyntaxException
+     */
+    public static function expectationFailed($type, $value, Token $actual, string $source): self
     {
-        list($line, $fragment) = self::getContext($string, $actual->getPosition());
+        [$line, $fragment] = self::getContext($source, $actual->getPosition());
         if (null === $value) {
             if (is_int($type)) {
                 $expected = Token::typeToString($type);
