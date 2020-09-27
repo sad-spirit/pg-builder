@@ -51,7 +51,7 @@ abstract class NodeList extends Node implements \ArrayAccess, \Countable, \Itera
     /**
      * Limits serialization to only $props and $nodes properties
      */
-    function __sleep()
+    public function __sleep()
     {
         return array_merge(parent::__sleep(), ['nodes']);
     }
@@ -59,7 +59,7 @@ abstract class NodeList extends Node implements \ArrayAccess, \Countable, \Itera
     /**
      * Restores the parent node link for child nodes on unserializing the object
      */
-    function __wakeup()
+    public function __wakeup()
     {
         parent::__wakeup();
         foreach ($this->nodes as $node) {
@@ -177,7 +177,9 @@ abstract class NodeList extends Node implements \ArrayAccess, \Countable, \Itera
     {
         if (is_string($array) && $this instanceof Parseable) {
             if (!($parser = $this->getParser())) {
-                throw new exceptions\InvalidArgumentException("Passed a string to method '{$method}' without a Parser available");
+                throw new exceptions\InvalidArgumentException(
+                    "Passed a string to method '{$method}' without a Parser available"
+                );
             }
             $array = call_user_func([get_class($this), 'createFromString'], $parser, $array);
         }

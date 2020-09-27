@@ -20,6 +20,7 @@ namespace sad_spirit\pg_builder;
 
 use Psr\Cache\CacheItemPoolInterface;
 
+// phpcs:disable PSR1.Methods.CamelCapsMethodName
 /**
  * Recursive descent parser for PostgreSQL's dialect of SQL
  *
@@ -131,12 +132,12 @@ class Parser
     /**
      * @var Lexer
      */
-    private $_lexer;
+    private $lexer;
 
     /**
      * @var CacheItemPoolInterface
      */
-    private $_cache;
+    private $cache;
 
     /**
      * @var TokenStream
@@ -154,7 +155,7 @@ class Parser
      * @return null|string Either of 'select', 'row' or 'expression'. Null if stream was not on opening parenthesis
      * @throws exceptions\SyntaxException in case of unclosed parenthesis
      */
-    private function _checkContentsOfParentheses()
+    private function checkContentsOfParentheses()
     {
         $openParens = [];
         $lookIdx    = 0;
@@ -176,7 +177,7 @@ class Parser
         do {
             $token = $this->stream->look(++$lookIdx);
             if ($token->matches(Token::TYPE_SPECIAL_CHAR, '[')) {
-                $lookIdx = $this->_skipParentheses($lookIdx, true) - 1;
+                $lookIdx = $this->skipParentheses($lookIdx, true) - 1;
 
             } elseif ($token->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
                 array_push($openParens, $lookIdx);
@@ -223,7 +224,7 @@ class Parser
      * @return int Position after the closing ']' or ')'
      * @throws exceptions\SyntaxException in case of unclosed parentheses
      */
-    private function _skipParentheses($start, $square = false)
+    private function skipParentheses($start, $square = false)
     {
         $lookIdx    = $start;
         $openParens = 1;
@@ -255,7 +256,7 @@ class Parser
      *
      * @return bool
      */
-    private function _matchesOperator()
+    private function matchesOperator()
     {
         return $this->stream->matches(Token::TYPE_OPERATOR)
                || $this->stream->matches(Token::TYPE_KEYWORD, 'operator')
@@ -271,7 +272,7 @@ class Parser
      *
      * @return bool|int position after func_name if matches, false if not
      */
-    private function _matchesFuncName()
+    private function matchesFuncName()
     {
         if (
             !$this->stream->matches(Token::TYPE_IDENTIFIER)
@@ -306,7 +307,7 @@ class Parser
      *
      * @return bool
      */
-    private function _matchesFunctionCall()
+    private function matchesFunctionCall()
     {
         static $noParens = [
             'current_date', 'current_time', 'current_timestamp', 'localtime', 'localtimestamp',
@@ -330,7 +331,7 @@ class Parser
         }
 
         // generic function name
-        return false !== ($idx = $this->_matchesFuncName())
+        return false !== ($idx = $this->matchesFuncName())
                && $this->stream->look($idx)->matches(Token::TYPE_SPECIAL_CHAR, '(');
     }
 
@@ -342,21 +343,27 @@ class Parser
      *
      * @return bool
      */
-    private function _matchesExpressionStart()
+    private function matchesExpressionStart()
     {
-        return (!$this->stream->matches(Token::TYPE_RESERVED_KEYWORD) && !$this->stream->matches(Token::TYPE_SPECIAL))
-               || $this->stream->matches(Token::TYPE_KEYWORD, ['not', 'true', 'false', 'null', 'row', 'array', 'case', 'exists'])
+        return (!$this->stream->matches(Token::TYPE_RESERVED_KEYWORD)
+                && !$this->stream->matches(Token::TYPE_SPECIAL))
+               || $this->stream->matches(
+                   Token::TYPE_KEYWORD,
+                   ['not', 'true', 'false', 'null', 'row', 'array', 'case', 'exists']
+               )
                || $this->stream->matches(Token::TYPE_SPECIAL_CHAR, ['(', '+', '-'])
                || $this->stream->matches(Token::TYPE_OPERATOR)
-               || $this->_matchesFunctionCall();
+               || $this->matchesFunctionCall();
     }
 
     /**
-     * Tests whether current position of stream looks like a type cast with standard type name: typename 'string constant'
+     * Tests whether current position of stream looks like a type cast with standard type name
+     *
+     * i.e. "typename 'string constant'" where typename is SQL standard one: "integer" but not "int4"
      *
      * @return bool
      */
-    private function _matchesConstTypecast()
+    private function matchesConstTypecast()
     {
         static $constNames = [
             'int', 'integer', 'smallint', 'bigint', 'real', 'float', 'decimal', 'dec', 'numeric', 'boolean',
@@ -394,7 +401,7 @@ class Parser
             !in_array($base, $noModifiers)
             && $this->stream->look($idx)->matches(Token::TYPE_SPECIAL_CHAR, '(')
         ) {
-            $idx = $this->_skipParentheses($idx);
+            $idx = $this->skipParentheses($idx);
         }
         if (in_array($base, $trailingTimezone)) {
             if ($this->stream->look($idx)->matches(Token::TYPE_KEYWORD, ['with', 'without'])) {
@@ -410,12 +417,12 @@ class Parser
      *
      * @return bool
      */
-    private function _matchesTypecast()
+    private function matchesTypecast()
     {
-        if ($this->_matchesConstTypecast()) {
+        if ($this->matchesConstTypecast()) {
             return true;
 
-        } elseif (false === ($idx = $this->_matchesFuncName())) {
+        } elseif (false === ($idx = $this->matchesFuncName())) {
             return false;
         }
 
@@ -423,7 +430,7 @@ class Parser
             $this->stream->look($idx)->matches(Token::TYPE_SPECIAL_CHAR, '(')
             && !$this->stream->look($idx + 1)->matches(Token::TYPE_SPECIAL_CHAR, ')')
         ) {
-            $idx = $this->_skipParentheses($idx);
+            $idx = $this->skipParentheses($idx);
         }
 
         return $this->stream->look($idx)->matches(Token::TYPE_STRING);
@@ -439,8 +446,8 @@ class Parser
      */
     public function __construct(Lexer $lexer, CacheItemPoolInterface $cache = null)
     {
-        $this->_lexer = $lexer;
-        $this->_cache = $cache;
+        $this->lexer = $lexer;
+        $this->cache = $cache;
     }
 
     /**
@@ -464,12 +471,12 @@ class Parser
             throw new exceptions\BadMethodCallException("The method '{$name}' is not available");
         }
 
-        if (!$this->_cache) {
+        if (!$this->cache) {
             $cacheItem = null;
 
         } else {
             $cacheKey  = 'parsetree-' . md5('{' . $name . '}' . $arguments[0]);
-            $cacheItem = $this->_cache->getItem($cacheKey);
+            $cacheItem = $this->cache->getItem($cacheKey);
             if ($cacheItem->isHit()) {
                 return clone $cacheItem->get();
             }
@@ -478,7 +485,7 @@ class Parser
         if ($arguments[0] instanceof TokenStream) {
             $this->stream = $arguments[0];
         } else {
-            $this->stream = $this->_lexer->tokenize($arguments[0]);
+            $this->stream = $this->lexer->tokenize($arguments[0]);
         }
 
         $parsed = call_user_func([$this, $matches[1]]);
@@ -493,7 +500,7 @@ class Parser
         }
 
         if ($cacheItem) {
-            $this->_cache->save($cacheItem->set(clone $parsed));
+            $this->cache->save($cacheItem->set(clone $parsed));
         }
 
         return $parsed;
@@ -618,7 +625,7 @@ class Parser
         } else {
             if (
                 $this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')
-                && 'select' !== $this->_checkContentsOfParentheses()
+                && 'select' !== $this->checkContentsOfParentheses()
             ) {
                 $this->stream->next();
                 $cols = $this->InsertTargetList();
@@ -1359,7 +1366,7 @@ class Parser
     protected function SubqueryExpression()
     {
         $type  = $this->stream->expect(Token::TYPE_KEYWORD, ['any', 'all', 'some'])->getValue();
-        $check = $this->_checkContentsOfParentheses();
+        $check = $this->checkContentsOfParentheses();
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
         if ('select' === $check) {
             $operand = $this->SelectStatement();
@@ -1482,7 +1489,7 @@ class Parser
                 $operator .= ' ' . $this->stream->next()->getValue();
             }
 
-            $check = $this->_checkContentsOfParentheses();
+            $check = $this->checkContentsOfParentheses();
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
             if ('select' === $check) {
                 $right = $this->SelectStatement();
@@ -1509,7 +1516,7 @@ class Parser
         $leftOperand = $this->GenericOperatorTerm($restricted);
 
         while (
-            ($op = $this->_matchesOperator())
+            ($op = $this->matchesOperator())
                || $this->stream->matches(Token::TYPE_SPECIAL, self::$mathOp)
                    && $this->stream->look(1)->matches(Token::TYPE_KEYWORD, self::$subType)
         ) {
@@ -1526,7 +1533,7 @@ class Parser
                     $this->SubqueryExpression()
                 );
 
-            } elseif (!$this->_matchesExpressionStart()) {
+            } elseif (!$this->matchesExpressionStart()) {
                 // postfix operator
                 return new nodes\expressions\OperatorExpression($operator, $leftOperand, null);
 
@@ -1545,7 +1552,7 @@ class Parser
     protected function GenericOperatorTerm($restricted = false)
     {
         // prefix operator(s)
-        while ($this->_matchesOperator()) {
+        while ($this->matchesOperator()) {
             $operators[] = $this->Operator();
         }
         $term = $this->ArithmeticExpression($restricted);
@@ -2173,7 +2180,7 @@ class Parser
     protected function ExpressionAtom()
     {
         // this will return null if stream is not at opening parenthesis, so we don't check for that
-        $check = $this->_checkContentsOfParentheses();
+        $check = $this->checkContentsOfParentheses();
 
         if (
             'row' === $check
@@ -2211,10 +2218,10 @@ class Parser
         ) {
             return new nodes\Constant($this->stream->next());
 
-        } elseif ($this->_matchesTypecast()) {
+        } elseif ($this->matchesTypecast()) {
             return $this->LeadingTypecast();
 
-        } elseif ($this->_matchesFunctionCall()) {
+        } elseif ($this->matchesFunctionCall()) {
             return $this->FunctionExpression();
 
         } else {
@@ -3147,7 +3154,7 @@ class Parser
 
         } elseif ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
             // parentheses may contain either a subselect or JOIN expression
-            if ('select' === $this->_checkContentsOfParentheses()) {
+            if ('select' === $this->checkContentsOfParentheses()) {
                 $reference = $this->RangeSubselect();
             } else {
                 $this->stream->next();
@@ -3163,7 +3170,7 @@ class Parser
 
         } elseif (
             $this->stream->matchesSequence(['rows', 'from'])
-                  || $this->_matchesFunctionCall()
+                  || $this->matchesFunctionCall()
         ) {
             $reference = $this->RangeFunctionCall();
 
@@ -3529,7 +3536,7 @@ class Parser
             $expression = $this->Expression();
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
-        } elseif ($this->_matchesFunctionCall()) {
+        } elseif ($this->matchesFunctionCall()) {
             if (null === ($function = $this->SpecialFunctionCall())) {
                 $function = $this->GenericFunctionCall();
             }

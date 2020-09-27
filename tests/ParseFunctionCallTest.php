@@ -291,7 +291,10 @@ QRY
         $this->assertEquals(
             new FunctionExpression(
                 new QualifiedName(['pg_catalog', 'xmlexists']),
-                new FunctionArgumentList([new Constant("//foo[text() = 'bar']"), new Constant('<blah><foo>bar</foo></blah>')])
+                new FunctionArgumentList([
+                    new Constant("//foo[text() = 'bar']"),
+                    new Constant('<blah><foo>bar</foo></blah>')
+                ])
             ),
             $this->parser->parseExpression(
                 "xmlexists('//foo[text() = ''bar'']' passing by ref '<blah><foo>bar</foo></blah>')"

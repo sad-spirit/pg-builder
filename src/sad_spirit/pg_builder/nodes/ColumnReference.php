@@ -33,6 +33,7 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class ColumnReference extends Node implements ScalarExpression
 {
+    /** @noinspection PhpMissingBreakStatementInspection */
     public function __construct(array $parts)
     {
         $this->props = [
@@ -64,13 +65,12 @@ class ColumnReference extends Node implements ScalarExpression
         }
 
         switch (count($parts)) {
-        // fall-through is intentional here
             case 4:
-                $this->setNamedProperty('catalog', array_shift($parts));
+                $this->setNamedProperty('catalog', array_shift($parts)); // fall-through is intentional
             case 3:
-                $this->setNamedProperty('schema', array_shift($parts));
+                $this->setNamedProperty('schema', array_shift($parts)); // fall-through is intentional
             case 2:
-                $this->setNamedProperty('relation', array_shift($parts));
+                $this->setNamedProperty('relation', array_shift($parts)); // fall-through is intentional
             case 1:
                 $this->setNamedProperty('column', array_shift($parts));
                 break;

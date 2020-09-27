@@ -196,7 +196,10 @@ QRY
             ['select * offset 3 limit 1 + 1', new OperatorExpression('+', new Constant(1), new Constant(1)), 3],
             ['select * offset 2 rows fetch first row only', 1, 2],
             ['select * fetch first 5 rows only', 5, null],
-            ['select * fetch next (4 + 1) rows only', new OperatorExpression('+', new Constant(4), new Constant(1)), null],
+            [
+                'select * fetch next (4 + 1) rows only',
+                new OperatorExpression('+', new Constant(4), new Constant(1)), null
+            ],
             // fetch should allow float constant, not just integer
             ['select * fetch next +6.66 rows only', 6.66, null],
             // fetch should allow negative number, Postgres rejects that a bit later

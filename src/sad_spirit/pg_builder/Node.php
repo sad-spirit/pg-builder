@@ -102,7 +102,7 @@ abstract class Node
     /**
      * Limits serialization to only $props property
      */
-    function __sleep()
+    public function __sleep()
     {
         return ['props'];
     }
@@ -110,7 +110,7 @@ abstract class Node
     /**
      * Restores the parent node link for child nodes on unserializing the object
      */
-    function __wakeup()
+    public function __wakeup()
     {
         $this->updatePropsParentNode();
     }
@@ -145,7 +145,9 @@ abstract class Node
             $check = $parent;
             do {
                 if ($this === $check) {
-                    throw new exceptions\InvalidArgumentException('Cannot set a Node or its descendant as its own parent');
+                    throw new exceptions\InvalidArgumentException(
+                        'Cannot set a Node or its descendant as its own parent'
+                    );
                 }
             } while ($check = $check->getparentNode());
             // this is intentionally inside the "if (null !== $parent)" check to prevent endless recursion
@@ -207,7 +209,9 @@ abstract class Node
     public function replaceChild(Node $oldChild, Node $newChild)
     {
         if ($this !== $oldChild->getParentNode()) {
-            throw new exceptions\InvalidArgumentException("First argument to replaceChild() is not a child of current node");
+            throw new exceptions\InvalidArgumentException(
+                'First argument to replaceChild() is not a child of current node'
+            );
         }
         // no-op?
         if ($newChild === $oldChild) {

@@ -48,7 +48,7 @@ abstract class SelectCommon extends Statement
         $this->props['locking']->setParentNode($this);
     }
 
-    private function _normalizeExpression(&$expression, $method)
+    private function normalizeExpression(&$expression, $method)
     {
         if (is_string($expression)) {
             if (!($parser = $this->getParser())) {
@@ -67,7 +67,7 @@ abstract class SelectCommon extends Statement
 
     public function setLimit($limit = null)
     {
-        $this->_normalizeExpression($limit, __METHOD__);
+        $this->normalizeExpression($limit, __METHOD__);
         $this->setNamedProperty('limit', $limit);
     }
 
@@ -78,7 +78,7 @@ abstract class SelectCommon extends Statement
 
     public function setOffset($offset = null)
     {
-        $this->_normalizeExpression($offset, __METHOD__);
+        $this->normalizeExpression($offset, __METHOD__);
         $this->setNamedProperty('offset', $offset);
     }
 
@@ -91,7 +91,7 @@ abstract class SelectCommon extends Statement
      */
     public function union($select, $distinct = true)
     {
-        return $this->_setOperation($select, 'union' . ($distinct ? '' : ' all'));
+        return $this->combineUsingSetOperation($select, 'union' . ($distinct ? '' : ' all'));
     }
 
     /**
@@ -103,7 +103,7 @@ abstract class SelectCommon extends Statement
      */
     public function intersect($select, $distinct = true)
     {
-        return $this->_setOperation($select, 'intersect' . ($distinct ? '' : ' all'));
+        return $this->combineUsingSetOperation($select, 'intersect' . ($distinct ? '' : ' all'));
     }
 
     /**
@@ -115,10 +115,10 @@ abstract class SelectCommon extends Statement
      */
     public function except($select, $distinct = true)
     {
-        return $this->_setOperation($select, 'except' . ($distinct ? '' : ' all'));
+        return $this->combineUsingSetOperation($select, 'except' . ($distinct ? '' : ' all'));
     }
 
-    private function _setOperation($select, $operator)
+    private function combineUsingSetOperation($select, $operator)
     {
         if (is_string($select)) {
             if (!($parser = $this->getParser())) {

@@ -130,7 +130,10 @@ QRY
                     new TypeModifierList([new Constant(1)])
                 )),
                 new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'varbit']))),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'varbit']), clone $mod10)),
+                new TypecastExpression(
+                    clone $foo,
+                    new TypeName(new QualifiedName(['pg_catalog', 'varbit']), clone $mod10)
+                ),
                 new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'bit']), clone $mod10))
             ]),
             $list
@@ -150,13 +153,34 @@ QRY
 
         $this->assertEquals(
             new ExpressionList([
-                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(['pg_catalog', 'bpchar']), clone $mod1)),
-                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(['pg_catalog', 'varchar']))),
-                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(['pg_catalog', 'varchar']), clone $mod13)),
-                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(['pg_catalog', 'bpchar']), clone $mod13)),
-                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(['pg_catalog', 'varchar']))),
-                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(['pg_catalog', 'bpchar']), clone $mod1)),
-                new TypecastExpression(clone $blah, new TypeName(new QualifiedName(['pg_catalog', 'varchar']), clone $mod13)),
+                new TypecastExpression(
+                    clone $blah,
+                    new TypeName(new QualifiedName(['pg_catalog', 'bpchar']), clone $mod1)
+                ),
+                new TypecastExpression(
+                    clone $blah,
+                    new TypeName(new QualifiedName(['pg_catalog', 'varchar']))
+                ),
+                new TypecastExpression(
+                    clone $blah,
+                    new TypeName(new QualifiedName(['pg_catalog', 'varchar']), clone $mod13)
+                ),
+                new TypecastExpression(
+                    clone $blah,
+                    new TypeName(new QualifiedName(['pg_catalog', 'bpchar']), clone $mod13)
+                ),
+                new TypecastExpression(
+                    clone $blah,
+                    new TypeName(new QualifiedName(['pg_catalog', 'varchar']))
+                ),
+                new TypecastExpression(
+                    clone $blah,
+                    new TypeName(new QualifiedName(['pg_catalog', 'bpchar']), clone $mod1)
+                ),
+                new TypecastExpression(
+                    clone $blah,
+                    new TypeName(new QualifiedName(['pg_catalog', 'varchar']), clone $mod13)
+                ),
             ]),
             $list
         );
@@ -173,11 +197,26 @@ QRY
         $mod3 = new TypeModifierList([new Constant(3)]);
         $this->assertEquals(
             new ExpressionList([
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'time']))),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'timestamp']), clone $mod3)),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'timetz']))),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'timestamp']))),
-                new TypecastExpression(clone $foo, new TypeName(new QualifiedName(['pg_catalog', 'timestamptz']), clone $mod3)),
+                new TypecastExpression(
+                    clone $foo,
+                    new TypeName(new QualifiedName(['pg_catalog', 'time']))
+                ),
+                new TypecastExpression(
+                    clone $foo,
+                    new TypeName(new QualifiedName(['pg_catalog', 'timestamp']), clone $mod3)
+                ),
+                new TypecastExpression(
+                    clone $foo,
+                    new TypeName(new QualifiedName(['pg_catalog', 'timetz']))
+                ),
+                new TypecastExpression(
+                    clone $foo,
+                    new TypeName(new QualifiedName(['pg_catalog', 'timestamp']))
+                ),
+                new TypecastExpression(
+                    clone $foo,
+                    new TypeName(new QualifiedName(['pg_catalog', 'timestamptz']), clone $mod3)
+                ),
             ]),
             $list
         );
@@ -256,16 +295,46 @@ QRY
         $interval->setMask('minute to second');
         $this->assertEquals(
             new ExpressionList([
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['pg_catalog', 'float8']))),
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['pg_catalog', 'varchar']))),
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['pg_catalog', 'varchar']), clone $mod10)),
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['pg_catalog', 'bpchar']))),
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['pg_catalog', 'bit']))),
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['pg_catalog', 'varbit']), clone $mod10)),
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['pg_catalog', 'timetz']), clone $mod10)),
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['pg_catalog', 'timestamp']))),
-                new TypecastExpression(clone $val, $interval),
-                new TypecastExpression(clone $val, new TypeName(new QualifiedName(['quux', 'xyzzy'])))
+                new TypecastExpression(
+                    clone $val,
+                    new TypeName(new QualifiedName(['pg_catalog', 'float8']))
+                ),
+                new TypecastExpression(
+                    clone $val,
+                    new TypeName(new QualifiedName(['pg_catalog', 'varchar']))
+                ),
+                new TypecastExpression(
+                    clone $val,
+                    new TypeName(new QualifiedName(['pg_catalog', 'varchar']), clone $mod10)
+                ),
+                new TypecastExpression(
+                    clone $val,
+                    new TypeName(new QualifiedName(['pg_catalog', 'bpchar']))
+                ),
+                new TypecastExpression(
+                    clone $val,
+                    new TypeName(new QualifiedName(['pg_catalog', 'bit']))
+                ),
+                new TypecastExpression(
+                    clone $val,
+                    new TypeName(new QualifiedName(['pg_catalog', 'varbit']), clone $mod10)
+                ),
+                new TypecastExpression(
+                    clone $val,
+                    new TypeName(new QualifiedName(['pg_catalog', 'timetz']), clone $mod10)
+                ),
+                new TypecastExpression(
+                    clone $val,
+                    new TypeName(new QualifiedName(['pg_catalog', 'timestamp']))
+                ),
+                new TypecastExpression(
+                    clone $val,
+                    $interval
+                ),
+                new TypecastExpression(
+                    clone $val,
+                    new TypeName(new QualifiedName(['quux', 'xyzzy']))
+                )
             ]),
             $list
         );

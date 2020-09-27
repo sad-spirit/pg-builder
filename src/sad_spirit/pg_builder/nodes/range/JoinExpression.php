@@ -118,7 +118,9 @@ class JoinExpression extends FromElement
             }
             if (is_string($on)) {
                 if (!($parser = $this->getParser())) {
-                    throw new InvalidArgumentException("Passed a string for an ON expression without a Parser available");
+                    throw new InvalidArgumentException(
+                        'Passed a string for an ON expression without a Parser available'
+                    );
                 }
                 $on = $parser->parseExpression($on);
             }

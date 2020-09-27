@@ -32,24 +32,24 @@ class NativeStatement
      * SQL statement
      * @var string
      */
-    private $_sql;
+    private $sql;
 
     /**
      * Mapping 'parameter name' => 'parameter position' if named parameters were used
      * @var array
      */
-    private $_namedParameterMap;
+    private $namedParameterMap;
 
     /**
      * Type info: 'parameter position' => 'parameter type' if explicit typecasts were used for parameters
      * @var array
      */
-    private $_parameterTypes;
+    private $parameterTypes;
 
     /**
      * @var PreparedStatement
      */
-    private $_prepared;
+    private $preparedStatement;
 
     /**
      * Constructor, sets the query building results
@@ -60,17 +60,17 @@ class NativeStatement
      */
     public function __construct($sql, array $parameterTypes, array $namedParameterMap)
     {
-        $this->_sql               = $sql;
-        $this->_parameterTypes    = $parameterTypes;
-        $this->_namedParameterMap = $namedParameterMap;
+        $this->sql               = $sql;
+        $this->parameterTypes    = $parameterTypes;
+        $this->namedParameterMap = $namedParameterMap;
     }
 
     /**
      * Prevents serialization of $_prepared property
      */
-    function __sleep()
+    public function __sleep()
     {
-        return ['_sql', '_parameterTypes', '_namedParameterMap'];
+        return ['sql', 'parameterTypes', 'namedParameterMap'];
     }
 
     /**
@@ -80,7 +80,7 @@ class NativeStatement
      */
     public function getSql()
     {
-        return $this->_sql;
+        return $this->sql;
     }
 
     /**
@@ -90,7 +90,7 @@ class NativeStatement
      */
     public function getNamedParameterMap()
     {
-        return $this->_namedParameterMap;
+        return $this->namedParameterMap;
     }
 
     /**
@@ -100,7 +100,7 @@ class NativeStatement
      */
     public function getParameterTypes()
     {
-        return $this->_parameterTypes;
+        return $this->parameterTypes;
     }
 
     /**
@@ -113,14 +113,14 @@ class NativeStatement
     public function mapNamedParameters(array $parameters)
     {
         $positional = [];
-        foreach ($this->_namedParameterMap as $name => $position) {
+        foreach ($this->namedParameterMap as $name => $position) {
             if (!array_key_exists($name, $parameters)) {
                 throw new exceptions\InvalidArgumentException("Missing parameter name '{$name}'");
             }
             $positional[$position] = $parameters[$name];
         }
         if (count($positional) < count($parameters)) {
-            $unknown = array_diff(array_keys($parameters), array_keys($this->_namedParameterMap));
+            $unknown = array_diff(array_keys($parameters), array_keys($this->namedParameterMap));
             throw new exceptions\InvalidArgumentException(
                 "Unknown keys in parameters array: '" . implode("', '", $unknown) . "'"
             );
@@ -138,12 +138,12 @@ class NativeStatement
      */
     public function mergeInputTypes(array $inputTypes)
     {
-        $types = $this->_parameterTypes;
+        $types = $this->parameterTypes;
         foreach ($inputTypes as $key => $type) {
             if (array_key_exists($key, $types)) {
                 $types[$key] = $type;
-            } elseif (array_key_exists($key, $this->_namedParameterMap)) {
-                $types[$this->_namedParameterMap[$key]] = $type;
+            } elseif (array_key_exists($key, $this->namedParameterMap)) {
+                $types[$this->namedParameterMap[$key]] = $type;
             } else {
                 throw new exceptions\InvalidArgumentException(
                     "Offset '{$key}' in input types array does not correspond to a known parameter"
@@ -171,16 +171,16 @@ class NativeStatement
         array $inputTypes = [],
         array $outputTypes = []
     ) {
-        if (empty($this->_namedParameterMap)) {
+        if (empty($this->namedParameterMap)) {
             return $connection->executeParams(
-                $this->_sql,
+                $this->sql,
                 $params,
                 $this->mergeInputTypes($inputTypes),
                 $outputTypes
             );
         } else {
             return $connection->executeParams(
-                $this->_sql,
+                $this->sql,
                 $this->mapNamedParameters($params),
                 $this->mergeInputTypes($inputTypes),
                 $outputTypes
@@ -198,8 +198,8 @@ class NativeStatement
      */
     public function prepare(Connection $connection, array $types = [])
     {
-        $this->_prepared = $connection->prepare($this->_sql, $this->mergeInputTypes($types));
-        return $this->_prepared;
+        $this->preparedStatement = $connection->prepare($this->sql, $this->mergeInputTypes($types));
+        return $this->preparedStatement;
     }
 
     /**
@@ -213,9 +213,9 @@ class NativeStatement
      */
     public function executePrepared(array $params = [], array $resultTypes = [])
     {
-        if (!$this->_prepared) {
+        if (!$this->preparedStatement) {
             throw new exceptions\RuntimeException(__METHOD__ . '(): prepare() should be called first');
         }
-        return $this->_prepared->execute($this->mapNamedParameters($params), $resultTypes);
+        return $this->preparedStatement->execute($this->mapNamedParameters($params), $resultTypes);
     }
 }

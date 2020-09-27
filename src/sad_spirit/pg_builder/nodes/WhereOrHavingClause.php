@@ -42,7 +42,7 @@ class WhereOrHavingClause extends Node
      * @param string                                      $method
      * @throws InvalidArgumentException
      */
-    private function _normalizeCondition(&$condition, $method)
+    private function normalizeCondition(&$condition, $method)
     {
         if (is_string($condition)) {
             if (!($parser = $this->getParser())) {
@@ -68,7 +68,7 @@ class WhereOrHavingClause extends Node
     public function setCondition($condition = null)
     {
         if (null !== $condition) {
-            $this->_normalizeCondition($condition, __METHOD__);
+            $this->normalizeCondition($condition, __METHOD__);
         }
         $this->setNamedProperty('condition', $condition instanceof self ? $condition->condition : $condition);
 
@@ -83,7 +83,7 @@ class WhereOrHavingClause extends Node
      */
     public function and($condition)
     {
-        $this->_normalizeCondition($condition, __METHOD__);
+        $this->normalizeCondition($condition, __METHOD__);
         if (!$this->props['condition']) {
             if (
                 $condition instanceof self
@@ -142,7 +142,7 @@ class WhereOrHavingClause extends Node
             $this->setCondition($condition);
 
         } else {
-            $this->_normalizeCondition($condition, __METHOD__);
+            $this->normalizeCondition($condition, __METHOD__);
             if (
                 !($this->props['condition'] instanceof LogicalExpression)
                 || 'or' !== $this->props['condition']->operator
@@ -182,7 +182,7 @@ class WhereOrHavingClause extends Node
      */
     public function nested($condition)
     {
-        $this->_normalizeCondition($condition, __METHOD__);
+        $this->normalizeCondition($condition, __METHOD__);
         if (!($condition instanceof self)) {
             $condition = new self($condition);
         }

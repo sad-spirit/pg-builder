@@ -42,14 +42,14 @@ class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
         $this->builder = new SqlBuilderWalker();
     }
 
-    private function _normalizeWhitespace($string)
+    private function normalizeWhitespace($string)
     {
         return implode(' ', preg_split('/\s+/', trim($string)));
     }
 
     protected function assertStringsEqualIgnoringWhitespace($expected, $actual, $message = '')
     {
-        $this->assertEquals($this->_normalizeWhitespace($expected), $this->_normalizeWhitespace($actual), $message);
+        $this->assertEquals($this->normalizeWhitespace($expected), $this->normalizeWhitespace($actual), $message);
     }
 
     /**

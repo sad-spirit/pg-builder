@@ -31,7 +31,7 @@ abstract class Statement extends Node
      * Parser instance, used when adding nodes to a statement as SQL strings
      * @var Parser
      */
-    private $_parser;
+    private $parser;
 
     public function __construct()
     {
@@ -50,7 +50,7 @@ abstract class Statement extends Node
      */
     public function setParser(Parser $parser)
     {
-        $this->_parser = $parser;
+        $this->parser = $parser;
     }
 
     /**
@@ -59,16 +59,16 @@ abstract class Statement extends Node
      */
     public function getParser()
     {
-        if (!$this->_parser && $this->parentNode && ($parser = $this->parentNode->getParser())) {
+        if (!$this->parser && $this->parentNode && ($parser = $this->parentNode->getParser())) {
             $this->setParser($parser);
         }
-        return $this->_parser;
+        return $this->parser;
     }
 
     protected function setParentNode(Node $parent = null)
     {
         parent::setParentNode($parent);
-        if (!$this->_parser && $this->parentNode && ($parser = $this->parentNode->getParser())) {
+        if (!$this->parser && $this->parentNode && ($parser = $this->parentNode->getParser())) {
             $this->setParser($parser);
         }
     }

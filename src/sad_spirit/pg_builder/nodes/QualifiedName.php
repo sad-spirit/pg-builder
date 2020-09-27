@@ -32,6 +32,7 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class QualifiedName extends Node
 {
+    /** @noinspection PhpMissingBreakStatementInspection */
     public function __construct(array $nameParts)
     {
         $this->props = [
@@ -55,13 +56,12 @@ class QualifiedName extends Node
         }
 
         switch (count($nameParts)) {
-        // fall-through is intentional here
             case 3:
-                $this->setNamedProperty('catalog', array_shift($nameParts));
+                $this->setNamedProperty('catalog', array_shift($nameParts)); // fall-through is intentional
             case 2:
-                $this->setNamedProperty('schema', array_shift($nameParts));
+                $this->setNamedProperty('schema', array_shift($nameParts)); // fall-through is intentional
             case 1:
-                $this->setNamedProperty('relation', array_shift($nameParts));
+                $this->setNamedProperty('relation', array_shift($nameParts)); // fall-through is intentional
                 break;
             case 0:
                 throw new InvalidArgumentException(

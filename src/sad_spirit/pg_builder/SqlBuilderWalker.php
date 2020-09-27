@@ -26,129 +26,129 @@ class SqlBuilderWalker implements TreeWalker
     /**
      * Precedence for logical OR operator
      */
-    const PRECEDENCE_OR             = 10;
+    protected const PRECEDENCE_OR             = 10;
 
     /**
      * Precedence for logical AND operator
      */
-    const PRECEDENCE_AND            = 20;
+    protected const PRECEDENCE_AND            = 20;
 
     /**
      * Precedence for logical NOT operator
      */
-    const PRECEDENCE_NOT            = 30;
+    protected const PRECEDENCE_NOT            = 30;
 
     /**
      * Precedence for various "IS <something>" operators in Postgres 9.5+
      */
-    const PRECEDENCE_IS             = 40;
+    protected const PRECEDENCE_IS             = 40;
 
     /**
      * Precedence for comparison operators in Postgres 9.5+
      */
-    const PRECEDENCE_COMPARISON     = 50;
+    protected const PRECEDENCE_COMPARISON     = 50;
 
     /**
      * Precedence for pattern matching operators LIKE / ILIKE / SIMILAR TO
      */
-    const PRECEDENCE_PATTERN        = 60;
+    protected const PRECEDENCE_PATTERN        = 60;
 
     /**
      * Precedence for OVERLAPS operator
      */
-    const PRECEDENCE_OVERLAPS       = 70;
+    protected const PRECEDENCE_OVERLAPS       = 70;
 
     /**
      * Precedence for BETWEEN operator (and its variants)
      */
-    const PRECEDENCE_BETWEEN        = 80;
+    protected const PRECEDENCE_BETWEEN        = 80;
 
     /**
      * Precedence for IN operator
      */
-    const PRECEDENCE_IN             = 90;
+    protected const PRECEDENCE_IN             = 90;
 
     /**
      * Precedence for generic postfix operators
      */
-    const PRECEDENCE_POSTFIX_OP     = 100;
+    protected const PRECEDENCE_POSTFIX_OP     = 100;
 
     /**
      * Precedence for generic infix and prefix operators
      */
-    const PRECEDENCE_GENERIC_OP     = 110;
+    protected const PRECEDENCE_GENERIC_OP     = 110;
 
     /**
      * Precedence for arithmetic addition / substraction
      */
-    const PRECEDENCE_ADDITION       = 130;
+    protected const PRECEDENCE_ADDITION       = 130;
 
     /**
      * Precedence for arithmetic multiplication / division
      */
-    const PRECEDENCE_MULTIPLICATION = 140;
+    protected const PRECEDENCE_MULTIPLICATION = 140;
 
     /**
      * Precedence for exponentiation operator '^'
      *
      * Note that it is left-associative, contrary to usual mathematical rules
      */
-    const PRECEDENCE_EXPONENTIATION = 150;
+    protected const PRECEDENCE_EXPONENTIATION = 150;
 
     /**
      * Precedence for AT TIME ZONE expression
      */
-    const PRECEDENCE_TIME_ZONE      = 160;
+    protected const PRECEDENCE_TIME_ZONE      = 160;
 
     /**
      * Precedence for COLLATE expression
      */
-    const PRECEDENCE_COLLATE        = 170;
+    protected const PRECEDENCE_COLLATE        = 170;
 
     /**
      * Precedence for unary plus / minus
      */
-    const PRECEDENCE_UNARY_MINUS    = 180;
+    protected const PRECEDENCE_UNARY_MINUS    = 180;
 
     /**
      * Precedence for PostgreSQL's typecast operator '::'
      */
-    const PRECEDENCE_TYPECAST       = 190;
+    protected const PRECEDENCE_TYPECAST       = 190;
 
     /**
      * Precedence for base elements of expressions, see c_expr in original grammar
      */
-    const PRECEDENCE_ATOM           = 666;
+    protected const PRECEDENCE_ATOM           = 666;
 
     /**
      * Precedence for UNION [ALL] and EXCEPT [ALL] set operations
      */
-    const PRECEDENCE_SETOP_UNION     = 1;
+    protected const PRECEDENCE_SETOP_UNION     = 1;
 
     /**
      * Precedence for INTERSECT [ALL] set operation
      */
-    const PRECEDENCE_SETOP_INTERSECT = 2;
+    protected const PRECEDENCE_SETOP_INTERSECT = 2;
 
     /**
      * Precedence for a base SELECT / VALUES statement in set operations
      */
-    const PRECEDENCE_SETOP_SELECT    = 3;
+    protected const PRECEDENCE_SETOP_SELECT    = 3;
 
     /**
      * Setting returned by getAssociativity() for right-associative operators
      */
-    const ASSOCIATIVE_RIGHT = 'right';
+    protected const ASSOCIATIVE_RIGHT = 'right';
 
     /**
      * Setting returned by getAssociativity() for left-associative operators
      */
-    const ASSOCIATIVE_LEFT  = 'left';
+    protected const ASSOCIATIVE_LEFT  = 'left';
 
     /**
      * Setting returned by getAssociativity() for non-associative operators
      */
-    const ASSOCIATIVE_NONE  = 'nonassoc';
+    protected const ASSOCIATIVE_NONE  = 'nonassoc';
 
 
     protected $indentLevel = 0;
@@ -163,7 +163,7 @@ class SqlBuilderWalker implements TreeWalker
      * Dummy typecast expression used for checks with argumentNeedsParentheses()
      * @var nodes\expressions\TypecastExpression
      */
-    private $_dummyTypecast;
+    private $dummyTypecast;
 
 
     /**
@@ -489,7 +489,7 @@ class SqlBuilderWalker implements TreeWalker
     {
         $this->options = array_merge($this->options, $options);
 
-        $this->_dummyTypecast = new nodes\expressions\TypecastExpression(
+        $this->dummyTypecast = new nodes\expressions\TypecastExpression(
             new nodes\Constant('dummy'),
             new nodes\TypeName(new nodes\QualifiedName(['dummy']))
         );
@@ -701,7 +701,11 @@ class SqlBuilderWalker implements TreeWalker
             $materialized = ($node->materialized ? '' : 'not ') . 'materialized ';
         }
         $sql = $node->alias->dispatch($this) . ' '
-               . (0 < count($node->columnAliases) ? '(' . implode(', ', $node->columnAliases->dispatch($this)) . ') ' : '')
+               . (
+                   0 < count($node->columnAliases)
+                   ? '(' . implode(', ', $node->columnAliases->dispatch($this)) . ') '
+                   : ''
+               )
                . 'as ' . $materialized . '(' . $this->options['linebreak'] . $node->statement->dispatch($this);
         $this->indentLevel--;
 
@@ -1030,7 +1034,12 @@ class SqlBuilderWalker implements TreeWalker
             if ($expression->variadic) {
                 $arguments[] = 'variadic ' . array_pop($arguments);
             }
-            $sql = ($expression->name instanceof Node ? $expression->name->dispatch($this) : (string)$expression->name)  . '('
+            $sql = (
+                        $expression->name instanceof Node
+                        ? $expression->name->dispatch($this)
+                        : (string)$expression->name
+                   )
+                   . '('
                    . ($expression->distinct ? 'distinct ' : '')
                    . implode(', ', $arguments) . ')'
                    . ' within group (order by '
@@ -1398,15 +1407,16 @@ class SqlBuilderWalker implements TreeWalker
             $lines[] = $this->getIndent() . '),';
         }
 
-        $lines[] = $this->getIndent() . $this->optionalParentheses($table->rowExpression, $this->_dummyTypecast, true)
-                   . ' passing ' . $this->optionalParentheses($table->documentExpression, $this->_dummyTypecast, true);
+        $lines[] = $this->getIndent() . $this->optionalParentheses($table->rowExpression, $this->dummyTypecast, true)
+                   . ' passing ' . $this->optionalParentheses($table->documentExpression, $this->dummyTypecast, true);
         $glue    = $this->options['linebreak']
                    ? ',' . $this->options['linebreak'] . $this->getIndent() . '        ' // let's align columns
                    : ', ';
         $lines[] = $this->getIndent() . 'columns ' . implode($glue, $this->walkGenericNodeList($table->columns));
 
         $this->indentLevel--;
-        $sql = implode($this->options['linebreak'] ?: ' ', $lines) . $this->options['linebreak'] . $this->getIndent() . ')';
+        $sql = implode($this->options['linebreak'] ?: ' ', $lines)
+               . $this->options['linebreak'] . $this->getIndent() . ')';
         if ($table->tableAlias || $table->columnAliases) {
             $sql .= $this->getFromItemAliases($table);
         }
@@ -1423,10 +1433,10 @@ class SqlBuilderWalker implements TreeWalker
         }
         $sql .= ' ' . $column->type->dispatch($this);
         if ($column->path) {
-            $sql .= ' path ' . $this->optionalParentheses($column->path, $this->_dummyTypecast, true);
+            $sql .= ' path ' . $this->optionalParentheses($column->path, $this->dummyTypecast, true);
         }
         if ($column->default) {
-            $sql .= ' default ' . $this->optionalParentheses($column->default, $this->_dummyTypecast, true);
+            $sql .= ' default ' . $this->optionalParentheses($column->default, $this->dummyTypecast, true);
         }
         if (null !== $column->nullable) {
             $sql .= $column->nullable ? ' null' : ' not null';
@@ -1436,7 +1446,7 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkXmlNamespace(nodes\xml\XmlNamespace $ns)
     {
-        $sql = $this->optionalParentheses($ns->value, $this->_dummyTypecast, true);
+        $sql = $this->optionalParentheses($ns->value, $this->dummyTypecast, true);
 
         if (!$ns->alias) {
             return 'default ' . $sql;

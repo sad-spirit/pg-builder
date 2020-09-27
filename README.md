@@ -43,10 +43,10 @@ $query->from[0]->leftJoin('pictures as p')->on = 'n.picture_id = p.picture_id';
 
 // ...and need to limit them to only specific rubrics
 $query->from[] = 'objects_rubrics as ro';
-$query->where->and_('ro.rubric_id = any(:rubric::integer[]) and ro.obj_id = n.news_id');
+$query->where->and('ro.rubric_id = any(:rubric::integer[]) and ro.obj_id = n.news_id');
 
 // ...and keep 'em fresh
-$query->where->and_('age(news_added) < :age::interval');
+$query->where->and('age(news_added) < :age::interval');
 
 // $generated contains a query, mapping from named parameters to positional ones, types info
 // it can be easily cached to prevent parsing/building SQL on each request

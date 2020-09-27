@@ -28,12 +28,12 @@ class Lexer
     /**
      * Characters that may appear in operators
      */
-    const CHARS_OPERATOR = '~!@#^&|`?+-*/%<>=';
+    private const CHARS_OPERATOR = '~!@#^&|`?+-*/%<>=';
 
     /**
      * Characters that should be returned as Token::TYPE_SPECIAL_CHAR
      */
-    const CHARS_SPECIAL  = ',()[].;:+-*/%^<>=';
+    private const CHARS_SPECIAL  = ',()[].;:+-*/%^<>=';
 
     /**
      * List of all keywords recognized by PostgreSQL
@@ -500,10 +500,10 @@ class Lexer
     protected $tokens;
     protected $options = [];
 
-    private $_operatorCharHash;
-    private $_specialCharHash;
-    private $_stringPrefixCharHash;
-    private $_nonStandardCharHash;
+    private $operatorCharHash;
+    private $specialCharHash;
+    private $stringPrefixCharHash;
+    private $nonStandardCharHash;
 
     /**
      * Checks whether a given string is a recognized keyword
@@ -548,10 +548,10 @@ class Lexer
             'ascii_only_downcasing'       => true
         ], $options);
 
-        $this->_operatorCharHash     = array_flip(str_split(self::CHARS_OPERATOR));
-        $this->_specialCharHash      = array_flip(str_split(self::CHARS_SPECIAL));
-        $this->_stringPrefixCharHash = array_flip(str_split('bBeEnNxX'));
-        $this->_nonStandardCharHash  = array_flip(str_split('~!@#^&|`?%'));
+        $this->operatorCharHash     = array_flip(str_split(self::CHARS_OPERATOR));
+        $this->specialCharHash      = array_flip(str_split(self::CHARS_SPECIAL));
+        $this->stringPrefixCharHash = array_flip(str_split('bBeEnNxX'));
+        $this->nonStandardCharHash  = array_flip(str_split('~!@#^&|`?%'));
     }
 
     /**
@@ -608,14 +608,18 @@ class Lexer
                         $this->position
                     )
                 ) {
-                    throw exceptions\SyntaxException::atPosition('Unterminated /* comment', $this->string, $this->position);
+                    throw exceptions\SyntaxException::atPosition(
+                        'Unterminated /* comment',
+                        $this->string,
+                        $this->position
+                    );
                 }
                 $this->position += strlen($m[0]);
 
             } elseif ('"' === $char) {
                 $this->lexDoubleQuoted();
 
-            } elseif (isset($this->_stringPrefixCharHash[$char]) && "'" === $nextChar) {
+            } elseif (isset($this->stringPrefixCharHash[$char]) && "'" === $nextChar) {
                 $this->lexString(strtolower($char));
 
             } elseif ("'" === $char) {
@@ -677,10 +681,10 @@ class Lexer
             } elseif (ctype_digit($char)) {
                 $this->lexNumeric();
 
-            } elseif (isset($this->_operatorCharHash[$char])) {
+            } elseif (isset($this->operatorCharHash[$char])) {
                 $this->lexOperator();
 
-            } elseif (isset($this->_specialCharHash[$char])) {
+            } elseif (isset($this->specialCharHash[$char])) {
                 $this->pushToken($char, Token::TYPE_SPECIAL_CHAR, $this->position++);
 
             } elseif (
@@ -706,9 +710,17 @@ class Lexer
     protected function lexDoubleQuoted()
     {
         if (!preg_match('/" ( (?>[^"]+ | "")* ) "/Ax', $this->string, $m, 0, $this->position)) {
-            throw exceptions\SyntaxException::atPosition('Unterminated quoted identifier', $this->string, $this->position);
-        } elseif (!strlen($m[1])) {
-            throw exceptions\SyntaxException::atPosition('Zero-length quoted identifier', $this->string, $this->position);
+            throw exceptions\SyntaxException::atPosition(
+                'Unterminated quoted identifier',
+                $this->string,
+                $this->position
+            );
+        } elseif ('' === $m[1]) {
+            throw exceptions\SyntaxException::atPosition(
+                'Zero-length quoted identifier',
+                $this->string,
+                $this->position
+            );
         }
         $this->pushToken(strtr($m[1], ['""' => '"']), Token::TYPE_IDENTIFIER, $this->position);
         $this->position += strlen($m[0]);
@@ -724,7 +736,11 @@ class Lexer
     {
         $delimiterLength = strlen($delimiter);
         if (false === ($pos = strpos($this->string, $delimiter, $this->position + $delimiterLength))) {
-            throw exceptions\SyntaxException::atPosition('Unterminated dollar-quoted string', $this->string, $this->position);
+            throw exceptions\SyntaxException::atPosition(
+                'Unterminated dollar-quoted string',
+                $this->string,
+                $this->position
+            );
         }
         $this->pushToken(
             substr($this->string, $this->position + $delimiterLength, $pos - $this->position - $delimiterLength),
@@ -762,6 +778,7 @@ class Lexer
                 $type  = Token::TYPE_HEX_STRING;
                 break;
 
+            /** @noinspection PhpMissingBreakStatementInspection */
             case 'n':
                 $type  = Token::TYPE_NCHAR_STRING;
                 // fall-through is intentional here
@@ -830,7 +847,7 @@ class Lexer
             && ('+' === $operator[$length - 1] || '-' === $operator[$length - 1])
         ) {
             for ($i = $length - 2; $i >= 0; $i--) {
-                if (isset($this->_nonStandardCharHash[$operator[$i]])) {
+                if (isset($this->nonStandardCharHash[$operator[$i]])) {
                     break;
                 }
             }
@@ -845,7 +862,7 @@ class Lexer
         }
 
         $operator = substr($operator, 0, $length);
-        if (1 === $length && isset($this->_specialCharHash[$operator])) {
+        if (1 === $length && isset($this->specialCharHash[$operator])) {
             $this->pushToken($operator, Token::TYPE_SPECIAL_CHAR, $this->position++);
             return;
         }

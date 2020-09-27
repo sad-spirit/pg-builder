@@ -34,7 +34,8 @@ class Token
     public const TYPE_STRING                 = self::TYPE_LITERAL | 1 << 0;
     public const TYPE_BINARY_STRING          = self::TYPE_LITERAL | 1 << 1;
     public const TYPE_HEX_STRING             = self::TYPE_LITERAL | 1 << 2;
-    public const TYPE_NCHAR_STRING           = self::TYPE_LITERAL | 1 << 3; // I think this is just noise right now, behaves as simple string
+    // I think this is just noise right now, behaves as simple string
+    public const TYPE_NCHAR_STRING           = self::TYPE_LITERAL | 1 << 3;
     public const TYPE_INTEGER                = self::TYPE_LITERAL | 1 << 4;
     public const TYPE_FLOAT                  = self::TYPE_LITERAL | 1 << 5;
 

@@ -30,19 +30,19 @@ class StatementFactory
      * Database connection
      * @var Connection
      */
-    private $_connection;
+    private $connection;
 
     /**
      * Query parser, will be passed to created statements
      * @var Parser
      */
-    private $_parser;
+    private $parser;
 
     /**
      * Query builder
      * @var TreeWalker
      */
-    private $_builder;
+    private $builder;
 
     /**
      * Constructor, can set the Connection and Parser objects
@@ -52,8 +52,8 @@ class StatementFactory
      */
     public function __construct(Connection $connection = null, Parser $parser = null)
     {
-        $this->_connection = $connection;
-        $this->_parser     = $parser;
+        $this->connection = $connection;
+        $this->parser     = $parser;
     }
 
     /**
@@ -66,13 +66,13 @@ class StatementFactory
      */
     public function getParser()
     {
-        if (!$this->_parser) {
-            if (!$this->_connection) {
+        if (!$this->parser) {
+            if (!$this->connection) {
                 $cache         = null;
                 $lexerOptions  = [];
 
             } else {
-                $serverVersion = pg_parameter_status($this->_connection->getResource(), 'server_version');
+                $serverVersion = pg_parameter_status($this->connection->getResource(), 'server_version');
                 if (version_compare($serverVersion, '9.5', '<')) {
                     throw new exceptions\RuntimeException(
                         'PostgreSQL versions earlier than 9.5 are no longer supported, '
@@ -80,9 +80,9 @@ class StatementFactory
                     );
                 }
 
-                $cache = $this->_connection->getMetadataCache();
+                $cache = $this->connection->getMetadataCache();
                 try {
-                    $res = $this->_connection->execute('show standard_conforming_strings');
+                    $res = $this->connection->execute('show standard_conforming_strings');
                     $lexerOptions = [
                         'standard_conforming_strings' => 'on' === $res[0]['standard_conforming_strings']
                     ];
@@ -91,9 +91,9 @@ class StatementFactory
                     $lexerOptions = ['standard_conforming_strings' => false];
                 }
             }
-            $this->_parser = new Parser(new Lexer($lexerOptions), $cache);
+            $this->parser = new Parser(new Lexer($lexerOptions), $cache);
         }
-        return $this->_parser;
+        return $this->parser;
     }
 
     /**
@@ -103,7 +103,7 @@ class StatementFactory
      */
     public function setBuilder(TreeWalker $builder)
     {
-        $this->_builder = $builder;
+        $this->builder = $builder;
     }
 
     /**
@@ -116,10 +116,10 @@ class StatementFactory
      */
     public function getBuilder()
     {
-        if (!$this->_builder) {
-            $this->_builder = new SqlBuilderWalker();
+        if (!$this->builder) {
+            $this->builder = new SqlBuilderWalker();
         }
-        return $this->_builder;
+        return $this->builder;
     }
 
     /**
