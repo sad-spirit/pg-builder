@@ -1,5 +1,6 @@
 .idea/
 cache/
-tests/config.php
+/tests/config.php
+/tests/.phpunit.result.cache
 /vendor
 composer.lock
