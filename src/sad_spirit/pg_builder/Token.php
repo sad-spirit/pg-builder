@@ -23,42 +23,42 @@ namespace sad_spirit\pg_builder;
 class Token
 {
     /* Generic types */
-    const TYPE_LITERAL                = 128;
-    const TYPE_PARAMETER              = 256;
-    const TYPE_SPECIAL                = 512;
-    const TYPE_IDENTIFIER             = 1024;
-    const TYPE_KEYWORD                = 2048;
+    public const TYPE_LITERAL                = 1 << 8;
+    public const TYPE_PARAMETER              = 1 << 9;
+    public const TYPE_SPECIAL                = 1 << 10;
+    public const TYPE_IDENTIFIER             = 1 << 11;
+    public const TYPE_KEYWORD                = 1 << 12;
 
     /* Literal types */
-    const TYPE_STRING                 = 129;
-    const TYPE_BINARY_STRING          = 130;
-    const TYPE_HEX_STRING             = 132;
-    const TYPE_NCHAR_STRING           = 136; // I think this is just noise right now, behaves as simple string
-    const TYPE_INTEGER                = 144;
-    const TYPE_FLOAT                  = 160;
+    public const TYPE_STRING                 = self::TYPE_LITERAL | 1 << 0;
+    public const TYPE_BINARY_STRING          = self::TYPE_LITERAL | 1 << 1;
+    public const TYPE_HEX_STRING             = self::TYPE_LITERAL | 1 << 2;
+    public const TYPE_NCHAR_STRING           = self::TYPE_LITERAL | 1 << 3; // I think this is just noise right now, behaves as simple string
+    public const TYPE_INTEGER                = self::TYPE_LITERAL | 1 << 4;
+    public const TYPE_FLOAT                  = self::TYPE_LITERAL | 1 << 5;
 
     /* Parameter types */
-    const TYPE_POSITIONAL_PARAM       = 257;
-    const TYPE_NAMED_PARAM            = 258;
+    public const TYPE_POSITIONAL_PARAM       = self::TYPE_PARAMETER | 1 << 0;
+    public const TYPE_NAMED_PARAM            = self::TYPE_PARAMETER | 1 << 1;
 
     /* Special characters and operators */
-    const TYPE_SPECIAL_CHAR           = 513;
-    const TYPE_TYPECAST               = 514;
-    const TYPE_COLON_EQUALS           = 516;
-    const TYPE_OPERATOR               = 520;
-    const TYPE_INEQUALITY             = 528;
-    const TYPE_EQUALS_GREATER         = 544;
+    public const TYPE_SPECIAL_CHAR           = self::TYPE_SPECIAL | 1 << 0;
+    public const TYPE_TYPECAST               = self::TYPE_SPECIAL | 1 << 1;
+    public const TYPE_COLON_EQUALS           = self::TYPE_SPECIAL | 1 << 2;
+    public const TYPE_OPERATOR               = self::TYPE_SPECIAL | 1 << 3;
+    public const TYPE_INEQUALITY             = self::TYPE_SPECIAL | 1 << 4;
+    public const TYPE_EQUALS_GREATER         = self::TYPE_SPECIAL | 1 << 5;
 
     /* Keywords, as in src/include/parser/keywords.h */
-    const TYPE_UNRESERVED_KEYWORD     = 2049;
-    const TYPE_COL_NAME_KEYWORD       = 2050;
-    const TYPE_TYPE_FUNC_NAME_KEYWORD = 2052;
-    const TYPE_RESERVED_KEYWORD       = 2056;
+    public const TYPE_UNRESERVED_KEYWORD     = self::TYPE_KEYWORD | 1 << 0;
+    public const TYPE_COL_NAME_KEYWORD       = self::TYPE_KEYWORD | 1 << 1;
+    public const TYPE_TYPE_FUNC_NAME_KEYWORD = self::TYPE_KEYWORD | 1 << 2;
+    public const TYPE_RESERVED_KEYWORD       = self::TYPE_KEYWORD | 1 << 3;
 
     /**
      * Signals end of input
      */
-    const TYPE_EOF                    = 65536;
+    public const TYPE_EOF                    = 1 << 16;
 
     protected $type;
     protected $value;
