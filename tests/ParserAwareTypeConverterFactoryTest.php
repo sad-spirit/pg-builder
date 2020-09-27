@@ -63,7 +63,7 @@ class ParserAwareTypeConverterFactoryTest extends \PHPUnit\Framework\TestCase
     {
         $this->assertEquals(
             new IntegerConverter(),
-            $this->factory->getConverter(new TypeName(new QualifiedName(array('int4'))))
+            $this->factory->getConverterForTypeSpecification(new TypeName(new QualifiedName(array('int4'))))
         );
     }
 
@@ -74,7 +74,7 @@ class ParserAwareTypeConverterFactoryTest extends \PHPUnit\Framework\TestCase
      */
     public function testParseComplexTypeNames($typeName, TypeConverter $converter)
     {
-        $this->assertEquals($converter, $this->factory->getConverter($typeName));
+        $this->assertEquals($converter, $this->factory->getConverterForTypeSpecification($typeName));
     }
 
     public function complexTypeNamesProvider()

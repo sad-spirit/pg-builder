@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Query builder for PostgreSQL backed by a query parser
  *
@@ -15,22 +16,28 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\converters;
 
-use sad_spirit\pg_wrapper\converters\DefaultTypeConverterFactory,
-    sad_spirit\pg_wrapper\TypeConverter,
-    sad_spirit\pg_builder\Parser,
-    sad_spirit\pg_builder\nodes\IntervalTypeName,
-    sad_spirit\pg_builder\nodes\QualifiedName,
-    sad_spirit\pg_builder\nodes\TypeName;
+use sad_spirit\pg_builder\{
+    Parser,
+    nodes\IntervalTypeName,
+    nodes\QualifiedName,
+    nodes\TypeName
+};
+use sad_spirit\pg_wrapper\{
+    TypeConverter,
+    converters\DefaultTypeConverterFactory
+};
 
 /**
  * Adds methods for TypeName AST nodes handling and possibility to use Parser to process type names
  */
 class ParserAwareTypeConverterFactory extends DefaultTypeConverterFactory
 {
-    /** @var Parser */
-    private $_parser;
+    /** @var Parser|null */
+    private $parser;
 
     public function __construct(Parser $parser = null)
     {
@@ -44,9 +51,9 @@ class ParserAwareTypeConverterFactory extends DefaultTypeConverterFactory
      * @param Parser|null $parser
      * @return $this
      */
-    public function setParser(Parser $parser = null)
+    public function setParser(Parser $parser = null): self
     {
-        $this->_parser = $parser;
+        $this->parser = $parser;
 
         return $this;
     }
@@ -60,12 +67,33 @@ class ParserAwareTypeConverterFactory extends DefaultTypeConverterFactory
      * @param mixed $type
      * @return TypeConverter
      */
-    public function getConverter($type)
+    public function getConverterForTypeSpecification($type): TypeConverter
     {
-        if ($type instanceof TypeName) {
-            return $this->_getConverterForTypeNameNode($type);
+        return $type instanceof TypeName
+            ? $this->getConverterForTypeNameNode($type)
+            : parent::getConverterForTypeSpecification($type);
+    }
+
+
+    /**
+     * Returns a converter for query builder's TypeName node
+     *
+     * Usually this will come from a typecast applied to a query parameter and
+     * extracted by ParameterWalker
+     *
+     * @param TypeName $typeName
+     * @return TypeConverter
+     */
+    private function getConverterForTypeNameNode(TypeName $typeName): TypeConverter
+    {
+        if ($typeName instanceof IntervalTypeName) {
+            return $this->getConverterForQualifiedName('interval', 'pg_catalog', count($typeName->bounds) > 0);
         } else {
-            return parent::getConverter($type);
+            return $this->getConverterForQualifiedName(
+                $typeName->name->relation->value,
+                $typeName->name->schema ? $typeName->name->schema->value : null,
+                count($typeName->bounds) > 0
+            );
         }
     }
 
@@ -78,48 +106,22 @@ class ParserAwareTypeConverterFactory extends DefaultTypeConverterFactory
      * @param string $name
      * @return array
      */
-    protected function parseTypeName($name)
+    protected function parseTypeName(string $name): array
     {
-        if (!$this->_parser) {
+        if (!$this->parser) {
             return parent::parseTypeName($name);
-
         } else {
-            $node = $this->_parser->parseTypeName($name);
-            if ($node instanceof IntervalTypeName) {
-                return array('pg_catalog', 'interval', count($node->bounds) > 0);
+            $node = $this->parser->parseTypeName($name);
 
+            if ($node instanceof IntervalTypeName) {
+                return ['pg_catalog', 'interval', count($node->bounds) > 0];
             } else {
-                return array(
+                return [
                     $node->name->schema ? $node->name->schema->value : null,
                     $node->name->relation->value,
                     count($node->bounds) > 0
-                );
+                ];
             }
-        }
-    }
-
-    /**
-     * Returns a converter for query builder's TypeName node
-     *
-     * Usually this will come from a typecast applied to a query parameter and
-     * extracted by ParameterWalker
-     *
-     * @param TypeName $typeName
-     * @return TypeConverter
-     */
-    private function _getConverterForTypeNameNode(TypeName $typeName)
-    {
-        if ($typeName instanceof IntervalTypeName) {
-            return $this->getConverterForQualifiedName(
-                'interval', 'pg_catalog', count($typeName->bounds) > 0
-            );
-
-        } else {
-            return $this->getConverterForQualifiedName(
-                $typeName->name->relation->value,
-                $typeName->name->schema ? $typeName->name->schema->value : null,
-                count($typeName->bounds) > 0
-            );
         }
     }
 
@@ -129,19 +131,19 @@ class ParserAwareTypeConverterFactory extends DefaultTypeConverterFactory
      * @param int $oid
      * @return TypeName
      */
-    public function createTypeNameNodeForOid($oid)
+    public function createTypeNameNodeForOID($oid)
     {
         if ($this->isArrayTypeOid($oid, $baseTypeOid)) {
-            $node = $this->createTypeNameNodeForOid($baseTypeOid);
-            $node->bounds = array(-1);
+            $node = $this->createTypeNameNodeForOID($baseTypeOid);
+            $node->bounds = [-1];
             return $node;
 
         } else {
-            list($schemaName, $typeName) = $this->findTypeNameForOid($oid, __METHOD__);
+            [$schemaName, $typeName] = $this->findTypeNameForOID($oid, __METHOD__);
             if ('pg_catalog' !== $schemaName) {
-                return new TypeName(new QualifiedName(array($schemaName, $typeName)));
+                return new TypeName(new QualifiedName([$schemaName, $typeName]));
             } else {
-                return new TypeName(new QualifiedName(array($typeName)));
+                return new TypeName(new QualifiedName([$typeName]));
             }
         }
     }
