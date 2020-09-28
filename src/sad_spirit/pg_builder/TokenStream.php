@@ -129,14 +129,12 @@ class TokenStream
      * Possible parameters
      * * type and value (or array of possible values)
      * * just type ($type is integer, $values is null)
-     * * just value ($type is not integer, $values is null) - token will be tested
-     *   with TYPE_KEYWORD and TYPE_SPECIAL
      *
-     * @param array|string|integer $type
-     * @param array|string|null    $values
+     * @param int                  $type
+     * @param string|string[]|null $values
      * @return bool
      */
-    public function matches($type, $values = null): bool
+    public function matches(int $type, $values = null): bool
     {
         return $this->tokens[$this->current]->matches($type, $values);
     }
