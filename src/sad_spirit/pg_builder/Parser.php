@@ -207,7 +207,7 @@ class Parser
                                 ['union', 'intersect', 'except', 'order', 'limit', 'offset',
                                     'for' /* ...update */, 'fetch' /* SQL:2008 limit */]
                             )
-                            || $this->stream->look($lookIdx + 1)->matches(Token::TYPE_SPECIAL_CHAR, '(')
+                            || $this->stream->look($lookIdx + 1)->matches(Token::TYPE_SPECIAL_CHAR, ')')
                         ) {
                             // this addresses stuff like ((select 1) order by 1)
                             $selectLevel--;
