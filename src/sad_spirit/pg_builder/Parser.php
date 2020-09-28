@@ -614,7 +614,7 @@ class Parser
                 );
             }
             $this->stream->skip(2);
-            $stmt->order->merge($this->OrderByList());
+            $stmt->order->replace($this->OrderByList());
         }
 
         // LIMIT / OFFSET clause and FOR [UPDATE] clause may come in any order
@@ -659,9 +659,8 @@ class Parser
                 && 'select' !== $this->checkContentsOfParentheses()
             ) {
                 $this->stream->next();
-                $cols = $this->InsertTargetList();
+                $stmt->cols->replace($this->InsertTargetList());
                 $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-                $stmt->cols->merge($cols);
             }
             if ($this->stream->matchesKeyword('overriding')) {
                 $this->stream->next();
@@ -680,7 +679,7 @@ class Parser
 
         if ($this->stream->matchesKeyword('returning')) {
             $this->stream->next();
-            $stmt->returning->merge($this->TargetList());
+            $stmt->returning->replace($this->TargetList());
         }
 
         return $stmt;
@@ -708,7 +707,7 @@ class Parser
 
         if ($this->stream->matchesKeyword('from')) {
             $this->stream->next();
-            $stmt->from->merge($this->FromList());
+            $stmt->from->replace($this->FromList());
         }
         if ($this->stream->matchesKeyword('where')) {
             $this->stream->next();
@@ -719,7 +718,7 @@ class Parser
         }
         if ($this->stream->matchesKeyword('returning')) {
             $this->stream->next();
-            $stmt->returning->merge($this->TargetList());
+            $stmt->returning->replace($this->TargetList());
         }
 
         return $stmt;
@@ -745,7 +744,7 @@ class Parser
 
         if ($this->stream->matchesKeyword('using')) {
             $this->stream->next();
-            $stmt->using->merge($this->FromList());
+            $stmt->using->replace($this->FromList());
         }
         if ($this->stream->matchesKeyword('where')) {
             $this->stream->next();
@@ -756,7 +755,7 @@ class Parser
         }
         if ($this->stream->matchesKeyword('returning')) {
             $this->stream->next();
-            $stmt->returning->merge($this->TargetList());
+            $stmt->returning->replace($this->TargetList());
         }
 
         return $stmt;
@@ -1121,7 +1120,7 @@ class Parser
 
         if ($this->stream->matchesKeyword('from')) {
             $this->stream->next();
-            $stmt->from->merge($this->FromList());
+            $stmt->from->replace($this->FromList());
         }
 
         if ($this->stream->matchesKeyword('where')) {
@@ -1131,7 +1130,7 @@ class Parser
 
         if ($this->stream->matchesKeywordSequence('group', 'by')) {
             $this->stream->skip(2);
-            $stmt->group->merge($this->GroupByList());
+            $stmt->group->replace($this->GroupByList());
         }
 
         if ($this->stream->matchesKeyword('having')) {
@@ -1141,7 +1140,7 @@ class Parser
 
         if ($this->stream->matchesKeyword('window')) {
             $this->stream->next();
-            $stmt->window->merge($this->WindowList());
+            $stmt->window->replace($this->WindowList());
         }
 
         return $stmt;
