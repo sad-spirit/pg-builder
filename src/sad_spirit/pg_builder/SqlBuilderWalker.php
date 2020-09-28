@@ -773,7 +773,7 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkIdentifier(nodes\Identifier $node)
     {
-        if (preg_match('/^[a-z_][a-z_0-9\$]*$/D', $node->value) && !Lexer::isKeyword($node->value)) {
+        if (preg_match('/^[a-z_][a-z_0-9\$]*$/D', $node->value) && !Keywords::isKeyword($node->value)) {
             return $node->value;
         } else {
             return '"' . str_replace('"', '""', $node->value) . '"';
