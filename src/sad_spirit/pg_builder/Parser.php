@@ -2168,7 +2168,8 @@ class Parser
 
         if (
             'row' === $check
-            || $this->stream->matchesSequence(['row', '('])
+            || $this->stream->matchesKeyword('row')
+                && $this->stream->look()->matches(Token::TYPE_SPECIAL_CHAR, '(')
         ) {
             return $this->RowConstructor();
 
@@ -2235,7 +2236,10 @@ class Parser
             $this->stream->next();
         }
         // ROW() is only possible with the keyword, 'VALUES ()' is a syntax error
-        if ($this->stream->matchesSequence(['(', ')'])) {
+        if (
+            $this->stream->matchesSpecialChar('(')
+            && $this->stream->look()->matches(Token::TYPE_SPECIAL_CHAR, ')')
+        ) {
             $this->stream->skip(2);
             return new nodes\expressions\RowExpression([]);
         }
@@ -3575,7 +3579,10 @@ class Parser
 
     protected function GroupByElement()
     {
-        if ($this->stream->matchesSequence(['(', ')'])) {
+        if (
+            $this->stream->matchesSpecialChar('(')
+            && $this->stream->look()->matches(Token::TYPE_SPECIAL_CHAR, ')')
+        ) {
             $this->stream->skip(2);
             $element = new nodes\group\EmptyGroupingSet();
 

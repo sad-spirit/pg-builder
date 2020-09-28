@@ -106,24 +106,19 @@ class Token
      * Possible parameters
      * * type and value (or array of possible values)
      * * just type ($type is integer, $values is null)
-     * * just value ($type is not integer, $values is null) - token will be tested
-     *   with TYPE_KEYWORD and TYPE_SPECIAL
      *
-     * @param array|string|integer $type
-     * @param array|string|null    $values
+     * @param int                  $type
+     * @param string|string[]|null $values
      * @return bool
      */
-    public function matches($type, $values = null): bool
+    public function matches(int $type, $values = null): bool
     {
-        if (null === $values && !is_int($type)) {
-            return $this->matches(self::TYPE_KEYWORD, $type)
-                   || $this->matches(self::TYPE_SPECIAL, $type);
-        }
-
         return ($type & $this->type) === $type
-               && (null === $values
+               && (
+                   null === $values
                    || (is_array($values) && in_array($this->value, $values))
-                   || $this->value == $values);
+                   || $this->value === $values
+               );
     }
 
     /**

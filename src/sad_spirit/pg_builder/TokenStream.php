@@ -197,25 +197,6 @@ class TokenStream
     }
 
     /**
-     * Checks whether tokens starting from current match the given sequence of values
-     *
-     * @param array $sequence
-     * @return bool
-     */
-    public function matchesSequence(array $sequence): bool
-    {
-        for ($i = 0; $i < count($sequence); $i++) {
-            if (
-                !isset($this->tokens[$this->current + $i])
-                || !$this->tokens[$this->current + $i]->matches($sequence[$i])
-            ) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
      * Checks the current token and returns it or throws a syntax error
      *
      * Parameters have the same meaning as those for matches()
