@@ -1571,7 +1571,7 @@ class Parser
     {
         if (
             $this->stream->matches(Token::TYPE_OPERATOR)
-            || $all && $this->stream->matches(Token::TYPE_SPECIAL_CHAR, self::$mathOp)
+            || $all && $this->stream->matches(Token::TYPE_SPECIAL, self::$mathOp)
         ) {
             return $this->stream->next()->getValue();
         }
@@ -1590,7 +1590,7 @@ class Parser
             $operator .= new nodes\Identifier($this->stream->next());
             $operator .= $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '.')->getValue();
         }
-        if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, self::$mathOp)) {
+        if ($this->stream->matches(Token::TYPE_SPECIAL, self::$mathOp)) {
             $operator .= $this->stream->next()->getValue();
         } else {
             $operator .= $this->stream->expect(Token::TYPE_OPERATOR)->getValue();
