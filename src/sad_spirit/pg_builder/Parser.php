@@ -1142,11 +1142,10 @@ class Parser
         $refName = $partition = $frame = $order = null;
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
         if (
-            $this->stream->matches(Token::TYPE_IDENTIFIER)
+            $this->stream->matchesAnyType(Token::TYPE_IDENTIFIER, Token::TYPE_COL_NAME_KEYWORD)
             || ($this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
                 // See comment for opt_existing_window_name production in gram.y
                 && !in_array($this->stream->getCurrent()->getValue(), ['partition', 'range', 'rows', 'groups']))
-            || $this->stream->matches(Token::TYPE_COL_NAME_KEYWORD)
         ) {
             $refName = $this->ColId();
         }
@@ -1581,9 +1580,11 @@ class Parser
         $operator = $this->stream->expect(Token::TYPE_KEYWORD, 'operator')->getValue()
                     . $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(')->getValue();
         while (
-            $this->stream->matches(Token::TYPE_IDENTIFIER)
-               || $this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
-               || $this->stream->matches(Token::TYPE_COL_NAME_KEYWORD)
+            $this->stream->matchesAnyType(
+                Token::TYPE_IDENTIFIER,
+                Token::TYPE_UNRESERVED_KEYWORD,
+                Token::TYPE_COL_NAME_KEYWORD
+            )
         ) {
             // ColId
             $operator .= new nodes\Identifier($this->stream->next());
@@ -2003,9 +2004,11 @@ class Parser
     protected function GenericTypeName()
     {
         if (
-            $this->stream->matches(Token::TYPE_IDENTIFIER)
-            || $this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
-            || $this->stream->matches(Token::TYPE_TYPE_FUNC_NAME_KEYWORD)
+            $this->stream->matchesAnyType(
+                Token::TYPE_IDENTIFIER,
+                Token::TYPE_UNRESERVED_KEYWORD,
+                Token::TYPE_TYPE_FUNC_NAME_KEYWORD
+            )
         ) {
             $typeName  = [new nodes\Identifier($this->stream->next())];
             $modifiers = null;
@@ -2047,17 +2050,15 @@ class Parser
     protected function GenericTypeModifier()
     {
         // Let's keep most common case at the top
-        if (
-            $this->stream->matches(Token::TYPE_INTEGER)
-            || $this->stream->matches(Token::TYPE_FLOAT)
-            || $this->stream->matches(Token::TYPE_STRING)
-        ) {
+        if ($this->stream->matchesAnyType(Token::TYPE_INTEGER, Token::TYPE_FLOAT, Token::TYPE_STRING)) {
             return new nodes\Constant($this->stream->next());
 
         } elseif (
-            $this->stream->matches(Token::TYPE_IDENTIFIER)
-            || $this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
-            || $this->stream->matches(Token::TYPE_TYPE_FUNC_NAME_KEYWORD)
+            $this->stream->matchesAnyType(
+                Token::TYPE_IDENTIFIER,
+                Token::TYPE_UNRESERVED_KEYWORD,
+                Token::TYPE_TYPE_FUNC_NAME_KEYWORD
+            )
         ) {
             // allows ColId
             return new nodes\Identifier($this->stream->next());
@@ -2962,10 +2963,7 @@ class Parser
             $this->stream->look(1)->matches(Token::TYPE_COLON_EQUALS)
             || $this->stream->look(1)->matches(Token::TYPE_EQUALS_GREATER)
         ) {
-            if (
-                $this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
-                || $this->stream->matches(Token::TYPE_TYPE_FUNC_NAME_KEYWORD)
-            ) {
+            if ($this->stream->matchesAnyType(Token::TYPE_UNRESERVED_KEYWORD, Token::TYPE_TYPE_FUNC_NAME_KEYWORD)) {
                 $name = new nodes\Identifier($this->stream->next());
             } else {
                 $name = new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
@@ -3345,8 +3343,7 @@ class Parser
     {
         if (
             $this->stream->matchesKeyword('as')
-            || $this->stream->matches(Token::TYPE_IDENTIFIER)
-            || $this->stream->matches(Token::TYPE_COL_NAME_KEYWORD)
+            || $this->stream->matchesAnyType(Token::TYPE_IDENTIFIER, Token::TYPE_COL_NAME_KEYWORD)
             || ($this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
                 && ('update' !== $statementType || 'set' !== $this->stream->getCurrent()->getValue()))
         ) {
@@ -3362,9 +3359,11 @@ class Parser
     {
         if (
             $this->stream->matchesKeyword('as')
-            || $this->stream->matches(Token::TYPE_IDENTIFIER)
-            || $this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
-            || $this->stream->matches(Token::TYPE_COL_NAME_KEYWORD)
+            || $this->stream->matchesAnyType(
+                Token::TYPE_IDENTIFIER,
+                Token::TYPE_UNRESERVED_KEYWORD,
+                Token::TYPE_COL_NAME_KEYWORD
+            )
         ) {
             $tableAlias    = null;
             $columnAliases = null;
@@ -3428,10 +3427,7 @@ class Parser
      */
     protected function ColId()
     {
-        if (
-            $this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
-            || $this->stream->matches(Token::TYPE_COL_NAME_KEYWORD)
-        ) {
+        if ($this->stream->matchesAnyType(Token::TYPE_UNRESERVED_KEYWORD, Token::TYPE_COL_NAME_KEYWORD)) {
             return new nodes\Identifier($this->stream->next());
         } else {
             return new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
@@ -3559,9 +3555,11 @@ class Parser
         }
 
         if (
-            $this->stream->matches(Token::TYPE_IDENTIFIER)
-            || $this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
-            || $this->stream->matches(Token::TYPE_COL_NAME_KEYWORD)
+            $this->stream->matchesAnyType(
+                Token::TYPE_IDENTIFIER,
+                Token::TYPE_UNRESERVED_KEYWORD,
+                Token::TYPE_COL_NAME_KEYWORD
+            )
         ) {
             $opClass = $this->QualifiedName();
         }

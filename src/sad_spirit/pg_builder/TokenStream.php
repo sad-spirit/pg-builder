@@ -162,6 +162,22 @@ class TokenStream
     }
 
     /**
+     * Checks whether current token belongs to any type from the given list
+     *
+     * @param int ...$types
+     * @return bool
+     */
+    public function matchesAnyType(int ...$types): bool
+    {
+        foreach ($types as $type) {
+            if ($this->tokens[$this->current]->matches($type)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Checks whether tokens starting from current match the given sequence of values
      *
      * @param array $sequence
