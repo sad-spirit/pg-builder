@@ -188,9 +188,11 @@ class Parser
             } elseif ($token->matches(Token::TYPE_SPECIAL_CHAR, ')')) {
                 if (1 < count($openParens) && $selectLevel === count($openParens)) {
                     if (
-                        $this->stream->look($lookIdx + 1)->matches(
-                            [')', 'union', 'intersect', 'except', 'order',
-                              'limit', 'offset', 'for' /* ...update */, 'fetch' /* SQL:2008 limit */]
+                        $this->stream->look($lookIdx + 1)->matches(Token::TYPE_SPECIAL_CHAR, '(')
+                        || $this->stream->look($lookIdx + 1)->matches(
+                            Token::TYPE_KEYWORD,
+                            ['union', 'intersect', 'except', 'order', 'limit', 'offset',
+                                'for' /* ...update */, 'fetch' /* SQL:2008 limit */]
                         )
                     ) {
                         // this addresses stuff like ((select 1) order by 1)
