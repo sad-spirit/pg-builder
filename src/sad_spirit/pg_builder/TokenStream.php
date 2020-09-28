@@ -178,6 +178,25 @@ class TokenStream
     }
 
     /**
+     * Checks whether tokens starting from current match the given sequence of keywords
+     *
+     * @param mixed ...$keywords
+     * @return bool
+     */
+    public function matchesKeywordSequence(...$keywords)
+    {
+        if ($this->current + count($keywords) > count($this->tokens)) {
+            return false;
+        }
+        foreach ($keywords as $i => $keyword) {
+            if (!$this->tokens[$this->current + $i]->matches(Token::TYPE_KEYWORD, $keyword)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Checks whether tokens starting from current match the given sequence of values
      *
      * @param array $sequence

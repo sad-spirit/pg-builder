@@ -573,7 +573,7 @@ class Parser
 
         // Per SQL spec ORDER BY and later clauses apply to a result of set operation,
         // not to a single participating SELECT
-        if ($this->stream->matchesSequence(['order', 'by'])) {
+        if ($this->stream->matchesKeywordSequence('order', 'by')) {
             if (count($stmt->order) > 0) {
                 throw exceptions\SyntaxException::atPosition(
                     'Multiple ORDER BY clauses are not allowed',
@@ -619,7 +619,7 @@ class Parser
             $stmt->with = $withClause;
         }
 
-        if ($this->stream->matchesSequence(['default', 'values'])) {
+        if ($this->stream->matchesKeywordSequence('default', 'values')) {
             $this->stream->skip(2);
         } else {
             if (
@@ -641,7 +641,7 @@ class Parser
             $stmt->values = $this->SelectStatement();
         }
 
-        if ($this->stream->matchesSequence(['on', 'conflict'])) {
+        if ($this->stream->matchesKeywordSequence('on', 'conflict')) {
             $this->stream->skip(2);
             $stmt->onConflict = $this->OnConflict();
         }
@@ -680,7 +680,7 @@ class Parser
         }
         if ($this->stream->matchesKeyword('where')) {
             $this->stream->next();
-            if ($this->stream->matchesSequence(['current', 'of'])) {
+            if ($this->stream->matchesKeywordSequence('current', 'of')) {
                 throw new exceptions\NotImplementedException('WHERE CURRENT OF clause is not supported');
             }
             $stmt->where->condition = $this->Expression();
@@ -717,7 +717,7 @@ class Parser
         }
         if ($this->stream->matchesKeyword('where')) {
             $this->stream->next();
-            if ($this->stream->matchesSequence(['current', 'of'])) {
+            if ($this->stream->matchesKeywordSequence('current', 'of')) {
                 throw new exceptions\NotImplementedException('WHERE CURRENT OF clause is not supported');
             }
             $stmt->where->condition = $this->Expression();
@@ -778,7 +778,7 @@ class Parser
 
     protected function ForLockingClause(SelectCommon $stmt)
     {
-        if ($this->stream->matchesSequence(['for', 'read', 'only'])) {
+        if ($this->stream->matchesKeywordSequence('for', 'read', 'only')) {
             // this isn't quite documented but means "no locking" judging by the grammar
             $this->stream->skip(3);
             return;
@@ -837,7 +837,7 @@ class Parser
             $this->stream->next();
             $noWait = true;
 
-        } elseif ($this->stream->matchesSequence(['skip', 'locked'])) {
+        } elseif ($this->stream->matchesKeywordSequence('skip', 'locked')) {
             $this->stream->skip(2);
             $skipLocked = true;
         }
@@ -910,7 +910,7 @@ class Parser
             }
 
             $this->stream->expect(Token::TYPE_KEYWORD, ['row', 'rows']);
-            if ($this->stream->matchesSequence(['with', 'ties'])) {
+            if ($this->stream->matchesKeywordSequence('with', 'ties')) {
                 $stmt->limitWithTies = true;
                 $this->stream->skip(2);
             } else {
@@ -1097,7 +1097,7 @@ class Parser
             $stmt->where->condition = $this->Expression();
         }
 
-        if ($this->stream->matchesSequence(['group', 'by'])) {
+        if ($this->stream->matchesKeywordSequence('group', 'by')) {
             $this->stream->skip(2);
             $stmt->group->merge($this->GroupByList());
         }
@@ -1149,11 +1149,11 @@ class Parser
         ) {
             $refName = $this->ColId();
         }
-        if ($this->stream->matchesSequence(['partition', 'by'])) {
+        if ($this->stream->matchesKeywordSequence('partition', 'by')) {
             $this->stream->skip(2);
             $partition = $this->ExpressionList();
         }
-        if ($this->stream->matchesSequence(['order', 'by'])) {
+        if ($this->stream->matchesKeywordSequence('order', 'by')) {
             $this->stream->skip(2);
             $order = $this->OrderByList();
         }
@@ -1222,7 +1222,7 @@ class Parser
         ];
 
         foreach ($checks as $check) {
-            if ($this->stream->matchesSequence($check)) {
+            if ($this->stream->matchesKeywordSequence(...$check)) {
                 $this->stream->skip(2);
                 return new nodes\WindowFrameBound('current' === $check[0] ? 'current row' : $check[1]);
             }
@@ -1334,7 +1334,7 @@ class Parser
         }
 
         foreach ($checks as $checkIdx => $check) {
-            if ($this->stream->matchesSequence($check)) {
+            if ($this->stream->matchesKeywordSequence(...$check)) {
                 $this->stream->skip(count($check));
 
                 $escape = null;
@@ -1440,7 +1440,7 @@ class Parser
 
         if ($this->stream->matchesKeyword(['between', 'not'])) { // speedup
             foreach ($checks as $check) {
-                if ($this->stream->matchesSequence($check)) {
+                if ($this->stream->matchesKeywordSequence(...$check)) {
                     $this->stream->skip(count($check));
                     $left  = $this->GenericOperatorExpression(true);
                     $this->stream->expect(Token::TYPE_KEYWORD, 'and');
@@ -1641,7 +1641,7 @@ class Parser
             }
 
             foreach ($checks as $check) {
-                if ($this->stream->matchesSequence($check)) {
+                if ($this->stream->matchesKeywordSequence(...$check)) {
                     $strOperator = 'is';
                     for ($i = 0; $i < count($check); $i++) {
                         $strOperator .= ' ' . $this->stream->next()->getValue();
@@ -1656,7 +1656,7 @@ class Parser
                         ['not', 'distinct', 'from']
                     ] as $check
             ) {
-                if ($this->stream->matchesSequence($check)) {
+                if ($this->stream->matchesKeywordSequence(...$check)) {
                     $this->stream->skip(count($check));
                     // 'is distinct from' requires parentheses
                     return new nodes\expressions\OperatorExpression(
@@ -1779,7 +1779,7 @@ class Parser
 
         if (
             $this->stream->matchesKeyword(['int', 'integer', 'smallint', 'bigint', 'real', 'float', 'decimal', 'dec', 'numeric', 'boolean'])
-            || $this->stream->matchesSequence(['double', 'precision'])
+            || $this->stream->matchesKeywordSequence('double', 'precision')
         ) {
             $typeName  = $this->stream->next()->getValue();
             $modifiers = null;
@@ -1925,7 +1925,7 @@ class Parser
                 $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
             }
 
-            if ($this->stream->matchesSequence([['with', 'without'], 'time', 'zone'])) {
+            if ($this->stream->matchesKeywordSequence(['with', 'without'], 'time', 'zone')) {
                 if ('with' === $this->stream->next()->getValue()) {
                     $typeName .= 'tz';
                 }
@@ -2123,7 +2123,7 @@ class Parser
     protected function AtTimeZoneExpression()
     {
         $left = $this->CollateExpression();
-        if ($this->stream->matchesSequence(['at', 'time', 'zone'])) {
+        if ($this->stream->matchesKeywordSequence('at', 'time', 'zone')) {
             $this->stream->skip(3);
             return new nodes\expressions\OperatorExpression('at time zone', $left, $this->CollateExpression());
         }
@@ -2526,11 +2526,11 @@ class Parser
                 $docOrContent = $this->stream->expect(Token::TYPE_KEYWORD, ['document', 'content'])->getValue();
                 $value        = $this->Expression();
                 $preserve     = false;
-                if ($this->stream->matchesSequence(['preserve', 'whitespace'])) {
+                if ($this->stream->matchesKeywordSequence('preserve', 'whitespace')) {
                     $preserve = true;
                     $this->stream->next();
                     $this->stream->next();
-                } elseif ($this->stream->matchesSequence(['strip', 'whitespace'])) {
+                } elseif ($this->stream->matchesKeywordSequence('strip', 'whitespace')) {
                     $this->stream->next();
                     $this->stream->next();
                 }
@@ -2708,7 +2708,7 @@ class Parser
         $xml = $this->Expression();
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
         $this->stream->expect(Token::TYPE_KEYWORD, 'version');
-        if ($this->stream->matchesSequence(['no', 'value'])) {
+        if ($this->stream->matchesKeywordSequence('no', 'value')) {
             $version = null;
         } else {
             $version = $this->Expression();
@@ -2718,7 +2718,7 @@ class Parser
         } else {
             $this->stream->next();
             $this->stream->expect(Token::TYPE_KEYWORD, 'standalone');
-            if ($this->stream->matchesSequence(['no', 'value'])) {
+            if ($this->stream->matchesKeywordSequence('no', 'value')) {
                 $this->stream->next();
                 $this->stream->next();
                 $standalone = 'no value';
@@ -2774,7 +2774,7 @@ class Parser
         $withinGroup = false;
         $order       = $filter = $over = null;
 
-        if ($this->stream->matchesSequence(['within', 'group'])) {
+        if ($this->stream->matchesKeywordSequence('within', 'group')) {
             if (count($function->order) > 0) {
                 throw exceptions\SyntaxException::atPosition(
                     'Cannot use multiple ORDER BY clauses with WITHIN GROUP',
@@ -2836,7 +2836,7 @@ class Parser
         ) {
             return $funcNode;
 
-        } elseif ($this->stream->matchesSequence(['collation', 'for'])) {
+        } elseif ($this->stream->matchesKeywordSequence('collation', 'for')) {
             $this->stream->skip(2);
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
             $argument = $this->Expression();
@@ -2899,7 +2899,7 @@ class Parser
                     );
                 }
             }
-            if ($this->stream->matchesSequence(['order', 'by'])) {
+            if ($this->stream->matchesKeywordSequence('order', 'by')) {
                 $this->stream->skip(2);
                 $orderBy = $this->OrderByList();
             }
@@ -3166,7 +3166,7 @@ class Parser
             $reference = $this->XmlTable();
 
         } elseif (
-            $this->stream->matchesSequence(['rows', 'from'])
+            $this->stream->matchesKeywordSequence('rows', 'from')
                   || $this->matchesFunctionCall()
         ) {
             $reference = $this->RangeFunctionCall();
@@ -3197,7 +3197,7 @@ class Parser
 
     protected function RangeFunctionCall()
     {
-        if ($this->stream->matchesSequence(['rows', 'from'])) {
+        if ($this->stream->matchesKeywordSequence('rows', 'from')) {
             $this->stream->skip(2);
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
             $list = new nodes\lists\RowsFromList([$this->RowsFromElement()]);
@@ -3216,7 +3216,7 @@ class Parser
             $reference = new nodes\range\FunctionCall($function);
         }
 
-        if ($this->stream->matchesSequence(['with', 'ordinality'])) {
+        if ($this->stream->matchesKeywordSequence('with', 'ordinality')) {
             $this->stream->skip(2);
             $reference->setWithOrdinality(true);
         }
@@ -3482,7 +3482,7 @@ class Parser
     protected function OnConflict()
     {
         $target = $set = $condition = null;
-        if ($this->stream->matchesSequence(['on', 'constraint'])) {
+        if ($this->stream->matchesKeywordSequence('on', 'constraint')) {
             $this->stream->skip(2);
             $target = $this->ColId();
 
@@ -3600,7 +3600,7 @@ class Parser
             $element = new nodes\group\CubeOrRollupClause($this->ExpressionList(), $type);
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
-        } elseif ($this->stream->matchesSequence(['grouping', 'sets'])) {
+        } elseif ($this->stream->matchesKeywordSequence('grouping', 'sets')) {
             $this->stream->skip(2);
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
             $element = new nodes\group\GroupingSetsClause($this->GroupByList());
@@ -3709,7 +3709,7 @@ class Parser
         $name = $this->ColId();
         $forOrdinality = false;
         $type = $nullable = $default = $path = null;
-        if ($this->stream->matchesSequence(['for', 'ordinality'])) {
+        if ($this->stream->matchesKeywordSequence('for', 'ordinality')) {
             $this->stream->skip(2);
             $forOrdinality = true;
         } else {
