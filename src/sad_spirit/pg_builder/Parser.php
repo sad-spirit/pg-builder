@@ -145,6 +145,13 @@ class Parser
     protected $stream;
 
     /**
+     * Cache for various match...() calls
+     *
+     * @var array
+     */
+    private $matched;
+
+    /**
      * Guesses the type of parenthesised expression
      *
      * Parentheses may contain
@@ -272,36 +279,42 @@ class Parser
      * Actually func_name allows indirection via array subscripts and appearance of '*' in
      * name, these are only disallowed later in processing, we disallow these here.
      *
-     * @return bool|int position after func_name if matches, false if not
+     * @return int|false position after func_name if matches, false if not
      */
     private function matchesFuncName()
     {
-        if (
-            !$this->stream->matches(Token::TYPE_IDENTIFIER)
-            && (!$this->stream->matches(Token::TYPE_KEYWORD)
-                || $this->stream->matches(Token::TYPE_RESERVED_KEYWORD))
-        ) {
-            return false;
+        $key = 'FuncName:' . $this->stream->getCurrent()->getPosition();
+
+        if (!array_key_exists($key, $this->matched)) {
+            if (
+                !$this->stream->matches(Token::TYPE_IDENTIFIER)
+                && (!$this->stream->matches(Token::TYPE_KEYWORD)
+                    || $this->stream->matches(Token::TYPE_RESERVED_KEYWORD))
+            ) {
+                $this->matched[$key] = false;
+            } else {
+                $first = $this->stream->getCurrent();
+                $idx   = 0;
+                while (
+                    $this->stream->look($idx + 1)->matches(Token::TYPE_SPECIAL_CHAR, '.')
+                    && ($this->stream->look($idx + 2)->matches(Token::TYPE_IDENTIFIER)
+                        || $this->stream->look($idx + 2)->matches(Token::TYPE_KEYWORD))
+                ) {
+                    $idx += 2;
+                }
+                if (
+                    Token::TYPE_TYPE_FUNC_NAME_KEYWORD === $first->getType() && 1 < $idx
+                    || Token::TYPE_COL_NAME_KEYWORD === $first->getType() && 1 === $idx
+                ) {
+                    // does not match func_name production
+                    $this->matched[$key] = false;
+                } else {
+                    $this->matched[$key] = $idx + 1;
+                }
+            }
         }
 
-        $first = $this->stream->getCurrent();
-        $idx   = 0;
-        while (
-            $this->stream->look($idx + 1)->matches(Token::TYPE_SPECIAL_CHAR, '.')
-               && ($this->stream->look($idx + 2)->matches(Token::TYPE_IDENTIFIER)
-                   || $this->stream->look($idx + 2)->matches(Token::TYPE_KEYWORD))
-        ) {
-            $idx += 2;
-        }
-        if (
-            Token::TYPE_TYPE_FUNC_NAME_KEYWORD === $first->getType() && 1 < $idx
-            || Token::TYPE_COL_NAME_KEYWORD === $first->getType() && 1 === $idx
-        ) {
-            // does not match func_name production
-            return false;
-        }
-
-        return $idx + 1;
+        return $this->matched[$key];
     }
 
     /**
@@ -321,20 +334,25 @@ class Parser
             'xmlpi', 'xmlroot', 'xmlserialize', 'normalize'
         ];
 
-        if (
-            $this->stream->matchesKeyword($noParens) // function-like stuff that doesn't need parentheses
-            || ($this->stream->matchesKeyword($parens) // known functions that require parentheses
-                && $this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, '('))
-            || ($this->stream->matchesKeyword('collation') // COLLATION FOR (...)
-                && $this->stream->look(1)->matches(Token::TYPE_KEYWORD, 'for')
-                && $this->stream->look(2)->matches(Token::TYPE_SPECIAL_CHAR, '('))
-        ) {
-            return true;
+        $key = 'FunctionCall:' . $this->stream->getCurrent()->getPosition();
+
+        if (!array_key_exists($key, $this->matched)) {
+            if (
+                $this->stream->matchesKeyword($noParens) // function-like stuff that doesn't need parentheses
+                || ($this->stream->matchesKeyword($parens) // known functions that require parentheses
+                    && $this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, '('))
+                || ($this->stream->matchesKeywordSequence('collation', 'for') // COLLATION FOR (...)
+                    && $this->stream->look(2)->matches(Token::TYPE_SPECIAL_CHAR, '('))
+            ) {
+                $this->matched[$key] = true;
+            } else {
+                // generic function name
+                $this->matched[$key] = false !== ($idx = $this->matchesFuncName())
+                                       && $this->stream->look($idx)->matches(Token::TYPE_SPECIAL_CHAR, '(');
+            }
         }
 
-        // generic function name
-        return false !== ($idx = $this->matchesFuncName())
-               && $this->stream->look($idx)->matches(Token::TYPE_SPECIAL_CHAR, '(');
+        return $this->matched[$key];
     }
 
     /**
@@ -486,6 +504,8 @@ class Parser
         } else {
             $this->stream = $this->lexer->tokenize($arguments[0]);
         }
+
+        $this->matched = [];
 
         $parsed = call_user_func([$this, $matches[1]]);
 
@@ -2163,54 +2183,67 @@ class Parser
 
     protected function ExpressionAtom()
     {
-        // this will return null if stream is not at opening parenthesis, so we don't check for that
-        $check = $this->checkContentsOfParentheses();
+        $token = $this->stream->getCurrent();
+        if ($token->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+            switch ($this->checkContentsOfParentheses()) {
+                case 'row':
+                    return $this->RowConstructor();
 
-        if (
-            'row' === $check
-            || $this->stream->matchesKeyword('row')
-                && $this->stream->look()->matches(Token::TYPE_SPECIAL_CHAR, '(')
-        ) {
-            return $this->RowConstructor();
+                case 'select':
+                    $atom = new nodes\expressions\SubselectExpression($this->SelectWithParentheses());
+                    break;
 
-        } elseif ($this->stream->matchesKeyword('array')) {
-            return $this->ArrayConstructor();
+                case 'expression':
+                default:
+                    $this->stream->next();
+                    $atom = $this->Expression();
+                    $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            }
 
-        } elseif ($this->stream->matchesKeyword('exists')) {
-            $this->stream->next();
-            return new nodes\expressions\SubselectExpression($this->SelectWithParentheses(), 'exists');
+        } elseif ($token->matches(Token::TYPE_KEYWORD)) {
+            switch ($token->getValue()) {
+                case 'row':
+                    if ($this->stream->look()->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+                        return $this->RowConstructor();
+                    }
+                    break;
 
-        } elseif ($this->stream->matchesKeyword('case')) {
-            return $this->CaseExpression();
+                case 'array':
+                    return $this->ArrayConstructor();
 
-        } elseif ($this->stream->matchesKeyword('grouping')) {
-            return $this->GroupingExpression();
+                case 'exists':
+                    $this->stream->next();
+                    return new nodes\expressions\SubselectExpression($this->SelectWithParentheses(), 'exists');
 
-        } elseif ('select' === $check) {
-            $atom = new nodes\expressions\SubselectExpression($this->SelectWithParentheses());
+                case 'case':
+                    return $this->CaseExpression();
 
-        } elseif ('expression' === $check) {
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-            $atom = $this->Expression();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+                case 'grouping':
+                    return $this->GroupingExpression();
 
-        } elseif ($this->stream->matches(Token::TYPE_PARAMETER)) {
+                case 'true':
+                case 'false':
+                case 'null':
+                    return new nodes\Constant($this->stream->next());
+            }
+
+        } elseif ($token->matches(Token::TYPE_PARAMETER)) {
             $atom = new nodes\Parameter($this->stream->next());
 
-        } elseif (
-            $this->stream->matches(Token::TYPE_LITERAL)
-                  || $this->stream->matchesKeyword(['true', 'false', 'null'])
-        ) {
+        } elseif ($token->matches(Token::TYPE_LITERAL)) {
             return new nodes\Constant($this->stream->next());
+        }
 
-        } elseif ($this->matchesTypecast()) {
-            return $this->LeadingTypecast();
+        if (!isset($atom)) {
+            if ($this->matchesTypecast()) {
+                return $this->LeadingTypecast();
 
-        } elseif ($this->matchesFunctionCall()) {
-            return $this->FunctionExpression();
+            } elseif ($this->matchesFunctionCall()) {
+                return $this->FunctionExpression();
 
-        } else {
-            return $this->ColumnReference();
+            } else {
+                return $this->ColumnReference();
+            }
         }
 
         if ($indirection = $this->Indirection()) {
