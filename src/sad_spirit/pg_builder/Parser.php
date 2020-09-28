@@ -1610,22 +1610,14 @@ class Parser
         } else {
             $checks = [
                 ['null'],
-                ['not', 'null'],
                 ['true'],
-                ['not', 'true'],
                 ['false'],
-                ['not', 'false'],
                 ['unknown'],
-                ['not', 'unknown'],
                 ['normalized'],
-                [['not', 'nfc', 'nfd', 'nfkc', 'nfkd'], 'normalized'],
-                ['not', ['nfc', 'nfd', 'nfkc', 'nfkd'], 'normalized']
+                [['nfc', 'nfd', 'nfkc', 'nfkd'], 'normalized']
             ];
         }
-        $checks = array_merge($checks, [
-            ['document'],
-            ['not', 'document']
-        ]);
+        $checks = array_merge($checks, [['document']]);
 
         while (
             $this->stream->matchesKeyword('is')
@@ -1640,46 +1632,39 @@ class Parser
                 continue;
             }
 
+            if ($this->stream->matchesKeyword('not')) {
+                $operator .= ' ' . $this->stream->next()->getValue();
+            }
+
             foreach ($checks as $check) {
                 if ($this->stream->matchesKeywordSequence(...$check)) {
-                    $strOperator = 'is';
                     for ($i = 0; $i < count($check); $i++) {
-                        $strOperator .= ' ' . $this->stream->next()->getValue();
+                        $operator .= ' ' . $this->stream->next()->getValue();
                     }
-                    $operand = new nodes\expressions\OperatorExpression($strOperator, $operand, null);
+                    $operand = new nodes\expressions\OperatorExpression($operator, $operand, null);
                     continue 2;
                 }
             }
-            foreach (
-                [
-                        ['distinct', 'from'],
-                        ['not', 'distinct', 'from']
-                    ] as $check
-            ) {
-                if ($this->stream->matchesKeywordSequence(...$check)) {
-                    $this->stream->skip(count($check));
-                    // 'is distinct from' requires parentheses
-                    return new nodes\expressions\OperatorExpression(
-                        'is ' . implode(' ', $check),
-                        $operand,
-                        $this->ArithmeticExpression($restricted)
-                    );
-                }
+
+            if ($this->stream->matchesKeywordSequence('distinct', 'from')) {
+                $this->stream->skip(2);
+                // 'is distinct from' requires parentheses
+                return new nodes\expressions\OperatorExpression(
+                    $operator . ' distinct from',
+                    $operand,
+                    $this->ArithmeticExpression($restricted)
+                );
             }
-            foreach (
-                [
-                        ['of', '('],
-                        ['not', 'of', '(']
-                    ] as $check
+
+            if (
+                $this->stream->matchesKeyword('of')
+                && $this->stream->look()->matches(Token::TYPE_SPECIAL_CHAR, '(')
             ) {
-                if ($this->stream->matchesSequence($check)) {
-                    $this->stream->skip(count($check));
-                    array_pop($check); // remove '('
-                    $right = $this->TypeList();
-                    $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-                    $operand = new nodes\expressions\IsOfExpression($operand, $right, 'is ' . implode(' ', $check));
-                    continue 2;
-                }
+                $this->stream->skip(2);
+                $right = $this->TypeList();
+                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+                $operand = new nodes\expressions\IsOfExpression($operand, $right, $operator . ' of');
+                continue;
             }
 
             throw new exceptions\SyntaxException('Unexpected ' . $this->stream->getCurrent());
