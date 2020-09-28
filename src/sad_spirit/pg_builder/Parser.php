@@ -167,50 +167,56 @@ class Parser
         $openParens = [];
         $lookIdx    = 0;
         while ($this->stream->look($lookIdx)->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
-            array_push($openParens, $lookIdx++);
+            $openParens[] = $lookIdx++;
         }
         if (!$lookIdx) {
             return null;
         }
 
-        if ($this->stream->look($lookIdx)->matches(Token::TYPE_KEYWORD, ['values', 'select', 'with'])) {
-            if (1 === ($selectLevel = count($openParens))) {
-                return 'select';
-            }
-        } else {
+        if (!$this->stream->look($lookIdx)->matches(Token::TYPE_KEYWORD, ['values', 'select', 'with'])) {
             $selectLevel = false;
+        } elseif (1 === ($selectLevel = count($openParens))) {
+            return 'select';
         }
 
         do {
             $token = $this->stream->look(++$lookIdx);
-            if ($token->matches(Token::TYPE_SPECIAL_CHAR, '[')) {
-                $lookIdx = $this->skipParentheses($lookIdx, true) - 1;
-
-            } elseif ($token->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
-                array_push($openParens, $lookIdx);
-
-            } elseif ($token->matches(Token::TYPE_SPECIAL_CHAR, ',') && 1 === count($openParens) && !$selectLevel) {
-                return 'row';
-
-            } elseif ($token->matches(Token::TYPE_SPECIAL_CHAR, ')')) {
-                if (1 < count($openParens) && $selectLevel === count($openParens)) {
-                    if (
-                        $this->stream->look($lookIdx + 1)->matches(Token::TYPE_SPECIAL_CHAR, '(')
-                        || $this->stream->look($lookIdx + 1)->matches(
-                            Token::TYPE_KEYWORD,
-                            ['union', 'intersect', 'except', 'order', 'limit', 'offset',
-                                'for' /* ...update */, 'fetch' /* SQL:2008 limit */]
-                        )
-                    ) {
-                        // this addresses stuff like ((select 1) order by 1)
-                        $selectLevel--;
-                    } else {
-                        $selectLevel = false;
-                    }
-                }
-                array_pop($openParens);
+            if (!$token->matches(Token::TYPE_SPECIAL_CHAR)) {
+                continue;
             }
+            switch ($token->getValue()) {
+                case '[':
+                    $lookIdx = $this->skipParentheses($lookIdx, true) - 1;
+                    break;
 
+                case '(':
+                    $openParens[] = $lookIdx;
+                    break;
+
+                case ',':
+                    if (1 === count($openParens) && !$selectLevel) {
+                        return 'row';
+                    }
+                    break;
+
+                case ')':
+                    if (1 < count($openParens) && $selectLevel === count($openParens)) {
+                        if (
+                            $this->stream->look($lookIdx + 1)->matches(
+                                Token::TYPE_KEYWORD,
+                                ['union', 'intersect', 'except', 'order', 'limit', 'offset',
+                                    'for' /* ...update */, 'fetch' /* SQL:2008 limit */]
+                            )
+                            || $this->stream->look($lookIdx + 1)->matches(Token::TYPE_SPECIAL_CHAR, '(')
+                        ) {
+                            // this addresses stuff like ((select 1) order by 1)
+                            $selectLevel--;
+                        } else {
+                            $selectLevel = false;
+                        }
+                    }
+                    array_pop($openParens);
+            }
         } while (!empty($openParens) && !$token->matches(Token::TYPE_EOF));
 
         if (!empty($openParens)) {
@@ -240,12 +246,18 @@ class Parser
 
         do {
             $token = $this->stream->look(++$lookIdx);
-            if ($token->matches(Token::TYPE_SPECIAL_CHAR, $square ? '[' : '(')) {
-                $openParens++;
-            } elseif ($token->matches(Token::TYPE_SPECIAL_CHAR, $square ? ']' : ')')) {
-                $openParens--;
+            switch ($token->getType()) {
+                case Token::TYPE_SPECIAL_CHAR:
+                    if ($token->getValue() === ($square ? '[' : '(')) {
+                        $openParens++;
+                    } elseif ($token->getValue() === ($square ? ']' : ')')) {
+                        $openParens--;
+                    }
+                    break;
+                case Token::TYPE_EOF:
+                    break 2;
             }
-        } while ($openParens > 0 && !$token->matches(Token::TYPE_EOF));
+        } while ($openParens > 0);
 
         if (0 !== $openParens) {
             $token = $this->stream->look($start);
