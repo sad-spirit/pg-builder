@@ -140,6 +140,28 @@ class TokenStream
     }
 
     /**
+     * Checks whether current token matches the given keyword
+     *
+     * @param string|string[] $keyword
+     * @return bool
+     */
+    public function matchesKeyword($keyword): bool
+    {
+        return $this->tokens[$this->current]->matches(Token::TYPE_KEYWORD, $keyword);
+    }
+
+    /**
+     * Checks whether current token matches the given special character
+     *
+     * @param string|string[] $char
+     * @return bool
+     */
+    public function matchesSpecialChar($char): bool
+    {
+        return $this->tokens[$this->current]->matches(Token::TYPE_SPECIAL_CHAR, $char);
+    }
+
+    /**
      * Checks whether tokens starting from current match the given sequence of values
      *
      * @param array $sequence
