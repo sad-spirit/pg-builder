@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder;
 
 use Psr\Cache\CacheItemPoolInterface;
@@ -73,22 +75,214 @@ use Psr\Cache\CacheItemPoolInterface;
 class Parser
 {
     /**
-     * mathOp production from grammar
-     * @var array
+     * Mathematical operators
+     *
+     * mathOp production from gram.y
      */
-    protected static $mathOp = ['+', '-', '*', '/', '%', '^', '<', '>', '=', '<=', '>=', '!=', '<>'];
+    private const MATH_OPERATORS = ['+', '-', '*', '/', '%', '^', '<', '>', '=', '<=', '>=', '!=', '<>'];
 
     /**
-     * sub_type production from grammar
-     * @var array
+     * Subquery expressions that can appear at right side of most scalar operators
+     *
+     * sub_type production from gram.y
      */
-    protected static $subType = ['any', 'all', 'some'];
+    private const SUBQUERY_EXPRESSIONS = ['any', 'all', 'some'];
+
+    /**
+     * Known system function-like constructs that must appear WITHOUT parentheses
+     *
+     * From func_expr_common_subexpr production in gram.y
+     */
+    private const SYSTEM_FUNCTIONS_NO_PARENS = [
+        'current_date', 'current_role', 'current_user', 'session_user',
+        'user', 'current_catalog', 'current_schema'
+    ];
+
+    /**
+     * Known system function-like constructs that may appear with or without parentheses
+     *
+     * From func_expr_common_subexpr production in gram.y
+     */
+    private const SYSTEM_FUNCTIONS_OPTIONAL_PARENS = [
+        'current_time', 'current_timestamp', 'localtime', 'localtimestamp'
+    ];
+
+    /**
+     * Known system functions that must appear with parentheses
+     *
+     * From func_expr_common_subexpr production in gram.y
+     */
+    private const SYSTEM_FUNCTIONS_REQUIRED_PARENS = [
+        'cast', 'extract', 'overlay', 'position', 'substring', 'treat', 'trim',
+        'nullif', 'coalesce', 'greatest', 'least', 'xmlconcat', 'xmlelement',
+        'xmlexists', 'xmlforest', 'xmlparse', 'xmlpi', 'xmlroot', 'xmlserialize',
+        'normalize'
+    ];
+
+    /**
+     * Mapping of function-like constructs to Postgres functions / types
+     */
+    const SYSTEM_FUNCTIONS_MAPPING = [
+        'current_role'      => 'current_user',
+        'user'              => 'current_user',
+        'current_catalog'   => 'current_database',
+        'current_time'      => 'timetz',
+        'current_timestamp' => 'timestamptz',
+        'localtime'         => 'time',
+        'localtimestamp'    => 'timestamp'
+    ];
+
+    /**
+     * Returned by {@link checkContentsOfParentheses()} if subquery is found
+     */
+    private const PARENTHESES_SELECT     = 'select';
+
+    /**
+     * Returned by {@link checkContentsOfParentheses()} if row constructor is found
+     */
+    private const PARENTHESES_ROW        = 'row';
+
+    /**
+     * Returned by {@link checkContentsOfParentheses()} if parentheses contain a scalar expression
+     */
+    private const PARENTHESES_EXPRESSION = 'expression';
+
+    /**
+     * Passed to {@link RelationExpression()} to set expected format, this one allows column aliases and TABLESAMPLE
+     */
+    private const RELATION_FORMAT_SELECT = 'select';
+
+    /**
+     * Passed to {@link RelationExpression()} to set expected format, allows only relation alias
+     */
+    private const RELATION_FORMAT_UPDATE = 'update';
+
+    /**
+     * Passed to {@link RelationExpression()} to set expected format, allows only relation alias (which can be SET)
+     */
+    private const RELATION_FORMAT_DELETE = 'delete';
+
+    /**
+     * Checks for SQL standard date and time type names
+     */
+    private const STANDARD_TYPES_DATETIME  = ['time', 'timestamp'];
+
+    /**
+     * Checks for SQL standard character type names
+     */
+    private const STANDARD_TYPES_CHARACTER = ['character', 'char', 'varchar', 'nchar', 'national'];
+
+    /**
+     * Checks for SQL standard character type name(s)
+     */
+    private const STANDARD_TYPES_BIT       = 'bit';
+
+    /**
+     * Checks for SQL standard numeric type name(s)
+     */
+    private const STANDARD_TYPES_NUMERIC   = [
+        'int', 'integer', 'smallint', 'bigint', 'real', 'float', 'decimal', 'dec', 'numeric', 'boolean', 'double'
+    ];
+
+    /**
+     * Two-word names for SQL standard types
+     */
+    private const STANDARD_DOUBLE_WORD_TYPES = [
+        'double'   => 'precision',
+        'national' => ['character', 'char']
+    ];
+
+    /**
+     * SQL standard type names that can be followed by VARYING keyword
+     */
+    private const STANDARD_TYPES_OPT_VARYING = [
+        'bit'       => true,
+        'character' => true,
+        'char'      => true,
+        'nchar'     => true,
+        'national'  => true
+    ];
+
+    /**
+     * SQL standard type names that cannot have modifiers
+     */
+    private const STANDARD_TYPES_NO_MODIFIERS = [
+        'int'       => true,
+        'integer'   => true,
+        'smallint'  => true,
+        'bigint'    => true,
+        'real'      => true,
+        'boolean'   => true,
+        'double'    => true
+    ];
+
+    /**
+     * Mapping from SQL standard types to their equivalents in pg_catalog.pg_type
+     */
+    private const STANDARD_TYPES_MAPPING = [
+        'int'              => 'int4',
+        'integer'          => 'int4',
+        'smallint'         => 'int2',
+        'bigint'           => 'int8',
+        'real'             => 'float4',
+        'decimal'          => 'numeric',
+        'dec'              => 'numeric',
+        'numeric'          => 'numeric',
+        'boolean'          => 'bool',
+        'double precision' => 'float8'
+    ];
+
+    /**
+     * Keyword sequence checks for {@link WindowFrameBound()} method
+     */
+    private const CHECKS_FRAME_BOUND = [
+        ['unbounded', 'preceding'],
+        ['unbounded', 'following'],
+        ['current', 'row']
+    ];
+
+    /**
+     * Keyword sequence checks for {@link PatternMatchingExpression()} method
+     */
+    private const CHECKS_PATTERN_MATCHING = [
+        ['like'],
+        ['not', 'like'],
+        ['ilike'],
+        ['not', 'ilike'],
+        // the following cannot be applied to subquery operators
+        ['similar', 'to'],
+        ['not', 'similar', 'to']
+    ];
+
+    /**
+     * Keyword sequence checks for {@link BetweenExpression()} method
+     */
+    private const CHECKS_BETWEEN = [
+        ['between', 'symmetric'],
+        ['between', 'asymmetric'],
+        ['not', 'between', 'symmetric'],
+        ['not', 'between', 'asymmetric'],
+        ['between'],
+        ['not', 'between']
+    ];
+
+    /**
+     * Keyword sequence checks for {@link IsWhateverExpression()} method
+     */
+    private const CHECKS_IS_WHATEVER = [
+        ['null'],
+        ['true'],
+        ['false'],
+        ['unknown'],
+        ['normalized'],
+        [['nfc', 'nfd', 'nfkc', 'nfkd'], 'normalized']
+    ];
 
     /**
      * Methods that are exposed through __call()
      * @var array
      */
-    protected static $callable = [
+    private const CALLABLE = [
         'statement'                  => true,
         'selectstatement'            => true,
         'expression'                 => true,
@@ -142,7 +336,7 @@ class Parser
     /**
      * @var TokenStream
      */
-    protected $stream;
+    private $stream;
 
     /**
      * Cache for various match...() calls
@@ -162,7 +356,7 @@ class Parser
      * @return null|string Either of 'select', 'row' or 'expression'. Null if stream was not on opening parenthesis
      * @throws exceptions\SyntaxException in case of unclosed parenthesis
      */
-    private function checkContentsOfParentheses()
+    private function checkContentsOfParentheses(): ?string
     {
         $openParens = [];
         $lookIdx    = 0;
@@ -176,7 +370,7 @@ class Parser
         if (!$this->stream->look($lookIdx)->matches(Token::TYPE_KEYWORD, ['values', 'select', 'with'])) {
             $selectLevel = false;
         } elseif (1 === ($selectLevel = count($openParens))) {
-            return 'select';
+            return self::PARENTHESES_SELECT;
         }
 
         do {
@@ -195,7 +389,7 @@ class Parser
 
                 case ',':
                     if (1 === count($openParens) && !$selectLevel) {
-                        return 'row';
+                        return self::PARENTHESES_ROW;
                     }
                     break;
 
@@ -228,7 +422,7 @@ class Parser
             );
         }
 
-        return $selectLevel ? 'select' : 'expression';
+        return $selectLevel ? self::PARENTHESES_SELECT : self::PARENTHESES_EXPRESSION;
     }
 
     /**
@@ -239,7 +433,7 @@ class Parser
      * @return int Position after the closing ']' or ')'
      * @throws exceptions\SyntaxException in case of unclosed parentheses
      */
-    private function skipParentheses($start, $square = false)
+    private function skipParentheses(int $start, bool $square = false): int
     {
         $lookIdx    = $start;
         $openParens = 1;
@@ -277,7 +471,7 @@ class Parser
      *
      * @return bool
      */
-    private function matchesOperator()
+    private function matchesOperator(): bool
     {
         return $this->stream->matches(Token::TYPE_OPERATOR)
                || $this->stream->matchesKeyword('operator')
@@ -334,37 +528,29 @@ class Parser
      *
      * @return bool
      */
-    private function matchesFunctionCall()
+    private function matchesFunctionCall(): bool
     {
-        static $noParens = [
-            'current_date', 'current_time', 'current_timestamp', 'localtime', 'localtimestamp',
-            'current_role', 'current_user', 'session_user', 'user', 'current_catalog', 'current_schema'
-        ];
-        static $parens = [
-            'cast', 'extract', 'overlay', 'position', 'substring', 'treat', 'trim', 'nullif', 'coalesce',
-            'greatest', 'least', 'xmlconcat', 'xmlelement', 'xmlexists', 'xmlforest', 'xmlparse',
-            'xmlpi', 'xmlroot', 'xmlserialize', 'normalize'
-        ];
+        static $dontCheckParens = null;
 
-        $key = 'FunctionCall:' . $this->stream->getCurrent()->getPosition();
-
-        if (!array_key_exists($key, $this->matched)) {
-            if (
-                $this->stream->matchesKeyword($noParens) // function-like stuff that doesn't need parentheses
-                || ($this->stream->matchesKeyword($parens) // known functions that require parentheses
-                    && $this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, '('))
-                || ($this->stream->matchesKeywordSequence('collation', 'for') // COLLATION FOR (...)
-                    && $this->stream->look(2)->matches(Token::TYPE_SPECIAL_CHAR, '('))
-            ) {
-                $this->matched[$key] = true;
-            } else {
-                // generic function name
-                $this->matched[$key] = false !== ($idx = $this->matchesFuncName())
-                                       && $this->stream->look($idx)->matches(Token::TYPE_SPECIAL_CHAR, '(');
-            }
+        if (null === $dontCheckParens) {
+            $dontCheckParens = array_merge(self::SYSTEM_FUNCTIONS_NO_PARENS, self::SYSTEM_FUNCTIONS_OPTIONAL_PARENS);
         }
 
-        return $this->matched[$key];
+        if (
+            // function-like stuff that doesn't need parentheses
+            $this->stream->matchesKeyword($dontCheckParens)
+            // known system functions that require parentheses
+            || ($this->stream->matchesKeyword(self::SYSTEM_FUNCTIONS_REQUIRED_PARENS)
+                && $this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, '('))
+            || ($this->stream->matchesKeywordSequence('collation', 'for') // COLLATION FOR (...)
+                && $this->stream->look(2)->matches(Token::TYPE_SPECIAL_CHAR, '('))
+        ) {
+            return true;
+        } else {
+            // generic function name
+            return false !== ($idx = $this->matchesFuncName())
+                   && $this->stream->look($idx)->matches(Token::TYPE_SPECIAL_CHAR, '(');
+        }
     }
 
     /**
@@ -375,7 +561,7 @@ class Parser
      *
      * @return bool
      */
-    private function matchesExpressionStart()
+    private function matchesExpressionStart(): bool
     {
         return (!$this->stream->matches(Token::TYPE_RESERVED_KEYWORD)
                 && !$this->stream->matches(Token::TYPE_SPECIAL))
@@ -392,47 +578,49 @@ class Parser
      *
      * @return bool
      */
-    private function matchesConstTypecast()
+    private function matchesConstTypecast(): bool
     {
-        static $constNames = [
-            'int', 'integer', 'smallint', 'bigint', 'real', 'float', 'decimal', 'dec', 'numeric', 'boolean',
-            'double', 'bit', 'national', 'character', 'char', 'varchar', 'nchar', 'time', 'timestamp', 'interval'
-        ];
-        static $requiredSequence = [
-            'double'   => 'precision',
-            'national' => ['character', 'char']
-        ];
-        static $optVarying = [
-            'bit', 'character', 'char', 'nchar', 'national'
-        ];
-        static $noModifiers = [
-            'int', 'integer', 'smallint', 'bigint', 'real', 'boolean', 'double'
-        ];
-        static $trailingTimezone = [
-            'time', 'timestamp'
-        ];
+        static $constNames       = null;
+        static $trailingTimezone = null;
+
+        if (null === $constNames) {
+            $constNames = array_merge(
+                self::STANDARD_TYPES_CHARACTER,
+                self::STANDARD_TYPES_NUMERIC,
+                self::STANDARD_TYPES_DATETIME,
+                [self::STANDARD_TYPES_BIT]
+            );
+            $trailingTimezone = array_flip(self::STANDARD_TYPES_DATETIME);
+        }
 
         if (!$this->stream->matchesKeyword($constNames)) {
             return false;
         }
         $base = $this->stream->getCurrent()->getValue();
         $idx  = 1;
+
         if (
-            isset($requiredSequence[$base])
-            && !$this->stream->look($idx++)->matches(Token::TYPE_KEYWORD, $requiredSequence[$base])
+            isset(self::STANDARD_DOUBLE_WORD_TYPES[$base])
+            && !$this->stream->look($idx++)->matches(Token::TYPE_KEYWORD, self::STANDARD_DOUBLE_WORD_TYPES[$base])
         ) {
             return false;
         }
-        if (in_array($base, $optVarying) && $this->stream->look($idx)->matches(Token::TYPE_KEYWORD, 'varying')) {
+
+        if (
+            isset(self::STANDARD_TYPES_OPT_VARYING[$base])
+            && $this->stream->look($idx)->matches(Token::TYPE_KEYWORD, 'varying')
+        ) {
             $idx++;
         }
+
         if (
-            !in_array($base, $noModifiers)
+            !isset(self::STANDARD_TYPES_NO_MODIFIERS[$base])
             && $this->stream->look($idx)->matches(Token::TYPE_SPECIAL_CHAR, '(')
         ) {
             $idx = $this->skipParentheses($idx);
         }
-        if (in_array($base, $trailingTimezone)) {
+
+        if (isset($trailingTimezone[$base])) {
             if ($this->stream->look($idx)->matches(Token::TYPE_KEYWORD, ['with', 'without'])) {
                 $idx += 3;
             }
@@ -470,8 +658,8 @@ class Parser
      *
      * It is recommended to always use cache in production: parsing is slow.
      *
-     * @param Lexer                  $lexer
-     * @param CacheItemPoolInterface $cache
+     * @param Lexer                       $lexer
+     * @param CacheItemPoolInterface|null $cache
      */
     public function __construct(Lexer $lexer, CacheItemPoolInterface $cache = null)
     {
@@ -491,11 +679,11 @@ class Parser
      * @throws exceptions\BadMethodCallException
      * @throws exceptions\SyntaxException
      */
-    public function __call($name, array $arguments)
+    public function __call(string $name, array $arguments)
     {
         if (
             !preg_match('/^parse([a-zA-Z]+)$/', $name, $matches)
-            || !isset(self::$callable[strtolower($matches[1])])
+            || !isset(self::CALLABLE[strtolower($matches[1])])
         ) {
             throw new exceptions\BadMethodCallException("The method '{$name}' is not available");
         }
@@ -537,7 +725,7 @@ class Parser
         return $parsed;
     }
 
-    protected function Statement()
+    protected function Statement(): Statement
     {
         if ($this->stream->matchesKeyword('with')) {
             $withClause = $this->WithClause();
@@ -578,7 +766,7 @@ class Parser
         return $stmt;
     }
 
-    protected function SelectStatement()
+    protected function SelectStatement(): SelectCommon
     {
         if ($this->stream->matchesKeyword('with')) {
             $withClause = $this->WithClause();
@@ -638,7 +826,7 @@ class Parser
         return $stmt;
     }
 
-    protected function InsertStatement()
+    protected function InsertStatement(): Insert
     {
         if ($this->stream->matchesKeyword('with')) {
             $withClause = $this->WithClause();
@@ -656,7 +844,7 @@ class Parser
         } else {
             if (
                 $this->stream->matchesSpecialChar('(')
-                && 'select' !== $this->checkContentsOfParentheses()
+                && self::PARENTHESES_SELECT !== $this->checkContentsOfParentheses()
             ) {
                 $this->stream->next();
                 $stmt->cols->replace($this->InsertTargetList());
@@ -685,18 +873,14 @@ class Parser
         return $stmt;
     }
 
-    /**
-     * @return Update
-     * @throws exceptions\NotImplementedException
-     */
-    protected function UpdateStatement()
+    protected function UpdateStatement(): Update
     {
         if ($this->stream->matchesKeyword('with')) {
             $withClause = $this->WithClause();
         }
 
         $this->stream->expect(Token::TYPE_KEYWORD, 'update');
-        $relation = $this->RelationExpression('update');
+        $relation = $this->RelationExpression(self::RELATION_FORMAT_UPDATE);
         $this->stream->expect(Token::TYPE_KEYWORD, 'set');
 
         $stmt = new Update($relation, $this->SetClauseList());
@@ -724,11 +908,7 @@ class Parser
         return $stmt;
     }
 
-    /**
-     * @return Delete
-     * @throws exceptions\NotImplementedException
-     */
-    protected function DeleteStatement()
+    protected function DeleteStatement(): Delete
     {
         if ($this->stream->matchesKeyword('with')) {
             $withClause = $this->WithClause();
@@ -736,7 +916,7 @@ class Parser
         $this->stream->expect(Token::TYPE_KEYWORD, 'delete');
         $this->stream->expect(Token::TYPE_KEYWORD, 'from');
 
-        $stmt = new Delete($this->RelationExpression('delete'));
+        $stmt = new Delete($this->RelationExpression(self::RELATION_FORMAT_DELETE));
 
         if (!empty($withClause)) {
             $stmt->with = $withClause;
@@ -761,23 +941,23 @@ class Parser
         return $stmt;
     }
 
-    protected function WithClause()
+    protected function WithClause(): nodes\WithClause
     {
         $this->stream->expect(Token::TYPE_KEYWORD, 'with');
         if ($recursive = $this->stream->matchesKeyword('recursive')) {
             $this->stream->next();
         }
 
-        $ctes = [$this->CommonTableExpression()];
+        $commonTableExpressions = [$this->CommonTableExpression()];
         while ($this->stream->matchesSpecialChar(',')) {
             $this->stream->next();
-            $ctes[] = $this->CommonTableExpression();
+            $commonTableExpressions[] = $this->CommonTableExpression();
         }
 
-        return new nodes\WithClause($ctes, $recursive);
+        return new nodes\WithClause($commonTableExpressions, $recursive);
     }
 
-    protected function CommonTableExpression()
+    protected function CommonTableExpression(): nodes\CommonTableExpression
     {
         $alias         = $this->ColId();
         $columnAliases = new nodes\lists\IdentifierList();
@@ -807,7 +987,7 @@ class Parser
         return new nodes\CommonTableExpression($statement, $alias, $columnAliases, $materialized);
     }
 
-    protected function ForLockingClause(SelectCommon $stmt)
+    protected function ForLockingClause(SelectCommon $stmt): void
     {
         if ($this->stream->matchesKeywordSequence('for', 'read', 'only')) {
             // this isn't quite documented but means "no locking" judging by the grammar
@@ -827,7 +1007,7 @@ class Parser
         $stmt->locking->merge($this->LockingList());
     }
 
-    protected function LockingList()
+    protected function LockingList(): nodes\lists\LockList
     {
         $list = new nodes\lists\LockList();
 
@@ -838,7 +1018,7 @@ class Parser
         return $list;
     }
 
-    protected function LockingElement()
+    protected function LockingElement(): nodes\LockingElement
     {
         $this->stream->expect(Token::TYPE_KEYWORD, 'for');
         switch (
@@ -876,7 +1056,7 @@ class Parser
         return new nodes\LockingElement($strength, $relations, $noWait, $skipLocked);
     }
 
-    protected function LimitOffsetClause(SelectCommon $stmt)
+    protected function LimitOffsetClause(SelectCommon $stmt): void
     {
         // LIMIT and OFFSET clauses may come in any order
         if ($this->stream->matchesKeyword('offset')) {
@@ -892,7 +1072,7 @@ class Parser
         }
     }
 
-    protected function LimitClause(SelectCommon $stmt)
+    protected function LimitClause(SelectCommon $stmt): void
     {
         if ($stmt->limit) {
             throw exceptions\SyntaxException::atPosition(
@@ -950,7 +1130,7 @@ class Parser
         }
     }
 
-    protected function OffsetClause(SelectCommon $stmt)
+    protected function OffsetClause(SelectCommon $stmt): void
     {
         if ($stmt->offset) {
             throw exceptions\SyntaxException::atPosition(
@@ -970,7 +1150,7 @@ class Parser
         }
     }
 
-    protected function SetClauseList()
+    protected function SetClauseList(): nodes\lists\SetClauseList
     {
         $targetList = new nodes\lists\SetClauseList([$this->SetClause()]);
         while ($this->stream->matchesSpecialChar(',')) {
@@ -980,6 +1160,9 @@ class Parser
         return $targetList;
     }
 
+    /**
+     * @return nodes\MultipleSetClause|nodes\SingleSetClause
+     */
     protected function SetClause()
     {
         if (!$this->stream->matchesSpecialChar('(')) {
@@ -1020,7 +1203,7 @@ class Parser
         }
     }
 
-    protected function InsertTargetList()
+    protected function InsertTargetList(): nodes\lists\SetTargetList
     {
         $list = new nodes\lists\SetTargetList([$this->SetTargetElement()]);
         while ($this->stream->matchesSpecialChar(',')) {
@@ -1030,11 +1213,14 @@ class Parser
         return $list;
     }
 
-    protected function SetTargetElement()
+    protected function SetTargetElement(): nodes\SetTargetElement
     {
         return new nodes\SetTargetElement($this->ColId(), $this->Indirection(false));
     }
 
+    /**
+     * @return nodes\ScalarExpression[]|nodes\SetToDefault[]
+     */
     protected function ExpressionListWithDefault()
     {
         $values = [$this->ExpressionWithDefault()];
@@ -1046,6 +1232,9 @@ class Parser
         return $values;
     }
 
+    /**
+     * @return nodes\ScalarExpression|nodes\SetToDefault
+     */
     protected function ExpressionWithDefault()
     {
         if ($this->stream->matchesKeyword('default')) {
@@ -1056,7 +1245,7 @@ class Parser
         }
     }
 
-    protected function SelectWithParentheses()
+    protected function SelectWithParentheses(): SelectCommon
     {
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
         $select = $this->SelectStatement();
@@ -1069,7 +1258,7 @@ class Parser
      * SELECT ... [INTERSECT SELECT...]
      *
      */
-    protected function SelectIntersect()
+    protected function SelectIntersect(): SelectCommon
     {
         $stmt = $this->SimpleSelect();
 
@@ -1084,7 +1273,7 @@ class Parser
         return $stmt;
     }
 
-    protected function SimpleSelect()
+    protected function SimpleSelect(): SelectCommon
     {
         if ($this->stream->matchesSpecialChar('(')) {
             return $this->SelectWithParentheses(); // select_with_parens grammar production
@@ -1146,7 +1335,7 @@ class Parser
         return $stmt;
     }
 
-    protected function WindowList()
+    protected function WindowList(): nodes\lists\WindowList
     {
         $windows = new nodes\lists\WindowList([$this->WindowDefinition()]);
 
@@ -1158,7 +1347,7 @@ class Parser
         return $windows;
     }
 
-    protected function WindowDefinition()
+    protected function WindowDefinition(): nodes\WindowDefinition
     {
         $name    = $this->ColId();
         $this->stream->expect(Token::TYPE_KEYWORD, 'as');
@@ -1168,7 +1357,7 @@ class Parser
         return $spec;
     }
 
-    protected function WindowSpecification()
+    protected function WindowSpecification(): nodes\WindowDefinition
     {
         $refName = $partition = $frame = $order = null;
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
@@ -1197,7 +1386,7 @@ class Parser
         return new nodes\WindowDefinition($refName, $partition, $order, $frame);
     }
 
-    protected function WindowFrameClause()
+    protected function WindowFrameClause(): nodes\WindowFrameClause
     {
         $frameType  = $this->stream->expect(Token::TYPE_KEYWORD, ['range', 'rows', 'groups']);
         $tokenStart = $this->stream->getCurrent();
@@ -1244,15 +1433,9 @@ class Parser
         }
     }
 
-    protected function WindowFrameBound()
+    protected function WindowFrameBound(): nodes\WindowFrameBound
     {
-        static $checks = [
-            ['unbounded', 'preceding'],
-            ['unbounded', 'following'],
-            ['current', 'row']
-        ];
-
-        foreach ($checks as $check) {
+        foreach (self::CHECKS_FRAME_BOUND as $check) {
             if ($this->stream->matchesKeywordSequence(...$check)) {
                 $this->stream->skip(2);
                 return new nodes\WindowFrameBound('current' === $check[0] ? 'current row' : $check[1]);
@@ -1264,7 +1447,7 @@ class Parser
         return new nodes\WindowFrameBound($direction, $value);
     }
 
-    protected function ExpressionList()
+    protected function ExpressionList(): nodes\lists\ExpressionList
     {
         $expressions = new nodes\lists\ExpressionList([$this->Expression()]);
 
@@ -1276,7 +1459,7 @@ class Parser
         return $expressions;
     }
 
-    protected function Expression()
+    protected function Expression(): nodes\ScalarExpression
     {
         $terms = [$this->LogicalExpressionTerm()];
 
@@ -1293,7 +1476,7 @@ class Parser
         return new nodes\expressions\LogicalExpression($terms, 'or');
     }
 
-    protected function LogicalExpressionTerm()
+    protected function LogicalExpressionTerm(): nodes\ScalarExpression
     {
         $factors = [$this->LogicalExpressionFactor()];
 
@@ -1310,7 +1493,7 @@ class Parser
         return new nodes\expressions\LogicalExpression($factors, 'and');
     }
 
-    protected function LogicalExpressionFactor()
+    protected function LogicalExpressionFactor(): nodes\ScalarExpression
     {
         if ($this->stream->matchesKeyword('not')) {
             $this->stream->next();
@@ -1325,7 +1508,7 @@ class Parser
      * @param bool $restricted
      * @return nodes\ScalarExpression
      */
-    protected function Comparison($restricted = false)
+    protected function Comparison(bool $restricted = false): nodes\ScalarExpression
     {
         $argument = $restricted
                     ? $this->GenericOperatorExpression(true)
@@ -1345,18 +1528,8 @@ class Parser
         return $argument;
     }
 
-    protected function PatternMatchingExpression()
+    protected function PatternMatchingExpression(): nodes\ScalarExpression
     {
-        static $checks = [
-            ['like'],
-            ['not', 'like'],
-            ['ilike'],
-            ['not', 'ilike'],
-            // the following cannot be applied to subquery operators
-            ['similar', 'to'],
-            ['not', 'similar', 'to']
-        ];
-
         $string = $this->OverlapsExpression();
 
         // speedup
@@ -1364,12 +1537,12 @@ class Parser
             return $string;
         }
 
-        foreach ($checks as $checkIdx => $check) {
+        foreach (self::CHECKS_PATTERN_MATCHING as $checkIdx => $check) {
             if ($this->stream->matchesKeywordSequence(...$check)) {
                 $this->stream->skip(count($check));
 
                 $escape = null;
-                if ($checkIdx < 4 && $this->stream->matchesKeyword(self::$subType)) {
+                if ($checkIdx < 4 && $this->stream->matchesKeyword(self::SUBQUERY_EXPRESSIONS)) {
                     $pattern = $this->SubqueryExpression();
 
                 } else {
@@ -1392,29 +1565,26 @@ class Parser
         return $string;
     }
 
-    protected function SubqueryExpression()
+    protected function SubqueryExpression(): nodes\ScalarExpression
     {
-        $type  = $this->stream->expect(Token::TYPE_KEYWORD, ['any', 'all', 'some'])->getValue();
+        $type  = $this->stream->expect(Token::TYPE_KEYWORD, self::SUBQUERY_EXPRESSIONS)->getValue();
         $check = $this->checkContentsOfParentheses();
+
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-        if ('select' === $check) {
-            $operand = $this->SelectStatement();
+        if (self::PARENTHESES_SELECT === $check) {
+            $result = new nodes\expressions\SubselectExpression($this->SelectStatement(), $type);
         } else {
-            $operand = $this->Expression();
+            $result = new nodes\expressions\FunctionExpression(
+                $type,
+                new nodes\lists\FunctionArgumentList([$this->Expression()])
+            );
         }
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
-        if ('select' === $check) {
-            return new nodes\expressions\SubselectExpression($operand, $type);
-        } else {
-            return new nodes\expressions\FunctionExpression(
-                $type,
-                new nodes\lists\FunctionArgumentList([$operand])
-            );
-        }
+        return $result;
     }
 
-    protected function OverlapsExpression()
+    protected function OverlapsExpression(): nodes\ScalarExpression
     {
         $left = $this->BetweenExpression();
 
@@ -1456,21 +1626,12 @@ class Parser
      *
      * @return nodes\ScalarExpression
      */
-    protected function BetweenExpression()
+    protected function BetweenExpression(): nodes\ScalarExpression
     {
-        static $checks = [
-            ['between', 'symmetric'],
-            ['between', 'asymmetric'],
-            ['not', 'between', 'symmetric'],
-            ['not', 'between', 'asymmetric'],
-            ['between'],
-            ['not', 'between']
-        ];
-
         $value = $this->InExpression();
 
         if ($this->stream->matchesKeyword(['between', 'not'])) { // speedup
-            foreach ($checks as $check) {
+            foreach (self::CHECKS_BETWEEN as $check) {
                 if ($this->stream->matchesKeywordSequence(...$check)) {
                     $this->stream->skip(count($check));
                     $left  = $this->GenericOperatorExpression(true);
@@ -1486,7 +1647,7 @@ class Parser
         return $value;
     }
 
-    protected function RestrictedExpression()
+    protected function RestrictedExpression(): nodes\ScalarExpression
     {
         return $this->Comparison(true);
     }
@@ -1501,10 +1662,8 @@ class Parser
      * actually works, so we allow it here. That's pretty strange as [NOT ] IN is defined
      * %nonassoc in gram.y and the above code should be a syntax error per bison docs:
      * > %nonassoc specifies no associativity, which means that `x op y op z' is considered a syntax error.
-     *
-     * @return nodes\expressions\InExpression
      */
-    protected function InExpression()
+    protected function InExpression(): nodes\ScalarExpression
     {
         $left = $this->GenericOperatorExpression();
 
@@ -1520,7 +1679,7 @@ class Parser
 
             $check = $this->checkContentsOfParentheses();
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-            if ('select' === $check) {
+            if (self::PARENTHESES_SELECT === $check) {
                 $right = $this->SelectStatement();
             } else {
                 $right = $this->ExpressionList();
@@ -1538,23 +1697,23 @@ class Parser
      * Handles infix and postfix operators
      *
      * @param bool $restricted
-     * @return nodes\expressions\OperatorExpression
+     * @return nodes\ScalarExpression
      */
-    protected function GenericOperatorExpression($restricted = false)
+    protected function GenericOperatorExpression(bool $restricted = false): nodes\ScalarExpression
     {
         $leftOperand = $this->GenericOperatorTerm($restricted);
 
         while (
             ($op = $this->matchesOperator())
-               || $this->stream->matches(Token::TYPE_SPECIAL, self::$mathOp)
-                   && $this->stream->look(1)->matches(Token::TYPE_KEYWORD, self::$subType)
+               || $this->stream->matches(Token::TYPE_SPECIAL, self::MATH_OPERATORS)
+                   && $this->stream->look(1)->matches(Token::TYPE_KEYWORD, self::SUBQUERY_EXPRESSIONS)
         ) {
             if ($op) {
                 $operator = $this->Operator();
             } else {
                 $operator = $this->stream->next()->getValue();
             }
-            if (!$op || $this->stream->matchesKeyword(self::$subType)) {
+            if (!$op || $this->stream->matchesKeyword(self::SUBQUERY_EXPRESSIONS)) {
                 // subquery operator
                 $leftOperand = new nodes\expressions\OperatorExpression(
                     $operator,
@@ -1578,7 +1737,7 @@ class Parser
         return $leftOperand;
     }
 
-    protected function GenericOperatorTerm($restricted = false)
+    protected function GenericOperatorTerm(bool $restricted = false): nodes\ScalarExpression
     {
         // prefix operator(s)
         while ($this->matchesOperator()) {
@@ -1598,11 +1757,11 @@ class Parser
      *                  (the latter allows mathematical operators)
      * @return string
      */
-    protected function Operator($all = false)
+    protected function Operator(bool $all = false): string
     {
         if (
             $this->stream->matches(Token::TYPE_OPERATOR)
-            || $all && $this->stream->matches(Token::TYPE_SPECIAL, self::$mathOp)
+            || $all && $this->stream->matches(Token::TYPE_SPECIAL, self::MATH_OPERATORS)
         ) {
             return $this->stream->next()->getValue();
         }
@@ -1621,7 +1780,7 @@ class Parser
             $operator .= new nodes\Identifier($this->stream->next());
             $operator .= $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '.')->getValue();
         }
-        if ($this->stream->matches(Token::TYPE_SPECIAL, self::$mathOp)) {
+        if ($this->stream->matches(Token::TYPE_SPECIAL, self::MATH_OPERATORS)) {
             $operator .= $this->stream->next()->getValue();
         } else {
             $operator .= $this->stream->expect(Token::TYPE_OPERATOR)->getValue();
@@ -1631,24 +1790,13 @@ class Parser
         return $operator;
     }
 
-    protected function IsWhateverExpression($restricted = false)
+    protected function IsWhateverExpression(bool $restricted = false): nodes\ScalarExpression
     {
         $operand = $this->Comparison($restricted);
-
-        if ($restricted) {
-            $checks = [];
-
-        } else {
-            $checks = [
-                ['null'],
-                ['true'],
-                ['false'],
-                ['unknown'],
-                ['normalized'],
-                [['nfc', 'nfd', 'nfkc', 'nfkd'], 'normalized']
-            ];
-        }
-        $checks = array_merge($checks, [['document']]);
+        $checks  = array_merge(
+            $restricted ? [] : self::CHECKS_IS_WHATEVER,
+            [['document']]
+        );
 
         while (
             $this->stream->matchesKeyword('is')
@@ -1704,7 +1852,7 @@ class Parser
         return $operand;
     }
 
-    protected function TypeList()
+    protected function TypeList(): nodes\lists\TypeList
     {
         $types = new nodes\lists\TypeList([$this->TypeName()]);
 
@@ -1716,7 +1864,7 @@ class Parser
         return $types;
     }
 
-    protected function TypeName()
+    protected function TypeName(): nodes\TypeName
     {
         $setOf  = false;
         $bounds = [];
@@ -1754,20 +1902,16 @@ class Parser
         return $typeName;
     }
 
-    /**
-     * @return nodes\TypeName
-     * @throws exceptions\SyntaxException
-     */
-    protected function SimpleTypeName()
+    protected function SimpleTypeName(): nodes\TypeName
     {
-        if (
-            null !== ($typeName = $this->IntervalTypeName())
-            || null !== ($typeName = $this->DateTimeTypeName())
-            || null !== ($typeName = $this->CharacterTypeName())
-            || null !== ($typeName = $this->BitTypeName())
-            || null !== ($typeName = $this->NumericTypeName())
-            || null !== ($typeName = $this->GenericTypeName())
-        ) {
+        $typeName = $this->IntervalTypeName()
+                    ?? $this->DateTimeTypeName()
+                    ?? $this->CharacterTypeName()
+                    ?? $this->BitTypeName()
+                    ?? $this->NumericTypeName()
+                    ?? $this->GenericTypeName();
+
+        if (null !== $typeName) {
             return $typeName;
         }
 
@@ -1778,280 +1922,272 @@ class Parser
         );
     }
 
-    protected function NumericTypeName()
+    protected function NumericTypeName(): ?nodes\TypeName
     {
-        static $mapping = [
-            'int'              => 'int4',
-            'integer'          => 'int4',
-            'smallint'         => 'int2',
-            'bigint'           => 'int8',
-            'real'             => 'float4',
-            'decimal'          => 'numeric',
-            'dec'              => 'numeric',
-            'numeric'          => 'numeric',
-            'boolean'          => 'bool',
-            'double precision' => 'float8'
-        ];
-
         if (
-            $this->stream->matchesKeyword(['int', 'integer', 'smallint', 'bigint', 'real', 'float', 'decimal', 'dec', 'numeric', 'boolean'])
-            || $this->stream->matchesKeywordSequence('double', 'precision')
+            !$this->stream->matchesKeyword(self::STANDARD_TYPES_NUMERIC)
+            || ('double' === $this->stream->getCurrent()->getValue()
+                && !$this->stream->look()->matches(Token::TYPE_KEYWORD, 'precision'))
         ) {
-            $typeName  = $this->stream->next()->getValue();
-            $modifiers = null;
-            if ('double' === $typeName) {
-                // "double precision"
-                $typeName .= ' ' . $this->stream->next()->getValue();
+            return null;
+        }
 
-            } else {
-                if ('float' === $typeName) {
+        $typeName  = $this->stream->next()->getValue();
+        $modifiers = null;
+        if ('double' === $typeName) {
+            // "double precision"
+            $typeName .= ' ' . $this->stream->next()->getValue();
+
+        } elseif ('float' === $typeName) {
+            $floatName = 'float8';
+            if ($this->stream->matchesSpecialChar('(')) {
+                $this->stream->next();
+                $precisionToken = $this->stream->expect(Token::TYPE_INTEGER);
+                $precision      = $precisionToken->getValue();
+                if ($precision < 1) {
+                    throw exceptions\SyntaxException::atPosition(
+                        'Precision for type float must be at least 1 bit',
+                        $this->stream->getSource(),
+                        $precisionToken->getPosition()
+                    );
+                } elseif ($precision <= 24) {
+                    $floatName = 'float4';
+                } elseif ($precision <= 53) {
                     $floatName = 'float8';
-                    if ($this->stream->matchesSpecialChar('(')) {
-                        $this->stream->next();
-                        $precisionToken = $this->stream->expect(Token::TYPE_INTEGER);
-                        $precision      = $precisionToken->getValue();
-                        if ($precision < 1) {
-                            throw exceptions\SyntaxException::atPosition(
-                                'Precision for type float must be at least 1 bit',
-                                $this->stream->getSource(),
-                                $precisionToken->getPosition()
-                            );
-                        } elseif ($precision <= 24) {
-                            $floatName = 'float4';
-                        } elseif ($precision <= 53) {
-                            $floatName = 'float8';
-                        } else {
-                            throw exceptions\SyntaxException::atPosition(
-                                'Precision for type float must be less than 54 bits',
-                                $this->stream->getSource(),
-                                $precisionToken->getPosition()
-                            );
-                        }
-                        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-                    }
-                    return new nodes\TypeName(new nodes\QualifiedName(['pg_catalog', $floatName]));
-
-                } elseif ('decimal' === $typeName || 'dec' === $typeName || 'numeric' === $typeName) {
-                    // NB: we explicitly require constants here, per comment in gram.y:
-                    // > To avoid parsing conflicts against function invocations, the modifiers
-                    // > have to be shown as expr_list here, but parse analysis will only accept
-                    // > constants for them.
-                    if ($this->stream->matchesSpecialChar('(')) {
-                        $this->stream->next();
-                        $modifiers = new nodes\lists\TypeModifierList([
-                            new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
-                        ]);
-                        if ($this->stream->matchesSpecialChar(',')) {
-                            $this->stream->next();
-                            $modifiers[] = new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER));
-                        }
-                        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-                    }
+                } else {
+                    throw exceptions\SyntaxException::atPosition(
+                        'Precision for type float must be less than 54 bits',
+                        $this->stream->getSource(),
+                        $precisionToken->getPosition()
+                    );
                 }
+                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
             }
-            return new nodes\TypeName(
-                new nodes\QualifiedName(['pg_catalog', $mapping[$typeName]]),
-                $modifiers
-            );
-        }
+            return new nodes\TypeName(new nodes\QualifiedName(['pg_catalog', $floatName]));
 
-        return null;
-    }
-
-    protected function BitTypeName($leading = false)
-    {
-        if ($this->stream->matchesKeyword('bit')) {
-            $typeName  = $this->stream->next()->getValue();
-            $modifiers = null;
-            if ($this->stream->matchesKeyword('varying')) {
-                $this->stream->next();
-                $typeName = 'varbit';
-            }
+        } elseif ('decimal' === $typeName || 'dec' === $typeName || 'numeric' === $typeName) {
+            // NB: we explicitly require constants here, per comment in gram.y:
+            // > To avoid parsing conflicts against function invocations, the modifiers
+            // > have to be shown as expr_list here, but parse analysis will only accept
+            // > constants for them.
             if ($this->stream->matchesSpecialChar('(')) {
                 $this->stream->next();
                 $modifiers = new nodes\lists\TypeModifierList([
                     new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
                 ]);
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-            }
-            // BIT translates to bit(1) *unless* this is a leading typecast
-            // where it translates to "any length" (with no modifiers)
-            if (!$leading && $typeName === 'bit' && empty($modifiers)) {
-                $modifiers = new nodes\lists\TypeModifierList([new nodes\Constant(1)]);
-            }
-            return new nodes\TypeName(
-                new nodes\QualifiedName(['pg_catalog', $typeName]),
-                $modifiers
-            );
-        }
-
-        return null;
-    }
-
-    protected function CharacterTypeName($leading = false)
-    {
-        if (
-            $this->stream->matchesKeyword(['character', 'char', 'varchar', 'nchar'])
-            || $this->stream->matchesKeyword('national')
-               && $this->stream->look(1)->matches(Token::TYPE_KEYWORD, ['character', 'char'])
-        ) {
-            $typeName  = $this->stream->next()->getValue();
-            $varying   = ('varchar' === $typeName);
-            $modifiers = null;
-            if ('national' === $typeName) {
-                $this->stream->next();
-            }
-            if ('varchar' !== $typeName && $this->stream->matchesKeyword('varying')) {
-                $this->stream->next();
-                $varying = true;
-            }
-            if ($this->stream->matchesSpecialChar('(')) {
-                $this->stream->next();
-                $modifiers = new nodes\lists\TypeModifierList([
-                    new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
-                ]);
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-            }
-            // CHAR translates to char(1) *unless* this is a leading typecast
-            // where it translates to "any length" (with no modifiers)
-            if (!$leading && !$varying && null === $modifiers) {
-                $modifiers = new nodes\lists\TypeModifierList([new nodes\Constant(1)]);
-            }
-            $typeNode = new nodes\TypeName(
-                new nodes\QualifiedName(['pg_catalog', $varying ? 'varchar' : 'bpchar']),
-                $modifiers
-            );
-
-            return $typeNode;
-        }
-
-        return null;
-    }
-
-    protected function DateTimeTypeName()
-    {
-        if ($this->stream->matchesKeyword(['time', 'timestamp'])) {
-            $typeName  = $this->stream->next()->getValue();
-            $modifiers = null;
-            if ($this->stream->matchesSpecialChar('(')) {
-                $this->stream->next();
-                $modifiers = new nodes\lists\TypeModifierList([
-                    new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
-                ]);
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-            }
-
-            if ($this->stream->matchesKeywordSequence(['with', 'without'], 'time', 'zone')) {
-                if ('with' === $this->stream->next()->getValue()) {
-                    $typeName .= 'tz';
-                }
-                $this->stream->skip(2);
-            }
-            return new nodes\TypeName(new nodes\QualifiedName(['pg_catalog', $typeName]), $modifiers);
-        }
-
-        return null;
-    }
-
-
-    protected function IntervalTypeName($leading = false)
-    {
-        if ($this->stream->matchesKeyword('interval')) {
-            $token     = $this->stream->next();
-            $modifiers = null;
-            $operand   = null;
-            if ($this->stream->matchesSpecialChar('(')) {
-                $this->stream->next();
-                $modifiers = new nodes\lists\TypeModifierList([
-                    new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
-                ]);
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-            }
-            if ($leading) {
-                $operand = new nodes\Constant($this->stream->expect(Token::TYPE_STRING));
-            }
-
-            if (
-                !$modifiers
-                && $this->stream->matchesKeyword(['year', 'month', 'day', 'hour', 'minute', 'second'])
-            ) {
-                $trailing  = [$this->stream->next()->getValue()];
-                $second    = 'second' === $trailing[0];
-                if ($this->stream->matchesKeyword('to')) {
-                    $toToken    = $this->stream->next();
-                    $trailing[] = 'to';
-                    if ('year' === $trailing[0]) {
-                        $end = $this->stream->expect(Token::TYPE_KEYWORD, 'month');
-                    } elseif ('day' === $trailing[0]) {
-                        $end = $this->stream->expect(Token::TYPE_KEYWORD, ['hour', 'minute', 'second']);
-                    } elseif ('hour' === $trailing[0]) {
-                        $end = $this->stream->expect(Token::TYPE_KEYWORD, ['minute', 'second']);
-                    } elseif ('minute' === $trailing[0]) {
-                        $end = $this->stream->expect(Token::TYPE_KEYWORD, 'second');
-                    } else {
-                        throw new exceptions\SyntaxException('Unexpected ' . $toToken);
-                    }
-                    $second     = 'second' === $end->getValue();
-                    $trailing[] = $end->getValue();
-                }
-
-                if ($second && $this->stream->matchesSpecialChar('(')) {
-                    if (null !== $modifiers) {
-                        throw new exceptions\SyntaxException('Interval precision specified twice for ' . $token);
-                    }
+                if ($this->stream->matchesSpecialChar(',')) {
                     $this->stream->next();
-                    $modifiers = new nodes\lists\TypeModifierList([
-                        new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
-                    ]);
-                    $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+                    $modifiers[] = new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER));
                 }
+                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
             }
-            $typeNode = new nodes\IntervalTypeName($modifiers);
-            if (!empty($trailing)) {
-                $typeNode->setMask(implode(' ', $trailing));
-            }
-
-            return $operand ? new nodes\expressions\TypecastExpression($operand, $typeNode) : $typeNode;
         }
 
-        return null;
+        return new nodes\TypeName(
+            new nodes\QualifiedName(['pg_catalog', self::STANDARD_TYPES_MAPPING[$typeName]]),
+            $modifiers
+        );
     }
 
-    protected function GenericTypeName()
+    protected function BitTypeName(bool $leading = false): ?nodes\TypeName
+    {
+        if (!$this->stream->matchesKeyword(self::STANDARD_TYPES_BIT)) {
+            return null;
+        }
+
+        $typeName  = $this->stream->next()->getValue();
+        $modifiers = null;
+        if ($this->stream->matchesKeyword('varying')) {
+            $this->stream->next();
+            $typeName = 'varbit';
+        }
+        if ($this->stream->matchesSpecialChar('(')) {
+            $this->stream->next();
+            $modifiers = new nodes\lists\TypeModifierList([
+                new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
+            ]);
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        }
+        // BIT translates to bit(1) *unless* this is a leading typecast
+        // where it translates to "any length" (with no modifiers)
+        if (!$leading && $typeName === 'bit' && empty($modifiers)) {
+            $modifiers = new nodes\lists\TypeModifierList([new nodes\Constant(1)]);
+        }
+        return new nodes\TypeName(
+            new nodes\QualifiedName(['pg_catalog', $typeName]),
+            $modifiers
+        );
+    }
+
+    protected function CharacterTypeName(bool $leading = false): ?nodes\TypeName
     {
         if (
-            $this->stream->matchesAnyType(
+            !$this->stream->matchesKeyword(self::STANDARD_TYPES_CHARACTER)
+            || ('national' === $this->stream->getCurrent()->getValue()
+                && !$this->stream->look(1)->matches(Token::TYPE_KEYWORD, ['character', 'char']))
+        ) {
+            return null;
+        }
+
+        $typeName  = $this->stream->next()->getValue();
+        $varying   = ('varchar' === $typeName);
+        $modifiers = null;
+        if ('national' === $typeName) {
+            $this->stream->next();
+        }
+        if ('varchar' !== $typeName && $this->stream->matchesKeyword('varying')) {
+            $this->stream->next();
+            $varying = true;
+        }
+        if ($this->stream->matchesSpecialChar('(')) {
+            $this->stream->next();
+            $modifiers = new nodes\lists\TypeModifierList([
+                new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
+            ]);
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        }
+        // CHAR translates to char(1) *unless* this is a leading typecast
+        // where it translates to "any length" (with no modifiers)
+        if (!$leading && !$varying && null === $modifiers) {
+            $modifiers = new nodes\lists\TypeModifierList([new nodes\Constant(1)]);
+        }
+        $typeNode = new nodes\TypeName(
+            new nodes\QualifiedName(['pg_catalog', $varying ? 'varchar' : 'bpchar']),
+            $modifiers
+        );
+
+        return $typeNode;
+    }
+
+    protected function DateTimeTypeName(): ?nodes\TypeName
+    {
+        if (!$this->stream->matchesKeyword(self::STANDARD_TYPES_DATETIME)) {
+            return null;
+        }
+
+        $typeName  = $this->stream->next()->getValue();
+        $modifiers = null;
+        if ($this->stream->matchesSpecialChar('(')) {
+            $this->stream->next();
+            $modifiers = new nodes\lists\TypeModifierList([
+                new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
+            ]);
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        }
+
+        if ($this->stream->matchesKeywordSequence(['with', 'without'], 'time', 'zone')) {
+            if ('with' === $this->stream->next()->getValue()) {
+                $typeName .= 'tz';
+            }
+            $this->stream->skip(2);
+        }
+
+        return new nodes\TypeName(new nodes\QualifiedName(['pg_catalog', $typeName]), $modifiers);
+    }
+
+    /**
+     * @param bool $leading Whether we are parsing "INTERVAL 'string constant'" construct,
+     *                      this method will return a TypecastExpression instance in that case
+     * @return nodes\TypeName|nodes\expressions\TypecastExpression|null
+     */
+    protected function IntervalTypeName(bool $leading = false): ?Node
+    {
+        if (!$this->stream->matchesKeyword('interval')) {
+            return null;
+        }
+
+        $token     = $this->stream->next();
+        $modifiers = null;
+        $operand   = null;
+        if ($this->stream->matchesSpecialChar('(')) {
+            $this->stream->next();
+            $modifiers = new nodes\lists\TypeModifierList([
+                new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
+            ]);
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        }
+        if ($leading) {
+            $operand = new nodes\Constant($this->stream->expect(Token::TYPE_STRING));
+        }
+
+        if (
+            !$modifiers
+            && $this->stream->matchesKeyword(['year', 'month', 'day', 'hour', 'minute', 'second'])
+        ) {
+            $trailing  = [$this->stream->next()->getValue()];
+            $second    = 'second' === $trailing[0];
+            if ($this->stream->matchesKeyword('to')) {
+                $toToken    = $this->stream->next();
+                $trailing[] = 'to';
+                if ('year' === $trailing[0]) {
+                    $end = $this->stream->expect(Token::TYPE_KEYWORD, 'month');
+                } elseif ('day' === $trailing[0]) {
+                    $end = $this->stream->expect(Token::TYPE_KEYWORD, ['hour', 'minute', 'second']);
+                } elseif ('hour' === $trailing[0]) {
+                    $end = $this->stream->expect(Token::TYPE_KEYWORD, ['minute', 'second']);
+                } elseif ('minute' === $trailing[0]) {
+                    $end = $this->stream->expect(Token::TYPE_KEYWORD, 'second');
+                } else {
+                    throw new exceptions\SyntaxException('Unexpected ' . $toToken);
+                }
+                $second     = 'second' === $end->getValue();
+                $trailing[] = $end->getValue();
+            }
+
+            if ($second && $this->stream->matchesSpecialChar('(')) {
+                if (null !== $modifiers) {
+                    throw new exceptions\SyntaxException('Interval precision specified twice for ' . $token);
+                }
+                $this->stream->next();
+                $modifiers = new nodes\lists\TypeModifierList([
+                    new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
+                ]);
+                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            }
+        }
+        $typeNode = new nodes\IntervalTypeName($modifiers);
+        if (!empty($trailing)) {
+            $typeNode->setMask(implode(' ', $trailing));
+        }
+
+        return $operand ? new nodes\expressions\TypecastExpression($operand, $typeNode) : $typeNode;
+    }
+
+    protected function GenericTypeName(): ?nodes\TypeName
+    {
+        if (
+            !$this->stream->matchesAnyType(
                 Token::TYPE_IDENTIFIER,
                 Token::TYPE_UNRESERVED_KEYWORD,
                 Token::TYPE_TYPE_FUNC_NAME_KEYWORD
             )
         ) {
-            $typeName  = [new nodes\Identifier($this->stream->next())];
-            $modifiers = null;
-            while ($this->stream->matchesSpecialChar('.')) {
-                $this->stream->next();
-                if ($this->stream->matches(Token::TYPE_IDENTIFIER)) {
-                    $typeName[] = new nodes\Identifier($this->stream->next());
-                } else {
-                    // any keyword goes, see ColLabel
-                    $typeName[] = new nodes\Identifier($this->stream->expect(Token::TYPE_KEYWORD));
-                }
-            }
-
-            if ($this->stream->matchesSpecialChar('(')) {
-                $this->stream->next();
-                $modifiers = new nodes\lists\TypeModifierList([$this->GenericTypeModifier()]);
-                while ($this->stream->matchesSpecialChar(',')) {
-                    $this->stream->next();
-                    $modifiers[] = $this->GenericTypeModifier();
-                }
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-            }
-
-            return new nodes\TypeName(new nodes\QualifiedName($typeName), $modifiers);
+            return null;
         }
 
-        return null;
+        $typeName  = [new nodes\Identifier($this->stream->next())];
+        $modifiers = null;
+        while ($this->stream->matchesSpecialChar('.')) {
+            $this->stream->next();
+            if ($this->stream->matches(Token::TYPE_IDENTIFIER)) {
+                $typeName[] = new nodes\Identifier($this->stream->next());
+            } else {
+                // any keyword goes, see ColLabel
+                $typeName[] = new nodes\Identifier($this->stream->expect(Token::TYPE_KEYWORD));
+            }
+        }
+
+        if ($this->stream->matchesSpecialChar('(')) {
+            $this->stream->next();
+            $modifiers = new nodes\lists\TypeModifierList([$this->GenericTypeModifier()]);
+            while ($this->stream->matchesSpecialChar(',')) {
+                $this->stream->next();
+                $modifiers[] = $this->GenericTypeModifier();
+            }
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        }
+
+        return new nodes\TypeName(new nodes\QualifiedName($typeName), $modifiers);
     }
 
     /**
@@ -2086,7 +2222,7 @@ class Parser
         }
     }
 
-    protected function ArithmeticExpression($restricted = false)
+    protected function ArithmeticExpression(bool $restricted = false): nodes\ScalarExpression
     {
         $leftOperand = $this->ArithmeticTerm($restricted);
 
@@ -2102,7 +2238,7 @@ class Parser
         return $leftOperand;
     }
 
-    protected function ArithmeticTerm($restricted = false)
+    protected function ArithmeticTerm(bool $restricted = false): nodes\ScalarExpression
     {
         $leftOperand = $this->ArithmeticMultiplier($restricted);
 
@@ -2118,7 +2254,7 @@ class Parser
         return $leftOperand;
     }
 
-    protected function ArithmeticMultiplier($restricted = false)
+    protected function ArithmeticMultiplier(bool $restricted = false): nodes\ScalarExpression
     {
         $leftOperand = $restricted
                        ? $this->UnaryPlusMinusExpression()
@@ -2136,7 +2272,7 @@ class Parser
         return $leftOperand;
     }
 
-    protected function AtTimeZoneExpression()
+    protected function AtTimeZoneExpression(): nodes\ScalarExpression
     {
         $left = $this->CollateExpression();
         if ($this->stream->matchesKeywordSequence('at', 'time', 'zone')) {
@@ -2146,7 +2282,7 @@ class Parser
         return $left;
     }
 
-    protected function CollateExpression()
+    protected function CollateExpression(): nodes\ScalarExpression
     {
         $left = $this->UnaryPlusMinusExpression();
         if ($this->stream->matchesKeyword('collate')) {
@@ -2156,31 +2292,35 @@ class Parser
         return $left;
     }
 
-    protected function UnaryPlusMinusExpression()
+    protected function UnaryPlusMinusExpression(): nodes\ScalarExpression
     {
-        if ($this->stream->matchesSpecialChar(['+', '-'])) {
-            $token    = $this->stream->next();
-            $operator = $token->getValue();
-            $operand  = $this->UnaryPlusMinusExpression();
-            if (
-                !$operand instanceof nodes\Constant
-                || !in_array($operand->type, [Token::TYPE_INTEGER, Token::TYPE_FLOAT])
-                || '-' !== $operator
-            ) {
-                return new nodes\expressions\OperatorExpression($operator, null, $operand);
+        if (!$this->stream->matchesSpecialChar(['+', '-'])) {
+            return $this->TypecastExpression();
+        }
 
+        $token    = $this->stream->next();
+        $operator = $token->getValue();
+        $operand  = $this->UnaryPlusMinusExpression();
+        if (
+            !$operand instanceof nodes\Constant
+            || (Token::TYPE_INTEGER !== $operand->type && Token::TYPE_FLOAT !== $operand->type)
+            || '-' !== $operator
+        ) {
+            return new nodes\expressions\OperatorExpression($operator, null, $operand);
+        } else {
+            if ('-' === $operand->value[0]) {
+                return new nodes\Constant(
+                    new Token($operand->type, substr($operand->value, 1), $token->getPosition())
+                );
             } else {
-                if ('-' === $operand->value[0]) {
-                    return new nodes\Constant(new Token($operand->type, substr($operand->value, 1), $token->getPosition()));
-                } else {
-                    return new nodes\Constant(new Token($operand->type, '-' . $operand->value, $token->getPosition()));
-                }
+                return new nodes\Constant(
+                    new Token($operand->type, '-' . $operand->value, $token->getPosition())
+                );
             }
         }
-        return $this->TypecastExpression();
     }
 
-    protected function TypecastExpression()
+    protected function TypecastExpression(): nodes\ScalarExpression
     {
         $left = $this->ExpressionAtom();
 
@@ -2192,19 +2332,19 @@ class Parser
         return $left;
     }
 
-    protected function ExpressionAtom()
+    protected function ExpressionAtom(): nodes\ScalarExpression
     {
         $token = $this->stream->getCurrent();
         if ($token->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
             switch ($this->checkContentsOfParentheses()) {
-                case 'row':
+                case self::PARENTHESES_ROW:
                     return $this->RowConstructor();
 
-                case 'select':
+                case self::PARENTHESES_SELECT:
                     $atom = new nodes\expressions\SubselectExpression($this->SelectWithParentheses());
                     break;
 
-                case 'expression':
+                case self::PARENTHESES_EXPRESSION:
                 default:
                     $this->stream->next();
                     $atom = $this->Expression();
@@ -2264,7 +2404,7 @@ class Parser
         return $atom;
     }
 
-    protected function RowList()
+    protected function RowList(): nodes\lists\RowList
     {
         $list = new nodes\lists\RowList([$this->RowConstructorNoKeyword()]);
         while ($this->stream->matchesSpecialChar(',')) {
@@ -2274,7 +2414,7 @@ class Parser
         return $list;
     }
 
-    protected function RowConstructor()
+    protected function RowConstructor(): nodes\expressions\RowExpression
     {
         if ($this->stream->matchesKeyword('row')) {
             $this->stream->next();
@@ -2291,7 +2431,7 @@ class Parser
         return $this->RowConstructorNoKeyword();
     }
 
-    protected function RowConstructorNoKeyword()
+    protected function RowConstructorNoKeyword(): nodes\expressions\RowExpression
     {
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
         $fields = $this->ExpressionListWithDefault();
@@ -2300,7 +2440,10 @@ class Parser
         return new nodes\expressions\RowExpression($fields);
     }
 
-    protected function ArrayConstructor()
+    /**
+     * @return nodes\expressions\SubselectExpression|nodes\expressions\ArrayExpression
+     */
+    protected function ArrayConstructor(): nodes\ScalarExpression
     {
         $this->stream->expect(Token::TYPE_KEYWORD, 'array');
         if (!$this->stream->matchesSpecialChar(['[', '('])) {
@@ -2319,6 +2462,9 @@ class Parser
         }
     }
 
+    /**
+     * @return nodes\ScalarExpression[]|nodes\lists\ExpressionList
+     */
     protected function ArrayExpression()
     {
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '[');
@@ -2340,7 +2486,7 @@ class Parser
         return $expression;
     }
 
-    protected function CaseExpression()
+    protected function CaseExpression(): nodes\expressions\CaseExpression
     {
         $argument    = null;
         $whenClauses = [];
@@ -2371,7 +2517,7 @@ class Parser
         return new nodes\expressions\CaseExpression($whenClauses, $elseClause, $argument);
     }
 
-    protected function GroupingExpression()
+    protected function GroupingExpression(): nodes\expressions\GroupingExpression
     {
         $this->stream->expect(Token::TYPE_KEYWORD, 'grouping');
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
@@ -2381,41 +2527,35 @@ class Parser
         return $expression;
     }
 
-    protected function LeadingTypecast()
+    protected function LeadingTypecast(): nodes\expressions\TypecastExpression
     {
         if (null !== ($typeCast = $this->IntervalTypeName(true))) {
             // interval is a special case since its options may come *after* string constant
             return $typeCast;
         }
 
-        if (
-            null !== ($typeName = $this->DateTimeTypeName())
-            || null !== ($typeName = $this->CharacterTypeName(true))
-            || null !== ($typeName = $this->BitTypeName(true))
-            || null !== ($typeName = $this->NumericTypeName())
-            || null !== ($typeName = $this->GenericTypeName())
-        ) {
-            $constant = new nodes\Constant($this->stream->expect(Token::TYPE_STRING));
-            return new nodes\expressions\TypecastExpression($constant, $typeName);
+        $typeName = $this->DateTimeTypeName()
+                    ?? $this->CharacterTypeName(true)
+                    ?? $this->BitTypeName(true)
+                    ?? $this->NumericTypeName()
+                    ?? $this->GenericTypeName();
+
+        if (null !== $typeName) {
+            return new nodes\expressions\TypecastExpression(
+                new nodes\Constant($this->stream->expect(Token::TYPE_STRING)),
+                $typeName
+            );
         }
 
         throw new exceptions\SyntaxException('Expecting type name, got ' . $this->stream->getCurrent());
     }
 
-    protected function SystemFunctionCallNoParens()
+    /**
+     * @return nodes\expressions\TypecastExpression|nodes\FunctionCall
+     */
+    protected function SystemFunctionCallNoParens(): ?Node
     {
-        static $mapFunctions = [
-            'current_role'    => 'current_user',
-            'user'            => 'current_user',
-            'current_catalog' => 'current_database'
-        ];
-
-        if (
-            !$this->stream->matchesKeyword([
-                'current_date', 'current_role', 'current_user', 'session_user',
-                'user', 'current_catalog', 'current_schema'
-            ])
-        ) {
+        if (!$this->stream->matchesKeyword(self::SYSTEM_FUNCTIONS_NO_PARENS)) {
             return null;
         }
 
@@ -2428,24 +2568,19 @@ class Parser
                 new nodes\TypeName(new nodes\QualifiedName(['pg_catalog', 'date']))
             );
 
-        } elseif (isset($mapFunctions[$funcName])) {
-            return new nodes\FunctionCall(new nodes\QualifiedName(['pg_catalog', $mapFunctions[$funcName]]));
+        } elseif (isset(self::SYSTEM_FUNCTIONS_MAPPING[$funcName])) {
+            return new nodes\FunctionCall(
+                new nodes\QualifiedName(['pg_catalog', self::SYSTEM_FUNCTIONS_MAPPING[$funcName]])
+            );
 
         } else {
             return new nodes\FunctionCall(new nodes\QualifiedName(['pg_catalog', $funcName]));
         }
     }
 
-    protected function SystemFunctionCallOptionalParens()
+    protected function SystemFunctionCallOptionalParens(): ?nodes\expressions\TypecastExpression
     {
-        static $mapTypes = [
-            'current_time'      => 'timetz',
-            'current_timestamp' => 'timestamptz',
-            'localtime'         => 'time',
-            'localtimestamp'    => 'timestamp'
-        ];
-
-        if (!$this->stream->matchesKeyword(['current_time', 'current_timestamp', 'localtime', 'localtimestamp'])) {
+        if (!$this->stream->matchesKeyword(self::SYSTEM_FUNCTIONS_OPTIONAL_PARENS)) {
             return null;
         }
 
@@ -2460,22 +2595,15 @@ class Parser
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
         }
         $typeName = new nodes\TypeName(
-            new nodes\QualifiedName(['pg_catalog', $mapTypes[$funcName]]),
+            new nodes\QualifiedName(['pg_catalog', self::SYSTEM_FUNCTIONS_MAPPING[$funcName]]),
             $modifiers
         );
         return new nodes\expressions\TypecastExpression(new nodes\Constant('now'), $typeName);
     }
 
-    protected function SystemFunctionCallRequiredParens()
+    protected function SystemFunctionCallRequiredParens(): ?Node
     {
-        if (
-            !$this->stream->matchesKeyword([
-                'cast', 'extract', 'overlay', 'position', 'substring', 'treat', 'trim',
-                'nullif', 'coalesce', 'greatest', 'least', 'xmlconcat', 'xmlelement',
-                'xmlexists', 'xmlforest', 'xmlparse', 'xmlpi', 'xmlroot', 'xmlserialize',
-                'normalize'
-            ])
-        ) {
+        if (!$this->stream->matchesKeyword(self::SYSTEM_FUNCTIONS_REQUIRED_PARENS)) {
             return null;
         }
         $funcName  = $this->stream->next()->getValue();
@@ -2624,7 +2752,7 @@ class Parser
         return $funcNode;
     }
 
-    protected function TrimFunctionArguments()
+    protected function TrimFunctionArguments(): array
     {
         if (!$this->stream->matchesKeyword(['both', 'leading', 'trailing'])) {
             $funcName = 'btrim';
@@ -2663,7 +2791,7 @@ class Parser
         return [$funcName, $arguments];
     }
 
-    protected function SubstringFunctionArguments()
+    protected function SubstringFunctionArguments(): nodes\lists\FunctionArgumentList
     {
         $arguments = new nodes\lists\FunctionArgumentList([$this->Expression()]);
         $from  = $for = null;
@@ -2709,7 +2837,7 @@ class Parser
         return $arguments;
     }
 
-    protected function XmlElementFunction()
+    protected function XmlElementFunction(): nodes\xml\XmlElement
     {
         $this->stream->expect(Token::TYPE_KEYWORD, 'name');
         if ($this->stream->matches(Token::TYPE_KEYWORD)) {
@@ -2736,7 +2864,7 @@ class Parser
         return new nodes\xml\XmlElement($name, $attributes, $content);
     }
 
-    protected function XmlRoot()
+    protected function XmlRoot(): nodes\xml\XmlRoot
     {
         $xml = $this->Expression();
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
@@ -2762,7 +2890,7 @@ class Parser
         return new nodes\xml\XmlRoot($xml, $version, $standalone);
     }
 
-    protected function XmlAttributeList()
+    protected function XmlAttributeList(): array
     {
         $attributes = [$this->XmlAttribute()];
 
@@ -2774,22 +2902,22 @@ class Parser
         return $attributes;
     }
 
-    protected function XmlAttribute()
+    protected function XmlAttribute(): nodes\TargetElement
     {
         $value   = $this->Expression();
-        $attname = null;
+        $attName = null;
         if ($this->stream->matchesKeyword('as')) {
             $this->stream->next();
             if ($this->stream->matches(Token::TYPE_KEYWORD)) {
-                $attname = new nodes\Identifier($this->stream->next());
+                $attName = new nodes\Identifier($this->stream->next());
             } else {
-                $attname = new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
+                $attName = new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
             }
         }
-        return new nodes\TargetElement($value, $attname);
+        return new nodes\TargetElement($value, $attName);
     }
 
-    protected function FunctionExpression()
+    protected function FunctionExpression(): nodes\ScalarExpression
     {
         if (null !== ($function = $this->SpecialFunctionCall())) {
             return ($function instanceof nodes\FunctionCall)
@@ -2860,30 +2988,27 @@ class Parser
         );
     }
 
-    protected function SpecialFunctionCall()
+    protected function SpecialFunctionCall(): ?Node
     {
-        if (
-            null !== ($funcNode = $this->SystemFunctionCallNoParens())
-            || null !== ($funcNode = $this->SystemFunctionCallOptionalParens())
-            || null !== ($funcNode = $this->SystemFunctionCallRequiredParens())
-        ) {
-            return $funcNode;
+        $funcNode = $this->SystemFunctionCallNoParens()
+                    ?? $this->SystemFunctionCallOptionalParens()
+                    ?? $this->SystemFunctionCallRequiredParens();
 
-        } elseif ($this->stream->matchesKeywordSequence('collation', 'for')) {
+        if (null === $funcNode && $this->stream->matchesKeywordSequence('collation', 'for')) {
             $this->stream->skip(2);
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
             $argument = $this->Expression();
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-            return new nodes\FunctionCall(
+            $funcNode = new nodes\FunctionCall(
                 new nodes\QualifiedName(['pg_catalog', 'pg_collation_for']),
                 new nodes\lists\FunctionArgumentList([$argument])
             );
         }
 
-        return null;
+        return $funcNode;
     }
 
-    protected function GenericFunctionCall()
+    protected function GenericFunctionCall(): nodes\FunctionCall
     {
         $positionalArguments = $namedArguments = [];
         $variadic = $distinct = false;
@@ -2949,7 +3074,7 @@ class Parser
         );
     }
 
-    protected function GenericFunctionName()
+    protected function GenericFunctionName(): nodes\QualifiedName
     {
         if (
             $this->stream->matches(Token::TYPE_KEYWORD)
@@ -2984,7 +3109,7 @@ class Parser
         return new nodes\QualifiedName($funcName);
     }
 
-    protected function GenericFunctionArgument()
+    protected function GenericFunctionArgument(): array
     {
         if ($variadic = $this->stream->matchesKeyword('variadic')) {
             $this->stream->next();
@@ -3007,7 +3132,10 @@ class Parser
         return [$this->Expression(), $name, $variadic];
     }
 
-    protected function ColumnReference()
+    /**
+     * @return nodes\ColumnReference|nodes\Indirection
+     */
+    protected function ColumnReference(): nodes\ScalarExpression
     {
         $parts = [$this->ColId()];
 
@@ -3022,7 +3150,7 @@ class Parser
         return new nodes\ColumnReference($parts);
     }
 
-    protected function Indirection($allowStar = true)
+    protected function Indirection(bool $allowStar = true): array
     {
         $indirection = [];
         while ($this->stream->matchesSpecialChar(['[', '.'])) {
@@ -3063,7 +3191,7 @@ class Parser
         return $indirection;
     }
 
-    protected function TargetList()
+    protected function TargetList(): nodes\lists\TargetList
     {
         $elements = new nodes\lists\TargetList([$this->TargetElement()]);
 
@@ -3075,7 +3203,10 @@ class Parser
         return $elements;
     }
 
-    protected function TargetElement()
+    /**
+     * @return nodes\Star|nodes\TargetElement
+     */
+    protected function TargetElement(): Node
     {
         $alias = null;
 
@@ -3099,7 +3230,7 @@ class Parser
         return new nodes\TargetElement($element, $alias);
     }
 
-    protected function FromList()
+    protected function FromList(): nodes\lists\FromList
     {
         $relations = new nodes\lists\FromList([$this->FromElement()]);
 
@@ -3111,10 +3242,7 @@ class Parser
         return $relations;
     }
 
-    /**
-     * @return nodes\range\FromElement
-     */
-    protected function FromElement()
+    protected function FromElement(): nodes\range\FromElement
     {
         $left = $this->TableReference();
 
@@ -3168,7 +3296,7 @@ class Parser
         return $left;
     }
 
-    protected function TableReference()
+    protected function TableReference(): nodes\range\FromElement
     {
         if ($this->stream->matchesKeyword('lateral')) {
             $this->stream->next();
@@ -3184,7 +3312,7 @@ class Parser
 
         } elseif ($this->stream->matchesSpecialChar('(')) {
             // parentheses may contain either a subselect or JOIN expression
-            if ('select' === $this->checkContentsOfParentheses()) {
+            if (self::PARENTHESES_SELECT === $this->checkContentsOfParentheses()) {
                 $reference = $this->RangeSubselect();
             } else {
                 $this->stream->next();
@@ -3211,7 +3339,7 @@ class Parser
         return $reference;
     }
 
-    protected function RangeSubselect()
+    protected function RangeSubselect(): nodes\range\Subselect
     {
         $token     = $this->stream->getCurrent();
         $reference = new nodes\range\Subselect($this->SelectWithParentheses());
@@ -3228,7 +3356,7 @@ class Parser
         return $reference;
     }
 
-    protected function RangeFunctionCall()
+    protected function RangeFunctionCall(): nodes\range\FunctionCall
     {
         if ($this->stream->matchesKeywordSequence('rows', 'from')) {
             $this->stream->skip(2);
@@ -3261,7 +3389,7 @@ class Parser
         return $reference;
     }
 
-    protected function RowsFromElement()
+    protected function RowsFromElement(): nodes\range\RowsFromElement
     {
         if (null === ($function = $this->SpecialFunctionCall())) {
             $function = $this->GenericFunctionCall();
@@ -3287,14 +3415,14 @@ class Parser
      *
      * Not used in parser itself, needed by StatementFactory
      *
-     * @return nodes\range\RelationReference
+     * @return nodes\range\UpdateOrDeleteTarget
      */
-    protected function RelationExpressionOptAlias()
+    protected function RelationExpressionOptAlias(): nodes\range\UpdateOrDeleteTarget
     {
-        return $this->RelationExpression('delete');
+        return $this->RelationExpression(self::RELATION_FORMAT_DELETE);
     }
 
-    protected function InsertTarget()
+    protected function InsertTarget(): nodes\range\InsertTarget
     {
         $name  = $this->QualifiedName();
         $alias = null;
@@ -3308,7 +3436,11 @@ class Parser
         return new nodes\range\InsertTarget($name, $alias);
     }
 
-    protected function RelationExpression($statementType = 'select')
+    /**
+     * @param string $statementType
+     * @return nodes\range\UpdateOrDeleteTarget|nodes\range\RelationReference|nodes\range\TableSample
+     */
+    protected function RelationExpression(string $statementType = self::RELATION_FORMAT_SELECT): Node
     {
         $inherit           = null;
         $expectParenthesis = false;
@@ -3331,7 +3463,7 @@ class Parser
             $inherit = true;
         }
 
-        if ('select' !== $statementType) {
+        if (self::RELATION_FORMAT_SELECT !== $statementType) {
             $expression = new nodes\range\UpdateOrDeleteTarget(
                 $name,
                 $this->DMLAliasClause($statementType),
@@ -3372,13 +3504,14 @@ class Parser
      * @param string $statementType
      * @return nodes\Identifier|null
      */
-    protected function DMLAliasClause($statementType)
+    protected function DMLAliasClause(string $statementType): ?nodes\Identifier
     {
         if (
             $this->stream->matchesKeyword('as')
             || $this->stream->matchesAnyType(Token::TYPE_IDENTIFIER, Token::TYPE_COL_NAME_KEYWORD)
             || ($this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
-                && ('update' !== $statementType || 'set' !== $this->stream->getCurrent()->getValue()))
+                && (self::RELATION_FORMAT_UPDATE !== $statementType
+                    || 'set' !== $this->stream->getCurrent()->getValue()))
         ) {
             if ($this->stream->matchesKeyword('as')) {
                 $this->stream->next();
@@ -3388,7 +3521,7 @@ class Parser
         return null;
     }
 
-    protected function OptionalAliasClause($functionAlias = false)
+    protected function OptionalAliasClause(bool $functionAlias = false): ?array
     {
         if (
             $this->stream->matchesKeyword('as')
@@ -3432,7 +3565,7 @@ class Parser
         return null;
     }
 
-    protected function TableFuncElement()
+    protected function TableFuncElement(): nodes\range\ColumnDefinition
     {
         $alias     = $this->ColId();
         $type      = $this->TypeName();
@@ -3445,7 +3578,7 @@ class Parser
         return new nodes\range\ColumnDefinition($alias, $type, $collation);
     }
 
-    protected function ColIdList()
+    protected function ColIdList(): nodes\lists\IdentifierList
     {
         $list = new nodes\lists\IdentifierList([$this->ColId()]);
         while ($this->stream->matchesSpecialChar(',')) {
@@ -3458,7 +3591,7 @@ class Parser
     /**
      * ColId production from Postgres grammar
      */
-    protected function ColId()
+    protected function ColId(): nodes\Identifier
     {
         if ($this->stream->matchesAnyType(Token::TYPE_UNRESERVED_KEYWORD, Token::TYPE_COL_NAME_KEYWORD)) {
             return new nodes\Identifier($this->stream->next());
@@ -3467,7 +3600,7 @@ class Parser
         }
     }
 
-    protected function QualifiedName()
+    protected function QualifiedName(): nodes\QualifiedName
     {
         $parts = [$this->ColId()];
 
@@ -3483,7 +3616,7 @@ class Parser
         return new nodes\QualifiedName($parts);
     }
 
-    protected function OrderByList()
+    protected function OrderByList(): nodes\lists\OrderByList
     {
         $items = new nodes\lists\OrderByList([$this->OrderByElement()]);
 
@@ -3495,7 +3628,7 @@ class Parser
         return $items;
     }
 
-    protected function OrderByElement()
+    protected function OrderByElement(): nodes\OrderByElement
     {
         $expression = $this->Expression();
         $operator   = $direction = $nullsOrder = null;
@@ -3512,7 +3645,7 @@ class Parser
         return new nodes\OrderByElement($expression, $direction, $nullsOrder, $operator);
     }
 
-    protected function OnConflict()
+    protected function OnConflict(): nodes\OnConflictClause
     {
         $target = $set = $condition = null;
         if ($this->stream->matchesKeywordSequence('on', 'constraint')) {
@@ -3536,7 +3669,7 @@ class Parser
         return new nodes\OnConflictClause($action, $target, $set, $condition);
     }
 
-    protected function IndexParameters()
+    protected function IndexParameters(): nodes\IndexParameters
     {
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
 
@@ -3557,7 +3690,7 @@ class Parser
     }
 
 
-    protected function IndexElement()
+    protected function IndexElement(): nodes\IndexElement
     {
         if ($this->stream->matchesSpecialChar('(')) {
             $this->stream->next();
@@ -3609,7 +3742,7 @@ class Parser
         return new nodes\IndexElement($expression, $collation, $opClass, $direction, $nullsOrder);
     }
 
-    protected function GroupByList()
+    protected function GroupByList(): nodes\lists\GroupByList
     {
         $items = new nodes\lists\GroupByList([$this->GroupByElement()]);
 
@@ -3621,7 +3754,10 @@ class Parser
         return $items;
     }
 
-    protected function GroupByElement()
+    /**
+     * @return nodes\group\GroupByElement|nodes\ScalarExpression
+     */
+    protected function GroupByElement(): Node
     {
         if (
             $this->stream->matchesSpecialChar('(')
@@ -3649,7 +3785,7 @@ class Parser
         return $element;
     }
 
-    protected function XmlExistsArguments()
+    protected function XmlExistsArguments(): array
     {
         $arguments = [$this->ExpressionAtom()];
         // 'by ref' is noise in Postgres
@@ -3667,7 +3803,7 @@ class Parser
         return $arguments;
     }
 
-    protected function XmlTable()
+    protected function XmlTable(): nodes\range\XmlTable
     {
         $this->stream->expect(Token::TYPE_KEYWORD, 'xmltable');
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
@@ -3695,7 +3831,7 @@ class Parser
         return $table;
     }
 
-    protected function XmlNamespaceList()
+    protected function XmlNamespaceList(): nodes\xml\XmlNamespaceList
     {
         $items = new nodes\xml\XmlNamespaceList([$this->XmlNamespace()]);
 
@@ -3707,7 +3843,7 @@ class Parser
         return $items;
     }
 
-    protected function XmlNamespace()
+    protected function XmlNamespace(): nodes\xml\XmlNamespace
     {
         // Default namespace is not currently supported, but Postgres accepts the syntax. We do the same.
         if ($this->stream->matchesKeyword('default')) {
@@ -3728,7 +3864,7 @@ class Parser
         return new nodes\xml\XmlNamespace($value, $alias);
     }
 
-    protected function XmlColumnList()
+    protected function XmlColumnList(): nodes\xml\XmlColumnList
     {
         $columns = new nodes\xml\XmlColumnList([$this->XmlColumnDefinition()]);
 
@@ -3740,7 +3876,7 @@ class Parser
         return $columns;
     }
 
-    protected function XmlColumnDefinition()
+    protected function XmlColumnDefinition(): nodes\xml\XmlColumnDefinition
     {
         $name = $this->ColId();
         $forOrdinality = false;
