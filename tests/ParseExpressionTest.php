@@ -24,6 +24,7 @@ use sad_spirit\pg_builder\nodes\lists\ExpressionList;
 use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
 use sad_spirit\pg_builder\nodes\lists\TypeList;
 use sad_spirit\pg_builder\nodes\lists\TargetList;
+use sad_spirit\pg_builder\nodes\OrderByElement;
 use sad_spirit\pg_builder\Parser;
 use sad_spirit\pg_builder\Lexer;
 use sad_spirit\pg_builder\nodes\Identifier;
@@ -105,10 +106,13 @@ QRY
     public function testParentheses()
     {
         $list = $this->parser->parseExpressionList(<<<QRY
-    (1), (2,3), (foo(4,5)).bar, (array[6,7])[1], ((select 1), 2), (select 1)
+    (1), (2,3), (foo(4,5)).bar, (array[6,7])[1], ((select 1), 2), (select 1), ((((select 1)) order by 1) limit 1)
 QRY
         );
-        $select = new Select(new TargetList([new TargetElement(new Constant(1))]));
+        $select       = new Select(new TargetList([new TargetElement(new Constant(1))]));
+        $selectParens = clone $select;
+        $selectParens->order[] = new OrderByElement(new Constant(1));
+        $selectParens->limit   = new Constant(1);
 
         $this->assertEquals(
             new ExpressionList([
@@ -126,7 +130,8 @@ QRY
                     new ArrayExpression(new ExpressionList([new Constant(6), new Constant(7)]))
                 ),
                 new RowExpression([new SubselectExpression($select), new Constant(2)]),
-                new SubselectExpression(clone $select)
+                new SubselectExpression(clone $select),
+                new SubselectExpression($selectParens)
             ]),
             $list
         );
