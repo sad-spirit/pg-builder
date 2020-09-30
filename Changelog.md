@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.1] - 2020-09-30
+
+### Fixed
+* `SqlBuilderWalker` used incorrect operator precedence when generating SQL containing new `IS NORMALIZED` operator
+* A sub-optimal regular expression in `Lexer` could cause up to 10x lexing slowdown for some queries  
+
 ## [0.4.0] - 2020-09-26
 
 This is the last feature release to support PHP 5 and Postgres versions below 9.5
@@ -86,3 +92,4 @@ Initial release on GitHub
 [0.2.3]: https://github.com/sad-spirit/pg-builder/compare/v0.2.2...v0.2.3
 [0.3.0]: https://github.com/sad-spirit/pg-builder/compare/v0.2.3...v0.3.0
 [0.4.0]: https://github.com/sad-spirit/pg-builder/compare/v0.3.0...v0.4.0
+[0.4.1]: https://github.com/sad-spirit/pg-builder/compare/v0.4.0...v0.4.1
