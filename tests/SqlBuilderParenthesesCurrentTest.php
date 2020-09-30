@@ -17,6 +17,8 @@
 
 namespace sad_spirit\pg_builder\tests;
 
+use sad_spirit\pg_builder\nodes\ColumnReference;
+use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
 use sad_spirit\pg_builder\SqlBuilderWalker,
     sad_spirit\pg_builder\Node;
 
@@ -63,6 +65,26 @@ class SqlBuilderParenthesesCurrentTest extends SqlBuilderParenthesesTest
         $this->assertStringsEqualIgnoringWhitespace(
             str_replace(array('(', ')'), '', $expected),
             $ast->dispatch($this->builder)
+        );
+    }
+
+    /**
+     * 'is normalized' wasn't added to an SqlBuilderWalker check when implementing Postgres 13 syntax
+     */
+    public function testIsNormalizedCorrectPrecedence()
+    {
+        $expression = new OperatorExpression(
+            '=',
+            new ColumnReference(array('foo')),
+            new OperatorExpression(
+                'is normalized',
+                new ColumnReference(array('bar'))
+            )
+        );
+
+        $this->assertStringsEqualIgnoringWhitespace(
+            'foo = (bar is normalized)',
+            $expression->dispatch($this->builder)
         );
     }
 }

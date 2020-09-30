@@ -233,20 +233,6 @@ class SqlBuilderWalker implements TreeWalker
             case 'overlaps':
                 return self::PRECEDENCE_OVERLAPS;
 
-            case 'is null':
-            case 'is not null':
-            case 'is true':
-            case 'is not true':
-            case 'is false':
-            case 'is not false':
-            case 'is unknown':
-            case 'is not unknown':
-            case 'is document':
-            case 'is not document':
-            case 'is distinct from':
-            case 'is not distinct from':
-                return self::PRECEDENCE_OLD_IS;
-
             case '+':
             case '-':
                 // if no left operand is present, then this is an unary variant with higher precedence
@@ -264,6 +250,9 @@ class SqlBuilderWalker implements TreeWalker
                 return self::PRECEDENCE_TIME_ZONE;
 
             default:
+                if ('is ' === substr($expression->operator, 0, 3)) {
+                    return self::PRECEDENCE_OLD_IS;
+                }
                 // generic operator
                 return $expression->right ? self::PRECEDENCE_GENERIC_OP : self::PRECEDENCE_POSTFIX_OP;
             }
@@ -315,20 +304,6 @@ class SqlBuilderWalker implements TreeWalker
             case 'overlaps':
                 return self::PRECEDENCE_OVERLAPS;
 
-            case 'is null':
-            case 'is not null':
-            case 'is true':
-            case 'is not true':
-            case 'is false':
-            case 'is not false':
-            case 'is unknown':
-            case 'is not unknown':
-            case 'is document':
-            case 'is not document':
-            case 'is distinct from':
-            case 'is not distinct from':
-                return self::PRECEDENCE_IS;
-
             case '+':
             case '-':
                 // if no left operand is present, then this is an unary variant with higher precedence
@@ -346,6 +321,9 @@ class SqlBuilderWalker implements TreeWalker
                 return self::PRECEDENCE_TIME_ZONE;
 
             default:
+                if ('is ' === substr($expression->operator, 0, 3)) {
+                    return self::PRECEDENCE_IS;
+                }
                 // generic operator
                 return $expression->right ? self::PRECEDENCE_GENERIC_OP : self::PRECEDENCE_POSTFIX_OP;
             }
