@@ -80,15 +80,50 @@ QRY
         $this->assertTrue($stream->isEOF());
     }
 
-    public function testConcatenateStringLiterals()
+    /**
+     * @dataProvider getConcatenatedStrings
+     */
+    public function testConcatenateStringLiterals(string $sql, array $tokens)
     {
-        $stream = $this->lexer->tokenize(<<<QRY
+        $stream = $this->lexer->tokenize($sql);
+        foreach ($tokens as $token) {
+            $this->assertEquals($token, $stream->next()->getValue());
+        }
+    }
+
+    public function getConcatenatedStrings()
+    {
+        return [
+            [
+                <<<QRY
 'foo'
     'bar' -- a comment
 'baz'
 QRY
-        );
-        $this->assertEquals('foobarbaz', $stream->next()->getValue());
+                , ['foobarbaz']
+            ],
+            [
+                <<<QRY
+'foo' /*
+    a multiline comment
+    */
+    'bar'-- a comment with no whitespace
+'baz'
+ 
+  
+   'quux'
+QRY
+                , ['foo', 'barbazquux']
+            ],
+            [
+                "'foo'\t\f\r'bar'",
+                ['foobar']
+            ],
+            [
+                "'foo'--'bar'",
+                ['foo']
+            ]
+        ];
     }
 
     /**

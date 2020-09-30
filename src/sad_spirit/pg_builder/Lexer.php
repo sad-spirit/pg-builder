@@ -322,7 +322,7 @@ class Lexer
         }
 
         $value  = '';
-        $concat = '(?: [ \t\f] | --[^\n\r]* )* [\n\r] (?: [ \t\n\r\f]+ | --[^\n\r]*[\n\r] )*' . $regex;
+        $concat = '[ \t\f]* (?: --[^\n\r]* )? [\n\r] (?> [ \t\n\r\f]+ | --[^\n\r]*[\n\r] )*' . $regex;
         do {
             if ($regex === $regexNoQuotes) {
                 $value .= $m[1];
