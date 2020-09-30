@@ -47,18 +47,6 @@ class Lexer
     private $nonStandardCharHash;
 
     /**
-     * Stores a token in the array
-     *
-     * @param string $value     Token value
-     * @param int    $type      Token type, one of Token::TYPE_* constants
-     * @param int    $position  Position in input
-     */
-    protected function pushToken($value, $type, $position)
-    {
-        $this->tokens[] = new Token($type, $value, $position);
-    }
-
-    /**
      * Constructor, sets options for lexer
      *
      * Possible options are
@@ -107,7 +95,7 @@ class Lexer
 
         $this->doTokenize();
 
-        $this->pushToken('', Token::TYPE_EOF, $this->position);
+        $this->tokens[] = new Token(Token::TYPE_EOF, '', $this->position);
 
         return new TokenStream($this->tokens, $this->source);
     }
@@ -168,7 +156,7 @@ class Lexer
                     $this->lexDollarQuoted($m[0]);
 
                 } elseif (preg_match('/\$(\d+)/A', $this->source, $m, 0, $this->position)) {
-                    $this->pushToken($m[1], Token::TYPE_POSITIONAL_PARAM, $this->position);
+                    $this->tokens[] = new Token(Token::TYPE_POSITIONAL_PARAM, $m[1], $this->position);
                     $this->position += strlen($m[0]);
 
                 } else {
@@ -178,10 +166,10 @@ class Lexer
 
             } elseif (':' === $char) {
                 if (':' === $nextChar) {
-                    $this->pushToken('::', Token::TYPE_TYPECAST, $this->position);
+                    $this->tokens[] = new Token(Token::TYPE_TYPECAST, '::', $this->position);
                     $this->position += 2;
                 } elseif ('=' === $nextChar) {
-                    $this->pushToken(':=', Token::TYPE_COLON_EQUALS, $this->position);
+                    $this->tokens[] = new Token(Token::TYPE_COLON_EQUALS, ':=', $this->position);
                     $this->position += 2;
                 } elseif (
                     preg_match(
@@ -192,10 +180,10 @@ class Lexer
                         $this->position
                     )
                 ) {
-                    $this->pushToken($m[1], Token::TYPE_NAMED_PARAM, $this->position);
+                    $this->tokens[] = new Token(Token::TYPE_NAMED_PARAM, $m[1], $this->position);
                     $this->position += strlen($m[0]);
                 } else {
-                    $this->pushToken(':', Token::TYPE_SPECIAL_CHAR, $this->position++);
+                    $this->tokens[] = new Token(Token::TYPE_SPECIAL_CHAR, ':', $this->position++);
                 }
 
             } elseif ('.' === $char) {
@@ -205,7 +193,7 @@ class Lexer
                 } elseif (ctype_digit($nextChar)) {
                     $this->lexNumeric();
                 } else {
-                    $this->pushToken('.', Token::TYPE_SPECIAL_CHAR, $this->position++);
+                    $this->tokens[] = new Token(Token::TYPE_SPECIAL_CHAR, '.', $this->position++);
                 }
 
             } elseif (ctype_digit($char)) {
@@ -215,7 +203,7 @@ class Lexer
                 $this->lexOperator();
 
             } elseif (isset($this->specialCharHash[$char])) {
-                $this->pushToken($char, Token::TYPE_SPECIAL_CHAR, $this->position++);
+                $this->tokens[] = new Token(Token::TYPE_SPECIAL_CHAR, $char, $this->position++);
 
             } elseif (
                 ('u' === $char || 'U' === $char)
@@ -252,7 +240,7 @@ class Lexer
                 $this->position
             );
         }
-        $this->pushToken(strtr($m[1], ['""' => '"']), Token::TYPE_IDENTIFIER, $this->position);
+        $this->tokens[] = new Token(Token::TYPE_IDENTIFIER, strtr($m[1], ['""' => '"']), $this->position);
         $this->position += strlen($m[0]);
     }
 
@@ -272,9 +260,9 @@ class Lexer
                 $this->position
             );
         }
-        $this->pushToken(
-            substr($this->source, $this->position + $delimiterLength, $pos - $this->position - $delimiterLength),
+        $this->tokens[] = new Token(
             Token::TYPE_STRING,
+            substr($this->source, $this->position + $delimiterLength, $pos - $this->position - $delimiterLength),
             $this->position
         );
         $this->position = $pos + $delimiterLength;
@@ -335,7 +323,7 @@ class Lexer
             $char            = '';
         } while (preg_match("/{$concat}/Ax", $this->source, $m, 0, $this->position));
 
-        $this->pushToken($value, $type, $realPosition);
+        $this->tokens[] = new Token($type, $value, $realPosition);
     }
 
     /**
@@ -352,9 +340,9 @@ class Lexer
             $this->position
         );
         if (ctype_digit($m[0])) {
-            $this->pushToken($m[0], Token::TYPE_INTEGER, $this->position);
+            $this->tokens[] = new Token(Token::TYPE_INTEGER, $m[0], $this->position);
         } else {
-            $this->pushToken($m[0], Token::TYPE_FLOAT, $this->position);
+            $this->tokens[] = new Token(Token::TYPE_FLOAT, $m[0], $this->position);
         }
         $this->position += strlen($m[0]);
     }
@@ -393,12 +381,12 @@ class Lexer
 
         $operator = substr($operator, 0, $length);
         if (1 === $length && isset($this->specialCharHash[$operator])) {
-            $this->pushToken($operator, Token::TYPE_SPECIAL_CHAR, $this->position++);
+            $this->tokens[] = new Token(Token::TYPE_SPECIAL_CHAR, $operator, $this->position++);
             return;
         }
         if (2 === $length) {
             if ('=' === $operator[0] && '>' === $operator[1]) {
-                $this->pushToken('=>', Token::TYPE_EQUALS_GREATER, $this->position);
+                $this->tokens[] = new Token(Token::TYPE_EQUALS_GREATER, '=>', $this->position);
                 $this->position += 2;
                 return;
             }
@@ -406,13 +394,13 @@ class Lexer
                 '=' === $operator[1] && ('<' === $operator[0] || '>' === $operator[0] || '!' === $operator[0])
                 || '>' === $operator[1] && '<' === $operator[0]
             ) {
-                $this->pushToken($operator, Token::TYPE_INEQUALITY, $this->position);
+                $this->tokens[] = new Token(Token::TYPE_INEQUALITY, $operator, $this->position);
                 $this->position += 2;
                 return;
             }
         }
 
-        $this->pushToken($operator, Token::TYPE_OPERATOR, $this->position);
+        $this->tokens[] = new Token(Token::TYPE_OPERATOR, $operator, $this->position);
         $this->position += $length;
     }
 
@@ -442,7 +430,7 @@ class Lexer
         // ASCII-only downcasing
         $lowcase = strtr($m[0], 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
         if (isset(Keywords::LIST[$lowcase])) {
-            $this->pushToken($lowcase, Keywords::LIST[$lowcase], $this->position);
+            $this->tokens[] = new Token(Keywords::LIST[$lowcase], $lowcase, $this->position);
 
         } else {
             if (!$this->options['ascii_only_downcasing']) {
@@ -452,7 +440,7 @@ class Lexer
                     $lowcase = strtolower($lowcase);
                 }
             }
-            $this->pushToken($lowcase, Token::TYPE_IDENTIFIER, $this->position);
+            $this->tokens[] = new Token(Token::TYPE_IDENTIFIER, $lowcase, $this->position);
         }
 
         $this->position += strlen($m[0]);
