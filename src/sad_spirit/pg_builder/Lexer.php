@@ -43,8 +43,8 @@ class Lexer
 
     private $operatorCharHash;
     private $specialCharHash;
-    private $stringPrefixCharHash;
     private $nonStandardCharHash;
+    private $baseRegexp;
 
     /**
      * Constructor, sets options for lexer
@@ -68,8 +68,34 @@ class Lexer
 
         $this->operatorCharHash     = array_flip(str_split(self::CHARS_OPERATOR));
         $this->specialCharHash      = array_flip(str_split(self::CHARS_SPECIAL));
-        $this->stringPrefixCharHash = array_flip(str_split('bBeEnNxX'));
         $this->nonStandardCharHash  = array_flip(str_split('~!@#^&|`?%'));
+
+        $uniqueSpecialChars         = array_unique(str_split(self::CHARS_SPECIAL . self::CHARS_OPERATOR));
+        $quotedSpecialChars         = preg_quote(implode('', $uniqueSpecialChars));
+        $this->baseRegexp           = <<<REGEXP
+{ 
+    --  |                           # start of single-line comment
+    /\* |                           # start of multi-line comment
+    '   |                           # string literal
+    "   |                           # double-quoted identifier
+    ([bBeEnNxX])' |                 # string literal with prefix, group 1
+
+    # positional parameter or dollar-quoted string, groups 2, 3
+    \\$(?: ( \d+ ) | ( (?: [A-Za-z\\x80-\\xFF_][A-Za-z\\x80-\\xFF_0-9]*)? )\\$ ) |
+
+    # typecast, named function argument or named parameter, group 4 
+    : (?: = | : | ( [A-Za-z\\x80-\\xFF_][A-Za-z\\x80-\\xFF_0-9]* ) ) |
+
+    # numeric constant, group 5
+    ( (?: \d+ (?: \.\d+|\.(?!.))? | \.\d+) (?: [eE][+-]\d+ )? ) |
+
+    [uU]&["'] |                     # (currently unsupported) unicode escapes
+    \.\. |                          # double dot (error outside of PL/PgSQL)
+    ([{$quotedSpecialChars}]) |     # everything that looks, well, special, group 6
+    
+    ( [A-Za-z\\x80-\\xff_][A-Za-z\\x80-\\xff_0-9$]* ) # identifier, obviously, group 7
+}Ax
+REGEXP;
     }
 
     /**
@@ -109,110 +135,124 @@ class Lexer
     private function doTokenize(): void
     {
         while ($this->position < $this->length) {
-            $char     = $this->source[$this->position];
-            $nextChar = $this->position + 1 < $this->length ? $this->source[$this->position + 1] : null;
-            if ('-' === $char && '-' === $nextChar) {
-                // single line comment, skip until newline
-                $this->position += strcspn($this->source, "\r\n", $this->position);
+            if (!preg_match($this->baseRegexp, $this->source, $m, 0, $this->position)) {
+                throw exceptions\SyntaxException::atPosition(
+                    "Unexpected '{$this->source[$this->position]}'",
+                    $this->source,
+                    $this->position
+                );
+            }
 
-            } elseif ('/' === $char && '*' === $nextChar) {
-                // multiline comment, skip
-                if (
-                    !preg_match(
-                        '!/\* ( (?>[^/*]+ | /[^*] | \*[^/] ) | (?R) )* \*/!Ax',
-                        $this->source,
-                        $m,
-                        0,
-                        $this->position
-                    )
-                ) {
-                    throw exceptions\SyntaxException::atPosition(
-                        'Unterminated /* comment',
-                        $this->source,
-                        $this->position
-                    );
+            // check for found subpatterns first
+            if (isset($m[7])) {
+                // ASCII-only downcasing
+                $lowCase = strtr($m[7], 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
+                if (isset(Keywords::LIST[$lowCase])) {
+                    $this->tokens[] = new Token(Keywords::LIST[$lowCase], $lowCase, $this->position);
+                } else {
+                    if (!$this->options['ascii_only_downcasing']) {
+                        $lowCase = extension_loaded('mbstring') ? mb_strtolower($lowCase) : strtolower($lowCase);
+                    }
+                    $this->tokens[] = new Token(Token::TYPE_IDENTIFIER, $lowCase, $this->position);
                 }
+                $this->position += strlen($m[7]);
+
+            } elseif (isset($m[6])) {
+                if (isset($this->operatorCharHash[$m[6]])) {
+                    $this->lexOperator();
+                } else {
+                    $this->tokens[] = new Token(Token::TYPE_SPECIAL_CHAR, $m[6], $this->position++);
+                }
+
+            } elseif (isset($m[5])) {
+                $this->tokens[] = new Token(
+                    ctype_digit($m[5]) ? Token::TYPE_INTEGER : Token::TYPE_FLOAT,
+                    $m[5],
+                    $this->position
+                );
+                $this->position += strlen($m[5]);
+
+            } elseif (isset($m[4])) {
+                $this->tokens[] = new Token(Token::TYPE_NAMED_PARAM, $m[4], $this->position);
                 $this->position += strlen($m[0]);
 
-            } elseif ('"' === $char) {
-                $this->lexDoubleQuoted();
+            } elseif (isset($m[3])) {
+                $this->lexDollarQuoted($m[0]);
 
-            } elseif (isset($this->stringPrefixCharHash[$char]) && "'" === $nextChar) {
-                $this->lexString(strtolower($char));
+            } elseif (isset($m[2])) {
+                $this->tokens[] = new Token(Token::TYPE_POSITIONAL_PARAM, $m[2], $this->position);
+                $this->position += strlen($m[0]);
 
-            } elseif ("'" === $char) {
-                $this->lexString();
-
-            } elseif ('$' === $char) {
-                if (
-                    preg_match(
-                        '/\$([A-Za-z\x80-\xFF_][A-Za-z\x80-\xFF_0-9]*)?\$/A',
-                        $this->source,
-                        $m,
-                        0,
-                        $this->position
-                    )
-                ) {
-                    $this->lexDollarQuoted($m[0]);
-
-                } elseif (preg_match('/\$(\d+)/A', $this->source, $m, 0, $this->position)) {
-                    $this->tokens[] = new Token(Token::TYPE_POSITIONAL_PARAM, $m[1], $this->position);
-                    $this->position += strlen($m[0]);
-
-                } else {
-                    throw exceptions\SyntaxException::atPosition("Unexpected '\$'", $this->source, $this->position);
-                }
-
-
-            } elseif (':' === $char) {
-                if (':' === $nextChar) {
-                    $this->tokens[] = new Token(Token::TYPE_TYPECAST, '::', $this->position);
-                    $this->position += 2;
-                } elseif ('=' === $nextChar) {
-                    $this->tokens[] = new Token(Token::TYPE_COLON_EQUALS, ':=', $this->position);
-                    $this->position += 2;
-                } elseif (
-                    preg_match(
-                        '/:([A-Za-z\x80-\xFF_][A-Za-z\x80-\xFF_0-9]*)/A',
-                        $this->source,
-                        $m,
-                        0,
-                        $this->position
-                    )
-                ) {
-                    $this->tokens[] = new Token(Token::TYPE_NAMED_PARAM, $m[1], $this->position);
-                    $this->position += strlen($m[0]);
-                } else {
-                    $this->tokens[] = new Token(Token::TYPE_SPECIAL_CHAR, ':', $this->position++);
-                }
-
-            } elseif ('.' === $char) {
-                if ('.' === $nextChar) {
-                    // Double dot is used only in PL/PgSQL. We don't parse that.
-                    throw exceptions\SyntaxException::atPosition("Unexpected '..'", $this->source, $this->position);
-                } elseif (ctype_digit($nextChar)) {
-                    $this->lexNumeric();
-                } else {
-                    $this->tokens[] = new Token(Token::TYPE_SPECIAL_CHAR, '.', $this->position++);
-                }
-
-            } elseif (ctype_digit($char)) {
-                $this->lexNumeric();
-
-            } elseif (isset($this->operatorCharHash[$char])) {
-                $this->lexOperator();
-
-            } elseif (isset($this->specialCharHash[$char])) {
-                $this->tokens[] = new Token(Token::TYPE_SPECIAL_CHAR, $char, $this->position++);
-
-            } elseif (
-                ('u' === $char || 'U' === $char)
-                      && preg_match('/[uU]&["\']/A', $this->source, $m, 0, $this->position)
-            ) {
-                throw new exceptions\NotImplementedException('Support for unicode escapes not implemented yet');
+            } elseif (isset($m[1])) {
+                $this->lexString(strtolower($m[1]));
 
             } else {
-                $this->lexIdentifier();
+                // now check the complete match
+                switch ($m[0]) {
+                    case '--':
+                        // single line comment, skip until newline
+                        $this->position += strcspn($this->source, "\r\n", $this->position);
+                        break;
+
+                    case '/*':
+                        // multiline comment, skip
+                        if (
+                            !preg_match(
+                                '!/\* ( (?>[^/*]+ | /[^*] | \*[^/] ) | (?R) )* \*/!Ax',
+                                $this->source,
+                                $m,
+                                0,
+                                $this->position
+                            )
+                        ) {
+                            throw exceptions\SyntaxException::atPosition(
+                                'Unterminated /* comment',
+                                $this->source,
+                                $this->position
+                            );
+                        }
+                        $this->position += strlen($m[0]);
+                        break;
+
+                    case "'":
+                        $this->lexString();
+                        break;
+
+                    case '"':
+                        $this->lexDoubleQuoted();
+                        break;
+
+                    case '::':
+                        $this->tokens[] = new Token(Token::TYPE_TYPECAST, '::', $this->position);
+                        $this->position += 2;
+                        break;
+
+                    case ':=':
+                        $this->tokens[] = new Token(Token::TYPE_COLON_EQUALS, ':=', $this->position);
+                        $this->position += 2;
+                        break;
+
+                    case '..':
+                        throw exceptions\SyntaxException::atPosition(
+                            "Unexpected '..'",
+                            $this->source,
+                            $this->position
+                        );
+
+                    default:
+                        if ('u' === $m[0][0] || 'U' === $m[0][0]) {
+                            throw new exceptions\NotImplementedException(
+                                'Support for unicode escapes not implemented yet'
+                            );
+                        } else {
+                            // should not reach this
+                            throw exceptions\SyntaxException::atPosition(
+                                "Unexpected '{$m[0]}'",
+                                $this->source,
+                                $this->position
+                            );
+                        }
+                }
             }
 
             // skip whitespace
@@ -327,27 +367,6 @@ class Lexer
     }
 
     /**
-     * Processes a numeric literal
-     */
-    private function lexNumeric(): void
-    {
-        // this will always match as lexNumeric is called on either 'digit' or '.digit'
-        preg_match(
-            '/(\d+ (\.\d+|\.(?!.))? | \.\d+) ( [eE][+-]\d+ )?/Ax',
-            $this->source,
-            $m,
-            0,
-            $this->position
-        );
-        if (ctype_digit($m[0])) {
-            $this->tokens[] = new Token(Token::TYPE_INTEGER, $m[0], $this->position);
-        } else {
-            $this->tokens[] = new Token(Token::TYPE_FLOAT, $m[0], $this->position);
-        }
-        $this->position += strlen($m[0]);
-    }
-
-    /**
      * Processes an operator
      */
     private function lexOperator(): void
@@ -402,47 +421,5 @@ class Lexer
 
         $this->tokens[] = new Token(Token::TYPE_OPERATOR, $operator, $this->position);
         $this->position += $length;
-    }
-
-    /**
-     * Processes an identifier or a keyword
-     *
-     * @throws exceptions\SyntaxException
-     */
-    private function lexIdentifier(): void
-    {
-        if (
-            !preg_match(
-                '/[A-Za-z\x80-\xff_][A-Za-z\x80-\xff_0-9\$]*/A',
-                $this->source,
-                $m,
-                0,
-                $this->position
-            )
-        ) {
-            throw exceptions\SyntaxException::atPosition(
-                "Unexpected '{$this->source[$this->position]}'",
-                $this->source,
-                $this->position
-            );
-        }
-
-        // ASCII-only downcasing
-        $lowcase = strtr($m[0], 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
-        if (isset(Keywords::LIST[$lowcase])) {
-            $this->tokens[] = new Token(Keywords::LIST[$lowcase], $lowcase, $this->position);
-
-        } else {
-            if (!$this->options['ascii_only_downcasing']) {
-                if (extension_loaded('mbstring')) {
-                    $lowcase = mb_strtolower($lowcase);
-                } else {
-                    $lowcase = strtolower($lowcase);
-                }
-            }
-            $this->tokens[] = new Token(Token::TYPE_IDENTIFIER, $lowcase, $this->position);
-        }
-
-        $this->position += strlen($m[0]);
     }
 }
