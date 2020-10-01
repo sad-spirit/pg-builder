@@ -46,7 +46,7 @@ class RelationReference extends FromElement
      *
      * @param Node $parent
      */
-    protected function setParentNode(Node $parent = null)
+    public function setParentNode(Node $parent = null): void
     {
         if ($parent && $this->parentNode && $parent !== $this->parentNode) {
             $this->parentNode->removeChild($this);

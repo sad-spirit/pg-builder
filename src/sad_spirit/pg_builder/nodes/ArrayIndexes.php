@@ -18,7 +18,6 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -28,7 +27,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property ScalarExpression|null $upper
  * @property bool                  $isSlice
  */
-class ArrayIndexes extends Node
+class ArrayIndexes extends GenericNode
 {
     public function __construct(
         ScalarExpression $lower = null,

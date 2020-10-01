@@ -18,7 +18,6 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\Statement;
 use sad_spirit\pg_builder\nodes\lists\IdentifierList;
 use sad_spirit\pg_builder\TreeWalker;
@@ -34,7 +33,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read IdentifierList $columnAliases
  * @property      bool|null      $materialized
  */
-class CommonTableExpression extends Node
+class CommonTableExpression extends GenericNode
 {
     public function __construct(
         Statement $statement,

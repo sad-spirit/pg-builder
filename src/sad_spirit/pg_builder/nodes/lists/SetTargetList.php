@@ -16,38 +16,35 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\lists;
 
-use sad_spirit\pg_builder\nodes\SetTargetElement;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\ElementParseable;
-use sad_spirit\pg_builder\Parseable;
-use sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\{
+    Node,
+    nodes\SetTargetElement,
+    exceptions\InvalidArgumentException,
+    ElementParseable,
+    Parseable,
+    Parser
+};
 
 /**
  * Represents a list of SetTargetElements, used by INSERT and UPDATE statements
  */
 class SetTargetList extends NonAssociativeList implements Parseable, ElementParseable
 {
-    protected function normalizeElement(&$offset, &$value)
+    protected static function getAllowedElementClasses(): array
     {
-        parent::normalizeElement($offset, $value);
-
-        if (!($value instanceof SetTargetElement)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s can contain only instances of SetTargetElement, %s given',
-                __CLASS__,
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
-        }
+        return [SetTargetElement::class];
     }
 
-    public static function createFromString(Parser $parser, $sql)
+    public static function createFromString(Parser $parser, string $sql): Node
     {
         return $parser->parseInsertTargetList($sql);
     }
 
-    public function createElementFromString($sql)
+    public function createElementFromString(string $sql): Node
     {
         if (!($parser = $this->getParser())) {
             throw new InvalidArgumentException("Passed a string as a list element without a Parser available");

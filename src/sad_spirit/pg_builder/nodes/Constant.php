@@ -29,7 +29,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read integer $type  Type of constant, one of Token::TYPE_* constants
  * @property-read string  $value String value of constant
  */
-class Constant extends Node implements ScalarExpression
+class Constant extends GenericNode implements ScalarExpression
 {
     public function __construct($tokenOrConstant)
     {
@@ -87,7 +87,7 @@ class Constant extends Node implements ScalarExpression
      *
      * @param Node $parent
      */
-    protected function setParentNode(Node $parent = null)
+    public function setParentNode(Node $parent = null): void
     {
         if ($parent && $this->parentNode && $parent !== $this->parentNode) {
             $this->parentNode->removeChild($this);

@@ -19,7 +19,6 @@
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\TreeWalker;
 use sad_spirit\pg_builder\nodes\expressions\LogicalExpression;
 
@@ -28,7 +27,7 @@ use sad_spirit\pg_builder\nodes\expressions\LogicalExpression;
  *
  * @property ScalarExpression|null $condition
  */
-class WhereOrHavingClause extends Node
+class WhereOrHavingClause extends GenericNode
 {
     public function __construct(ScalarExpression $condition = null)
     {

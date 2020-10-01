@@ -16,36 +16,15 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\Node;
-use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Interface for Nodes that can appear as parts of expression
  */
-interface ScalarExpression
+interface ScalarExpression extends Node
 {
-    /**
-     * Double-dispatch method supposed to call the relevant method of TreeWalker
-     *
-     * This is mostly here to make typehints of ScalarExpression work properly, all the
-     * classes implementing the interface are instances of Node anyway and thus contain
-     * this method
-     *
-     * @param TreeWalker $walker
-     * @return mixed
-     */
-    public function dispatch(TreeWalker $walker);
-
-    /**
-     * Returns the node containing current one
-     *
-     * This is mostly here to make typehints of ScalarExpression work properly, all the
-     * classes implementing the interface are instances of Node anyway and thus contain
-     * this method
-     *
-     * @return Node|null
-     */
-    public function getParentNode();
 }

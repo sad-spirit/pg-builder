@@ -16,9 +16,10 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 use sad_spirit\pg_builder\TreeWalker;
 
@@ -29,23 +30,19 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class Indirection extends NonAssociativeList implements ScalarExpression
 {
+    protected static function getAllowedElementClasses(): array
+    {
+        return [
+            Identifier::class,
+            ArrayIndexes::class,
+            Star::class
+        ];
+    }
+
     public function __construct($indirection, ScalarExpression $expression)
     {
         parent::__construct($indirection);
         $this->setNamedProperty('expression', $expression);
-    }
-
-    protected function normalizeElement(&$offset, &$value)
-    {
-        parent::normalizeElement($offset, $value);
-
-        if (!($value instanceof Identifier) && !($value instanceof ArrayIndexes) && !($value instanceof Star)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s can contain only Identifier, ArrayIndexes or Star instances, %s given',
-                __CLASS__,
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
-        }
     }
 
     public function setExpression(ScalarExpression $expression)

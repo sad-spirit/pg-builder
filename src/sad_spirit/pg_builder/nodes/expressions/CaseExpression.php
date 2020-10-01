@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\{
+    nodes\ScalarExpression,
+    exceptions\InvalidArgumentException,
+    TreeWalker
+};
 use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents a CASE expression (with or without argument)
@@ -31,6 +35,11 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class CaseExpression extends NonAssociativeList implements ScalarExpression
 {
+    protected static function getAllowedElementClasses(): array
+    {
+        return [WhenExpression::class];
+    }
+
     public function __construct($whenClauses, ScalarExpression $elseClause = null, ScalarExpression $argument = null)
     {
         parent::__construct($whenClauses);
@@ -49,19 +58,6 @@ class CaseExpression extends NonAssociativeList implements ScalarExpression
     public function setElse(ScalarExpression $elseClause = null)
     {
         $this->setNamedProperty('else', $elseClause);
-    }
-
-    protected function normalizeElement(&$offset, &$value)
-    {
-        parent::normalizeElement($offset, $value);
-
-        if (!($value instanceof WhenExpression)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s can contain only instances of WhenExpression, %s given',
-                __CLASS__,
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
-        }
     }
 
     public function dispatch(TreeWalker $walker)

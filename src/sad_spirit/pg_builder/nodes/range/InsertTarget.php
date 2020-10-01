@@ -19,6 +19,7 @@
 namespace sad_spirit\pg_builder\nodes\range;
 
 use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\Identifier;
 use sad_spirit\pg_builder\nodes\QualifiedName;
 use sad_spirit\pg_builder\TreeWalker;
@@ -32,7 +33,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read QualifiedName   $relation
  * @property-read Identifier|null $alias
  */
-class InsertTarget extends Node
+class InsertTarget extends GenericNode
 {
     public function __construct(QualifiedName $relation, Identifier $alias = null)
     {
@@ -50,7 +51,7 @@ class InsertTarget extends Node
      *
      * @param Node $parent
      */
-    protected function setParentNode(Node $parent = null)
+    public function setParentNode(Node $parent = null): void
     {
         if ($parent && $this->parentNode && $parent !== $this->parentNode) {
             $this->parentNode->removeChild($this);

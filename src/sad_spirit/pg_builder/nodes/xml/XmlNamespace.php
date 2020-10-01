@@ -18,7 +18,7 @@
 
 namespace sad_spirit\pg_builder\nodes\xml;
 
-use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\nodes\Identifier;
 use sad_spirit\pg_builder\TreeWalker;
@@ -29,7 +29,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property ScalarExpression $value
  * @property Identifier|null  $alias
  */
-class XmlNamespace extends Node
+class XmlNamespace extends GenericNode
 {
     public function __construct(ScalarExpression $value, Identifier $alias = null)
     {

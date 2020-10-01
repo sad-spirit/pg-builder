@@ -18,7 +18,6 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
 
@@ -30,7 +29,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read WindowFrameBound|null $end
  * @property-read string|null           $exclusion
  */
-class WindowFrameClause extends Node
+class WindowFrameClause extends GenericNode
 {
     protected static $allowedTypes = [
         'range'  => true,

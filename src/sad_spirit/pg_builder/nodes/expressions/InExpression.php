@@ -18,7 +18,7 @@
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\SelectCommon;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\nodes\lists\ExpressionList;
@@ -34,7 +34,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property      SelectCommon|ExpressionList $right
  * @property-read string                      $operator
  */
-class InExpression extends Node implements ScalarExpression
+class InExpression extends GenericNode implements ScalarExpression
 {
     public function __construct(ScalarExpression $left, $right, $operator = 'in')
     {

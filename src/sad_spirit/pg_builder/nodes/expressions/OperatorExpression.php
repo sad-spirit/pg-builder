@@ -19,7 +19,7 @@
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\TreeWalker;
 
@@ -37,7 +37,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property      ScalarExpression|null $right
  * @property-read string                $operator
  */
-class OperatorExpression extends Node implements ScalarExpression
+class OperatorExpression extends GenericNode implements ScalarExpression
 {
     public function __construct($operator, ScalarExpression $left = null, ScalarExpression $right = null)
     {

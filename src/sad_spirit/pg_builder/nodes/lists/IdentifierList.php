@@ -16,29 +16,31 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\lists;
 
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\{
+    Node,
+    nodes\Identifier,
+    Token
+};
 
 /**
  * List of identifiers, may appear in alias for FROM element
  */
 class IdentifierList extends NonAssociativeList
 {
-    protected function normalizeElement(&$offset, &$value)
+    protected static function getAllowedElementClasses(): array
     {
-        parent::normalizeElement($offset, $value);
+        return [Identifier::class];
+    }
 
-        if (is_string($value)) {
+    protected function prepareListElement($value): Node
+    {
+        if (is_string($value) || $value instanceof Token) {
             $value = new Identifier($value);
         }
-        if (!($value instanceof Identifier)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s can contain only instances of Identifier, %s given',
-                __CLASS__,
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
-        }
+        return parent::prepareListElement($value);
     }
 }

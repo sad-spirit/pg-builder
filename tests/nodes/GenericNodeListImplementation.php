@@ -18,20 +18,17 @@
 
 declare(strict_types=1);
 
-namespace sad_spirit\pg_builder;
+namespace sad_spirit\pg_builder\tests\nodes;
+
+use sad_spirit\pg_builder\nodes\lists\GenericNodeList;
 
 /**
- * Interface for Nodes that can be created from an SQL string representation
+ * A non-abstract subclass of GenericNodeList
  */
-interface Parseable
+class GenericNodeListImplementation extends GenericNodeList
 {
-    /**
-     * Parses the SQL returning an AST for the relevant element
-     *
-     * @param Parser $parser
-     * @param string $sql
-     * @return Node
-     * @throws exceptions\SyntaxException
-     */
-    public static function createFromString(Parser $parser, string $sql): Node;
+    protected function convertToArray($list, string $method): array
+    {
+        return [];
+    }
 }

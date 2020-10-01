@@ -18,7 +18,6 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
 
@@ -34,7 +33,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read string|null                 $direction
  * @property-read string|null                 $nullsOrder
  */
-class IndexElement extends Node
+class IndexElement extends GenericNode
 {
     public function __construct(
         $expression,

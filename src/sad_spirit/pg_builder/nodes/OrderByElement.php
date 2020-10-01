@@ -18,7 +18,6 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
 
@@ -30,7 +29,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read string           $nullsOrder
  * @property-read string           $operator
  */
-class OrderByElement extends Node
+class OrderByElement extends GenericNode
 {
     public function __construct(ScalarExpression $expression, $direction = null, $nullsOrder = null, $operator = null)
     {

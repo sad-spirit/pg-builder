@@ -18,12 +18,15 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
+use sad_spirit\pg_builder\{
+    Node,
+    exceptions\InvalidArgumentException,
+    TreeWalker,
+    Parseable,
+    ElementParseable,
+    Parser
+};
 use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\TreeWalker;
-use sad_spirit\pg_builder\Parseable;
-use sad_spirit\pg_builder\ElementParseable;
-use sad_spirit\pg_builder\Parser;
 
 /**
  * WITH clause containing common table expressions
@@ -32,23 +35,15 @@ use sad_spirit\pg_builder\Parser;
  */
 class WithClause extends NonAssociativeList implements Parseable, ElementParseable
 {
+    protected static function getAllowedElementClasses(): array
+    {
+        return [CommonTableExpression::class];
+    }
+
     public function __construct($ctes, $recursive = false)
     {
         parent::__construct($ctes);
         $this->setRecursive($recursive);
-    }
-
-    protected function normalizeElement(&$offset, &$value)
-    {
-        parent::normalizeElement($offset, $value);
-
-        if (!($value instanceof CommonTableExpression)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s can contain only instances of CommonTableExpression, %s given',
-                __CLASS__,
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
-        }
     }
 
     public function dispatch(TreeWalker $walker)
@@ -56,7 +51,7 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
         return $walker->walkWithClause($this);
     }
 
-    public function createElementFromString($sql)
+    public function createElementFromString(string $sql): Node
     {
         if (!($parser = $this->getParser())) {
             throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
@@ -64,27 +59,38 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
         return $parser->parseCommonTableExpression($sql);
     }
 
-    public static function createFromString(Parser $parser, $sql)
+    public static function createFromString(Parser $parser, string $sql): Node
     {
         return $parser->parseWithClause($sql);
     }
 
-    /**
-     * When merging two WITH clauses also set the 'recursive' property of the target one
-     *
-     * @param array|string|\Traversable $array
-     * @param string                    $method
-     */
-    protected function normalizeArray(&$array, $method)
+    public function merge(...$lists): void
     {
-        parent::normalizeArray($array, $method);
-        if ($array instanceof WithClause && $array->recursive) {
+        $addRecursive = false;
+        foreach ($lists as $list) {
+            $addRecursive = $addRecursive || $list instanceof self && $list->recursive;
+        }
+
+        parent::merge($lists);
+
+        if ($addRecursive) {
             $this->props['recursive'] = true;
         }
     }
 
-    public function setRecursive($recursive)
+    public function replace($list): void
     {
-        $this->props['recursive'] = (bool)$recursive;
+        $addRecursive = $list instanceof self && $list->recursive;
+
+        parent::replace($list);
+
+        if ($addRecursive) {
+            $this->props['recursive'] = true;
+        }
+    }
+
+    public function setRecursive(bool $recursive)
+    {
+        $this->props['recursive'] = $recursive;
     }
 }

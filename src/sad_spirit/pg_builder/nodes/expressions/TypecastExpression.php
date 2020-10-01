@@ -18,7 +18,7 @@
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\TypeName;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\TreeWalker;
@@ -34,7 +34,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property      ScalarExpression $argument
  * @property-read TypeName         $type
  */
-class TypecastExpression extends Node implements ScalarExpression
+class TypecastExpression extends GenericNode implements ScalarExpression
 {
     public function __construct(ScalarExpression $argument, TypeName $type)
     {

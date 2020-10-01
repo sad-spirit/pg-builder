@@ -18,7 +18,7 @@
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\SelectCommon;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
@@ -30,7 +30,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property      SelectCommon $query
  * @property-read string|null  $operator
  */
-class SubselectExpression extends Node implements ScalarExpression
+class SubselectExpression extends GenericNode implements ScalarExpression
 {
     protected static $allowedExpressions = [
         'exists' => true,

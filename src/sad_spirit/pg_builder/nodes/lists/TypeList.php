@@ -16,26 +16,19 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\lists;
 
 use sad_spirit\pg_builder\nodes\TypeName;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * List of type names (only appears in IS OF?)
  */
 class TypeList extends NonAssociativeList
 {
-    protected function normalizeElement(&$offset, &$value)
+    protected static function getAllowedElementClasses(): array
     {
-        parent::normalizeElement($offset, $value);
-
-        if (!($value instanceof TypeName)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s can contain only instances of TypeName, %s given',
-                __CLASS__,
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
-        }
+        return [TypeName::class];
     }
 }

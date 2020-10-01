@@ -18,7 +18,6 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
 
@@ -28,7 +27,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read SetTargetElement              $column
  * @property      ScalarExpression|SetToDefault $value
  */
-class SingleSetClause extends Node
+class SingleSetClause extends GenericNode
 {
     public function __construct(SetTargetElement $column, $value)
     {

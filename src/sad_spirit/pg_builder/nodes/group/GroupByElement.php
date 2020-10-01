@@ -16,11 +16,15 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\group;
+
+use sad_spirit\pg_builder\Node;
 
 /**
  * Interface for non-ScalarExpression Nodes that can appear in GROUP BY clause
  */
-interface GroupByElement
+interface GroupByElement extends Node
 {
 }

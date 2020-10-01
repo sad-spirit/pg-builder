@@ -18,7 +18,7 @@
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
@@ -31,7 +31,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property      ScalarExpression $right
  * @property-read string           $operator
  */
-class BetweenExpression extends Node implements ScalarExpression
+class BetweenExpression extends GenericNode implements ScalarExpression
 {
     protected static $allowedOperators = [
         'between symmetric'      => true,

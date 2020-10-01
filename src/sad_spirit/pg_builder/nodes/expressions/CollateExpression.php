@@ -18,7 +18,7 @@
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\QualifiedName;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\TreeWalker;
@@ -29,7 +29,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property      ScalarExpression $argument
  * @property-read QualifiedName    $collation
  */
-class CollateExpression extends Node implements ScalarExpression
+class CollateExpression extends GenericNode implements ScalarExpression
 {
     public function __construct(ScalarExpression $argument, QualifiedName $collation)
     {

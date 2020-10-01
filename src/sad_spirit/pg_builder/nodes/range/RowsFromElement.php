@@ -18,8 +18,8 @@
 
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\nodes\FunctionCall as BaseFunctionCall;
+use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\lists\ColumnDefinitionList;
 use sad_spirit\pg_builder\TreeWalker;
 
@@ -31,7 +31,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read BaseFunctionCall     $function
  * @property      ColumnDefinitionList $columnAliases
  */
-class RowsFromElement extends Node
+class RowsFromElement extends GenericNode
 {
     public function __construct(BaseFunctionCall $function, ColumnDefinitionList $columnAliases = null)
     {

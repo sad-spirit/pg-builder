@@ -19,12 +19,13 @@
 namespace sad_spirit\pg_builder\nodes\group;
 
 use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing empty grouping set '()' in GROUP BY clause
  */
-class EmptyGroupingSet extends Node implements GroupByElement
+class EmptyGroupingSet extends GenericNode implements GroupByElement
 {
     public function dispatch(TreeWalker $walker)
     {
@@ -36,7 +37,7 @@ class EmptyGroupingSet extends Node implements GroupByElement
      *
      * @param Node $parent
      */
-    protected function setParentNode(Node $parent = null)
+    public function setParentNode(Node $parent = null): void
     {
         if ($parent && $this->parentNode && $parent !== $this->parentNode) {
             $this->parentNode->removeChild($this);

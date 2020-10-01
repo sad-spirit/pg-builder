@@ -16,10 +16,11 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -33,6 +34,14 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class SetTargetElement extends NonAssociativeList
 {
+    protected static function getAllowedElementClasses(): array
+    {
+        return [
+            Identifier::class,
+            ArrayIndexes::class
+        ];
+    }
+
     public function __construct($name, array $indirection = [])
     {
         parent::__construct($indirection);
@@ -45,19 +54,6 @@ class SetTargetElement extends NonAssociativeList
             $name = new Identifier($name);
         }
         $this->setNamedProperty('name', $name);
-    }
-
-    protected function normalizeElement(&$offset, &$value)
-    {
-        parent::normalizeElement($offset, $value);
-
-        if (!($value instanceof Identifier) && !($value instanceof ArrayIndexes)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s can contain only Identifier or ArrayIndexes instances, %s given',
-                __CLASS__,
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
-        }
     }
 
     public function dispatch(TreeWalker $walker)

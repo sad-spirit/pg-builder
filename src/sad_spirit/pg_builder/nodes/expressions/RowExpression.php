@@ -16,30 +16,38 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\expressions;
 
+use sad_spirit\pg_builder\{
+    Node,
+    nodes\ScalarExpression,
+    nodes\SetToDefault,
+    TreeWalker,
+    Parser
+};
 use sad_spirit\pg_builder\nodes\lists\ExpressionList;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\TreeWalker;
-use sad_spirit\pg_builder\Parser;
 
 /**
  * Represents a ROW(...) constructor expression
  */
 class RowExpression extends ExpressionList implements ScalarExpression
 {
-    /**
-     * SetToDefault nodes should be allowed in RowExpressions
-     * @var bool
-     */
-    protected $allowDefault = true;
+    protected static function getAllowedElementClasses(): array
+    {
+        return [
+            ScalarExpression::class,
+            SetToDefault::class
+        ];
+    }
 
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkRowExpression($this);
     }
 
-    public static function createFromString(Parser $parser, $sql)
+    public static function createFromString(Parser $parser, string $sql): Node
     {
         return $parser->parseRowConstructor($sql);
     }

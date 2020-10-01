@@ -18,31 +18,36 @@
 
 declare(strict_types=1);
 
-namespace sad_spirit\pg_builder\nodes\lists;
+namespace sad_spirit\pg_builder\tests\nodes;
 
 use sad_spirit\pg_builder\{
+    ElementParseable,
+    exceptions\InvalidArgumentException,
     Node,
     nodes\ScalarExpression,
-    exceptions\InvalidArgumentException,
+    nodes\SetToDefault,
     Parseable,
-    ElementParseable,
     Parser
 };
-use sad_spirit\pg_builder\nodes\group\GroupByElement;
+use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 
 /**
- * List of elements appearing in GROUP BY clause
- *
- * The list can contain either expressions or special constructs like CUBE(), ROLLUP() and GROUPING SETS()
+ * An implementation of NonAssociativeList, behaves similar to ExpressionList
  */
-class GroupByList extends NonAssociativeList implements Parseable, ElementParseable
+class NonAssociativeListImplementation extends NonAssociativeList implements Parseable, ElementParseable
 {
-    protected static function getAllowedElementClasses(): array
+    /** @var Parser|null */
+    private $parser;
+
+    public function __construct($list = null, Parser $parser = null)
     {
-        return [
-            ScalarExpression::class,
-            GroupByElement::class
-        ];
+        $this->parser = $parser;
+        parent::__construct($list);
+    }
+
+    public function getParser(): ?Parser
+    {
+        return $this->parser;
     }
 
     public function createElementFromString(string $sql): Node
@@ -50,11 +55,19 @@ class GroupByList extends NonAssociativeList implements Parseable, ElementParsea
         if (!($parser = $this->getParser())) {
             throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
         }
-        return $parser->parseGroupByElement($sql);
+        return $parser->parseExpressionWithDefault($sql);
     }
 
     public static function createFromString(Parser $parser, string $sql): Node
     {
-        return $parser->parseGroupByList($sql);
+        return $parser->parseExpressionList($sql);
+    }
+
+    protected static function getAllowedElementClasses(): array
+    {
+        return [
+            ScalarExpression::class,
+            SetToDefault::class
+        ];
     }
 }

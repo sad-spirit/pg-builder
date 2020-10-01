@@ -31,7 +31,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read Identifier|null $relation
  * @property-read Identifier|Star $column
  */
-class ColumnReference extends Node implements ScalarExpression
+class ColumnReference extends GenericNode implements ScalarExpression
 {
     /** @noinspection PhpMissingBreakStatementInspection */
     public function __construct(array $parts)
@@ -95,7 +95,7 @@ class ColumnReference extends Node implements ScalarExpression
      *
      * @param Node $parent
      */
-    protected function setParentNode(Node $parent = null)
+    public function setParentNode(Node $parent = null): void
     {
         if ($parent && $this->parentNode && $parent !== $this->parentNode) {
             $this->parentNode->removeChild($this);

@@ -16,14 +16,18 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\lists;
 
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\nodes\SetToDefault;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\Parseable;
-use sad_spirit\pg_builder\ElementParseable;
-use sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\{
+    Node,
+    nodes\ScalarExpression,
+    exceptions\InvalidArgumentException,
+    Parseable,
+    ElementParseable,
+    Parser
+};
 
 /**
  * List of scalar expressions, may appear e.g. in row constructors
@@ -39,38 +43,22 @@ use sad_spirit\pg_builder\Parser;
  */
 class ExpressionList extends NonAssociativeList implements Parseable, ElementParseable
 {
-    /**
-     * Whether to allow SetToDefault nodes in list
-     * @var bool
-     */
-    protected $allowDefault = false;
-
-    protected function normalizeElement(&$offset, &$value)
+    protected static function getAllowedElementClasses(): array
     {
-        parent::normalizeElement($offset, $value);
-
-        if (
-            !($value instanceof ScalarExpression)
-            && (!$this->allowDefault || !($value instanceof SetToDefault))
-        ) {
-            throw new InvalidArgumentException(sprintf(
-                '%s can contain only instances of ScalarExpression'
-                . ($this->allowDefault ? ' or SetToDefault' : '') . ', %s given',
-                __CLASS__,
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
-        }
+        return [ScalarExpression::class];
     }
 
-    public function createElementFromString($sql)
+    public function createElementFromString(string $sql): Node
     {
         if (!($parser = $this->getParser())) {
             throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
         }
-        return $this->allowDefault ? $parser->parseExpressionWithDefault($sql) : $parser->parseExpression($sql);
+        return count(static::getAllowedElementClasses()) > 1
+            ? $parser->parseExpressionWithDefault($sql)
+            : $parser->parseExpression($sql);
     }
 
-    public static function createFromString(Parser $parser, $sql)
+    public static function createFromString(Parser $parser, string $sql): Node
     {
         return $parser->parseExpressionList($sql);
     }

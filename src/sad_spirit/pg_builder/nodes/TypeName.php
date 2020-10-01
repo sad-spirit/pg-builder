@@ -31,7 +31,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read QualifiedName    $name
  * @property-read TypeModifierList $modifiers
  */
-class TypeName extends Node
+class TypeName extends GenericNode
 {
     public function __construct(QualifiedName $typeName, TypeModifierList $typeModifiers = null)
     {
@@ -72,7 +72,7 @@ class TypeName extends Node
      *
      * @param Node $parent
      */
-    protected function setParentNode(Node $parent = null)
+    public function setParentNode(Node $parent = null): void
     {
         if ($parent && $this->parentNode && $parent !== $this->parentNode) {
             $this->parentNode->removeChild($this);

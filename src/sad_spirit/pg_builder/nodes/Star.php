@@ -24,7 +24,7 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * Represents a '*' meaning "all fields"
  */
-class Star extends Node
+class Star extends GenericNode
 {
     /**
      * This is only used for constructing exception messages
@@ -46,7 +46,7 @@ class Star extends Node
      *
      * @param Node $parent
      */
-    protected function setParentNode(Node $parent = null)
+    public function setParentNode(Node $parent = null): void
     {
         if ($parent && $this->parentNode && $parent !== $this->parentNode) {
             $this->parentNode->removeChild($this);

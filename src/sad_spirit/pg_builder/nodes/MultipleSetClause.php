@@ -18,7 +18,6 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\nodes\lists\SetTargetList;
 use sad_spirit\pg_builder\TreeWalker;
 
@@ -32,7 +31,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property SetTargetList    $columns
  * @property ScalarExpression $value
  */
-class MultipleSetClause extends Node
+class MultipleSetClause extends GenericNode
 {
     public function __construct(SetTargetList $columns, ScalarExpression $value)
     {

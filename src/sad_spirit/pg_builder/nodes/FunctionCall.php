@@ -18,7 +18,6 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\nodes\lists\OrderByList;
 use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
@@ -37,7 +36,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read bool                      $variadic
  * @property      OrderByList               $order
  */
-class FunctionCall extends Node
+class FunctionCall extends GenericNode
 {
     public function __construct(
         $funcName,

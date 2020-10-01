@@ -18,7 +18,7 @@
 
 namespace sad_spirit\pg_builder\nodes\xml;
 
-use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
@@ -30,7 +30,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property      ScalarExpression|null $version
  * @property-read string|null           $standalone
  */
-class XmlRoot extends Node implements ScalarExpression
+class XmlRoot extends GenericNode implements ScalarExpression
 {
     protected static $standaloneOptions = [
         'yes'      => true,

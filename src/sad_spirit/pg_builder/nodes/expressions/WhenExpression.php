@@ -18,8 +18,10 @@
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\exceptions\NotImplementedException;
+use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Part of a CASE expression: WHEN Expression THEN Expression
@@ -27,7 +29,7 @@ use sad_spirit\pg_builder\nodes\ScalarExpression;
  * @property ScalarExpression $when
  * @property ScalarExpression $then
  */
-class WhenExpression extends Node
+class WhenExpression extends GenericNode
 {
     public function __construct(ScalarExpression $when, ScalarExpression $then)
     {
@@ -43,5 +45,10 @@ class WhenExpression extends Node
     public function setThen(ScalarExpression $then)
     {
         $this->setNamedProperty('then', $then);
+    }
+
+    public function dispatch(TreeWalker $walker)
+    {
+        throw new NotImplementedException('Dispatch for ' . __CLASS__ . ' not implemented');
     }
 }

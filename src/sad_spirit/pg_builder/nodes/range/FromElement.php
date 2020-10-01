@@ -19,7 +19,7 @@
 namespace sad_spirit\pg_builder\nodes\range;
 
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\Identifier;
 use sad_spirit\pg_builder\nodes\QualifiedName;
 use sad_spirit\pg_builder\nodes\lists\IdentifierList;
@@ -30,7 +30,7 @@ use sad_spirit\pg_builder\nodes\lists\IdentifierList;
  * @property-read Identifier|null     $tableAlias
  * @property      IdentifierList|null $columnAliases
  */
-abstract class FromElement extends Node
+abstract class FromElement extends GenericNode
 {
     protected $props = [
         'tableAlias'    => null,

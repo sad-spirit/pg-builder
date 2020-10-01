@@ -24,7 +24,7 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing DEFAULT keyword in INSERT and UPDATE statements
  */
-class SetToDefault extends Node
+class SetToDefault extends GenericNode
 {
     public function dispatch(TreeWalker $walker)
     {
@@ -36,7 +36,7 @@ class SetToDefault extends Node
      *
      * @param Node $parent
      */
-    protected function setParentNode(Node $parent = null)
+    public function setParentNode(Node $parent = null): void
     {
         if ($parent && $this->parentNode && $parent !== $this->parentNode) {
             $this->parentNode->removeChild($this);

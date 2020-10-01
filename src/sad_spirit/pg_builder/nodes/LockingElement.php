@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\{
+    Node,
+    exceptions\InvalidArgumentException,
+    TreeWalker
+};
 use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node for locking options in SELECT clause
@@ -32,6 +36,11 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class LockingElement extends NonAssociativeList
 {
+    protected static function getAllowedElementClasses(): array
+    {
+        return [QualifiedName::class];
+    }
+
     protected static $allowedStrengths = [
         'update'        => true,
         'no key update' => true,
@@ -54,19 +63,6 @@ class LockingElement extends NonAssociativeList
         parent::__construct($relations);
     }
 
-    protected function normalizeElement(&$offset, &$value)
-    {
-        parent::normalizeElement($offset, $value);
-
-        if (!($value instanceof QualifiedName)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s can contain only instances of QualifiedName, %s given',
-                __CLASS__,
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
-        }
-    }
-
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkLockingElement($this);
@@ -77,7 +73,7 @@ class LockingElement extends NonAssociativeList
      *
      * @param Node $parent
      */
-    protected function setParentNode(Node $parent = null)
+    public function setParentNode(Node $parent = null): void
     {
         if ($parent && $this->parentNode && $parent !== $this->parentNode) {
             $this->parentNode->removeChild($this);

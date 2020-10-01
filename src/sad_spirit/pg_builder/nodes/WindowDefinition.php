@@ -18,7 +18,6 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\nodes\lists\ExpressionList;
 use sad_spirit\pg_builder\nodes\lists\OrderByList;
 use sad_spirit\pg_builder\TreeWalker;
@@ -32,7 +31,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property      OrderByList            $order
  * @property-read WindowFrameClause|null $frame
  */
-class WindowDefinition extends Node
+class WindowDefinition extends GenericNode
 {
     public function __construct(
         Identifier $refName = null,

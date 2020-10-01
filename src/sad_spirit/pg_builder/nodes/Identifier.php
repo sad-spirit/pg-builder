@@ -28,7 +28,7 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  *
  * @property-read string $value
  */
-class Identifier extends Node
+class Identifier extends GenericNode
 {
     public function __construct($tokenOrValue)
     {
@@ -70,7 +70,7 @@ class Identifier extends Node
      *
      * @param Node $parent
      */
-    protected function setParentNode(Node $parent = null)
+    public function setParentNode(Node $parent = null): void
     {
         if ($parent && $this->parentNode && $parent !== $this->parentNode) {
             $this->parentNode->removeChild($this);

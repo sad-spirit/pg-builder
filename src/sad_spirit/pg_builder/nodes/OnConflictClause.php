@@ -18,7 +18,6 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\nodes\lists\SetClauseList;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
@@ -31,7 +30,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property      SetClauseList                   $set
  * @property-read WhereOrHavingClause             $where
  */
-class OnConflictClause extends Node
+class OnConflictClause extends GenericNode
 {
     public function __construct($action, $target = null, SetClauseList $set = null, ScalarExpression $condition = null)
     {

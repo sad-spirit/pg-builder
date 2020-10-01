@@ -16,33 +16,30 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\lists;
 
-use sad_spirit\pg_builder\nodes\LockingElement;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\Parseable;
-use sad_spirit\pg_builder\ElementParseable;
-use sad_spirit\pg_builder\Parser;
+use sad_spirit\pg_builder\{
+    Node,
+    nodes\LockingElement,
+    exceptions\InvalidArgumentException,
+    Parseable,
+    ElementParseable,
+    Parser
+};
 
 /**
  * List of locking clauses attached to SELECT
  */
 class LockList extends NonAssociativeList implements Parseable, ElementParseable
 {
-    protected function normalizeElement(&$offset, &$value)
+    protected static function getAllowedElementClasses(): array
     {
-        parent::normalizeElement($offset, $value);
-
-        if (!($value instanceof LockingElement)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s can contain only instances of LockingElement, %s given',
-                __CLASS__,
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
-        }
+        return [LockingElement::class];
     }
 
-    public function createElementFromString($sql)
+    public function createElementFromString(string $sql): Node
     {
         if (!($parser = $this->getParser())) {
             throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
@@ -50,7 +47,7 @@ class LockList extends NonAssociativeList implements Parseable, ElementParseable
         return $parser->parseLockingElement($sql);
     }
 
-    public static function createFromString(Parser $parser, $sql)
+    public static function createFromString(Parser $parser, string $sql): Node
     {
         return $parser->parseLockingList($sql);
     }

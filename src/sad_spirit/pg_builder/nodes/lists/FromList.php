@@ -16,33 +16,30 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\lists;
 
+use sad_spirit\pg_builder\{
+    Node,
+    exceptions\InvalidArgumentException,
+    Parseable,
+    ElementParseable,
+    Parser
+};
 use sad_spirit\pg_builder\nodes\range\FromElement;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\Parseable;
-use sad_spirit\pg_builder\ElementParseable;
-use sad_spirit\pg_builder\Parser;
 
 /**
  * List of elements appearing in FROM clause
  */
 class FromList extends NonAssociativeList implements Parseable, ElementParseable
 {
-    protected function normalizeElement(&$offset, &$value)
+    protected static function getAllowedElementClasses(): array
     {
-        parent::normalizeElement($offset, $value);
-
-        if (!($value instanceof FromElement)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s can contain only instances of FromElement, %s given',
-                __CLASS__,
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
-        }
+        return [FromElement::class];
     }
 
-    public function createElementFromString($sql)
+    public function createElementFromString(string $sql): Node
     {
         if (!($parser = $this->getParser())) {
             throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
@@ -50,7 +47,7 @@ class FromList extends NonAssociativeList implements Parseable, ElementParseable
         return $parser->parseFromElement($sql);
     }
 
-    public static function createFromString(Parser $parser, $sql)
+    public static function createFromString(Parser $parser, string $sql): Node
     {
         return $parser->parseFromList($sql);
     }

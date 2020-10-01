@@ -16,36 +16,38 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\lists;
 
+use sad_spirit\pg_builder\{
+    Node,
+    exceptions\InvalidArgumentException,
+    Parseable,
+    ElementParseable,
+    Parser
+};
 use sad_spirit\pg_builder\nodes\expressions\RowExpression;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\Parseable;
-use sad_spirit\pg_builder\ElementParseable;
-use sad_spirit\pg_builder\Parser;
 
 /**
  * A list of row expressions, base for VALUES statement
  */
 class RowList extends NonAssociativeList implements Parseable, ElementParseable
 {
-    protected function normalizeElement(&$offset, &$value)
+    protected static function getAllowedElementClasses(): array
     {
-        parent::normalizeElement($offset, $value);
-
-        if (is_array($value)) {
-            $value = new RowExpression($value);
-
-        } elseif (!($value instanceof RowExpression)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s can contain only instances of RowExpression, %s given',
-                __CLASS__,
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
-        }
+        return [RowExpression::class];
     }
 
-    public function createElementFromString($sql)
+    protected function prepareListElement($value): Node
+    {
+        if (is_array($value)) {
+            $value = new RowExpression($value);
+        }
+        return parent::prepareListElement($value);
+    }
+
+    public function createElementFromString(string $sql): Node
     {
         if (!($parser = $this->getParser())) {
             throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
@@ -53,7 +55,7 @@ class RowList extends NonAssociativeList implements Parseable, ElementParseable
         return $parser->parseRowConstructorNoKeyword($sql);
     }
 
-    public static function createFromString(Parser $parser, $sql)
+    public static function createFromString(Parser $parser, string $sql): Node
     {
         return $parser->parseRowList($sql);
     }

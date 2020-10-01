@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder;
 
 /**
@@ -30,5 +32,5 @@ interface ElementParseable
      * @return Node
      * @throws exceptions\SyntaxException
      */
-    public function createElementFromString($sql);
+    public function createElementFromString(string $sql): Node;
 }

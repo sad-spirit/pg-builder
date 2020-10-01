@@ -29,9 +29,9 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class CubeOrRollupClause extends ExpressionList implements GroupByElement
 {
-    public function __construct($array = null, $type = 'cube')
+    public function __construct($list = null, $type = 'cube')
     {
-        parent::__construct($array);
+        parent::__construct($list);
         $this->setType($type);
     }
 

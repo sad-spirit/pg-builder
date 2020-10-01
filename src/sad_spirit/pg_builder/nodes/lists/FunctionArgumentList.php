@@ -16,27 +16,35 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\lists;
 
 use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\NodeList;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * List of function arguments, unlike most other lists can contain associative keys
  */
-class FunctionArgumentList extends NodeList
+class FunctionArgumentList extends GenericNodeList
 {
-    protected function normalizeElement(&$offset, &$value)
+    protected static function getAllowedElementClasses(): array
     {
-        if (!($value instanceof ScalarExpression)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s can contain only instances of ScalarExpression, %s given',
-                __CLASS__,
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
+        return [ScalarExpression::class];
+    }
+
+    /**
+     * Converts the incoming $list to an array of Nodes keeping the keys information
+     *
+     * {@inheritDoc}
+     */
+    protected function convertToArray($list, string $method): array
+    {
+        $prepared = [];
+        foreach ($this->prepareList($list, $method) as $k => $v) {
+            $prepared[$k] = $this->prepareListElement($v);
         }
+        return $prepared;
     }
 
     public function dispatch(TreeWalker $walker)

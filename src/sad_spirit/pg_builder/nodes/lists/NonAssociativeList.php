@@ -16,29 +16,45 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\lists;
 
-use sad_spirit\pg_builder\ElementParseable;
-use sad_spirit\pg_builder\NodeList;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
- * Only allows numeric indexes in arrays
+ * Only allows non-negative integer indexes in arrays
  */
-abstract class NonAssociativeList extends NodeList
+abstract class NonAssociativeList extends GenericNodeList
 {
-    protected function normalizeElement(&$offset, &$value)
+    /**
+     * Forbids using non-numeric strings and negative integers for array keys
+     *
+     * {@inheritDoc}
+     */
+    public function offsetSet($offset, $value)
     {
-        if (!is_null($offset)) {
-            if (!ctype_digit((string)$offset)) {
-                throw new InvalidArgumentException("Nonnegative numeric offsets expected, '{$offset}' given");
-            } elseif (!is_int($offset)) {
+        if (null !== $offset && (!is_int($offset) || $offset < 0)) {
+            if (!is_int($offset) && ctype_digit((string)$offset)) {
                 $offset = (int)$offset;
+            } else {
+                throw new InvalidArgumentException("Non-negative integer offsets expected, '{$offset}' given");
             }
         }
+        parent::offsetSet($offset, $value);
+    }
 
-        if (is_string($value) && $this instanceof ElementParseable) {
-            $value = $this->createElementFromString($value);
+    /**
+     * Converts the incoming $list to an array of Nodes dropping the keys information
+     *
+     * {@inheritDoc}
+     */
+    protected function convertToArray($list, string $method): array
+    {
+        $prepared = [];
+        foreach ($this->prepareList($list, $method) as $value) {
+            $prepared[] = $this->prepareListElement($value);
         }
+        return $prepared;
     }
 }

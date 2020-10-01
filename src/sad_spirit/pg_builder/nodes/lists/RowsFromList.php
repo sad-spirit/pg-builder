@@ -16,26 +16,19 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\lists;
 
 use sad_spirit\pg_builder\nodes\range\RowsFromElement;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * List of elements appearing in ROWS FROM(...) construct
  */
 class RowsFromList extends NonAssociativeList
 {
-    protected function normalizeElement(&$offset, &$value)
+    protected static function getAllowedElementClasses(): array
     {
-        parent::normalizeElement($offset, $value);
-
-        if (!($value instanceof RowsFromElement)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s can contain only instances of RowsFromElement, %s given',
-                __CLASS__,
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
-        }
+        return [RowsFromElement::class];
     }
 }

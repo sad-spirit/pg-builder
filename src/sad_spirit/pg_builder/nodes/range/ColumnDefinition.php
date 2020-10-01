@@ -19,6 +19,7 @@
 namespace sad_spirit\pg_builder\nodes\range;
 
 use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\Identifier;
 use sad_spirit\pg_builder\nodes\TypeName;
 use sad_spirit\pg_builder\nodes\QualifiedName;
@@ -31,7 +32,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read TypeName           $type
  * @property-read QualifiedName|null $collation
  */
-class ColumnDefinition extends Node
+class ColumnDefinition extends GenericNode
 {
     public function __construct(Identifier $colId, TypeName $type, QualifiedName $collation = null)
     {
@@ -50,7 +51,7 @@ class ColumnDefinition extends Node
      *
      * @param Node $parent
      */
-    protected function setParentNode(Node $parent = null)
+    public function setParentNode(Node $parent = null): void
     {
         if ($parent && $this->parentNode && $parent !== $this->parentNode) {
             $this->parentNode->removeChild($this);

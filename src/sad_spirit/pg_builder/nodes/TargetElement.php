@@ -18,7 +18,6 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -27,7 +26,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property      ScalarExpression $expression
  * @property-read Identifier|null  $alias
  */
-class TargetElement extends Node
+class TargetElement extends GenericNode
 {
     public function __construct(ScalarExpression $expression, Identifier $alias = null)
     {

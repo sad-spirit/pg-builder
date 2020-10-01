@@ -18,7 +18,7 @@
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\Node;
+use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\lists\TypeList;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
@@ -33,7 +33,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property      TypeList         $right
  * @property-read string           $operator
  */
-class IsOfExpression extends Node implements ScalarExpression
+class IsOfExpression extends GenericNode implements ScalarExpression
 {
     public function __construct(ScalarExpression $left, TypeList $right, $operator = 'is of')
     {

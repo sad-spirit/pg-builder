@@ -30,7 +30,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read Identifier|null $schema
  * @property-read Identifier      $relation
  */
-class QualifiedName extends Node
+class QualifiedName extends GenericNode
 {
     /** @noinspection PhpMissingBreakStatementInspection */
     public function __construct(array $nameParts)
@@ -82,7 +82,7 @@ class QualifiedName extends Node
      *
      * @param Node $parent
      */
-    protected function setParentNode(Node $parent = null)
+    public function setParentNode(Node $parent = null): void
     {
         if ($parent && $this->parentNode && $parent !== $this->parentNode) {
             $this->parentNode->removeChild($this);

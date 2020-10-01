@@ -18,6 +18,7 @@
 
 namespace sad_spirit\pg_builder;
 
+use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\WithClause;
 
 /**
@@ -25,7 +26,7 @@ use sad_spirit\pg_builder\nodes\WithClause;
  *
  * @property WithClause $with
  */
-abstract class Statement extends Node
+abstract class Statement extends GenericNode
 {
     /**
      * Parser instance, used when adding nodes to a statement as SQL strings
@@ -57,7 +58,7 @@ abstract class Statement extends Node
      * Returns the parser
      * @return Parser|null
      */
-    public function getParser()
+    public function getParser(): ?Parser
     {
         if (!$this->parser && $this->parentNode && ($parser = $this->parentNode->getParser())) {
             $this->setParser($parser);
@@ -65,7 +66,7 @@ abstract class Statement extends Node
         return $this->parser;
     }
 
-    protected function setParentNode(Node $parent = null)
+    public function setParentNode(Node $parent = null): void
     {
         parent::setParentNode($parent);
         if (!$this->parser && $this->parentNode && ($parser = $this->parentNode->getParser())) {

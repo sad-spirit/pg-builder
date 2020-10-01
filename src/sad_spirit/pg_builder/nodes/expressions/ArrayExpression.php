@@ -16,32 +16,36 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\{
+    Node,
+    nodes\ScalarExpression,
+    TreeWalker
+};
 use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents an array constructed from a list of values ARRAY[...]
  */
 class ArrayExpression extends NonAssociativeList implements ScalarExpression
 {
-    protected function normalizeElement(&$offset, &$value)
+    protected static function getAllowedElementClasses(): array
     {
-        parent::normalizeElement($offset, $value);
+        return [
+            ScalarExpression::class,
+            self::class
+        ];
+    }
 
-        if (is_array($value) || (($value instanceof \Traversable) && !($value instanceof self))) {
+    protected function prepareListElement($value): Node
+    {
+        if (is_iterable($value) && !$value instanceof self) {
             $value = new self($value);
         }
-        if (!($value instanceof ScalarExpression) && !($value instanceof self)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s can contain only instances of ScalarExpression or nested instances of ArrayExpression, %s given',
-                __CLASS__,
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
-        }
+        return parent::prepareListElement($value);
     }
 
     public function dispatch(TreeWalker $walker)

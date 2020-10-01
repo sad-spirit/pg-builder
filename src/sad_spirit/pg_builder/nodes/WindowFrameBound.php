@@ -19,7 +19,6 @@
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -28,7 +27,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read string                $direction
  * @property      ScalarExpression|null $value
  */
-class WindowFrameBound extends Node
+class WindowFrameBound extends GenericNode
 {
     public function __construct($direction, ScalarExpression $value = null)
     {
