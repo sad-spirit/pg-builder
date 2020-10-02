@@ -16,12 +16,15 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
-use sad_spirit\pg_builder\Token;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    Token,
+    exceptions\InvalidArgumentException,
+    TreeWalker
+};
 
 /**
  * Represents a named ':foo' or positional '$1' query parameter
@@ -31,6 +34,8 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class Parameter extends GenericNode implements ScalarExpression
 {
+    use LeafNode;
+
     public function __construct($tokenOrName)
     {
         if ($tokenOrName instanceof Token) {
@@ -66,18 +71,5 @@ class Parameter extends GenericNode implements ScalarExpression
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkParameter($this);
-    }
-
-    /**
-     * Checks in base setParentNode() are redundant as this can only be a leaf node
-     *
-     * @param Node $parent
-     */
-    public function setParentNode(Node $parent = null): void
-    {
-        if ($parent && $this->parentNode && $parent !== $this->parentNode) {
-            $this->parentNode->removeChild($this);
-        }
-        $this->parentNode = $parent;
     }
 }

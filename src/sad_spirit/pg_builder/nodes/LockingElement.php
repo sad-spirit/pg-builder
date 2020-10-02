@@ -20,11 +20,8 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\{
-    Node,
-    exceptions\InvalidArgumentException,
-    TreeWalker
-};
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\TreeWalker;
 use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 
 /**
@@ -36,6 +33,8 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  */
 class LockingElement extends NonAssociativeList
 {
+    use LeafNode;
+
     protected static function getAllowedElementClasses(): array
     {
         return [QualifiedName::class];
@@ -66,18 +65,5 @@ class LockingElement extends NonAssociativeList
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkLockingElement($this);
-    }
-
-    /**
-     * Checks in base setParentNode() are redundant as this can only contain QualifiedName's
-     *
-     * @param Node $parent
-     */
-    public function setParentNode(Node $parent = null): void
-    {
-        if ($parent && $this->parentNode && $parent !== $this->parentNode) {
-            $this->parentNode->removeChild($this);
-        }
-        $this->parentNode = $parent;
     }
 }

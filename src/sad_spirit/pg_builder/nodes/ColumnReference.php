@@ -16,12 +16,15 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\exceptions\SyntaxException;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    exceptions\InvalidArgumentException,
+    exceptions\SyntaxException,
+    TreeWalker
+};
 
 /**
  * Represents a (possibly qualified) column reference. The last item may also be a '*'
@@ -33,6 +36,8 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class ColumnReference extends GenericNode implements ScalarExpression
 {
+    use LeafNode;
+
     /** @noinspection PhpMissingBreakStatementInspection */
     public function __construct(array $parts)
     {
@@ -47,7 +52,6 @@ class ColumnReference extends GenericNode implements ScalarExpression
         foreach ($parts as $idx => &$part) {
             if (is_string($part)) {
                 $part = '*' === $part ? new Star() : new Identifier($part);
-
             } elseif (!($part instanceof Identifier) && !($part instanceof Star)) {
                 throw new InvalidArgumentException(sprintf(
                     '%s expects an array containing strings, Identifiers or Stars, %s given at index %s',
@@ -88,18 +92,5 @@ class ColumnReference extends GenericNode implements ScalarExpression
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkColumnReference($this);
-    }
-
-    /**
-     * Checks in base setParentNode() are redundant as this can only contain Identifiers
-     *
-     * @param Node $parent
-     */
-    public function setParentNode(Node $parent = null): void
-    {
-        if ($parent && $this->parentNode && $parent !== $this->parentNode) {
-            $this->parentNode->removeChild($this);
-        }
-        $this->parentNode = $parent;
     }
 }

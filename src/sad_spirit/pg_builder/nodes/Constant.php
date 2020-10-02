@@ -18,7 +18,6 @@
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\Token;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
@@ -31,6 +30,8 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class Constant extends GenericNode implements ScalarExpression
 {
+    use LeafNode;
+
     public function __construct($tokenOrConstant)
     {
         if ($tokenOrConstant instanceof Token) {
@@ -80,18 +81,5 @@ class Constant extends GenericNode implements ScalarExpression
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkConstant($this);
-    }
-
-    /**
-     * Checks in base setParentNode() are redundant as this can only be a leaf node
-     *
-     * @param Node $parent
-     */
-    public function setParentNode(Node $parent = null): void
-    {
-        if ($parent && $this->parentNode && $parent !== $this->parentNode) {
-            $this->parentNode->removeChild($this);
-        }
-        $this->parentNode = $parent;
     }
 }

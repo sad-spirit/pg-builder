@@ -18,29 +18,21 @@
 
 declare(strict_types=1);
 
-namespace sad_spirit\pg_builder\nodes;
+namespace sad_spirit\pg_builder\tests\nodes;
 
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    exceptions\NotImplementedException,
+    nodes\GenericNode,
+    nodes\LeafNode,
+    TreeWalker
+};
 
-/**
- * Represents a '*' meaning "all fields"
- */
-class Star extends GenericNode
+class LeafNodeImplementation extends GenericNode
 {
     use LeafNode;
 
-    /**
-     * This is only used for constructing exception messages
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        return '*';
-    }
-
     public function dispatch(TreeWalker $walker)
     {
-        return $walker->walkStar($this);
+        throw new NotImplementedException('Under heavy construction [insert picture of man digging]');
     }
 }

@@ -16,13 +16,17 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\Node;
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\TypeName;
-use sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\nodes\{
+    GenericNode,
+    Identifier,
+    LeafNode,
+    TypeName,
+    QualifiedName
+};
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -34,6 +38,8 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class ColumnDefinition extends GenericNode
 {
+    use LeafNode;
+
     public function __construct(Identifier $colId, TypeName $type, QualifiedName $collation = null)
     {
         $this->setNamedProperty('name', $colId);
@@ -44,18 +50,5 @@ class ColumnDefinition extends GenericNode
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkColumnDefinition($this);
-    }
-
-    /**
-     * Checks in base setParentNode() are redundant as this can not contain another ColumnDefinition
-     *
-     * @param Node $parent
-     */
-    public function setParentNode(Node $parent = null): void
-    {
-        if ($parent && $this->parentNode && $parent !== $this->parentNode) {
-            $this->parentNode->removeChild($this);
-        }
-        $this->parentNode = $parent;
     }
 }

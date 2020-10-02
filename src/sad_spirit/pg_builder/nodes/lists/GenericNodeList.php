@@ -144,9 +144,12 @@ abstract class GenericNodeList extends GenericNode implements NodeList
             $this->nodes[] = $value;
         } else {
             if (isset($this->nodes[$offset])) {
-                $this->nodes[$offset]->setParentNode(null);
+                $oldNode = $this->nodes[$offset];
             }
             $this->nodes[$offset] = $value;
+            if (isset($oldNode)) {
+                $oldNode->setParentNode(null);
+            }
         }
     }
 

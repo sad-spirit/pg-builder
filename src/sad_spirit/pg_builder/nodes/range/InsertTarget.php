@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\Node;
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\nodes\{
+    GenericNode,
+    Identifier,
+    LeafNode,
+    QualifiedName
+};
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -35,6 +39,8 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class InsertTarget extends GenericNode
 {
+    use LeafNode;
+
     public function __construct(QualifiedName $relation, Identifier $alias = null)
     {
         $this->setNamedProperty('relation', $relation);
@@ -44,18 +50,5 @@ class InsertTarget extends GenericNode
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkInsertTarget($this);
-    }
-
-    /**
-     * Checks in base setParentNode() are redundant as this can only contain QualifiedName/Identifier instances
-     *
-     * @param Node $parent
-     */
-    public function setParentNode(Node $parent = null): void
-    {
-        if ($parent && $this->parentNode && $parent !== $this->parentNode) {
-            $this->parentNode->removeChild($this);
-        }
-        $this->parentNode = $parent;
     }
 }

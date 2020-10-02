@@ -16,12 +16,15 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
-use sad_spirit\pg_builder\Token;
-use sad_spirit\pg_builder\TreeWalker;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\{
+    Token,
+    TreeWalker,
+    exceptions\InvalidArgumentException
+};
 
 /**
  * Represents an identifier (e.g. column name or field name)
@@ -30,6 +33,8 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  */
 class Identifier extends GenericNode
 {
+    use LeafNode;
+
     public function __construct($tokenOrValue)
     {
         if ($tokenOrValue instanceof Token) {
@@ -63,18 +68,5 @@ class Identifier extends GenericNode
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkIdentifier($this);
-    }
-
-    /**
-     * Checks in base setParentNode() are redundant as this can only be a leaf node
-     *
-     * @param Node $parent
-     */
-    public function setParentNode(Node $parent = null): void
-    {
-        if ($parent && $this->parentNode && $parent !== $this->parentNode) {
-            $this->parentNode->removeChild($this);
-        }
-        $this->parentNode = $parent;
     }
 }

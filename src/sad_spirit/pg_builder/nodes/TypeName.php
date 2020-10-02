@@ -16,9 +16,10 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
@@ -33,17 +34,19 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class TypeName extends GenericNode
 {
+    use LeafNode;
+
     public function __construct(QualifiedName $typeName, TypeModifierList $typeModifiers = null)
     {
         $this->props['setOf']     = false;
         $this->props['bounds']    = [];
         $this->setNamedProperty('name', $typeName);
-        $this->setNamedProperty('modifiers', $typeModifiers ?: new TypeModifierList());
+        $this->setNamedProperty('modifiers', $typeModifiers ?? new TypeModifierList());
     }
 
-    public function setSetOf($setOf = false)
+    public function setSetOf(bool $setOf = false)
     {
-        $this->props['setOf'] = (bool)$setOf;
+        $this->props['setOf'] = $setOf;
     }
 
     public function setBounds(array $bounds)
@@ -65,18 +68,5 @@ class TypeName extends GenericNode
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkTypeName($this);
-    }
-
-    /**
-     * Checks in base setParentNode() are redundant as this can not contain another TypeName
-     *
-     * @param Node $parent
-     */
-    public function setParentNode(Node $parent = null): void
-    {
-        if ($parent && $this->parentNode && $parent !== $this->parentNode) {
-            $this->parentNode->removeChild($this);
-        }
-        $this->parentNode = $parent;
     }
 }

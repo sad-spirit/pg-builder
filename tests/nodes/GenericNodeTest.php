@@ -237,4 +237,19 @@ class GenericNodeTest extends TestCase
         $this::assertSame($unserialized, $unserialized->child->getParentNode());
         $this::assertSame($unserialized->child, $unserialized->child->child->getParentNode());
     }
+
+    public function testSetParentNodeToNullRemovesFromParent()
+    {
+        $child = new GenericNodeImplementation();
+        $leaf  = new LeafNodeImplementation();
+
+        $this->node->child = $child;
+        $child->child      = $leaf;
+
+        $leaf->setParentNode(null);
+        $child->setParentNode(null);
+
+        $this::assertNull($this->node->child);
+        $this::assertNull($child->child);
+    }
 }

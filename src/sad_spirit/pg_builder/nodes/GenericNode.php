@@ -44,6 +44,12 @@ abstract class GenericNode implements Node
     protected $parentNode = null;
 
     /**
+     * Flag for preventing endless recursion in setParentNode()
+     * @var bool
+     */
+    protected $settingParentNode = false;
+
+    /**
      * Variable overloading, exposes values of $props array as properties of the object
      *
      * @param string $name
@@ -121,6 +127,7 @@ abstract class GenericNode implements Node
     public function __wakeup()
     {
         $this->updatePropsParentNode();
+        $this->settingParentNode = false;
     }
 
     /**
@@ -128,26 +135,31 @@ abstract class GenericNode implements Node
      */
     public function setParentNode(Node $parent = null): void
     {
-        // no-op?
-        if ($parent === $this->parentNode) {
+        // no-op? recursion?
+        if ($parent === $this->parentNode || $this->settingParentNode) {
             return;
         }
-        if (null !== $parent) {
-            $check = $parent;
-            do {
-                if ($this === $check) {
-                    throw new InvalidArgumentException(
-                        'Cannot set a Node or its descendant as its own parent'
-                    );
-                }
-            } while ($check = $check->getparentNode());
-            // this is intentionally inside the "if (null !== $parent)" check to prevent endless recursion
-            // when called from removeChild()
+
+        $this->settingParentNode = true;
+        try {
+            if (null !== $parent) {
+                $check = $parent;
+                do {
+                    if ($this === $check) {
+                        throw new InvalidArgumentException(
+                            'Cannot set a Node or its descendant as its own parent'
+                        );
+                    }
+                } while ($check = $check->getparentNode());
+            }
             if (null !== $this->parentNode) {
                 $this->parentNode->removeChild($this);
             }
+            $this->parentNode = $parent;
+
+        } finally {
+            $this->settingParentNode = false;
         }
-        $this->parentNode = $parent;
     }
 
     /**
@@ -249,16 +261,19 @@ abstract class GenericNode implements Node
             // no-op
             return;
         }
-        if ($propertyValue instanceof Node && $this === $propertyValue->getParentNode()) {
-            $this->removeChild($propertyValue);
-        }
-        if ($this->props[$propertyName] instanceof Node) {
-            $this->props[$propertyName]->setParentNode(null);
+        if ($propertyValue instanceof Node) {
+            // we do not allow the same node in different places
+            if ($this === $propertyValue->getParentNode()) {
+                $this->removeChild($propertyValue);
+            }
+            $propertyValue->setParentNode($this);
         }
 
+        $oldPropertyValue = $this->props[$propertyName];
         $this->props[$propertyName] = $propertyValue;
-        if ($this->props[$propertyName] instanceof Node) {
-            $this->props[$propertyName]->setParentNode($this);
+
+        if ($oldPropertyValue instanceof Node) {
+            $oldPropertyValue->setParentNode(null);
         }
     }
 }

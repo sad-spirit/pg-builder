@@ -16,12 +16,15 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\exceptions\SyntaxException;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    exceptions\InvalidArgumentException,
+    exceptions\SyntaxException,
+    TreeWalker
+};
 
 /**
  * Represents a (possibly qualified) name of a database object like a relation, function or type name
@@ -32,6 +35,8 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class QualifiedName extends GenericNode
 {
+    use LeafNode;
+
     /** @noinspection PhpMissingBreakStatementInspection */
     public function __construct(array $nameParts)
     {
@@ -75,19 +80,6 @@ class QualifiedName extends GenericNode
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkQualifiedName($this);
-    }
-
-    /**
-     * Checks in base setParentNode() are redundant as this can only contain Identifiers
-     *
-     * @param Node $parent
-     */
-    public function setParentNode(Node $parent = null): void
-    {
-        if ($parent && $this->parentNode && $parent !== $this->parentNode) {
-            $this->parentNode->removeChild($this);
-        }
-        $this->parentNode = $parent;
     }
 
     /**

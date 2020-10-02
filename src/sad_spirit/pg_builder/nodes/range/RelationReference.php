@@ -16,11 +16,15 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\Node;
-use sad_spirit\pg_builder\nodes\QualifiedName;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    nodes\LeafNode,
+    nodes\QualifiedName,
+    TreeWalker
+};
 
 /**
  * AST node for relation (table or view) reference in FROM clause
@@ -30,27 +34,16 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class RelationReference extends FromElement
 {
-    public function __construct(QualifiedName $qualifiedName, $inheritOption = null)
+    use LeafNode;
+
+    public function __construct(QualifiedName $qualifiedName, ?bool $inheritOption = null)
     {
         $this->setNamedProperty('name', $qualifiedName);
-        $this->props['inherit'] = null === $inheritOption ? null : (bool)$inheritOption;
+        $this->props['inherit'] = $inheritOption;
     }
 
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkRelationReference($this);
-    }
-
-    /**
-     * Checks in base setParentNode() are redundant as this can only contain a QualifiedName instance
-     *
-     * @param Node $parent
-     */
-    public function setParentNode(Node $parent = null): void
-    {
-        if ($parent && $this->parentNode && $parent !== $this->parentNode) {
-            $this->parentNode->removeChild($this);
-        }
-        $this->parentNode = $parent;
     }
 }

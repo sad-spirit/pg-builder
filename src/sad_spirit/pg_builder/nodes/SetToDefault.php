@@ -16,9 +16,10 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -26,21 +27,10 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class SetToDefault extends GenericNode
 {
+    use LeafNode;
+
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkSetToDefault($this);
-    }
-
-    /**
-     * Checks in base setParentNode() are redundant as this can only be a leaf node
-     *
-     * @param Node $parent
-     */
-    public function setParentNode(Node $parent = null): void
-    {
-        if ($parent && $this->parentNode && $parent !== $this->parentNode) {
-            $this->parentNode->removeChild($this);
-        }
-        $this->parentNode = $parent;
     }
 }
