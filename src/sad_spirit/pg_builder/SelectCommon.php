@@ -51,10 +51,7 @@ abstract class SelectCommon extends Statement
     private function normalizeExpression(&$expression, $method)
     {
         if (is_string($expression)) {
-            if (!($parser = $this->getParser())) {
-                throw new InvalidArgumentException("Passed a string as an expression without a Parser available");
-            }
-            $expression = $parser->parseExpression($expression);
+            $expression = $this->getParserOrFail('an expression')->parseExpression($expression);
         }
         if (!is_null($expression) && !($expression instanceof ScalarExpression)) {
             throw new InvalidArgumentException(sprintf(
@@ -121,10 +118,7 @@ abstract class SelectCommon extends Statement
     private function combineUsingSetOperation($select, $operator)
     {
         if (is_string($select)) {
-            if (!($parser = $this->getParser())) {
-                throw new InvalidArgumentException("Passed a string as a SELECT statement without a Parser available");
-            }
-            $select = $parser->parseSelectStatement($select);
+            $select = $this->getParserOrFail('a SELECT statement')->parseSelectStatement($select);
         }
         if (!($select instanceof self)) {
             throw new InvalidArgumentException(sprintf(

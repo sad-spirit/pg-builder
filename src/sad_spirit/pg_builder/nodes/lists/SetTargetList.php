@@ -23,7 +23,6 @@ namespace sad_spirit\pg_builder\nodes\lists;
 use sad_spirit\pg_builder\{
     Node,
     nodes\SetTargetElement,
-    exceptions\InvalidArgumentException,
     ElementParseable,
     Parseable,
     Parser
@@ -46,9 +45,6 @@ class SetTargetList extends NonAssociativeList implements Parseable, ElementPars
 
     public function createElementFromString(string $sql): Node
     {
-        if (!($parser = $this->getParser())) {
-            throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
-        }
-        return $parser->parseSetTargetElement($sql);
+        return $this->getParserOrFail('a list element')->parseSetTargetElement($sql);
     }
 }

@@ -231,6 +231,20 @@ abstract class GenericNode implements Node
     }
 
     /**
+     * Returns the Parser or throws an Exception if one is not available
+     *
+     * @param string $as
+     * @return Parser
+     */
+    protected function getParserOrFail(string $as): Parser
+    {
+        if (null !== ($parser = $this->getParser())) {
+            return $parser;
+        }
+        throw new InvalidArgumentException(sprintf("Passed a string as %s without a Parser available", $as));
+    }
+
+    /**
      * Sets this node as parent node of all nodes in $props
      */
     protected function updatePropsParentNode(): void

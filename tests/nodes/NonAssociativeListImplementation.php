@@ -22,7 +22,6 @@ namespace sad_spirit\pg_builder\tests\nodes;
 
 use sad_spirit\pg_builder\{
     ElementParseable,
-    exceptions\InvalidArgumentException,
     Node,
     nodes\ScalarExpression,
     nodes\SetToDefault,
@@ -52,10 +51,7 @@ class NonAssociativeListImplementation extends NonAssociativeList implements Par
 
     public function createElementFromString(string $sql): Node
     {
-        if (!($parser = $this->getParser())) {
-            throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
-        }
-        return $parser->parseExpressionWithDefault($sql);
+        return $this->getParserOrFail('a list element')->parseExpressionWithDefault($sql);
     }
 
     public static function createFromString(Parser $parser, string $sql): Node

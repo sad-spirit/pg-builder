@@ -20,7 +20,6 @@ namespace sad_spirit\pg_builder\nodes\xml;
 
 use sad_spirit\pg_builder\{
     Node,
-    exceptions\InvalidArgumentException,
     Parseable,
     ElementParseable,
     Parser
@@ -39,10 +38,7 @@ class XmlNamespaceList extends NonAssociativeList implements Parseable, ElementP
 
     public function createElementFromString(string $sql): Node
     {
-        if (!($parser = $this->getParser())) {
-            throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
-        }
-        return $parser->parseXmlNamespace($sql);
+        return $this->getParserOrFail('a list element')->parseXmlNamespace($sql);
     }
 
     public static function createFromString(Parser $parser, string $sql): Node

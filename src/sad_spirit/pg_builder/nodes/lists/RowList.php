@@ -22,7 +22,6 @@ namespace sad_spirit\pg_builder\nodes\lists;
 
 use sad_spirit\pg_builder\{
     Node,
-    exceptions\InvalidArgumentException,
     Parseable,
     ElementParseable,
     Parser
@@ -49,10 +48,7 @@ class RowList extends NonAssociativeList implements Parseable, ElementParseable
 
     public function createElementFromString(string $sql): Node
     {
-        if (!($parser = $this->getParser())) {
-            throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
-        }
-        return $parser->parseRowConstructorNoKeyword($sql);
+        return $this->getParserOrFail('a list element')->parseRowConstructorNoKeyword($sql);
     }
 
     public static function createFromString(Parser $parser, string $sql): Node

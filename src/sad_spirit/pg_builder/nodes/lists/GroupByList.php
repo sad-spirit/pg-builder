@@ -23,7 +23,6 @@ namespace sad_spirit\pg_builder\nodes\lists;
 use sad_spirit\pg_builder\{
     Node,
     nodes\ScalarExpression,
-    exceptions\InvalidArgumentException,
     Parseable,
     ElementParseable,
     Parser
@@ -47,10 +46,7 @@ class GroupByList extends NonAssociativeList implements Parseable, ElementParsea
 
     public function createElementFromString(string $sql): Node
     {
-        if (!($parser = $this->getParser())) {
-            throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
-        }
-        return $parser->parseGroupByElement($sql);
+        return $this->getParserOrFail('a list element')->parseGroupByElement($sql);
     }
 
     public static function createFromString(Parser $parser, string $sql): Node

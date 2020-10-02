@@ -62,10 +62,7 @@ class Select extends SelectCommon
     public function setDistinct($distinct)
     {
         if (is_string($distinct)) {
-            if (!($parser = $this->getParser())) {
-                throw new InvalidArgumentException("Passed a string for a DISTINCT clause without a Parser available");
-            }
-            $distinct = ExpressionList::createFromString($parser, $distinct);
+            $distinct = ExpressionList::createFromString($this->getParserOrFail('DISTINCT clause'), $distinct);
         }
         if (!is_null($distinct) && !is_bool($distinct) && !($distinct instanceof ExpressionList)) {
             throw new InvalidArgumentException(sprintf(

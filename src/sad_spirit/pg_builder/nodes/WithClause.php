@@ -53,10 +53,7 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
 
     public function createElementFromString(string $sql): Node
     {
-        if (!($parser = $this->getParser())) {
-            throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
-        }
-        return $parser->parseCommonTableExpression($sql);
+        return $this->getParserOrFail('a list element')->parseCommonTableExpression($sql);
     }
 
     public static function createFromString(Parser $parser, string $sql): Node

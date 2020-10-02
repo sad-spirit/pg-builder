@@ -61,10 +61,7 @@ abstract class FromElement extends GenericNode
     public function join($fromElement, $joinType = 'inner')
     {
         if (is_string($fromElement)) {
-            if (!($parser = $this->getParser())) {
-                throw new InvalidArgumentException("Passed a string as a FROM element without a Parser available");
-            }
-            $fromElement = $parser->parseFromElement($fromElement);
+            $fromElement = $this->getParserOrFail('a FROM element')->parseFromElement($fromElement);
         }
         if (!($fromElement instanceof self)) {
             throw new InvalidArgumentException(sprintf(

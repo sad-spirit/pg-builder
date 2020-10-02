@@ -26,8 +26,7 @@ use sad_spirit\pg_builder\{
     Parseable,
     Parser,
     nodes\MultipleSetClause,
-    nodes\SingleSetClause,
-    exceptions\InvalidArgumentException
+    nodes\SingleSetClause
 };
 
 /**
@@ -45,10 +44,7 @@ class SetClauseList extends NonAssociativeList implements Parseable, ElementPars
 
     public function createElementFromString(string $sql): Node
     {
-        if (!($parser = $this->getParser())) {
-            throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
-        }
-        return $parser->parseSetClause($sql);
+        return $this->getParserOrFail('a list element')->parseSetClause($sql);
     }
 
     public static function createFromString(Parser $parser, string $sql): Node

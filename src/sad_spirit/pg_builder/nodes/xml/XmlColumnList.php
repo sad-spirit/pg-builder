@@ -22,7 +22,6 @@ namespace sad_spirit\pg_builder\nodes\xml;
 
 use sad_spirit\pg_builder\{
     Node,
-    exceptions\InvalidArgumentException,
     ElementParseable,
     Parseable,
     Parser
@@ -41,10 +40,7 @@ class XmlColumnList extends NonAssociativeList implements Parseable, ElementPars
 
     public function createElementFromString(string $sql): Node
     {
-        if (!($parser = $this->getParser())) {
-            throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
-        }
-        return $parser->parseXmlColumnDefinition($sql);
+        return $this->getParserOrFail('a list element')->parseXmlColumnDefinition($sql);
     }
 
     public static function createFromString(Parser $parser, string $sql): Node

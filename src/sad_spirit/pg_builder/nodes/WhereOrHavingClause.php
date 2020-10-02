@@ -44,10 +44,7 @@ class WhereOrHavingClause extends GenericNode
     private function normalizeCondition(&$condition, $method)
     {
         if (is_string($condition)) {
-            if (!($parser = $this->getParser())) {
-                throw new InvalidArgumentException("Passed a string as an expression without a Parser available");
-            }
-            $condition = $parser->parseExpression($condition);
+            $condition = $this->getParserOrFail('an expression')->parseExpression($condition);
         }
         if (!($condition instanceof ScalarExpression) && !($condition instanceof self)) {
             throw new InvalidArgumentException(sprintf(

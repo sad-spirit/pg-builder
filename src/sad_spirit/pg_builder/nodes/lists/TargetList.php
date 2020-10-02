@@ -24,7 +24,6 @@ use sad_spirit\pg_builder\{
     Node,
     nodes\TargetElement,
     nodes\Star,
-    exceptions\InvalidArgumentException,
     Parseable,
     ElementParseable,
     Parser
@@ -45,10 +44,7 @@ class TargetList extends NonAssociativeList implements Parseable, ElementParseab
 
     public function createElementFromString(string $sql): Node
     {
-        if (!($parser = $this->getParser())) {
-            throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
-        }
-        return $parser->parseTargetElement($sql);
+        return $this->getParserOrFail('a list element')->parseTargetElement($sql);
     }
 
     public static function createFromString(Parser $parser, string $sql): Node

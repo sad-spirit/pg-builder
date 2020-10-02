@@ -59,10 +59,7 @@ class Insert extends Statement
     public function setOnConflict($onConflict = null)
     {
         if (is_string($onConflict)) {
-            if (!($parser = $this->getParser())) {
-                throw new InvalidArgumentException("Passed a string as ON CONFLICT clause without a Parser available");
-            }
-            $onConflict = $parser->parseOnConflict($onConflict);
+            $onConflict = $this->getParserOrFail('ON CONFLICT clause')->parseOnConflict($onConflict);
         }
         if (null !== $onConflict && !($onConflict instanceof OnConflictClause)) {
             throw new InvalidArgumentException(sprintf(

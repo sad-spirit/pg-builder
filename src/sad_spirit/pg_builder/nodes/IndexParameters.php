@@ -22,7 +22,6 @@ namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\{
     Node,
-    exceptions\InvalidArgumentException,
     ElementParseable,
     Parseable,
     Parser,
@@ -59,10 +58,7 @@ class IndexParameters extends NonAssociativeList implements Parseable, ElementPa
 
     public function createElementFromString(string $sql): Node
     {
-        if (!($parser = $this->getParser())) {
-            throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
-        }
-        return $parser->parseIndexElement($sql);
+        return $this->getParserOrFail('a list element')->parseIndexElement($sql);
     }
 
     public function dispatch(TreeWalker $walker)

@@ -90,10 +90,7 @@ class JoinExpression extends FromElement
                 throw new InvalidArgumentException('Only one of NATURAL, USING, ON clauses should be set for JOIN');
             }
             if (is_string($using)) {
-                if (!($parser = $this->getParser())) {
-                    throw new InvalidArgumentException("Passed a string for a USING clause without a Parser available");
-                }
-                $using = $parser->parseColIdList($using);
+                $using = $this->getParserOrFail('a USING clause')->parseColIdList($using);
             } elseif (is_array($using)) {
                 $using = new IdentifierList($using);
             }
@@ -117,12 +114,7 @@ class JoinExpression extends FromElement
                 throw new InvalidArgumentException('Only one of NATURAL, USING, ON clauses should be set for JOIN');
             }
             if (is_string($on)) {
-                if (!($parser = $this->getParser())) {
-                    throw new InvalidArgumentException(
-                        'Passed a string for an ON expression without a Parser available'
-                    );
-                }
-                $on = $parser->parseExpression($on);
+                $on = $this->getParserOrFail('an ON expression')->parseExpression($on);
             }
             if (!($on instanceof ScalarExpression)) {
                 throw new InvalidArgumentException(sprintf(

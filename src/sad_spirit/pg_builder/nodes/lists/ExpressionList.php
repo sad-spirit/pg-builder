@@ -23,7 +23,6 @@ namespace sad_spirit\pg_builder\nodes\lists;
 use sad_spirit\pg_builder\{
     Node,
     nodes\ScalarExpression,
-    exceptions\InvalidArgumentException,
     Parseable,
     ElementParseable,
     Parser
@@ -50,9 +49,7 @@ class ExpressionList extends NonAssociativeList implements Parseable, ElementPar
 
     public function createElementFromString(string $sql): Node
     {
-        if (!($parser = $this->getParser())) {
-            throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
-        }
+        $parser = $this->getParserOrFail('a list element');
         return count(static::getAllowedElementClasses()) > 1
             ? $parser->parseExpressionWithDefault($sql)
             : $parser->parseExpression($sql);

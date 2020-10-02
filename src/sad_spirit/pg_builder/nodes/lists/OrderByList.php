@@ -23,7 +23,6 @@ namespace sad_spirit\pg_builder\nodes\lists;
 use sad_spirit\pg_builder\{
     Node,
     nodes\OrderByElement,
-    exceptions\InvalidArgumentException,
     Parseable,
     ElementParseable,
     Parser
@@ -41,10 +40,7 @@ class OrderByList extends NonAssociativeList implements Parseable, ElementParsea
 
     public function createElementFromString(string $sql): Node
     {
-        if (!($parser = $this->getParser())) {
-            throw new InvalidArgumentException("Passed a string as a list element without a Parser available");
-        }
-        return $parser->parseOrderByElement($sql);
+        return $this->getParserOrFail('a list element')->parseOrderByElement($sql);
     }
 
     public static function createFromString(Parser $parser, string $sql): Node
