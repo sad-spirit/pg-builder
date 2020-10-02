@@ -401,7 +401,7 @@ QRY
                     new ColumnReference([new Identifier('q')])
                 ),
                 new OperatorExpression(
-                    'operator("blah".###)',
+                    'operator(blah.###)',
                     new ColumnReference([new Identifier('r')]),
                     new ColumnReference([new Identifier('s')])
                 ),

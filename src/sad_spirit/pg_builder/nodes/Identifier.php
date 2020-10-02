@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\{
+    Keywords,
     Token,
     TreeWalker,
     exceptions\InvalidArgumentException
@@ -35,34 +36,50 @@ class Identifier extends GenericNode
 {
     use LeafNode;
 
+    private static $needsQuoting = [];
+
     public function __construct($tokenOrValue)
     {
         if ($tokenOrValue instanceof Token) {
-            if (
-                Token::TYPE_IDENTIFIER !== $tokenOrValue->getType()
-                && 0 === (Token::TYPE_KEYWORD & $tokenOrValue->getType())
-            ) {
+            if (0 !== ((Token::TYPE_IDENTIFIER | Token::TYPE_KEYWORD) & $tokenOrValue->getType())) {
+                $this->props['value'] = $tokenOrValue->getValue();
+            } else {
                 throw new InvalidArgumentException(sprintf(
-                    '%s requires an identifier or keyword token, %s given',
+                   '%s requires an identifier or keyword token, %s given',
                     __CLASS__,
                     Token::typeToString($tokenOrValue->getType())
                 ));
             }
-            $this->props['value'] = $tokenOrValue->getValue();
-
-        } else {
+        } elseif (
+            is_scalar($tokenOrValue)
+            || is_object($tokenOrValue) && method_exists($tokenOrValue, '__toString')
+        ) {
             $this->props['value'] = (string)$tokenOrValue;
+        } else {
+            throw new InvalidArgumentException(sprintf(
+                '%s requires either an instance of Token or value convertible to string, %s given',
+                __CLASS__,
+                is_object($tokenOrValue) ? 'object(' . get_class($tokenOrValue) . ')' : gettype($tokenOrValue)
+            ));
         }
     }
 
     /**
-     * This is only used for constructing exception messages
+     * Returns the string representation of the identifier, possibly with double quotes added
      *
      * @return string
      */
     public function __toString()
     {
-        return '"' . str_replace('"', '""', $this->props['value']) . '"';
+        $value = $this->props['value'];
+        // We are likely to see the same identifier again, so cache the check results
+        if (!isset(self::$needsQuoting[$value])) {
+            self::$needsQuoting[$value] = !preg_match('/^[a-z_][a-z_0-9\$]*$/D', $value)
+                                          || Keywords::isKeyword($value);
+        }
+        return self::$needsQuoting[$value]
+               ? '"' . str_replace('"', '""', $value) . '"'
+               : $value;
     }
 
     public function dispatch(TreeWalker $walker)

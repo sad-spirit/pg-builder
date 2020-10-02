@@ -269,7 +269,7 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
                 new FunctionExpression(
                     new QualifiedName([new Identifier('foo')]),
                     new FunctionArgumentList([
-                        '"bar"' => new Constant('baz')
+                        'bar' => new Constant('baz')
                     ])
                 )
             ]

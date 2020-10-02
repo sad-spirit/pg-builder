@@ -83,14 +83,14 @@ class QualifiedName extends GenericNode
     }
 
     /**
-     * This is only used for constructing exception messages
+     * Returns the string representation of the node, with double quotes added as needed
      *
      * @return string
      */
     public function __toString()
     {
-        return ($this->catalog ? $this->catalog->__toString() . '.' : '')
-               . ($this->schema ? $this->schema->__toString() . '.' : '')
-               . $this->relation->__toString();
+        return (null === $this->props['catalog'] ? '' : (string)$this->props['catalog'] . '.')
+            . (null === $this->props['schema'] ? '' : (string)$this->props['schema'] . '.')
+            . (string)$this->props['relation'];
     }
 }

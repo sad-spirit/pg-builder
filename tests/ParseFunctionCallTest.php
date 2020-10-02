@@ -444,7 +444,7 @@ QRY
                     new QualifiedName(['blah', 'baz']),
                     new FunctionArgumentList([
                         new ColumnReference(['a']),
-                        '"b"'      => new ColumnReference(['c']),
+                        'b'        => new ColumnReference(['c']),
                         '"binary"' => new ColumnReference(['d'])
                     ])
                 )

@@ -686,10 +686,7 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkColumnReference(nodes\ColumnReference $node)
     {
-        return ($node->catalog ? $node->catalog->dispatch($this) . '.' : '')
-               . ($node->schema ? $node->schema->dispatch($this) . '.' : '')
-               . ($node->relation ? $node->relation->dispatch($this) . '.' : '')
-               . $node->column->dispatch($this);
+        return $node->__toString();
     }
 
     public function walkCommonTableExpression(nodes\CommonTableExpression $node)
@@ -773,11 +770,7 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkIdentifier(nodes\Identifier $node)
     {
-        if (preg_match('/^[a-z_][a-z_0-9\$]*$/D', $node->value) && !Keywords::isKeyword($node->value)) {
-            return $node->value;
-        } else {
-            return '"' . str_replace('"', '""', $node->value) . '"';
-        }
+        return $node->__toString();
     }
 
     public function walkIndirection(nodes\Indirection $node)
@@ -842,9 +835,7 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkQualifiedName(nodes\QualifiedName $node)
     {
-        return ($node->catalog ? $node->catalog->dispatch($this) . '.' : '')
-               . ($node->schema ? $node->schema->dispatch($this) . '.' : '')
-               . $node->relation->dispatch($this);
+        return $node->__toString();
     }
 
     public function walkSetTargetElement(nodes\SetTargetElement $node)

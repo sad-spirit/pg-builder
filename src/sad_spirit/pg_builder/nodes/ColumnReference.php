@@ -89,6 +89,19 @@ class ColumnReference extends GenericNode implements ScalarExpression
         }
     }
 
+    /**
+     * Returns the string representation of the node, with double quotes added as needed
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return (null === $this->props['catalog'] ? '' : (string)$this->props['catalog'] . '.')
+               . (null === $this->props['schema'] ? '' : (string)$this->props['schema'] . '.')
+               . (null === $this->props['relation'] ? '' : (string)$this->props['relation'] . '.')
+               . (string)$this->props['column'];
+    }
+
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkColumnReference($this);

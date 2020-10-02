@@ -33,7 +33,7 @@ abstract class GenericNode implements Node
 {
     /**
      * Properties accessible through magic __get() and (sometimes) __set() methods
-     * @var Node[]
+     * @var Node[]|string[]
      */
     protected $props = [];
 
