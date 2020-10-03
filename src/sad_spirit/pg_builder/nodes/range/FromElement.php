@@ -28,7 +28,6 @@ use sad_spirit\pg_builder\{
 };
 use sad_spirit\pg_builder\nodes\lists\IdentifierList;
 
-
 /**
  * Base class for alias-able items in FROM clause
  *
@@ -75,13 +74,14 @@ abstract class FromElement extends GenericNode
                 is_object($fromElement) ? 'object(' . get_class($fromElement) . ')' : gettype($fromElement)
             ));
         }
-        if (!$this->getParentNode()) {
+        if (null === $this->getParentNode()) {
             return new JoinExpression($this, $fromElement, strtolower($joinType));
 
         } else {
             // $dummy is required here: if we pass $this to JoinExpression's constructor, then by the time
             // control reaches replaceChild() $this will not be a child of parentNode anymore.
             $dummy = new RelationReference(new QualifiedName(['dummy']));
+            /** @var JoinExpression $join */
             $join  = $this->getParentNode()->replaceChild(
                 $this,
                 new JoinExpression($dummy, $fromElement, strtolower($joinType))

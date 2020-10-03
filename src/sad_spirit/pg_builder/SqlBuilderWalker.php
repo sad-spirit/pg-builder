@@ -358,14 +358,15 @@ class SqlBuilderWalker implements TreeWalker
 
         $expressionPrecedence = $this->getPrecedence($expression);
         switch ($this->getAssociativity($expression)) {
-            case self::ASSOCIATIVE_NONE:
-                return $argumentPrecedence <= $expressionPrecedence;
             case self::ASSOCIATIVE_RIGHT:
                 return $argumentPrecedence < $expressionPrecedence
                    || !$right && $argumentPrecedence === $expressionPrecedence;
             case self::ASSOCIATIVE_LEFT:
                 return $argumentPrecedence < $expressionPrecedence
                    || $right && $argumentPrecedence === $expressionPrecedence;
+            case self::ASSOCIATIVE_NONE:
+            default:
+                return $argumentPrecedence <= $expressionPrecedence;
         }
     }
 
@@ -744,7 +745,6 @@ class SqlBuilderWalker implements TreeWalker
                     }
                     return '$_' . $i . '$' . $node->value . '$_' . $i . '$';
                 }
-                break;
 
             default:
                 throw new exceptions\InvalidArgumentException(sprintf('Unexpected constant type %d', $node->type));
@@ -822,7 +822,6 @@ class SqlBuilderWalker implements TreeWalker
         switch ($node->type) {
             case Token::TYPE_POSITIONAL_PARAM:
                 return '$' . $node->value;
-            break;
             case Token::TYPE_NAMED_PARAM:
                 throw new exceptions\InvalidArgumentException(sprintf(
                     "Generated SQL should not contain named parameters, ':%s' still present",

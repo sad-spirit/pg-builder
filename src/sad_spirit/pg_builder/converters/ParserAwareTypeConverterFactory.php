@@ -91,7 +91,7 @@ class ParserAwareTypeConverterFactory extends DefaultTypeConverterFactory
         } else {
             return $this->getConverterForQualifiedName(
                 $typeName->name->relation->value,
-                $typeName->name->schema ? $typeName->name->schema->value : null,
+                $typeName->name->schema !== null ? $typeName->name->schema->value : null,
                 count($typeName->bounds) > 0
             );
         }
@@ -108,7 +108,7 @@ class ParserAwareTypeConverterFactory extends DefaultTypeConverterFactory
      */
     protected function parseTypeName(string $name): array
     {
-        if (!$this->parser) {
+        if (null === $this->parser) {
             return parent::parseTypeName($name);
         } else {
             $node = $this->parser->parseTypeName($name);
@@ -117,7 +117,7 @@ class ParserAwareTypeConverterFactory extends DefaultTypeConverterFactory
                 return ['pg_catalog', 'interval', count($node->bounds) > 0];
             } else {
                 return [
-                    $node->name->schema ? $node->name->schema->value : null,
+                    null !== $node->name->schema ? $node->name->schema->value : null,
                     $node->name->relation->value,
                     count($node->bounds) > 0
                 ];

@@ -133,17 +133,18 @@ abstract class SelectCommon extends Statement
                 is_object($select) ? 'object(' . get_class($select) . ')' : gettype($select)
             ));
         }
-        if (!$this->getParentNode()) {
+        if (null === $this->getParentNode()) {
             $setOpSelect = new SetOpSelect($this, $select, $operator);
 
         } else {
             // $dummy is required here: if we pass $this to SetOpSelect's constructor, then by the time
             // control reaches replaceChild() $this will not be a child of parentNode anymore.
             $dummy       = new Select(new nodes\lists\TargetList());
+            /** @var SetOpSelect $setOpSelect  */
             $setOpSelect = $this->getParentNode()->replaceChild($this, new SetOpSelect($dummy, $select, $operator));
             $setOpSelect->replaceChild($dummy, $this);
         }
-        if ($parser = $this->getParser()) {
+        if (null !== ($parser = $this->getParser())) {
             $setOpSelect->setParser($parser);
         }
 

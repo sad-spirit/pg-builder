@@ -45,7 +45,7 @@ class Identifier extends GenericNode
                 $this->props['value'] = $tokenOrValue->getValue();
             } else {
                 throw new InvalidArgumentException(sprintf(
-                   '%s requires an identifier or keyword token, %s given',
+                    '%s requires an identifier or keyword token, %s given',
                     __CLASS__,
                     Token::typeToString($tokenOrValue->getType())
                 ));

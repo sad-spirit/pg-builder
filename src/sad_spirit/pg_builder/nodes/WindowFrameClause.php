@@ -73,7 +73,7 @@ class WindowFrameClause extends GenericNode
         if (WindowFrameBound::FOLLOWING === $start->direction && !$start->value) {
             throw new InvalidArgumentException('Frame start cannot be UNBOUNDED FOLLOWING');
         }
-        if (!$end) {
+        if (null === $end) {
             if (WindowFrameBound::FOLLOWING === $start->direction && $start->value) {
                 throw new InvalidArgumentException('Frame starting from following row cannot end with current row');
             }

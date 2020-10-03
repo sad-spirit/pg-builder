@@ -135,8 +135,8 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     /**
      * Stores the given Node at the given offset
      *
-     * @param int|string $offset
-     * @param Node       $value
+     * @param int|string|null $offset
+     * @param Node            $value
      */
     protected function offsetSetPrepared($offset, Node $value)
     {
@@ -225,11 +225,13 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      */
     public function replaceChild(Node $oldChild, Node $newChild): ?Node
     {
-        if (!($result = parent::replaceChild($oldChild, $newChild))) {
-            if (false !== ($key = array_search($oldChild, $this->nodes, true))) {
-                $this->offsetSet($key, $newChild); // offsetSet() is expected to check the value itself
-                return $newChild;
-            }
+        if (
+            null === ($result = parent::replaceChild($oldChild, $newChild))
+            && false !== ($key = array_search($oldChild, $this->nodes, true))
+        ) {
+            $this->offsetSet($key, $newChild);
+            // offsetSet() is expected to check the value itself
+            return $newChild;
         }
         return $result;
     }
@@ -239,11 +241,12 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      */
     public function removeChild(Node $child): ?Node
     {
-        if (!($result = parent::removeChild($child))) {
-            if (false !== ($key = array_search($child, $this->nodes, true))) {
-                $this->offsetUnset($key);
-                return $child;
-            }
+        if (
+            null === ($result = parent::removeChild($child))
+            && false !== ($key = array_search($child, $this->nodes, true))
+        ) {
+            $this->offsetUnset($key);
+            return $child;
         }
         return $result;
     }
@@ -309,7 +312,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
             ));
         }
 
-        if ($classes = static::getAllowedElementClasses()) {
+        if ([] !== ($classes = static::getAllowedElementClasses())) {
             $found = false;
             foreach ($classes as $class) {
                 if ($value instanceof $class) {

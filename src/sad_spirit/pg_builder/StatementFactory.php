@@ -28,27 +28,27 @@ class StatementFactory
 {
     /**
      * Database connection
-     * @var Connection
+     * @var Connection|null
      */
     private $connection;
 
     /**
      * Query parser, will be passed to created statements
-     * @var Parser
+     * @var Parser|null
      */
     private $parser;
 
     /**
      * Query builder
-     * @var TreeWalker
+     * @var TreeWalker|null
      */
     private $builder;
 
     /**
      * Constructor, can set the Connection and Parser objects
      *
-     * @param Connection $connection
-     * @param Parser $parser
+     * @param Connection|null $connection
+     * @param Parser|null $parser
      */
     public function __construct(Connection $connection = null, Parser $parser = null)
     {
@@ -66,8 +66,8 @@ class StatementFactory
      */
     public function getParser()
     {
-        if (!$this->parser) {
-            if (!$this->connection) {
+        if (null === $this->parser) {
+            if (null === $this->connection) {
                 $cache         = null;
                 $lexerOptions  = [];
 
@@ -116,7 +116,7 @@ class StatementFactory
      */
     public function getBuilder()
     {
-        if (!$this->builder) {
+        if (null === $this->builder) {
             $this->builder = new SqlBuilderWalker();
         }
         return $this->builder;

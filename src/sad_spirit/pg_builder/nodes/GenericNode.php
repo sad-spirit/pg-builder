@@ -33,7 +33,7 @@ abstract class GenericNode implements Node
 {
     /**
      * Properties accessible through magic __get() and (sometimes) __set() methods
-     * @var Node[]|string[]
+     * @var array<string, null|string|bool|int|array|Node>
      */
     protected $props = [];
 
@@ -108,7 +108,7 @@ abstract class GenericNode implements Node
             }
         }
         $this->updatePropsParentNode();
-        if ($this->parentNode) {
+        if (null !== $this->parentNode) {
             $this->parentNode = null;
         }
     }
@@ -223,7 +223,7 @@ abstract class GenericNode implements Node
      */
     public function getParser(): ?Parser
     {
-        if (!$this->parentNode) {
+        if (null === $this->parentNode) {
             return null;
         } else {
             return $this->parentNode->getParser();

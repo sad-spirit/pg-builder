@@ -193,7 +193,7 @@ class Token
             case self::TYPE_IDENTIFIER:
                 return 'identifier';
             default:
-                if ($type & self::TYPE_KEYWORD) {
+                if (0 !== ($type & self::TYPE_KEYWORD)) {
                     return 'keyword';
                 }
         }

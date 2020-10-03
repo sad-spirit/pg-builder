@@ -47,7 +47,7 @@ class NativeStatement
     private $parameterTypes;
 
     /**
-     * @var PreparedStatement
+     * @var PreparedStatement|null
      */
     private $preparedStatement;
 
@@ -213,7 +213,7 @@ class NativeStatement
      */
     public function executePrepared(array $params = [], array $resultTypes = [])
     {
-        if (!$this->preparedStatement) {
+        if (null === $this->preparedStatement) {
             throw new exceptions\RuntimeException(__METHOD__ . '(): prepare() should be called first');
         }
         return $this->preparedStatement->execute($this->mapNamedParameters($params), $resultTypes);

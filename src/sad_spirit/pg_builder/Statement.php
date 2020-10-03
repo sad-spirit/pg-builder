@@ -32,7 +32,7 @@ abstract class Statement extends GenericNode
 {
     /**
      * Parser instance, used when adding nodes to a statement as SQL strings
-     * @var Parser
+     * @var Parser|null
      */
     private $parser;
 
@@ -61,7 +61,10 @@ abstract class Statement extends GenericNode
      */
     public function getParser(): ?Parser
     {
-        if (!$this->parser && $this->parentNode && ($parser = $this->parentNode->getParser())) {
+        if (
+            null === $this->parser && null !== $this->parentNode
+            && null !== ($parser = $this->parentNode->getParser())
+        ) {
             $this->setParser($parser);
         }
         return $this->parser;
@@ -70,7 +73,10 @@ abstract class Statement extends GenericNode
     public function setParentNode(Node $parent = null): void
     {
         parent::setParentNode($parent);
-        if (!$this->parser && $this->parentNode && ($parser = $this->parentNode->getParser())) {
+        if (
+            null === $this->parser && null !== $this->parentNode
+            && null !== ($parser = $this->parentNode->getParser())
+        ) {
             $this->setParser($parser);
         }
     }
