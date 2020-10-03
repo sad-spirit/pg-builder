@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\TypeName;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    nodes\GenericNode,
+    nodes\TypeName,
+    nodes\ScalarExpression,
+    TreeWalker
+};
 
 /**
  * AST node representing a conversion of some value to a given datatype
@@ -42,7 +46,7 @@ class TypecastExpression extends GenericNode implements ScalarExpression
         $this->setNamedProperty('type', $type);
     }
 
-    public function setArgument(ScalarExpression $argument)
+    public function setArgument(ScalarExpression $argument): void
     {
         $this->setNamedProperty('argument', $argument);
     }

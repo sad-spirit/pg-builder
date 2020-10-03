@@ -16,13 +16,17 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\xml;
 
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\nodes\TypeName;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    nodes\GenericNode,
+    nodes\Identifier,
+    nodes\ScalarExpression,
+    nodes\TypeName,
+    TreeWalker
+};
 
 /**
  * AST node for column definition in XMLTABLE clause
@@ -38,10 +42,10 @@ class XmlColumnDefinition extends GenericNode
 {
     public function __construct(
         Identifier $name,
-        $forOrdinality = false,
+        bool $forOrdinality = false,
         TypeName $type = null,
         ScalarExpression $path = null,
-        $nullable = null,
+        ?bool $nullable = null,
         ScalarExpression $default = null
     ) {
         $this->setName($name);
@@ -52,32 +56,32 @@ class XmlColumnDefinition extends GenericNode
         $this->setDefault($default);
     }
 
-    public function setName(Identifier $name)
+    public function setName(Identifier $name): void
     {
         $this->setNamedProperty('name', $name);
     }
 
-    public function setForOrdinality($forOrdinality = false)
+    public function setForOrdinality(bool $forOrdinality = false): void
     {
-        $this->props['forOrdinality'] = (bool)$forOrdinality;
+        $this->props['forOrdinality'] = $forOrdinality;
     }
 
-    public function setType(TypeName $type = null)
+    public function setType(TypeName $type = null): void
     {
         $this->setNamedProperty('type', $type);
     }
 
-    public function setPath(ScalarExpression $path = null)
+    public function setPath(ScalarExpression $path = null): void
     {
         $this->setNamedProperty('path', $path);
     }
 
-    public function setNullable($nullable = null)
+    public function setNullable(?bool $nullable = null): void
     {
-        $this->props['nullable'] = is_null($nullable) ? null : (bool)$nullable;
+        $this->props['nullable'] = $nullable;
     }
 
-    public function setDefault($default = null)
+    public function setDefault(ScalarExpression $default = null): void
     {
         $this->setNamedProperty('default', $default);
     }

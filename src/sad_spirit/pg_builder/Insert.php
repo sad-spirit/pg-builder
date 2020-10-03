@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_builder\nodes\lists\TargetList;
-use sad_spirit\pg_builder\nodes\lists\SetTargetList;
-use sad_spirit\pg_builder\nodes\range\InsertTarget;
-use sad_spirit\pg_builder\nodes\OnConflictClause;
+use sad_spirit\pg_builder\nodes\{
+    lists\TargetList,
+    lists\SetTargetList,
+    range\InsertTarget,
+    OnConflictClause
+};
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
@@ -36,27 +40,34 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  */
 class Insert extends Statement
 {
+    public const OVERRIDING_USER   = 'user';
+    public const OVERRIDING_SYSTEM = 'system';
+
+    private const ALLOWED_OVERRIDING = [
+        self::OVERRIDING_SYSTEM => true,
+        self::OVERRIDING_USER   => true
+    ];
+
     public function __construct(InsertTarget $relation)
     {
         parent::__construct();
 
         $this->setNamedProperty('relation', $relation);
-        $this->props['cols']       = new SetTargetList();
-        $this->props['values']     = null;
-        $this->props['returning']  = new TargetList();
-        $this->props['onConflict'] = null;
-        $this->props['overriding'] = null;
-
-        $this->props['cols']->setParentNode($this);
-        $this->props['returning']->setParentNode($this);
+        $this->setNamedProperty('cols', new SetTargetList());
+        $this->setNamedProperty('returning', new TargetList());
+        $this->props = array_merge($this->props, [
+            'values'     => null,
+            'onConflict' => null,
+            'overriding' => null
+        ]);
     }
 
-    public function setValues(SelectCommon $values = null)
+    public function setValues(SelectCommon $values = null): void
     {
         $this->setNamedProperty('values', $values);
     }
 
-    public function setOnConflict($onConflict = null)
+    public function setOnConflict($onConflict = null): void
     {
         if (is_string($onConflict)) {
             $onConflict = $this->getParserOrFail('ON CONFLICT clause')->parseOnConflict($onConflict);
@@ -71,9 +82,9 @@ class Insert extends Statement
         $this->setNamedProperty('onConflict', $onConflict);
     }
 
-    public function setOverriding($overriding = null)
+    public function setOverriding(?string $overriding = null): void
     {
-        if (null !== $overriding && !in_array($overriding, ['user', 'system'])) {
+        if (null !== $overriding && !isset(self::ALLOWED_OVERRIDING[$overriding])) {
             throw new InvalidArgumentException("Unknown override kind '{$overriding}'");
         }
         $this->props['overriding'] = $overriding;

@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\range;
 
 use sad_spirit\pg_builder\nodes\lists\RowsFromList;

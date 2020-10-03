@@ -16,11 +16,12 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\{
     Node,
-    exceptions\InvalidArgumentException,
     TreeWalker,
     Parseable,
     ElementParseable,
@@ -40,9 +41,9 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
         return [CommonTableExpression::class];
     }
 
-    public function __construct($ctes, $recursive = false)
+    public function __construct($commonTableExpressions, bool $recursive = false)
     {
-        parent::__construct($ctes);
+        parent::__construct($commonTableExpressions);
         $this->setRecursive($recursive);
     }
 

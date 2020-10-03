@@ -61,10 +61,8 @@ class Parameter extends GenericNode implements ScalarExpression
             throw new InvalidArgumentException(sprintf(
                 '%s requires a Token instance or parameter number / name, %s given',
                 __CLASS__,
-                is_object($tokenOrName) ? 'object(' . get_class($tokenOrName) . ')'
-                           : gettype($tokenOrName)
+                is_object($tokenOrName) ? 'object(' . get_class($tokenOrName) . ')' : gettype($tokenOrName)
             ));
-
         }
     }
 

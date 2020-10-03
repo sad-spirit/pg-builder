@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\TreeWalker;
@@ -32,26 +34,26 @@ class ArrayIndexes extends GenericNode
     public function __construct(
         ScalarExpression $lower = null,
         ScalarExpression $upper = null,
-        $isSlice = false
+        bool $isSlice = false
     ) {
         $this->setNamedProperty('lower', $lower);
         $this->setNamedProperty('upper', $upper);
         $this->setIsSlice($isSlice);
     }
 
-    public function setLower(ScalarExpression $lower = null)
+    public function setLower(ScalarExpression $lower = null): void
     {
         $this->setNamedProperty('lower', $lower);
     }
 
-    public function setUpper(ScalarExpression $upper = null)
+    public function setUpper(ScalarExpression $upper = null): void
     {
         $this->setNamedProperty('upper', $upper);
     }
 
-    public function setIsSlice($isSlice)
+    public function setIsSlice(bool $isSlice): void
     {
-        $this->props['isSlice'] = (bool)$isSlice;
+        $this->props['isSlice'] = $isSlice;
     }
 
     public function dispatch(TreeWalker $walker)

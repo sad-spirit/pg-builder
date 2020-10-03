@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\xml;
 
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    nodes\GenericNode,
+    nodes\ScalarExpression,
+    nodes\Identifier,
+    TreeWalker
+};
 
 /**
  * AST node representing an XML namespace in XMLTABLE clause
@@ -37,12 +41,12 @@ class XmlNamespace extends GenericNode
         $this->setAlias($alias);
     }
 
-    public function setValue(ScalarExpression $value)
+    public function setValue(ScalarExpression $value): void
     {
         $this->setNamedProperty('value', $value);
     }
 
-    public function setAlias(Identifier $alias = null)
+    public function setAlias(Identifier $alias = null): void
     {
         $this->setNamedProperty('alias', $alias);
     }

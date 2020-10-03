@@ -39,14 +39,14 @@ class WindowDefinition extends GenericNode
         OrderByList $order = null,
         WindowFrameClause $frame = null
     ) {
-        $this->props['name']       = null;
+        $this->props['name'] = null;
         $this->setNamedProperty('refName', $refName);
-        $this->setNamedProperty('partition', $partition ?: new ExpressionList());
-        $this->setNamedProperty('order', $order ?: new OrderByList());
+        $this->setNamedProperty('partition', $partition ?? new ExpressionList());
+        $this->setNamedProperty('order', $order ?? new OrderByList());
         $this->setNamedProperty('frame', $frame);
     }
 
-    public function setName(Identifier $name = null)
+    public function setName(Identifier $name = null): void
     {
         $this->setNamedProperty('name', $name);
     }

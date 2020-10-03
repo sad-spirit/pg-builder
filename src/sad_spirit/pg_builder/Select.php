@@ -16,15 +16,19 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder;
 
+use sad_spirit\pg_builder\nodes\{
+    lists\ExpressionList,
+    lists\FromList,
+    lists\GroupByList,
+    lists\TargetList,
+    lists\WindowList,
+    WhereOrHavingClause
+};
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\nodes\lists\ExpressionList;
-use sad_spirit\pg_builder\nodes\lists\FromList;
-use sad_spirit\pg_builder\nodes\lists\GroupByList;
-use sad_spirit\pg_builder\nodes\lists\TargetList;
-use sad_spirit\pg_builder\nodes\lists\WindowList;
-use sad_spirit\pg_builder\nodes\WhereOrHavingClause;
 
 /**
  * Represents a (simple) SELECT statement
@@ -44,22 +48,15 @@ class Select extends SelectCommon
         parent::__construct();
 
         $this->setNamedProperty('list', $list);
+        $this->setNamedProperty('from', new FromList());
+        $this->setNamedProperty('where', new WhereOrHavingClause());
+        $this->setNamedProperty('group', new GroupByList());
+        $this->setNamedProperty('having', new WhereOrHavingClause());
+        $this->setNamedProperty('window', new WindowList());
         $this->setDistinct($distinct);
-
-        $this->props['from']   = new FromList();
-        $this->props['where']  = new WhereOrHavingClause();
-        $this->props['group']  = new GroupByList();
-        $this->props['having'] = new WhereOrHavingClause();
-        $this->props['window'] = new WindowList();
-
-        $this->props['from']->setParentNode($this);
-        $this->props['where']->setParentNode($this);
-        $this->props['group']->setParentNode($this);
-        $this->props['having']->setParentNode($this);
-        $this->props['window']->setParentNode($this);
     }
 
-    public function setDistinct($distinct)
+    public function setDistinct($distinct): void
     {
         if (is_string($distinct)) {
             $distinct = ExpressionList::createFromString($this->getParserOrFail('DISTINCT clause'), $distinct);

@@ -16,13 +16,17 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\nodes\GenericNode;
+use sad_spirit\pg_builder\{
+    nodes\GenericNode,
+    nodes\ScalarExpression,
+    exceptions\InvalidArgumentException,
+    TreeWalker
+};
 use sad_spirit\pg_builder\nodes\lists\TypeList;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing an IS [NOT] OF expression
@@ -35,9 +39,17 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class IsOfExpression extends GenericNode implements ScalarExpression
 {
-    public function __construct(ScalarExpression $left, TypeList $right, $operator = 'is of')
+    public const IS_OF     = 'is of';
+    public const IS_NOT_OF = 'is not of';
+
+    private const ALLOWED_OPERATORS = [
+        self::IS_OF     => true,
+        self::IS_NOT_OF => true
+    ];
+
+    public function __construct(ScalarExpression $left, TypeList $right, string $operator = self::IS_OF)
     {
-        if (!in_array($operator, ['is of', 'is not of'], true)) {
+        if (!isset(self::ALLOWED_OPERATORS[$operator])) {
             throw new InvalidArgumentException("Unknown operator '{$operator}' for IS OF-style expression");
         }
         $this->setNamedProperty('left', $left);
@@ -45,7 +57,7 @@ class IsOfExpression extends GenericNode implements ScalarExpression
         $this->props['operator'] = $operator;
     }
 
-    public function setLeft(ScalarExpression $left)
+    public function setLeft(ScalarExpression $left): void
     {
         $this->setNamedProperty('left', $left);
     }

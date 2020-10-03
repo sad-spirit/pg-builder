@@ -48,7 +48,7 @@ class SetTargetElement extends NonAssociativeList
         $this->setName($name);
     }
 
-    public function setName($name)
+    public function setName($name): void
     {
         if (!($name instanceof Identifier)) {
             $name = new Identifier($name);

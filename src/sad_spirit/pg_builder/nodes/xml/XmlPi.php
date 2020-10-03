@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\xml;
 
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    nodes\GenericNode,
+    nodes\Identifier,
+    nodes\ScalarExpression,
+    TreeWalker
+};
 
 /**
  * Represents xmlpi() expression (cannot be a FunctionCall due to special arguments format)
@@ -37,7 +41,7 @@ class XmlPi extends GenericNode implements ScalarExpression
         $this->setNamedProperty('content', $content);
     }
 
-    public function setContent(ScalarExpression $content)
+    public function setContent(ScalarExpression $content): void
     {
         $this->setNamedProperty('content', $content);
     }

@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\nodes\lists\SetClauseList;
@@ -32,37 +34,42 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class OnConflictClause extends GenericNode
 {
-    public function __construct($action, $target = null, SetClauseList $set = null, ScalarExpression $condition = null)
-    {
+    public const NOTHING = 'nothing';
+    public const UPDATE  = 'update';
+
+    private const ALLOWED_ACTIONS = [
+        self::NOTHING => true,
+        self::UPDATE  => true
+    ];
+
+    public function __construct(
+        string $action,
+        $target = null,
+        SetClauseList $set = null,
+        ScalarExpression $condition = null
+    ) {
         $this->setAction($action);
         $this->setTarget($target);
-        $this->props['set']   = new SetClauseList();
-        $this->props['where'] = new WhereOrHavingClause($condition);
-
-        $this->props['set']->setParentNode($this);
-        $this->props['where']->setParentNode($this);
-
-        if (null !== $set) {
-            $this->props['set']->replace($set);
-        }
+        $this->setNamedProperty('set', $set ?? new SetClauseList());
+        $this->setNamedProperty('where', new WhereOrHavingClause($condition));
     }
 
-    public function setAction($action)
+    public function setAction($action): void
     {
-        if (!in_array($action, ['nothing', 'update'], true)) {
+        if (!isset(self::ALLOWED_ACTIONS[$action])) {
             throw new InvalidArgumentException("Unknown ON CONFLICT action '{$action}'");
         }
         $this->props['action'] = $action;
     }
 
-    public function setTarget($target = null)
+    public function setTarget($target = null): void
     {
-        if ('update' === $this->props['action'] && null === $target) {
+        if (self::UPDATE === $this->props['action'] && null === $target) {
             throw new InvalidArgumentException("Target must be provided for ON CONFLICT ... DO UPDATE clause");
 
         } elseif (
             null !== $target
-                  && !($target instanceof Identifier) && !($target instanceof IndexParameters)
+            && !($target instanceof Identifier) && !($target instanceof IndexParameters)
         ) {
             throw new InvalidArgumentException(sprintf(
                 'Target for ON CONFLICT clause can be either a constraint Identifier or IndexParameters, %s given',

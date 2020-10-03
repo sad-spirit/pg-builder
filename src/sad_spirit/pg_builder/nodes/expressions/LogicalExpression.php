@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\expressions;
 
+use sad_spirit\pg_builder\{
+    nodes\ScalarExpression,
+    exceptions\InvalidArgumentException,
+    TreeWalker
+};
 use sad_spirit\pg_builder\nodes\lists\ExpressionList;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing a group of expressions combined by AND or OR operators
@@ -30,9 +34,17 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class LogicalExpression extends ExpressionList implements ScalarExpression
 {
-    public function __construct($terms = null, $operator = 'and')
+    public const AND = 'and';
+    public const OR  = 'or';
+
+    private const ALLOWED_OPERATORS = [
+        self::AND => true,
+        self::OR  => true
+    ];
+
+    public function __construct($terms = null, string $operator = self::AND)
     {
-        if (!in_array($operator, ['and', 'or'], true)) {
+        if (!isset(self::ALLOWED_OPERATORS[$operator])) {
             throw new InvalidArgumentException("Unknown logical operator '{$operator}'");
         }
         parent::__construct($terms);

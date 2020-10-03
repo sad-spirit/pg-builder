@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\xml;
 
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    nodes\GenericNode,
+    nodes\ScalarExpression,
+    exceptions\InvalidArgumentException,
+    TreeWalker
+};
 
 /**
  * Represents xmlparse() expression (cannot be a FunctionCall due to special arguments format)
@@ -32,19 +36,27 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class XmlParse extends GenericNode implements ScalarExpression
 {
-    public function __construct($documentOrContent, ScalarExpression $argument, $preserveWhitespace = false)
+    public const DOCUMENT = 'document';
+    public const CONTENT  = 'content';
+
+    private const ALLOWED_TYPES = [
+        self::DOCUMENT => true,
+        self::CONTENT  => true
+    ];
+
+    public function __construct(string $documentOrContent, ScalarExpression $argument, bool $preserveWhitespace = false)
     {
-        if (!in_array($documentOrContent, ['document', 'content'], true)) {
+        if (!isset(self::ALLOWED_TYPES[$documentOrContent])) {
             throw new InvalidArgumentException(
                 "Either 'document' or 'content' option required, '{$documentOrContent}' given"
             );
         }
         $this->props['documentOrContent']  = $documentOrContent;
-        $this->props['preserveWhitespace'] = (bool)$preserveWhitespace;
+        $this->props['preserveWhitespace'] = $preserveWhitespace;
         $this->setNamedProperty('argument', $argument);
     }
 
-    public function setArgument(ScalarExpression $argument)
+    public function setArgument(ScalarExpression $argument): void
     {
         $this->setNamedProperty('argument', $argument);
     }

@@ -32,28 +32,31 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class SubselectExpression extends GenericNode implements ScalarExpression
 {
-    protected static $allowedExpressions = [
-        'exists' => true,
-        'any'    => true,
-        'all'    => true,
-        'some'   => true,
-        'array'  => true
+    public const EXISTS = 'exists';
+    public const ANY    = 'any';
+    public const ALL    = 'all';
+    public const SOME   = 'some';
+    public const ARRAY  = 'array';
+
+    private const ALLOWED_EXPRESSIONS = [
+        self::EXISTS => true,
+        self::ANY    => true,
+        self::ALL    => true,
+        self::SOME   => true,
+        self::ARRAY  => true
         // "in" is served by InExpression
     ];
 
-    public function __construct(SelectCommon $query, $operator = null)
+    public function __construct(SelectCommon $query, ?string $operator = null)
     {
-        if (null !== $operator) {
-            $operator = (string)$operator;
-            if (!isset(self::$allowedExpressions[$operator])) {
-                throw new InvalidArgumentException("Unknown subquery operator '{$operator}'");
-            }
+        if (null !== $operator && !isset(self::ALLOWED_EXPRESSIONS[$operator])) {
+            throw new InvalidArgumentException("Unknown subquery operator '{$operator}'");
         }
         $this->setQuery($query);
         $this->props['operator'] = $operator;
     }
 
-    public function setQuery(SelectCommon $query)
+    public function setQuery(SelectCommon $query): void
     {
         $this->setNamedProperty('query', $query);
     }

@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    exceptions\InvalidArgumentException,
+    nodes\GenericNode,
+    nodes\ScalarExpression,
+    TreeWalker
+};
 
 /**
  * AST node representing a generic operator-like expression
@@ -39,17 +43,17 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class OperatorExpression extends GenericNode implements ScalarExpression
 {
-    public function __construct($operator, ScalarExpression $left = null, ScalarExpression $right = null)
+    public function __construct(string $operator, ScalarExpression $left = null, ScalarExpression $right = null)
     {
         if (null === $left && null === $right) {
             throw new InvalidArgumentException('At least one operand is required for OperatorExpression');
         }
         $this->setNamedProperty('left', $left);
         $this->setNamedProperty('right', $right);
-        $this->props['operator'] = (string)$operator;
+        $this->props['operator'] = $operator;
     }
 
-    public function setLeft(ScalarExpression $left = null)
+    public function setLeft(ScalarExpression $left = null): void
     {
         if (null === $left && null === $this->props['right']) {
             throw new InvalidArgumentException('At least one operand is required for OperatorExpression');
@@ -57,7 +61,7 @@ class OperatorExpression extends GenericNode implements ScalarExpression
         $this->setNamedProperty('left', $left);
     }
 
-    public function setRight(ScalarExpression $right = null)
+    public function setRight(ScalarExpression $right = null): void
     {
         if (null === $right && null === $this->props['left']) {
             throw new InvalidArgumentException('At least one operand is required for OperatorExpression');

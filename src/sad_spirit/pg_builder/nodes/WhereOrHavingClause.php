@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
@@ -41,7 +43,7 @@ class WhereOrHavingClause extends GenericNode
      * @param string                                      $method
      * @throws InvalidArgumentException
      */
-    private function normalizeCondition(&$condition, $method)
+    private function normalizeCondition(&$condition, string $method): void
     {
         if (is_string($condition)) {
             $condition = $this->getParserOrFail('an expression')->parseExpression($condition);
@@ -61,7 +63,7 @@ class WhereOrHavingClause extends GenericNode
      * @param string|ScalarExpression|WhereOrHavingClause|null $condition
      * @return $this
      */
-    public function setCondition($condition = null)
+    public function setCondition($condition = null): self
     {
         if (null !== $condition) {
             $this->normalizeCondition($condition, __METHOD__);
@@ -77,18 +79,18 @@ class WhereOrHavingClause extends GenericNode
      * @param string|ScalarExpression|WhereOrHavingClause $condition
      * @return $this
      */
-    public function and($condition)
+    public function and($condition): self
     {
         $this->normalizeCondition($condition, __METHOD__);
         if (!$this->props['condition']) {
             if (
                 $condition instanceof self
-                || ($condition instanceof LogicalExpression && 'and' !== $condition->operator)
+                || ($condition instanceof LogicalExpression && LogicalExpression::AND !== $condition->operator)
             ) {
                 // nested condition, should always wrap in LogicalExpression
                 $this->setNamedProperty('condition', new LogicalExpression(
                     [$condition instanceof self ? $condition->condition : $condition],
-                    'and'
+                    LogicalExpression::AND
                 ));
 
             } else {
@@ -99,22 +101,25 @@ class WhereOrHavingClause extends GenericNode
             if (!($this->props['condition'] instanceof LogicalExpression)) {
                 $this->setNamedProperty('condition', new LogicalExpression(
                     [$this->props['condition']],
-                    'and'
+                    LogicalExpression::AND
                 ));
             }
             /* @var $recipient LogicalExpression */
-            if ('and' === $this->props['condition']->operator) {
+            if (LogicalExpression::AND === $this->props['condition']->operator) {
                 $recipient = $this->props['condition'];
             } else {
                 $key = $recipient = null;
                 // empty loop is intentional, we just need last key and element in list
                 foreach ($this->props['condition'] as $key => $recipient) {
                 }
-                if (!($recipient instanceof LogicalExpression) || 'and' !== $recipient->operator) {
-                    $this->props['condition'][$key] = $recipient = new LogicalExpression([$recipient], 'and');
+                if (!($recipient instanceof LogicalExpression) || LogicalExpression::AND !== $recipient->operator) {
+                    $this->props['condition'][$key] = $recipient = new LogicalExpression(
+                        [$recipient],
+                        LogicalExpression::AND
+                    );
                 }
             }
-            if ($condition instanceof LogicalExpression && 'and' === $condition->operator) {
+            if ($condition instanceof LogicalExpression && LogicalExpression::AND === $condition->operator) {
                 $recipient->merge($condition);
             } elseif ($condition instanceof self) { // we assume this should be "nested"
                 $recipient[] = $condition->condition;
@@ -132,7 +137,7 @@ class WhereOrHavingClause extends GenericNode
      * @param string|ScalarExpression|WhereOrHavingClause $condition
      * @return $this
      */
-    public function or($condition)
+    public function or($condition): self
     {
         if (!$this->props['condition']) {
             $this->setCondition($condition);
@@ -141,15 +146,15 @@ class WhereOrHavingClause extends GenericNode
             $this->normalizeCondition($condition, __METHOD__);
             if (
                 !($this->props['condition'] instanceof LogicalExpression)
-                || 'or' !== $this->props['condition']->operator
+                || LogicalExpression::OR !== $this->props['condition']->operator
             ) {
                 $this->setNamedProperty('condition', new LogicalExpression(
                     [$this->props['condition']],
-                    'or'
+                    LogicalExpression::OR
                 ));
             }
 
-            if ($condition instanceof LogicalExpression && 'or' === $condition->operator) {
+            if ($condition instanceof LogicalExpression && LogicalExpression::OR === $condition->operator) {
                 $this->props['condition']->merge($condition);
             } elseif ($condition instanceof self) { // we assume this should be "nested"
                 $this->props['condition'][] = $condition->condition;
@@ -176,7 +181,7 @@ class WhereOrHavingClause extends GenericNode
      * @param string|ScalarExpression|WhereOrHavingClause $condition
      * @return WhereOrHavingClause
      */
-    public function nested($condition)
+    public function nested($condition): self
     {
         $this->normalizeCondition($condition, __METHOD__);
         if (!($condition instanceof self)) {

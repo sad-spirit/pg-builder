@@ -16,13 +16,17 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\xml;
 
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\lists\TargetList;
-use sad_spirit\pg_builder\nodes\lists\ExpressionList;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\nodes\{
+    GenericNode,
+    Identifier,
+    lists\TargetList,
+    lists\ExpressionList,
+    ScalarExpression
+};
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -37,8 +41,8 @@ class XmlElement extends GenericNode implements ScalarExpression
     public function __construct(Identifier $name, TargetList $attributes = null, ExpressionList $content = null)
     {
         $this->setNamedProperty('name', $name);
-        $this->setNamedProperty('attributes', $attributes ?: new TargetList());
-        $this->setNamedProperty('content', $content ?: new ExpressionList());
+        $this->setNamedProperty('attributes', $attributes ?? new TargetList());
+        $this->setNamedProperty('content', $content ?? new ExpressionList());
     }
 
     public function dispatch(TreeWalker $walker)

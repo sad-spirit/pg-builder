@@ -221,6 +221,7 @@ class SetParentNodeTest extends \PHPUnit\Framework\TestCase
             new QualifiedName(['foo', 'bar']),
             new FunctionArgumentList([new Constant(1)]),
             false,
+            false,
             new OrderByList([new OrderByElement(new ColumnReference(['baz']))])
         );
 

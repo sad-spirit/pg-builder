@@ -16,14 +16,18 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\SelectCommon;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\{
+    nodes\GenericNode,
+    SelectCommon,
+    nodes\ScalarExpression,
+    exceptions\InvalidArgumentException,
+    TreeWalker
+};
 use sad_spirit\pg_builder\nodes\lists\ExpressionList;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing a [NOT] IN expression
@@ -36,9 +40,17 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class InExpression extends GenericNode implements ScalarExpression
 {
-    public function __construct(ScalarExpression $left, $right, $operator = 'in')
+    public const IN     = 'in';
+    public const NOT_IN = 'not in';
+
+    private const ALLOWED_OPERATORS = [
+        self::IN     => true,
+        self::NOT_IN => true
+    ];
+
+    public function __construct(ScalarExpression $left, $right, string $operator = self::IN)
     {
-        if (!in_array($operator, ['in', 'not in'], true)) {
+        if (!isset(self::ALLOWED_OPERATORS[$operator])) {
             throw new InvalidArgumentException("Unknown operator '{$operator}' for IN-style expression");
         }
         $this->setRight($right);
@@ -46,12 +58,12 @@ class InExpression extends GenericNode implements ScalarExpression
         $this->props['operator'] = $operator;
     }
 
-    public function setLeft(ScalarExpression $left)
+    public function setLeft(ScalarExpression $left): void
     {
         $this->setNamedProperty('left', $left);
     }
 
-    public function setRight($right)
+    public function setRight($right): void
     {
         if (!($right instanceof SelectCommon) && !($right instanceof ExpressionList)) {
             throw new InvalidArgumentException(sprintf(

@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\{
+    exceptions\InvalidArgumentException,
+    nodes\ScalarExpression,
+    TreeWalker
+};
 use sad_spirit\pg_builder\nodes\lists\IdentifierList;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node for JOIN expression in FROM clause
@@ -35,17 +39,23 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class JoinExpression extends FromElement
 {
-    protected static $allowedTypes = [
-        'cross' => true,
-        'left'  => true,
-        'right' => true,
-        'full'  => true,
-        'inner' => true
+    public const CROSS = 'cross';
+    public const LEFT  = 'left';
+    public const RIGHT = 'right';
+    public const FULL  = 'full';
+    public const INNER = 'inner';
+    
+    private const ALLOWED_TYPES = [
+        self::CROSS => true,
+        self::LEFT  => true,
+        self::RIGHT => true,
+        self::FULL  => true,
+        self::INNER => true
     ];
 
-    public function __construct(FromElement $left, FromElement $right, $joinType = 'inner')
+    public function __construct(FromElement $left, FromElement $right, string $joinType = self::INNER)
     {
-        if (!isset(self::$allowedTypes[$joinType])) {
+        if (!isset(self::ALLOWED_TYPES[$joinType])) {
             throw new InvalidArgumentException("Unknown join type '{$joinType}'");
         }
 
@@ -59,56 +69,57 @@ class JoinExpression extends FromElement
         ]);
     }
 
-    public function setLeft(FromElement $left)
+    public function setLeft(FromElement $left): void
     {
         $this->setNamedProperty('left', $left);
     }
 
-    public function setRight(FromElement $right)
+    public function setRight(FromElement $right): void
     {
         $this->setNamedProperty('right', $right);
     }
 
-    public function setNatural($natural)
+    public function setNatural(bool $natural): void
     {
         if ($natural) {
-            if ('cross' === $this->props['type']) {
+            if (self::CROSS === $this->props['type']) {
                 throw new InvalidArgumentException('No join conditions are allowed for CROSS JOIN');
             } elseif (!empty($this->props['using']) || !empty($this->props['on'])) {
                 throw new InvalidArgumentException('Only one of NATURAL, USING, ON clauses should be set for JOIN');
             }
         }
-        $this->props['natural'] = (bool)$natural;
+        $this->props['natural'] = $natural;
     }
 
-    public function setUsing($using = null)
+    public function setUsing($using = null): void
     {
         if (null !== $using) {
-            if ('cross' === $this->props['type']) {
+            if (self::CROSS === $this->props['type']) {
                 throw new InvalidArgumentException('No join conditions are allowed for CROSS JOIN');
             } elseif (!empty($this->props['natural']) || !empty($this->props['on'])) {
                 throw new InvalidArgumentException('Only one of NATURAL, USING, ON clauses should be set for JOIN');
             }
-            if (is_string($using)) {
-                $using = $this->getParserOrFail('a USING clause')->parseColIdList($using);
-            } elseif (is_array($using)) {
-                $using = new IdentifierList($using);
-            }
-            if (!($using instanceof IdentifierList)) {
-                throw new InvalidArgumentException(sprintf(
-                    '%s requires an SQL string, an array of identifiers or an instance of IdentifierList, %s given',
-                    __METHOD__,
-                    is_object($using) ? 'object(' . get_class($using) . ')' : gettype($using)
-                ));
+            if (!$using instanceof IdentifierList) {
+                if (is_string($using)) {
+                    $using = $this->getParserOrFail('a USING clause')->parseColIdList($using);
+                } elseif (is_iterable($using)) {
+                    $using = new IdentifierList($using);
+                } else {
+                    throw new InvalidArgumentException(sprintf(
+                        '%s requires an SQL string, an array of identifiers or an instance of IdentifierList, %s given',
+                        __METHOD__,
+                        is_object($using) ? 'object(' . get_class($using) . ')' : gettype($using)
+                    ));
+                }
             }
         }
         $this->setNamedProperty('using', $using);
     }
 
-    public function setOn($on = null)
+    public function setOn($on = null): void
     {
         if (null !== $on) {
-            if ('cross' === $this->props['type']) {
+            if (self::CROSS === $this->props['type']) {
                 throw new InvalidArgumentException('No join conditions are allowed for CROSS JOIN');
             } elseif (!empty($this->props['natural']) || !empty($this->props['using'])) {
                 throw new InvalidArgumentException('Only one of NATURAL, USING, ON clauses should be set for JOIN');

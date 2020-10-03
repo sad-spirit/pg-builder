@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\Statement;
@@ -39,11 +41,11 @@ class CommonTableExpression extends GenericNode
         Statement $statement,
         Identifier $alias,
         IdentifierList $columnAliases = null,
-        $materialized = null
+        ?bool $materialized = null
     ) {
         $this->setStatement($statement);
         $this->setNamedProperty('alias', $alias);
-        $this->setNamedProperty('columnAliases', $columnAliases ?: new IdentifierList());
+        $this->setNamedProperty('columnAliases', $columnAliases ?? new IdentifierList());
         $this->setMaterialized($materialized);
     }
 
@@ -52,9 +54,9 @@ class CommonTableExpression extends GenericNode
         $this->setNamedProperty('statement', $statement);
     }
 
-    public function setMaterialized($materialized)
+    public function setMaterialized(?bool $materialized)
     {
-        $this->setNamedProperty('materialized', null === $materialized ? null : (bool)$materialized);
+        $this->setNamedProperty('materialized', $materialized);
     }
 
     public function dispatch(TreeWalker $walker)

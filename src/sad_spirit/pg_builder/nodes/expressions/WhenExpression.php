@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\exceptions\NotImplementedException;
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    exceptions\NotImplementedException,
+    nodes\GenericNode,
+    nodes\ScalarExpression,
+    TreeWalker
+};
 
 /**
  * Part of a CASE expression: WHEN Expression THEN Expression
@@ -37,18 +41,19 @@ class WhenExpression extends GenericNode
         $this->setNamedProperty('then', $then);
     }
 
-    public function setWhen(ScalarExpression $when)
+    public function setWhen(ScalarExpression $when): void
     {
         $this->setNamedProperty('when', $when);
     }
 
-    public function setThen(ScalarExpression $then)
+    public function setThen(ScalarExpression $then): void
     {
         $this->setNamedProperty('then', $then);
     }
 
     public function dispatch(TreeWalker $walker)
     {
+        // handled by dispatch of CaseExpression as this cannot appear outside of CASE
         throw new NotImplementedException('Dispatch for ' . __CLASS__ . ' not implemented');
     }
 }

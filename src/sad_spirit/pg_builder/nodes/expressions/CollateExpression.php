@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\QualifiedName;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    nodes\GenericNode,
+    nodes\QualifiedName,
+    nodes\ScalarExpression,
+    TreeWalker
+};
 
 /**
  * AST node representing a "foo COLLATE bar" expression
@@ -37,7 +41,7 @@ class CollateExpression extends GenericNode implements ScalarExpression
         $this->setNamedProperty('collation', $collation);
     }
 
-    public function setArgument(ScalarExpression $argument)
+    public function setArgument(ScalarExpression $argument): void
     {
         $this->setNamedProperty('argument', $argument);
     }

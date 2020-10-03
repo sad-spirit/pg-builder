@@ -45,7 +45,7 @@ class Indirection extends NonAssociativeList implements ScalarExpression
         $this->setNamedProperty('expression', $expression);
     }
 
-    public function setExpression(ScalarExpression $expression)
+    public function setExpression(ScalarExpression $expression): void
     {
         $this->setNamedProperty('expression', $expression);
     }

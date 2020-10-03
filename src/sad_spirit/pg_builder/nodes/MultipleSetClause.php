@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\nodes\lists\SetTargetList;
@@ -39,7 +41,7 @@ class MultipleSetClause extends GenericNode
         $this->setValue($value);
     }
 
-    public function setValue(ScalarExpression $value)
+    public function setValue(ScalarExpression $value): void
     {
         $this->setNamedProperty('value', $value);
     }

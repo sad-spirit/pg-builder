@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
@@ -31,14 +33,35 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class OrderByElement extends GenericNode
 {
-    public function __construct(ScalarExpression $expression, $direction = null, $nullsOrder = null, $operator = null)
-    {
-        if (null !== $direction && !in_array($direction, ['asc', 'desc', 'using'], true)) {
+    public const ASC         = 'asc';
+    public const DESC        = 'desc';
+    public const USING       = 'using';
+    public const NULLS_FIRST = 'first';
+    public const NULLS_LAST  = 'last';
+
+    private const ALLOWED_DIRECTIONS = [
+        self::ASC   => true,
+        self::DESC  => true,
+        self::USING => true
+    ];
+
+    private const ALLOWED_NULLS = [
+        self::NULLS_FIRST => true,
+        self::NULLS_LAST  => true
+    ];
+
+    public function __construct(
+        ScalarExpression $expression,
+        ?string $direction = null,
+        ?string $nullsOrder = null,
+        ?string $operator = null
+    ) {
+        if (null !== $direction && !isset(self::ALLOWED_DIRECTIONS[$direction])) {
             throw new InvalidArgumentException("Unknown sort direction '{$direction}'");
-        } elseif ('using' === $direction && !$operator) {
+        } elseif (self::USING === $direction && !$operator) {
             throw new InvalidArgumentException("Operator required for USING sort direction");
         }
-        if (null !== $nullsOrder && !in_array($nullsOrder, ['first', 'last'], true)) {
+        if (null !== $nullsOrder && !isset(self::ALLOWED_NULLS[$nullsOrder])) {
             throw new InvalidArgumentException("Unknown nulls order '{$nullsOrder}'");
         }
 
@@ -48,7 +71,7 @@ class OrderByElement extends GenericNode
         $this->props['operator']   = $operator;
     }
 
-    public function setExpression(ScalarExpression $expression)
+    public function setExpression(ScalarExpression $expression): void
     {
         $this->setNamedProperty('expression', $expression);
     }

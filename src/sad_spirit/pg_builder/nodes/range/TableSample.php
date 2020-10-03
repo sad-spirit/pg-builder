@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\QualifiedName;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\nodes\lists\ExpressionList;
+use sad_spirit\pg_builder\nodes\{
+    Identifier,
+    QualifiedName,
+    ScalarExpression,
+    lists\ExpressionList
+};
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -46,17 +50,17 @@ class TableSample extends FromElement
         $this->setRepeatable($repeatable);
     }
 
-    public function setMethod(QualifiedName $method)
+    public function setMethod(QualifiedName $method): void
     {
         $this->setNamedProperty('method', $method);
     }
 
-    public function setRepeatable(ScalarExpression $repeatable = null)
+    public function setRepeatable(ScalarExpression $repeatable = null): void
     {
         $this->setNamedProperty('repeatable', $repeatable);
     }
 
-    public function setAlias(Identifier $tableAlias = null, $columnAliases = null)
+    public function setAlias(Identifier $tableAlias = null, $columnAliases = null): void
     {
         $this->props['relation']->setAlias($tableAlias, $columnAliases);
     }

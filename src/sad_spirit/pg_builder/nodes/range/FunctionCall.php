@@ -16,13 +16,17 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\nodes\FunctionCall as BaseFunctionCall;
+use sad_spirit\pg_builder\nodes\{
+    FunctionCall as BaseFunctionCall,
+    Identifier,
+    lists\IdentifierList,
+    lists\ColumnDefinitionList
+};
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\lists\IdentifierList;
-use sad_spirit\pg_builder\nodes\lists\ColumnDefinitionList;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -42,17 +46,17 @@ class FunctionCall extends FromElement
         $this->props['withOrdinality'] = false;
     }
 
-    public function setLateral($lateral)
+    public function setLateral(bool $lateral): void
     {
-        $this->props['lateral'] = (bool)$lateral;
+        $this->props['lateral'] = $lateral;
     }
 
-    public function setWithOrdinality($ordinality)
+    public function setWithOrdinality(bool $ordinality): void
     {
-        $this->props['withOrdinality'] = (bool)$ordinality;
+        $this->props['withOrdinality'] = $ordinality;
     }
 
-    public function setAlias(Identifier $tableAlias = null, $columnAliases = null)
+    public function setAlias(Identifier $tableAlias = null, $columnAliases = null): void
     {
         if (null === $columnAliases || $columnAliases instanceof IdentifierList) {
             parent::setAlias($tableAlias, $columnAliases);

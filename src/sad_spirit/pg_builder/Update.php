@@ -16,13 +16,17 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_builder\nodes\lists\FromList;
-use sad_spirit\pg_builder\nodes\lists\TargetList;
-use sad_spirit\pg_builder\nodes\lists\SetClauseList;
-use sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
-use sad_spirit\pg_builder\nodes\WhereOrHavingClause;
+use sad_spirit\pg_builder\nodes\{
+    lists\FromList,
+    lists\TargetList,
+    lists\SetClauseList,
+    range\UpdateOrDeleteTarget,
+    WhereOrHavingClause
+};
 
 /**
  * AST node representing UPDATE statement
@@ -41,13 +45,9 @@ class Update extends Statement
 
         $this->setNamedProperty('relation', $relation);
         $this->setNamedProperty('set', $set);
-        $this->props['from']      = new FromList();
-        $this->props['returning'] = new TargetList();
-        $this->props['where']     = new WhereOrHavingClause();
-
-        $this->props['from']->setParentNode($this);
-        $this->props['returning']->setParentNode($this);
-        $this->props['where']->setParentNode($this);
+        $this->setNamedProperty('from', new FromList());
+        $this->setNamedProperty('returning', new TargetList());
+        $this->setNamedProperty('where', new WhereOrHavingClause());
     }
 
     public function dispatch(TreeWalker $walker)

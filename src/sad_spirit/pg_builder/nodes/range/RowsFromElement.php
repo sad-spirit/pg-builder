@@ -16,11 +16,15 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\nodes\FunctionCall as BaseFunctionCall;
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\lists\ColumnDefinitionList;
+use sad_spirit\pg_builder\nodes\{
+    FunctionCall as BaseFunctionCall,
+    GenericNode,
+    lists\ColumnDefinitionList
+};
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -36,7 +40,7 @@ class RowsFromElement extends GenericNode
     public function __construct(BaseFunctionCall $function, ColumnDefinitionList $columnAliases = null)
     {
         $this->setNamedProperty('function', $function);
-        $this->setNamedProperty('columnAliases', $columnAliases ?: new ColumnDefinitionList());
+        $this->setNamedProperty('columnAliases', $columnAliases ?? new ColumnDefinitionList());
     }
 
     public function dispatch(TreeWalker $walker)

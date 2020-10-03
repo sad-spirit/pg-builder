@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
@@ -41,8 +43,8 @@ class FunctionCall extends GenericNode
     public function __construct(
         $funcName,
         $arguments = null,
-        $distinct = false,
-        $variadic = false,
+        bool $distinct = false,
+        bool $variadic = false,
         OrderByList $orderBy = null
     ) {
         if (!is_string($funcName) && !($funcName instanceof QualifiedName)) {
@@ -61,10 +63,10 @@ class FunctionCall extends GenericNode
         }
 
         $this->setNamedProperty('name', $funcName);
-        $this->setNamedProperty('arguments', $arguments ?: new FunctionArgumentList([]));
-        $this->props['distinct'] = (bool)$distinct;
-        $this->props['variadic'] = (bool)$variadic;
-        $this->setNamedProperty('order', $orderBy ?: new OrderByList());
+        $this->setNamedProperty('arguments', $arguments ?? new FunctionArgumentList([]));
+        $this->props['distinct'] = $distinct;
+        $this->props['variadic'] = $variadic;
+        $this->setNamedProperty('order', $orderBy ?? new OrderByList());
     }
 
     public function dispatch(TreeWalker $walker)

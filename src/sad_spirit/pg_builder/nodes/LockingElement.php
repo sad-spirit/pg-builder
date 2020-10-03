@@ -35,30 +35,35 @@ class LockingElement extends NonAssociativeList
 {
     use LeafNode;
 
+    public const UPDATE        = 'update';
+    public const NO_KEY_UPDATE = 'no key update';
+    public const SHARE         = 'share';
+    public const KEY_SHARE     = 'key share';
+
+    private const ALLOWED_STRENGTHS = [
+        self::UPDATE        => true,
+        self::NO_KEY_UPDATE => true,
+        self::SHARE         => true,
+        self::KEY_SHARE     => true
+    ];
+
     protected static function getAllowedElementClasses(): array
     {
         return [QualifiedName::class];
     }
 
-    protected static $allowedStrengths = [
-        'update'        => true,
-        'no key update' => true,
-        'share'         => true,
-        'key share'     => true
-    ];
-
-    public function __construct($strength, array $relations = [], $noWait = false, $skipLocked = false)
+    public function __construct(string $strength, array $relations = [], bool $noWait = false, bool $skipLocked = false)
     {
-        if (!isset(self::$allowedStrengths[$strength])) {
+        if (!isset(self::ALLOWED_STRENGTHS[$strength])) {
             throw new InvalidArgumentException("Unknown locking strength '{$strength}'");
         }
         if ($noWait && $skipLocked) {
             throw new InvalidArgumentException("Only one of NOWAIT or SKIP LOCKED is allowed in locking clause");
         }
 
-        $this->props['strength']   = (string)$strength;
-        $this->props['noWait']     = (bool)$noWait;
-        $this->props['skipLocked'] = (bool)$skipLocked;
+        $this->props['strength']   = $strength;
+        $this->props['noWait']     = $noWait;
+        $this->props['skipLocked'] = $skipLocked;
         parent::__construct($relations);
     }
 

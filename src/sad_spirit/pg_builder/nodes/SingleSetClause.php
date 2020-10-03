@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
@@ -35,7 +37,7 @@ class SingleSetClause extends GenericNode
         $this->setValue($value);
     }
 
-    public function setValue($value = null)
+    public function setValue($value = null): void
     {
         if (!($value instanceof ScalarExpression) && !($value instanceof SetToDefault)) {
             throw new InvalidArgumentException(sprintf(

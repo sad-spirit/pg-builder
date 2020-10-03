@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\range;
 
 use sad_spirit\pg_builder\SelectCommon;
@@ -35,14 +37,14 @@ class Subselect extends FromElement
         $this->props['lateral'] = false;
     }
 
-    public function setQuery(SelectCommon $query)
+    public function setQuery(SelectCommon $query): void
     {
         $this->setNamedProperty('query', $query);
     }
 
-    public function setLateral($lateral)
+    public function setLateral(bool $lateral): void
     {
-        $this->props['lateral'] = (bool)$lateral;
+        $this->props['lateral'] = $lateral;
     }
 
     public function dispatch(TreeWalker $walker)

@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
@@ -36,7 +38,7 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  */
 class IntervalTypeName extends TypeName
 {
-    protected static $allowedMasks = [
+    private const ALLOWED_MASKS = [
         'year'             => true,
         'month'            => true,
         'day'              => true,
@@ -54,17 +56,16 @@ class IntervalTypeName extends TypeName
 
     public function __construct(TypeModifierList $typeModifiers = null)
     {
-        $this->props['setOf']     = false;
-        $this->props['bounds']    = [];
-        $this->props['name']      = null;
-        $this->props['mask']      = '';
-        $this->setNamedProperty('modifiers', $typeModifiers ?: new TypeModifierList());
+        $this->props['setOf']  = false;
+        $this->props['bounds'] = [];
+        $this->props['name']   = null;
+        $this->props['mask']   = '';
+        $this->setNamedProperty('modifiers', $typeModifiers ?? new TypeModifierList());
     }
 
-    public function setMask($mask = '')
+    public function setMask(string $mask = '')
     {
-        $mask = (string)$mask;
-        if (strlen($mask) && !isset(self::$allowedMasks[$mask])) {
+        if ('' !== $mask && !isset(self::ALLOWED_MASKS[$mask])) {
             throw new InvalidArgumentException("Unknown mask '{$mask}' for interval type");
         }
         $this->props['mask'] = $mask;

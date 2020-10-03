@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder;
 
 /**
@@ -27,34 +29,41 @@ namespace sad_spirit\pg_builder;
  */
 class SetOpSelect extends SelectCommon
 {
-    protected static $allowedOperators = [
-        'union'         => true,
-        'union all'     => true,
-        'intersect'     => true,
-        'intersect all' => true,
-        'except'        => true,
-        'except all'    => true
+    public const UNION         = 'union';
+    public const UNION_ALL     = 'union all';
+    public const INTERSECT     = 'intersect';
+    public const INTERSECT_ALL = 'intersect all';
+    public const EXCEPT        = 'except';
+    public const EXCEPT_ALL    = 'except all';
+
+    private const ALLOWED_OPERATORS = [
+        self::UNION         => true,
+        self::UNION_ALL     => true,
+        self::INTERSECT     => true,
+        self::INTERSECT_ALL => true,
+        self::EXCEPT        => true,
+        self::EXCEPT_ALL    => true
     ];
 
-    public function __construct(SelectCommon $left, SelectCommon $right, $operator = 'union')
+    public function __construct(SelectCommon $left, SelectCommon $right, string $operator = self::UNION)
     {
         parent::__construct();
 
-        if (!isset(self::$allowedOperators[$operator])) {
+        if (!isset(self::ALLOWED_OPERATORS[$operator])) {
             throw new exceptions\InvalidArgumentException("Unknown set operator '{$operator}'");
         }
 
         $this->setLeft($left);
         $this->setRight($right);
-        $this->props['operator'] = (string)$operator;
+        $this->props['operator'] = $operator;
     }
 
-    public function setLeft(SelectCommon $left)
+    public function setLeft(SelectCommon $left): void
     {
         $this->setNamedProperty('left', $left);
     }
 
-    public function setRight(SelectCommon $right)
+    public function setRight(SelectCommon $right): void
     {
         $this->setNamedProperty('right', $right);
     }

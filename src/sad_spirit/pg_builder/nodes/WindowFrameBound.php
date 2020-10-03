@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
@@ -29,18 +31,28 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class WindowFrameBound extends GenericNode
 {
-    public function __construct($direction, ScalarExpression $value = null)
+    public const PRECEDING   = 'preceding';
+    public const FOLLOWING   = 'following';
+    public const CURRENT_ROW = 'current row';
+
+    private const ALLOWED_DIRECTIONS = [
+        self::PRECEDING   => true,
+        self::FOLLOWING   => true,
+        self::CURRENT_ROW => true
+    ];
+
+    public function __construct(string $direction, ScalarExpression $value = null)
     {
-        if (!in_array($direction, ['preceding', 'following', 'current row'], true)) {
+        if (!isset(self::ALLOWED_DIRECTIONS[$direction])) {
             throw new InvalidArgumentException("Unknown window frame direction '{$direction}'");
         }
         $this->props['direction'] = $direction;
         $this->setValue($value);
     }
 
-    public function setValue(ScalarExpression $value = null)
+    public function setValue(ScalarExpression $value = null): void
     {
-        if (!is_null($value) && !in_array($this->props['direction'], ['preceding', 'following'])) {
+        if (!is_null($value) && !in_array($this->props['direction'], [self::PRECEDING, self::FOLLOWING])) {
             throw new InvalidArgumentException("Value can only be set for PRECEDING or FOLLOWING direction");
         }
         $this->setNamedProperty('value', $value);

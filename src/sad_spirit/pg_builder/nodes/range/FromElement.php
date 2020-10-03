@@ -16,13 +16,18 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\{
+    exceptions\InvalidArgumentException,
+    nodes\GenericNode,
+    nodes\Identifier,
+    nodes\QualifiedName
+};
 use sad_spirit\pg_builder\nodes\lists\IdentifierList;
+
 
 /**
  * Base class for alias-able items in FROM clause
@@ -37,7 +42,7 @@ abstract class FromElement extends GenericNode
         'columnAliases' => null
     ];
 
-    public function setAlias(Identifier $tableAlias = null, $columnAliases = null)
+    public function setAlias(Identifier $tableAlias = null, $columnAliases = null): void
     {
         if (null !== $columnAliases && !($columnAliases instanceof IdentifierList)) {
             throw new InvalidArgumentException(sprintf(
@@ -58,7 +63,7 @@ abstract class FromElement extends GenericNode
      * @return JoinExpression
      * @throws InvalidArgumentException
      */
-    public function join($fromElement, $joinType = 'inner')
+    public function join($fromElement, string $joinType = JoinExpression::INNER): JoinExpression
     {
         if (is_string($fromElement)) {
             $fromElement = $this->getParserOrFail('a FROM element')->parseFromElement($fromElement);
@@ -93,9 +98,9 @@ abstract class FromElement extends GenericNode
      * @param string|FromElement $fromElement
      * @return JoinExpression
      */
-    public function innerJoin($fromElement)
+    public function innerJoin($fromElement): JoinExpression
     {
-        return $this->join($fromElement, 'inner');
+        return $this->join($fromElement, JoinExpression::INNER);
     }
 
     /**
@@ -104,9 +109,9 @@ abstract class FromElement extends GenericNode
      * @param string|FromElement $fromElement
      * @return JoinExpression
      */
-    public function crossJoin($fromElement)
+    public function crossJoin($fromElement): JoinExpression
     {
-        return $this->join($fromElement, 'cross');
+        return $this->join($fromElement, JoinExpression::CROSS);
     }
 
     /**
@@ -115,9 +120,9 @@ abstract class FromElement extends GenericNode
      * @param string|FromElement $fromElement
      * @return JoinExpression
      */
-    public function leftJoin($fromElement)
+    public function leftJoin($fromElement): JoinExpression
     {
-        return $this->join($fromElement, 'left');
+        return $this->join($fromElement, JoinExpression::LEFT);
     }
 
     /**
@@ -126,9 +131,9 @@ abstract class FromElement extends GenericNode
      * @param string|FromElement $fromElement
      * @return JoinExpression
      */
-    public function rightJoin($fromElement)
+    public function rightJoin($fromElement): JoinExpression
     {
-        return $this->join($fromElement, 'right');
+        return $this->join($fromElement, JoinExpression::RIGHT);
     }
 
     /**
@@ -137,8 +142,8 @@ abstract class FromElement extends GenericNode
      * @param string|FromElement $fromElement
      * @return JoinExpression
      */
-    public function fullJoin($fromElement)
+    public function fullJoin($fromElement): JoinExpression
     {
-        return $this->join($fromElement, 'full');
+        return $this->join($fromElement, JoinExpression::FULL);
     }
 }

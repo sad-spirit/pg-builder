@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
@@ -35,17 +37,32 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class IndexElement extends GenericNode
 {
+    public const ASC         = 'asc';
+    public const DESC        = 'desc';
+    public const NULLS_FIRST = 'first';
+    public const NULLS_LAST  = 'last';
+
+    private const ALLOWED_DIRECTIONS = [
+        self::ASC  => true,
+        self::DESC => true
+    ];
+
+    private const ALLOWED_NULLS = [
+        self::NULLS_FIRST => true,
+        self::NULLS_LAST  => true
+    ];
+
     public function __construct(
         $expression,
         QualifiedName $collation = null,
         QualifiedName $opClass = null,
-        $direction = null,
-        $nullsOrder = null
+        ?string $direction = null,
+        ?string $nullsOrder = null
     ) {
-        if (null !== $direction && !in_array($direction, ['asc', 'desc'], true)) {
+        if (null !== $direction && !isset(self::ALLOWED_DIRECTIONS[$direction])) {
             throw new InvalidArgumentException("Unknown sort direction '{$direction}'");
         }
-        if (null !== $nullsOrder && !in_array($nullsOrder, ['first', 'last'], true)) {
+        if (null !== $nullsOrder && !isset(self::ALLOWED_NULLS[$nullsOrder])) {
             throw new InvalidArgumentException("Unknown nulls order '{$nullsOrder}'");
         }
         $this->setExpression($expression);
@@ -56,7 +73,7 @@ class IndexElement extends GenericNode
         $this->props['nullsOrder'] = $nullsOrder;
     }
 
-    public function setExpression($expression)
+    public function setExpression($expression): void
     {
         if (!($expression instanceof ScalarExpression) && !($expression instanceof Identifier)) {
             throw new InvalidArgumentException(sprintf(

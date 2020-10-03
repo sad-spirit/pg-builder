@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_builder\nodes\GenericNode;
@@ -36,8 +38,7 @@ abstract class Statement extends GenericNode
 
     public function __construct()
     {
-        $this->props['with'] = new WithClause([]);
-        $this->props['with']->setParentNode($this);
+        $this->setNamedProperty('with', new WithClause([]));
     }
 
     public function setWith(WithClause $with = null)
@@ -49,7 +50,7 @@ abstract class Statement extends GenericNode
      * Sets the parser instance to use
      * @param Parser $parser
      */
-    public function setParser(Parser $parser)
+    public function setParser(Parser $parser): void
     {
         $this->parser = $parser;
     }

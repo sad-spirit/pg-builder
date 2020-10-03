@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\group;
 
 use sad_spirit\pg_builder\nodes\lists\ExpressionList;
@@ -29,15 +31,23 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class CubeOrRollupClause extends ExpressionList implements GroupByElement
 {
-    public function __construct($list = null, $type = 'cube')
+    public const CUBE   = 'cube';
+    public const ROLLUP = 'rollup';
+
+    private const ALLOWED_TYPES = [
+        self::CUBE   => true,
+        self::ROLLUP => true
+    ];
+
+    public function __construct($list = null, string $type = self::CUBE)
     {
         parent::__construct($list);
         $this->setType($type);
     }
 
-    public function setType($type)
+    public function setType(string $type): void
     {
-        if (!in_array($type, ['cube', 'rollup'], true)) {
+        if (!isset(self::ALLOWED_TYPES[$type])) {
             throw new InvalidArgumentException("Unknown grouping set type '{$type}'");
         }
         $this->props['type'] = $type;

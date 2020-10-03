@@ -16,11 +16,15 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\QualifiedName;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    nodes\Identifier,
+    nodes\QualifiedName,
+    TreeWalker
+};
 
 /**
  * AST node for target of UPDATE or DELETE statement, corresponding to relation_expr_opt_alias in gram.y
@@ -29,10 +33,10 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class UpdateOrDeleteTarget extends InsertTarget
 {
-    public function __construct(QualifiedName $relation, Identifier $alias = null, $inheritOption = null)
+    public function __construct(QualifiedName $relation, Identifier $alias = null, ?bool $inheritOption = null)
     {
         parent::__construct($relation, $alias);
-        $this->props['inherit'] = is_null($inheritOption) ? null : (bool)$inheritOption;
+        $this->props['inherit'] = $inheritOption;
     }
 
     public function dispatch(TreeWalker $walker)

@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_builder\nodes\lists\FromList;
-use sad_spirit\pg_builder\nodes\lists\TargetList;
-use sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
-use sad_spirit\pg_builder\nodes\WhereOrHavingClause;
+use sad_spirit\pg_builder\nodes\{
+    lists\FromList,
+    lists\TargetList,
+    range\UpdateOrDeleteTarget,
+    WhereOrHavingClause
+};
 
 /**
  * AST node representing DELETE statement
@@ -38,13 +42,9 @@ class Delete extends Statement
         parent::__construct();
 
         $this->setNamedProperty('relation', $relation);
-        $this->props['using']     = new FromList();
-        $this->props['returning'] = new TargetList();
-        $this->props['where']     = new WhereOrHavingClause();
-
-        $this->props['using']->setParentNode($this);
-        $this->props['returning']->setParentNode($this);
-        $this->props['where']->setParentNode($this);
+        $this->setNamedProperty('using', new FromList());
+        $this->setNamedProperty('returning', new TargetList());
+        $this->setNamedProperty('where', new WhereOrHavingClause());
     }
 
     public function dispatch(TreeWalker $walker)

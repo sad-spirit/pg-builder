@@ -16,11 +16,15 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\nodes\xml\XmlColumnList;
-use sad_spirit\pg_builder\nodes\xml\XmlNamespaceList;
+use sad_spirit\pg_builder\nodes\{
+    ScalarExpression,
+    xml\XmlColumnList,
+    xml\XmlNamespaceList
+};
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -45,22 +49,22 @@ class XmlTable extends FromElement
         $this->setRowExpression($rowExpression);
         $this->setDocumentExpression($documentExpression);
         $this->setNamedProperty('columns', $columns);
-        $this->setNamedProperty('namespaces', $namespaces ?: new XmlNamespaceList([]));
+        $this->setNamedProperty('namespaces', $namespaces ?? new XmlNamespaceList([]));
     }
 
-    public function setRowExpression(ScalarExpression $rowExpression)
+    public function setRowExpression(ScalarExpression $rowExpression): void
     {
         $this->setNamedProperty('rowExpression', $rowExpression);
     }
 
-    public function setDocumentExpression(ScalarExpression $documentExpression)
+    public function setDocumentExpression(ScalarExpression $documentExpression): void
     {
         $this->setNamedProperty('documentExpression', $documentExpression);
     }
 
-    public function setLateral($lateral)
+    public function setLateral(bool $lateral): void
     {
-        $this->props['lateral'] = (bool)$lateral;
+        $this->props['lateral'] = $lateral;
     }
 
     public function dispatch(TreeWalker $walker)

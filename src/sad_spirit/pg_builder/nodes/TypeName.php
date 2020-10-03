@@ -44,12 +44,12 @@ class TypeName extends GenericNode
         $this->setNamedProperty('modifiers', $typeModifiers ?? new TypeModifierList());
     }
 
-    public function setSetOf(bool $setOf = false)
+    public function setSetOf(bool $setOf = false): void
     {
         $this->props['setOf'] = $setOf;
     }
 
-    public function setBounds(array $bounds)
+    public function setBounds(array $bounds): void
     {
         $this->props['bounds'] = [];
         foreach ($bounds as $key => $value) {

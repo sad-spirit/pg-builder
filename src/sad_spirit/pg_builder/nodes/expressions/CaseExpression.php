@@ -50,12 +50,12 @@ class CaseExpression extends NonAssociativeList implements ScalarExpression
         $this->setNamedProperty('else', $elseClause);
     }
 
-    public function setArgument(ScalarExpression $argument = null)
+    public function setArgument(ScalarExpression $argument = null): void
     {
         $this->setNamedProperty('argument', $argument);
     }
 
-    public function setElse(ScalarExpression $elseClause = null)
+    public function setElse(ScalarExpression $elseClause = null): void
     {
         $this->setNamedProperty('else', $elseClause);
     }

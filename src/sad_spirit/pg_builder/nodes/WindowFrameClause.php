@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
@@ -31,47 +33,65 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class WindowFrameClause extends GenericNode
 {
-    protected static $allowedTypes = [
-        'range'  => true,
-        'rows'   => true,
-        'groups' => true
+    public const RANGE       = 'range';
+    public const ROWS        = 'rows';
+    public const GROUPS      = 'groups';
+
+    public const CURRENT_ROW = 'current row';
+    public const GROUP       = 'group';
+    public const TIES        = 'ties';
+
+    private const ALLOWED_TYPES = [
+        self::RANGE  => true,
+        self::ROWS   => true,
+        self::GROUPS => true
     ];
 
-    protected static $allowedExclusions = [
-        'current row' => true,
-        'group'       => true,
-        'ties'        => true
+    private const ALLOWED_EXCLUSIONS = [
+        self::CURRENT_ROW => true,
+        self::GROUP       => true,
+        self::TIES        => true
     ];
 
-    public function __construct($type, WindowFrameBound $start, WindowFrameBound $end = null, $exclusion = null)
-    {
-        if (!isset(self::$allowedTypes[$type])) {
+    public function __construct(
+        string $type,
+        WindowFrameBound $start,
+        WindowFrameBound $end = null,
+        ?string $exclusion = null
+    ) {
+        if (!isset(self::ALLOWED_TYPES[$type])) {
             throw new InvalidArgumentException("Unknown window frame type '{$type}'");
         }
-        $this->props['type'] = (string)$type;
+        $this->props['type'] = $type;
 
-        if (null !== $exclusion && !isset(self::$allowedExclusions[$exclusion])) {
+        if (null !== $exclusion && !isset(self::ALLOWED_EXCLUSIONS[$exclusion])) {
             throw new InvalidArgumentException("Unknown window frame exclusion '{$exclusion}'");
         }
-        $this->props['exclusion'] = $exclusion ? (string)$exclusion : null;
+        $this->props['exclusion'] = $exclusion;
 
         // like in frame_extent production in gram.y, reject invalid frame cases
-        if ('following' === $start->direction && !$start->value) {
+        if (WindowFrameBound::FOLLOWING === $start->direction && !$start->value) {
             throw new InvalidArgumentException('Frame start cannot be UNBOUNDED FOLLOWING');
         }
         if (!$end) {
-            if ('following' === $start->direction && $start->value) {
+            if (WindowFrameBound::FOLLOWING === $start->direction && $start->value) {
                 throw new InvalidArgumentException('Frame starting from following row cannot end with current row');
             }
 
         } else {
-            if ('preceding' === $end->direction && !$end->value) {
+            if (WindowFrameBound::PRECEDING === $end->direction && !$end->value) {
                 throw new InvalidArgumentException("Frame end cannot be UNBOUNDED PRECEDING");
             }
-            if ('current row' === $start->direction && 'preceding' === $end->direction) {
+            if (
+                WindowFrameBound::CURRENT_ROW === $start->direction
+                && WindowFrameBound::PRECEDING === $end->direction
+            ) {
                 throw new InvalidArgumentException("Frame starting from current row cannot have preceding rows");
             }
-            if ('following' === $start->direction && in_array($end->direction, ['current row', 'preceding'])) {
+            if (
+                WindowFrameBound::FOLLOWING === $start->direction
+                && in_array($end->direction, [WindowFrameBound::CURRENT_ROW, WindowFrameBound::PRECEDING])
+            ) {
                 throw new InvalidArgumentException("Frame starting from following row cannot have preceding rows");
             }
         }

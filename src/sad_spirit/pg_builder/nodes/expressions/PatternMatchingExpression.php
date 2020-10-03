@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    nodes\GenericNode,
+    nodes\ScalarExpression,
+    exceptions\InvalidArgumentException,
+    TreeWalker
+};
 
 /**
  * AST node representing [NOT] LIKE | ILIKE | SIMILAR TO operators
@@ -36,41 +40,48 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class PatternMatchingExpression extends GenericNode implements ScalarExpression
 {
-    protected static $allowedOperators = [
-        'like'           => true,
-        'not like'       => true,
-        'ilike'          => true,
-        'not ilike'      => true,
-        'similar to'     => true,
-        'not similar to' => true
+    public const LIKE           = 'like';
+    public const NOT_LIKE       = 'not like';
+    public const ILIKE          = 'ilike';
+    public const NOT_ILIKE      = 'not ilike';
+    public const SIMILAR_TO     = 'similar to';
+    public const NOT_SIMILAR_TO = 'not similar to';
+    
+    private const ALLOWED_OPERATORS = [
+        self::LIKE           => true,
+        self::NOT_LIKE       => true,
+        self::ILIKE          => true,
+        self::NOT_ILIKE      => true,
+        self::SIMILAR_TO     => true,
+        self::NOT_SIMILAR_TO => true
     ];
 
     public function __construct(
         ScalarExpression $argument,
         ScalarExpression $pattern,
-        $operator = 'like',
+        string $operator = self::LIKE,
         ScalarExpression $escape = null
     ) {
-        if (!isset(self::$allowedOperators[$operator])) {
+        if (!isset(self::ALLOWED_OPERATORS[$operator])) {
             throw new InvalidArgumentException("Unknown operator '{$operator}' for pattern matching expression");
         }
         $this->setNamedProperty('argument', $argument);
         $this->setNamedProperty('pattern', $pattern);
         $this->setNamedProperty('escape', $escape);
-        $this->props['operator'] = (string)$operator;
+        $this->props['operator'] = $operator;
     }
 
-    public function setArgument(ScalarExpression $argument)
+    public function setArgument(ScalarExpression $argument): void
     {
         $this->setNamedProperty('argument', $argument);
     }
 
-    public function setPattern(ScalarExpression $pattern)
+    public function setPattern(ScalarExpression $pattern): void
     {
         $this->setNamedProperty('pattern', $pattern);
     }
 
-    public function setEscape(ScalarExpression $escape = null)
+    public function setEscape(ScalarExpression $escape = null): void
     {
         $this->setNamedProperty('escape', $escape);
     }

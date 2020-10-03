@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\TreeWalker;
@@ -34,7 +36,7 @@ class TargetElement extends GenericNode
         $this->setNamedProperty('alias', $alias);
     }
 
-    public function setExpression(ScalarExpression $expression)
+    public function setExpression(ScalarExpression $expression): void
     {
         $this->setNamedProperty('expression', $expression);
     }
