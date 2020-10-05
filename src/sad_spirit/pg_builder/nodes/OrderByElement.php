@@ -26,10 +26,10 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing an expression from ORDER BY clause
  *
- * @property      ScalarExpression $expression
- * @property-read string           $direction
- * @property-read string           $nullsOrder
- * @property-read string           $operator
+ * @property      ScalarExpression              $expression
+ * @property-read string|null                   $direction
+ * @property-read string|null                   $nullsOrder
+ * @property-read string|QualifiedOperator|null $operator
  */
 class OrderByElement extends GenericNode
 {
@@ -54,15 +54,22 @@ class OrderByElement extends GenericNode
         ScalarExpression $expression,
         ?string $direction = null,
         ?string $nullsOrder = null,
-        ?string $operator = null
+        $operator = null
     ) {
         if (null !== $direction && !isset(self::ALLOWED_DIRECTIONS[$direction])) {
             throw new InvalidArgumentException("Unknown sort direction '{$direction}'");
-        } elseif (self::USING === $direction && !$operator) {
+        } elseif (self::USING === $direction && null === $operator) {
             throw new InvalidArgumentException("Operator required for USING sort direction");
         }
         if (null !== $nullsOrder && !isset(self::ALLOWED_NULLS[$nullsOrder])) {
             throw new InvalidArgumentException("Unknown nulls order '{$nullsOrder}'");
+        }
+        if (null !== $operator && !is_string($operator) && !$operator instanceof QualifiedOperator) {
+            throw new InvalidArgumentException(sprintf(
+                '%s requires either a string or an instance of QualifiedOperator for USING, %s given',
+                __CLASS__,
+                is_object($operator) ? 'object(' . get_class($operator) . ')' : gettype($operator)
+            ));
         }
 
         $this->setNamedProperty('expression', $expression);

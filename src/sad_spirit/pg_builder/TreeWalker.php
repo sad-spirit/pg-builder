@@ -59,6 +59,8 @@ interface TreeWalker
 
     public function walkQualifiedName(nodes\QualifiedName $node);
 
+    public function walkQualifiedOperator(nodes\QualifiedOperator $node);
+
     public function walkSetTargetElement(nodes\SetTargetElement $node);
 
     public function walkSingleSetClause(nodes\SingleSetClause $node);
@@ -100,7 +102,11 @@ interface TreeWalker
 
     public function walkLogicalExpression(nodes\expressions\LogicalExpression $expression);
 
+    public function walkNotExpression(nodes\expressions\NotExpression $expression);
+
     public function walkOperatorExpression(nodes\expressions\OperatorExpression $expression);
+
+    public function walkOverlapsExpression(nodes\expressions\OverlapsExpression $expression);
 
     public function walkPatternMatchingExpression(nodes\expressions\PatternMatchingExpression $expression);
 

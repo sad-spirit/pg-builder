@@ -165,6 +165,9 @@ abstract class BlankWalker implements TreeWalker
     public function walkOrderByElement(nodes\OrderByElement $node)
     {
         $node->expression->dispatch($this);
+        if ($node->operator instanceof nodes\QualifiedOperator) {
+            $node->operator->dispatch($this);
+        }
     }
 
     public function walkParameter(nodes\Parameter $node)
@@ -181,6 +184,17 @@ abstract class BlankWalker implements TreeWalker
         }
         $node->relation->dispatch($this);
     }
+
+    public function walkQualifiedOperator(nodes\QualifiedOperator $node)
+    {
+        if (null !== $node->catalog) {
+            $node->catalog->dispatch($this);
+        }
+        if (null !== $node->schema) {
+            $node->schema->dispatch($this);
+        }
+    }
+
 
     public function walkSetTargetElement(nodes\SetTargetElement $node)
     {
@@ -331,6 +345,11 @@ abstract class BlankWalker implements TreeWalker
         $this->walkGenericNodeList($expression);
     }
 
+    public function walkNotExpression(nodes\expressions\NotExpression $expression)
+    {
+        $expression->argument->dispatch($this);
+    }
+
     public function walkOperatorExpression(nodes\expressions\OperatorExpression $expression)
     {
         if ($expression->left) {
@@ -339,6 +358,12 @@ abstract class BlankWalker implements TreeWalker
         if ($expression->right) {
             $expression->right->dispatch($this);
         }
+    }
+
+    public function walkOverlapsExpression(nodes\expressions\OverlapsExpression $expression)
+    {
+        $expression->left->dispatch($this);
+        $expression->right->dispatch($this);
     }
 
     public function walkPatternMatchingExpression(nodes\expressions\PatternMatchingExpression $expression)

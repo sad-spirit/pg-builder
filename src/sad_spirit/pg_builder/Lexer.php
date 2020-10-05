@@ -28,7 +28,7 @@ class Lexer
     /**
      * Characters that may appear in operators
      */
-    private const CHARS_OPERATOR = '~!@#^&|`?+-*/%<>=';
+    public const CHARS_OPERATOR = '~!@#^&|`?+-*/%<>=';
 
     /**
      * Characters that should be returned as Token::TYPE_SPECIAL_CHAR

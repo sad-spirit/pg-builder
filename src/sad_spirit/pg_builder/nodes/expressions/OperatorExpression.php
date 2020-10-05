@@ -23,6 +23,7 @@ namespace sad_spirit\pg_builder\nodes\expressions;
 use sad_spirit\pg_builder\{
     exceptions\InvalidArgumentException,
     nodes\GenericNode,
+    nodes\QualifiedOperator,
     nodes\ScalarExpression,
     TreeWalker
 };
@@ -37,14 +38,21 @@ use sad_spirit\pg_builder\{
  * that do not have their own nodes. "Operators" here are not just MathOp / all_Op / etc.
  * productions from grammar, but constructs like e.g. 'IS DISTINCT FROM' as well.
  *
- * @property      ScalarExpression|null $left
- * @property      ScalarExpression|null $right
- * @property-read string                $operator
+ * @property      ScalarExpression|null    $left
+ * @property      ScalarExpression|null    $right
+ * @property-read string|QualifiedOperator $operator
  */
 class OperatorExpression extends GenericNode implements ScalarExpression
 {
-    public function __construct(string $operator, ScalarExpression $left = null, ScalarExpression $right = null)
+    public function __construct($operator, ScalarExpression $left = null, ScalarExpression $right = null)
     {
+        if (!is_string($operator) && !$operator instanceof QualifiedOperator) {
+            throw new InvalidArgumentException(sprintf(
+                '%s requires either a string or an instance of QualifiedOperator, %s given',
+                __CLASS__,
+                is_object($operator) ? 'object(' . get_class($operator) . ')' : gettype($operator)
+            ));
+        }
         if (null === $left && null === $right) {
             throw new InvalidArgumentException('At least one operand is required for OperatorExpression');
         }

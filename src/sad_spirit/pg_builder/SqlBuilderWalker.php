@@ -183,11 +183,11 @@ class SqlBuilderWalker implements TreeWalker
         } elseif ($expression instanceof nodes\expressions\IsOfExpression) {
             return self::PRECEDENCE_IS;
 
+        } elseif ($expression instanceof nodes\expressions\NotExpression) {
+            return self::PRECEDENCE_NOT;
+
         } elseif ($expression instanceof nodes\expressions\OperatorExpression) {
             switch ($expression->operator) {
-                case 'not':
-                    return self::PRECEDENCE_NOT;
-
                 case '=':
                 case '<':
                 case '>':
@@ -309,8 +309,11 @@ class SqlBuilderWalker implements TreeWalker
         ) {
             return self::ASSOCIATIVE_LEFT;
 
+        } elseif ($expression instanceof nodes\expressions\NotExpression) {
+            return self::ASSOCIATIVE_RIGHT;
+
         } elseif ($expression instanceof nodes\expressions\OperatorExpression) {
-            if (!$expression->left && in_array($expression->operator, ['not', '+', '-'])) {
+            if (!$expression->left && in_array($expression->operator, ['+', '-'])) {
                 return self::ASSOCIATIVE_RIGHT;
 
             } elseif (
@@ -808,7 +811,11 @@ class SqlBuilderWalker implements TreeWalker
         if ($node->direction) {
             $sql .= ' ' . $node->direction;
             if ('using' === $node->direction) {
-                $sql .= ' ' . $node->operator;
+                $sql .= ' '  . (
+                            $node->operator instanceof nodes\QualifiedOperator
+                            ? $node->operator->dispatch($this)
+                            : $node->operator
+                        );
             }
         }
         if ($node->nullsOrder) {
@@ -833,6 +840,11 @@ class SqlBuilderWalker implements TreeWalker
     }
 
     public function walkQualifiedName(nodes\QualifiedName $node)
+    {
+        return $node->__toString();
+    }
+
+    public function walkQualifiedOperator(nodes\QualifiedOperator $node)
     {
         return $node->__toString();
     }
@@ -1100,6 +1112,11 @@ class SqlBuilderWalker implements TreeWalker
         return implode($delimiter, $items);
     }
 
+    public function walkNotExpression(nodes\expressions\NotExpression $expression)
+    {
+        return 'not ' . $this->optionalParentheses($expression->argument, $expression);
+    }
+
     public function walkOperatorExpression(nodes\expressions\OperatorExpression $expression)
     {
         if ($expression->left) {
@@ -1115,6 +1132,12 @@ class SqlBuilderWalker implements TreeWalker
         }
 
         return $sql;
+    }
+
+    public function walkOverlapsExpression(nodes\expressions\OverlapsExpression $expression)
+    {
+        // parentheses are not needed since both arguments can be only row literals
+        return $expression->left->dispatch($this) . ' overlaps ' . $expression->right->dispatch($this);
     }
 
     public function walkPatternMatchingExpression(nodes\expressions\PatternMatchingExpression $expression)

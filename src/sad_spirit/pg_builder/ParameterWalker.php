@@ -100,6 +100,11 @@ class ParameterWalker extends BlankWalker
  /* No Parameters here */
     }
 
+    public function walkQualifiedOperator(nodes\QualifiedOperator $node)
+    {
+ /* No Parameters here */
+    }
+
     public function walkTypeName(nodes\TypeName $node)
     {
  /* No Parameters here */

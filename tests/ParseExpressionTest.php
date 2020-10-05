@@ -18,13 +18,17 @@
 
 namespace sad_spirit\pg_builder\tests;
 
+use sad_spirit\pg_builder\exceptions\SyntaxException;
 use sad_spirit\pg_builder\nodes\ColumnReference;
 use sad_spirit\pg_builder\nodes\Constant;
+use sad_spirit\pg_builder\nodes\expressions\NotExpression;
+use sad_spirit\pg_builder\nodes\expressions\OverlapsExpression;
 use sad_spirit\pg_builder\nodes\lists\ExpressionList;
 use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
 use sad_spirit\pg_builder\nodes\lists\TypeList;
 use sad_spirit\pg_builder\nodes\lists\TargetList;
 use sad_spirit\pg_builder\nodes\OrderByElement;
+use sad_spirit\pg_builder\nodes\QualifiedOperator;
 use sad_spirit\pg_builder\Parser;
 use sad_spirit\pg_builder\Lexer;
 use sad_spirit\pg_builder\nodes\Identifier;
@@ -169,17 +173,13 @@ QRY
                     new LogicalExpression(
                         [
                             new ColumnReference([new Identifier('a')]),
-                            new OperatorExpression('not', null, new ColumnReference([new Identifier('b')]))
+                            new NotExpression(new ColumnReference([new Identifier('b')]))
                         ],
                         'and'
                     ),
                     new LogicalExpression(
                         [
-                            new OperatorExpression('not', null, new OperatorExpression(
-                                'not',
-                                null,
-                                new ColumnReference([new Identifier('c')])
-                            )),
+                            new NotExpression(new NotExpression(new ColumnReference([new Identifier('c')]))),
                             new ColumnReference([new Identifier('d')])
                         ]
                     ),
@@ -229,8 +229,7 @@ QRY
 QRY
         );
         $this->assertEquals(
-            new OperatorExpression(
-                'overlaps',
+            new OverlapsExpression(
                 new RowExpression([
                     new ColumnReference([new Identifier('foo')]),
                     new ColumnReference([new Identifier('bar')])
@@ -246,7 +245,7 @@ QRY
         $this->expectException(
             'sad_spirit\pg_builder\exceptions\SyntaxException'
         );
-        $this->expectExceptionMessage('Wrong number of parameters');
+        $this->expectExceptionMessage('Wrong number of items');
         $this->parser->parseExpression(<<<QRY
     row(foo) overlaps (bar, baz)
 QRY
@@ -401,13 +400,40 @@ QRY
                     new ColumnReference([new Identifier('q')])
                 ),
                 new OperatorExpression(
-                    'operator(blah.###)',
+                    new QualifiedOperator('blah', '###'),
                     new ColumnReference([new Identifier('r')]),
                     new ColumnReference([new Identifier('s')])
                 ),
             ]),
             $list
         );
+    }
+
+    /**
+     * @dataProvider getInvalidQualifiedOperators
+     *
+     * @param string|array $expression
+     * @param string       $message
+     */
+    public function testInvalidQualifiedOperators($expression, string $message)
+    {
+        $this::expectException(SyntaxException::class);
+        $this::expectExceptionMessage($message);
+
+        if (is_array($expression)) {
+            new QualifiedOperator(...$expression);
+        } else {
+            $this->parser->parseExpression($expression);
+        }
+    }
+
+    public function getInvalidQualifiedOperators()
+    {
+        return [
+            [['this', 'sucks'], 'does not look like a valid operator string'],
+            ['foo operator(a.b.c.+) bar', 'Too many dots in qualified name'],
+            ['foo operator(this.sucks) bar', "Unexpected special character ')'"]
+        ];
     }
 
     public function testIsWhatever()

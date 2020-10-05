@@ -1498,7 +1498,7 @@ class Parser
     {
         if ($this->stream->matchesKeyword('not')) {
             $this->stream->next();
-            return new nodes\expressions\OperatorExpression('not', null, $this->LogicalExpressionFactor());
+            return new nodes\expressions\NotExpression($this->LogicalExpressionFactor());
         }
         return $this->IsWhateverExpression();
     }
@@ -1599,17 +1599,15 @@ class Parser
         $token = $this->stream->next();
         $right = $this->RowConstructor();
 
-        if (count($left) != 2) {
-            throw new exceptions\SyntaxException(
-                "Wrong number of parameters on left side of " . $token
-            );
-        } elseif (count($right) != 2) {
-            throw new exceptions\SyntaxException(
-                "Wrong number of parameters on right side of " . $token
+        try {
+            return new nodes\expressions\OverlapsExpression($left, $right);
+        } catch (exceptions\InvalidArgumentException $e) {
+            throw exceptions\SyntaxException::atPosition(
+                $e->getMessage(),
+                $this->stream->getSource(),
+                $token->getPosition()
             );
         }
-
-        return new nodes\expressions\OperatorExpression('overlaps', $left, $right);
     }
 
     /**
@@ -1748,9 +1746,9 @@ class Parser
     /**
      * @param bool $all Whether to match qual_Op or qual_all_Op production
      *                  (the latter allows mathematical operators)
-     * @return string
+     * @return string|nodes\QualifiedOperator
      */
-    protected function Operator(bool $all = false): string
+    protected function Operator(bool $all = false)
     {
         if (
             $this->stream->matches(Token::TYPE_OPERATOR)
@@ -1759,9 +1757,9 @@ class Parser
             return $this->stream->next()->getValue();
         }
 
-        // we don't really give a fuck about qualified operator's structure, so just return it as string
-        $operator = $this->stream->expect(Token::TYPE_KEYWORD, 'operator')->getValue()
-                    . $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(')->getValue();
+        $this->stream->expect(Token::TYPE_KEYWORD, 'operator');
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $parts = [];
         while (
             $this->stream->matchesAnyType(
                 Token::TYPE_IDENTIFIER,
@@ -1770,16 +1768,17 @@ class Parser
             )
         ) {
             // ColId
-            $operator .= new nodes\Identifier($this->stream->next());
-            $operator .= $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '.')->getValue();
+            $parts[] = new nodes\Identifier($this->stream->next());
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '.');
         }
         if ($this->stream->matches(Token::TYPE_SPECIAL, self::MATH_OPERATORS)) {
-            $operator .= $this->stream->next()->getValue();
+            $parts[] = $this->stream->next();
         } else {
-            $operator .= $this->stream->expect(Token::TYPE_OPERATOR)->getValue();
+            $parts[] = $this->stream->expect(Token::TYPE_OPERATOR);
         }
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
-        return $operator . $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')')->getValue();
+        return new nodes\QualifiedOperator(...$parts);
     }
 
     protected function IsWhateverExpression(bool $restricted = false): nodes\ScalarExpression
