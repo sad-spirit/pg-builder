@@ -37,14 +37,14 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
     public const AND = 'and';
     public const OR  = 'or';
 
-    private const ALLOWED_OPERATORS = [
-        self::AND => true,
-        self::OR  => true
+    private const PRECEDENCES = [
+        self::AND => self::PRECEDENCE_AND,
+        self::OR  => self::PRECEDENCE_OR
     ];
 
     public function __construct($terms = null, string $operator = self::AND)
     {
-        if (!isset(self::ALLOWED_OPERATORS[$operator])) {
+        if (!isset(self::PRECEDENCES[$operator])) {
             throw new InvalidArgumentException("Unknown logical operator '{$operator}'");
         }
         parent::__construct($terms);
@@ -54,5 +54,15 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkLogicalExpression($this);
+    }
+
+    public function getPrecedence(): int
+    {
+        return self::PRECEDENCES[$this->props['operator']];
+    }
+
+    public function getAssociativity(): string
+    {
+        return self::ASSOCIATIVE_LEFT;
     }
 }

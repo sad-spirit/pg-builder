@@ -87,4 +87,14 @@ class BetweenExpression extends GenericNode implements ScalarExpression
     {
         return $walker->walkBetweenExpression($this);
     }
+
+    public function getPrecedence(): int
+    {
+        return self::PRECEDENCE_BETWEEN;
+    }
+
+    public function getAssociativity(): string
+    {
+        return self::ASSOCIATIVE_NONE;
+    }
 }

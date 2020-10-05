@@ -33,4 +33,14 @@ class XmlForest extends TargetList implements ScalarExpression
     {
         return $walker->walkXmlForest($this);
     }
+
+    public function getPrecedence(): int
+    {
+        return self::PRECEDENCE_ATOM;
+    }
+
+    public function getAssociativity(): string
+    {
+        return self::ASSOCIATIVE_NONE;
+    }
 }

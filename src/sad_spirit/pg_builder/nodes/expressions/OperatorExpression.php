@@ -46,6 +46,30 @@ use sad_spirit\pg_builder\{
  */
 class OperatorExpression extends GenericNode implements ScalarExpression
 {
+    private const PRECEDENCES = [
+        '='  => self::PRECEDENCE_COMPARISON,
+        '<'  => self::PRECEDENCE_COMPARISON,
+        '>'  => self::PRECEDENCE_COMPARISON,
+        '<=' => self::PRECEDENCE_COMPARISON,
+        '>=' => self::PRECEDENCE_COMPARISON,
+        '!=' => self::PRECEDENCE_COMPARISON,
+        '<>' => self::PRECEDENCE_COMPARISON,
+
+        '+'  => self::PRECEDENCE_ADDITION,
+        '-'  => self::PRECEDENCE_ADDITION,
+
+        '*'  => self::PRECEDENCE_MULTIPLICATION,
+        '/'  => self::PRECEDENCE_MULTIPLICATION,
+        '%'  => self::PRECEDENCE_MULTIPLICATION,
+
+        '^' => self::PRECEDENCE_EXPONENTIATION
+    ];
+
+    private const PRECEDENCES_UNARY = [
+        '+' => self::PRECEDENCE_UNARY_MINUS,
+        '-' => self::PRECEDENCE_UNARY_MINUS
+    ];
+    
     public function __construct($operator, ScalarExpression $left = null, ScalarExpression $right = null)
     {
         if (!is_string($operator) && !$operator instanceof QualifiedOperator) {
@@ -88,5 +112,32 @@ class OperatorExpression extends GenericNode implements ScalarExpression
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkOperatorExpression($this);
+    }
+
+    public function getPrecedence(): int
+    {
+        if (!is_string($this->props['operator']) || !isset(self::PRECEDENCES[$this->props['operator']])) {
+            return null === $this->props['right'] ? self::PRECEDENCE_POSTFIX_OP : self::PRECEDENCE_GENERIC_OP;
+        } elseif (null === $this->props['left'] && isset(self::PRECEDENCES_UNARY[$this->props['operator']])) {
+            return self::PRECEDENCES_UNARY[$this->props['operator']];
+        } else {
+            return self::PRECEDENCES[$this->props['operator']];
+        }
+    }
+
+    public function getAssociativity(): string
+    {
+        if (!is_string($this->props['operator'])) {
+            return self::ASSOCIATIVE_LEFT;
+        } elseif (null === $this->props['left'] && isset(self::PRECEDENCES_UNARY[$this->props['operator']])) {
+            return self::ASSOCIATIVE_RIGHT;
+        } elseif (
+            !isset(self::PRECEDENCES[$this->props['operator']])
+            || self::PRECEDENCE_COMPARISON !== self::PRECEDENCES[$this->props['operator']]
+        ) {
+            return self::ASSOCIATIVE_LEFT;
+        } else {
+            return self::ASSOCIATIVE_NONE;
+        }
     }
 }

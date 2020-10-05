@@ -70,4 +70,14 @@ class XmlRoot extends GenericNode implements ScalarExpression
     {
         return $walker->walkXmlRoot($this);
     }
+
+    public function getPrecedence(): int
+    {
+        return self::PRECEDENCE_ATOM;
+    }
+
+    public function getAssociativity(): string
+    {
+        return self::ASSOCIATIVE_NONE;
+    }
 }

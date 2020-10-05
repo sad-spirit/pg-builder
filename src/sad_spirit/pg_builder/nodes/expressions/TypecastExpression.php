@@ -55,4 +55,14 @@ class TypecastExpression extends GenericNode implements ScalarExpression
     {
         return $walker->walkTypecastExpression($this);
     }
+
+    public function getPrecedence(): int
+    {
+        return self::PRECEDENCE_TYPECAST;
+    }
+
+    public function getAssociativity(): string
+    {
+        return self::ASSOCIATIVE_LEFT;
+    }
 }

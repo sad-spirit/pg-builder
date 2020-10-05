@@ -45,4 +45,14 @@ class NotExpression extends GenericNode implements ScalarExpression
     {
         return $walker->walkNotExpression($this);
     }
+
+    public function getPrecedence(): int
+    {
+        return self::PRECEDENCE_NOT;
+    }
+
+    public function getAssociativity(): string
+    {
+        return self::ASSOCIATIVE_RIGHT;
+    }
 }

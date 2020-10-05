@@ -52,4 +52,14 @@ class AtTimeZoneExpression extends GenericNode implements ScalarExpression
     {
         return $walker->walkAtTimeZoneExpression($this);
     }
+
+    public function getPrecedence(): int
+    {
+        return self::PRECEDENCE_TIME_ZONE;
+    }
+
+    public function getAssociativity(): string
+    {
+        return self::ASSOCIATIVE_LEFT;
+    }
 }

@@ -38,6 +38,21 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  */
 abstract class SelectCommon extends Statement
 {
+    /**
+     * Precedence for UNION [ALL] and EXCEPT [ALL] set operations
+     */
+    protected const PRECEDENCE_SETOP_UNION     = 1;
+
+    /**
+     * Precedence for INTERSECT [ALL] set operation
+     */
+    protected const PRECEDENCE_SETOP_INTERSECT = 2;
+
+    /**
+     * Precedence for a base SELECT / VALUES statement in set operations
+     */
+    protected const PRECEDENCE_SETOP_SELECT    = 3;
+
     public function __construct()
     {
         parent::__construct();
@@ -149,5 +164,15 @@ abstract class SelectCommon extends Statement
         }
 
         return $setOpSelect;
+    }
+
+    /**
+     * Returns the relative precedence for this SelectCommon instance in set operations
+     *
+     * @return int One of PRECEDENCE_SETOP_* constants
+     */
+    public function getPrecedence(): int
+    {
+        return self::PRECEDENCE_SETOP_SELECT;
     }
 }

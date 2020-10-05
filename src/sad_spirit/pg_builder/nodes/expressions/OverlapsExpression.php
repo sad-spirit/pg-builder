@@ -64,4 +64,14 @@ class OverlapsExpression extends GenericNode implements ScalarExpression
     {
         return $walker->walkOverlapsExpression($this);
     }
+
+    public function getPrecedence(): int
+    {
+        return self::PRECEDENCE_OVERLAPS;
+    }
+
+    public function getAssociativity(): string
+    {
+        return self::ASSOCIATIVE_NONE;
+    }
 }

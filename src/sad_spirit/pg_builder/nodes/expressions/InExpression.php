@@ -79,4 +79,14 @@ class InExpression extends GenericNode implements ScalarExpression
     {
         return $walker->walkInExpression($this);
     }
+
+    public function getPrecedence(): int
+    {
+        return self::PRECEDENCE_IN;
+    }
+
+    public function getAssociativity(): string
+    {
+        return self::ASSOCIATIVE_NONE;
+    }
 }

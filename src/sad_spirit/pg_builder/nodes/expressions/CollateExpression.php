@@ -50,4 +50,14 @@ class CollateExpression extends GenericNode implements ScalarExpression
     {
         return $walker->walkCollateExpression($this);
     }
+
+    public function getPrecedence(): int
+    {
+        return self::PRECEDENCE_COLLATE;
+    }
+
+    public function getAssociativity(): string
+    {
+        return self::ASSOCIATIVE_LEFT;
+    }
 }

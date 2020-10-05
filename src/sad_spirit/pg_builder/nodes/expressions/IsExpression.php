@@ -91,4 +91,14 @@ class IsExpression extends GenericNode implements ScalarExpression
     {
         return $walker->walkIsExpression($this);
     }
+
+    public function getPrecedence(): int
+    {
+        return self::PRECEDENCE_IS;
+    }
+
+    public function getAssociativity(): string
+    {
+        return self::ASSOCIATIVE_NONE;
+    }
 }

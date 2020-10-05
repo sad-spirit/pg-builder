@@ -54,4 +54,15 @@ class Indirection extends NonAssociativeList implements ScalarExpression
     {
         return $walker->walkIndirection($this);
     }
+
+    public function getPrecedence(): int
+    {
+        // actual precedence depends on contents of $nodes
+        return self::PRECEDENCE_ATOM;
+    }
+
+    public function getAssociativity(): string
+    {
+        return self::ASSOCIATIVE_LEFT;
+    }
 }

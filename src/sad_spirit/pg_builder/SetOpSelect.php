@@ -36,20 +36,20 @@ class SetOpSelect extends SelectCommon
     public const EXCEPT        = 'except';
     public const EXCEPT_ALL    = 'except all';
 
-    private const ALLOWED_OPERATORS = [
-        self::UNION         => true,
-        self::UNION_ALL     => true,
-        self::INTERSECT     => true,
-        self::INTERSECT_ALL => true,
-        self::EXCEPT        => true,
-        self::EXCEPT_ALL    => true
+    private const PRECEDENCES = [
+        self::UNION         => self::PRECEDENCE_SETOP_UNION,
+        self::UNION_ALL     => self::PRECEDENCE_SETOP_UNION,
+        self::INTERSECT     => self::PRECEDENCE_SETOP_INTERSECT,
+        self::INTERSECT_ALL => self::PRECEDENCE_SETOP_INTERSECT,
+        self::EXCEPT        => self::PRECEDENCE_SETOP_UNION,
+        self::EXCEPT_ALL    => self::PRECEDENCE_SETOP_UNION
     ];
 
     public function __construct(SelectCommon $left, SelectCommon $right, string $operator = self::UNION)
     {
         parent::__construct();
 
-        if (!isset(self::ALLOWED_OPERATORS[$operator])) {
+        if (!isset(self::PRECEDENCES[$operator])) {
             throw new exceptions\InvalidArgumentException("Unknown set operator '{$operator}'");
         }
 
@@ -71,5 +71,10 @@ class SetOpSelect extends SelectCommon
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkSetOpSelectStatement($this);
+    }
+
+    public function getPrecedence(): int
+    {
+        return self::PRECEDENCES[$this->props['operator']];
     }
 }

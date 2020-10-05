@@ -18,10 +18,12 @@
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\nodes\FunctionCall;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\nodes\WindowDefinition;
-use sad_spirit\pg_builder\nodes\lists\OrderByList;
+use sad_spirit\pg_builder\nodes\{
+    FunctionCall,
+    ScalarExpression,
+    WindowDefinition,
+    lists\OrderByList
+};
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -52,5 +54,15 @@ class FunctionExpression extends FunctionCall implements ScalarExpression
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkFunctionExpression($this);
+    }
+
+    public function getPrecedence(): int
+    {
+        return self::PRECEDENCE_ATOM;
+    }
+
+    public function getAssociativity(): string
+    {
+        return self::ASSOCIATIVE_NONE;
     }
 }
