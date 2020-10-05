@@ -20,29 +20,22 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\nodes\{
-    GenericNode,
-    ScalarExpression,
-    lists\TypeList
-};
+use sad_spirit\pg_builder\nodes\GenericNode;
+use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
- * AST node representing an IS [NOT] OF expression
- *
- * Cannot be an OperatorExpression due to specific right operand
+ * AST node representing "foo AT TIME ZONE bar" expression
  *
  * @property ScalarExpression $left
- * @property TypeList         $right
- * @property bool             $not
+ * @property ScalarExpression $right
  */
-class IsOfExpression extends GenericNode implements ScalarExpression
+class AtTimeZoneExpression extends GenericNode implements ScalarExpression
 {
-    public function __construct(ScalarExpression $left, TypeList $right, bool $not = false)
+    public function __construct(ScalarExpression $left, ScalarExpression $right)
     {
-        $this->setNamedProperty('left', $left);
-        $this->setNamedProperty('right', $right);
-        $this->setNot($not);
+        $this->setLeft($left);
+        $this->setRight($right);
     }
 
     public function setLeft(ScalarExpression $left): void
@@ -50,13 +43,13 @@ class IsOfExpression extends GenericNode implements ScalarExpression
         $this->setNamedProperty('left', $left);
     }
 
-    public function setNot(bool $not): void
+    public function setRight(ScalarExpression $right): void
     {
-        $this->setNamedProperty('not', $not);
+        $this->setNamedProperty('right', $right);
     }
 
     public function dispatch(TreeWalker $walker)
     {
-        return $walker->walkIsOfExpression($this);
+        return $walker->walkAtTimeZoneExpression($this);
     }
 }

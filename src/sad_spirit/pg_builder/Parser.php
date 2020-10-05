@@ -1784,6 +1784,7 @@ class Parser
     protected function IsWhateverExpression(bool $restricted = false): nodes\ScalarExpression
     {
         $operand = $this->Comparison($restricted);
+        $isNot   = false;
         $checks  = array_merge(
             $restricted ? [] : self::CHECKS_IS_WHATEVER,
             [['document']]
@@ -1795,34 +1796,35 @@ class Parser
         ) {
             $operator = $this->stream->next()->getValue();
             if ('notnull' === $operator) {
-                $operand = new nodes\expressions\OperatorExpression('is not null', $operand, null);
+                $operand = new nodes\expressions\IsExpression($operand, nodes\expressions\IsExpression::NULL, true);
                 continue;
             } elseif ('isnull' === $operator) {
-                $operand = new nodes\expressions\OperatorExpression('is null', $operand, null);
+                $operand = new nodes\expressions\IsExpression($operand, nodes\expressions\IsExpression::NULL);
                 continue;
             }
 
             if ($this->stream->matchesKeyword('not')) {
-                $operator .= ' ' . $this->stream->next()->getValue();
+                $this->stream->next();
+                $isNot = true;
             }
 
             foreach ($checks as $check) {
                 if ($this->stream->matchesKeywordSequence(...$check)) {
+                    $isOperator = [];
                     for ($i = 0; $i < count($check); $i++) {
-                        $operator .= ' ' . $this->stream->next()->getValue();
+                        $isOperator[] = $this->stream->next()->getValue();
                     }
-                    $operand = new nodes\expressions\OperatorExpression($operator, $operand, null);
+                    $operand = new nodes\expressions\IsExpression($operand, implode(' ', $isOperator), $isNot);
                     continue 2;
                 }
             }
 
             if ($this->stream->matchesKeywordSequence('distinct', 'from')) {
                 $this->stream->skip(2);
-                // 'is distinct from' requires parentheses
-                return new nodes\expressions\OperatorExpression(
-                    $operator . ' distinct from',
+                return new nodes\expressions\IsDistinctFromExpression(
                     $operand,
-                    $this->ArithmeticExpression($restricted)
+                    $this->ArithmeticExpression($restricted),
+                    $isNot
                 );
             }
 
@@ -1833,7 +1835,7 @@ class Parser
                 $this->stream->skip(2);
                 $right = $this->TypeList();
                 $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-                $operand = new nodes\expressions\IsOfExpression($operand, $right, $operator . ' of');
+                $operand = new nodes\expressions\IsOfExpression($operand, $right, $isNot);
                 continue;
             }
 
@@ -2260,7 +2262,7 @@ class Parser
         $left = $this->CollateExpression();
         if ($this->stream->matchesKeywordSequence('at', 'time', 'zone')) {
             $this->stream->skip(3);
-            return new nodes\expressions\OperatorExpression('at time zone', $left, $this->CollateExpression());
+            return new nodes\expressions\AtTimeZoneExpression($left, $this->CollateExpression());
         }
         return $left;
     }

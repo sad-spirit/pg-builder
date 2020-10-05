@@ -180,11 +180,21 @@ class SqlBuilderWalker implements TreeWalker
         } elseif ($expression instanceof nodes\expressions\PatternMatchingExpression) {
             return self::PRECEDENCE_PATTERN;
 
-        } elseif ($expression instanceof nodes\expressions\IsOfExpression) {
+        } elseif (
+            $expression instanceof nodes\expressions\IsOfExpression
+            || $expression instanceof nodes\expressions\IsDistinctFromExpression
+            || $expression instanceof nodes\expressions\IsExpression
+        ) {
             return self::PRECEDENCE_IS;
 
         } elseif ($expression instanceof nodes\expressions\NotExpression) {
             return self::PRECEDENCE_NOT;
+
+        } elseif ($expression instanceof nodes\expressions\AtTimeZoneExpression) {
+            return self::PRECEDENCE_TIME_ZONE;
+
+        } elseif ($expression instanceof nodes\expressions\OverlapsExpression) {
+            return self::PRECEDENCE_OVERLAPS;
 
         } elseif ($expression instanceof nodes\expressions\OperatorExpression) {
             switch ($expression->operator) {
@@ -196,23 +206,6 @@ class SqlBuilderWalker implements TreeWalker
                 case '!=':
                 case '<>':
                     return self::PRECEDENCE_COMPARISON;
-
-                case 'overlaps':
-                    return self::PRECEDENCE_OVERLAPS;
-
-                case 'is null':
-                case 'is not null':
-                case 'is true':
-                case 'is not true':
-                case 'is false':
-                case 'is not false':
-                case 'is unknown':
-                case 'is not unknown':
-                case 'is document':
-                case 'is not document':
-                case 'is distinct from':
-                case 'is not distinct from':
-                    return self::PRECEDENCE_IS;
 
                 case '+':
                 case '-':
@@ -226,9 +219,6 @@ class SqlBuilderWalker implements TreeWalker
 
                 case '^':
                     return self::PRECEDENCE_EXPONENTIATION;
-
-                case 'at time zone':
-                    return self::PRECEDENCE_TIME_ZONE;
 
                 default:
                     // generic operator
@@ -312,18 +302,14 @@ class SqlBuilderWalker implements TreeWalker
         } elseif ($expression instanceof nodes\expressions\NotExpression) {
             return self::ASSOCIATIVE_RIGHT;
 
+        } elseif ($expression instanceof nodes\expressions\AtTimeZoneExpression) {
+            return self::ASSOCIATIVE_LEFT;
+
         } elseif ($expression instanceof nodes\expressions\OperatorExpression) {
             if (!$expression->left && in_array($expression->operator, ['+', '-'])) {
                 return self::ASSOCIATIVE_RIGHT;
 
-            } elseif (
-                !in_array($expression->operator, [
-                          '=', '<', '>', '<=', '>=', '!=', '<>',
-                          'overlaps', 'is null', 'is not null', 'is true', 'is not true',
-                          'is false', 'is not false', 'is unknown', 'is not unknown',
-                          'is document', 'is not document', 'is distinct from', 'is not distinct from'
-                      ])
-            ) {
+            } elseif (!in_array($expression->operator, ['=', '<', '>', '<=', '>=', '!=', '<>'])) {
                 return self::ASSOCIATIVE_LEFT;
             }
         }
@@ -989,6 +975,13 @@ class SqlBuilderWalker implements TreeWalker
         return $this->recursiveArrayExpression($expression, true);
     }
 
+    public function walkAtTimeZoneExpression(nodes\expressions\AtTimeZoneExpression $expression)
+    {
+        return $this->optionalParentheses($expression->left, $expression, false)
+               . ' at time zone '
+               . $this->optionalParentheses($expression->right, $expression, true);
+    }
+
     public function walkBetweenExpression(nodes\expressions\BetweenExpression $expression)
     {
         $sql = $this->optionalParentheses($expression->argument, $expression, false)
@@ -1073,10 +1066,23 @@ class SqlBuilderWalker implements TreeWalker
                . ' ' . $expression->operator . ' ' . $right;
     }
 
+    public function walkIsDistinctFromExpression(nodes\expressions\IsDistinctFromExpression $expression)
+    {
+        return $this->optionalParentheses($expression->left, $expression, false)
+               . ' is ' . ($expression->not ? 'not ' : '') . 'distinct from '
+               . $this->optionalParentheses($expression->right, $expression, true);
+    }
+
+    public function walkIsExpression(nodes\expressions\IsExpression $expression)
+    {
+        return $this->optionalParentheses($expression->argument, $expression, false)
+               . ' is ' . ($expression->not ? 'not ' : '') . $expression->what;
+    }
+
     public function walkIsOfExpression(nodes\expressions\IsOfExpression $expression)
     {
         return $this->optionalParentheses($expression->left, $expression, false)
-               . ' ' . $expression->operator . ' ('
+               . ' is ' . ($expression->not ? 'not ' : '') . 'of ('
                . implode(', ', $expression->right->dispatch($this)) . ')';
     }
 

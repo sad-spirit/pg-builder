@@ -88,6 +88,8 @@ interface TreeWalker
 
     public function walkArrayExpression(nodes\expressions\ArrayExpression $expression);
 
+    public function walkAtTimeZoneExpression(nodes\expressions\AtTimeZoneExpression $expression);
+
     public function walkBetweenExpression(nodes\expressions\BetweenExpression $expression);
 
     public function walkCaseExpression(nodes\expressions\CaseExpression $expression);
@@ -97,6 +99,10 @@ interface TreeWalker
     public function walkFunctionExpression(nodes\expressions\FunctionExpression $expression);
 
     public function walkInExpression(nodes\expressions\InExpression $expression);
+
+    public function walkIsDistinctFromExpression(nodes\expressions\IsDistinctFromExpression $expression);
+
+    public function walkIsExpression(nodes\expressions\IsExpression $expression);
 
     public function walkIsOfExpression(nodes\expressions\IsOfExpression $expression);
 

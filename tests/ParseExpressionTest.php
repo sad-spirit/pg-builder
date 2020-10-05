@@ -21,6 +21,9 @@ namespace sad_spirit\pg_builder\tests;
 use sad_spirit\pg_builder\exceptions\SyntaxException;
 use sad_spirit\pg_builder\nodes\ColumnReference;
 use sad_spirit\pg_builder\nodes\Constant;
+use sad_spirit\pg_builder\nodes\expressions\AtTimeZoneExpression;
+use sad_spirit\pg_builder\nodes\expressions\IsDistinctFromExpression;
+use sad_spirit\pg_builder\nodes\expressions\IsExpression;
 use sad_spirit\pg_builder\nodes\expressions\NotExpression;
 use sad_spirit\pg_builder\nodes\expressions\OverlapsExpression;
 use sad_spirit\pg_builder\nodes\lists\ExpressionList;
@@ -446,26 +449,23 @@ QRY
         );
         $this->assertEquals(
             new ExpressionList([
-                new OperatorExpression(
-                    'is null',
-                    new OperatorExpression(
-                        'is null',
+                new IsExpression(
+                    new IsExpression(
                         new ColumnReference([new Identifier('foo')]),
-                        null
+                        IsExpression::NULL
                     ),
-                    null
+                    IsExpression::NULL
                 ),
-                new OperatorExpression(
-                    'is not null',
-                    new OperatorExpression(
-                        'is not null',
+                new IsExpression(
+                    new IsExpression(
                         new ColumnReference([new Identifier('bar')]),
-                        null
+                        IsExpression::NULL,
+                        true
                     ),
-                    null
+                    IsExpression::NULL,
+                    true
                 ),
-                new OperatorExpression(
-                    'is distinct from',
+                new IsDistinctFromExpression(
                     new Constant('foo'),
                     new Constant('bar')
                 ),
@@ -479,18 +479,19 @@ QRY
                         ]
                     )
                 ),
-                new OperatorExpression(
-                    'is not document',
+                new IsExpression(
                     new Constant('xml'),
-                    null
+                    IsExpression::DOCUMENT,
+                    true
                 ),
-                new OperatorExpression(
-                    'is normalized',
-                    new ColumnReference([new Identifier('foobar')])
+                new IsExpression(
+                    new ColumnReference([new Identifier('foobar')]),
+                    IsExpression::NORMALIZED
                 ),
-                new OperatorExpression(
-                    'is not nfkc normalized',
-                    new ColumnReference([new Identifier('barbaz')])
+                new IsExpression(
+                    new ColumnReference([new Identifier('barbaz')]),
+                    IsExpression::NFKC_NORMALIZED,
+                    true
                 )
             ]),
             $list
@@ -581,7 +582,7 @@ QRY
     public function testAtTimeZone()
     {
         $this->assertEquals(
-            new OperatorExpression('at time zone', new ColumnReference(['foo', 'bar']), new Constant('baz')),
+            new AtTimeZoneExpression(new ColumnReference(['foo', 'bar']), new Constant('baz')),
             $this->parser->parseExpression("foo.bar at time zone 'baz'")
         );
     }

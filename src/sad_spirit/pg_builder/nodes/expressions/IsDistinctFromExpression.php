@@ -20,34 +20,34 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\nodes\{
-    GenericNode,
-    ScalarExpression,
-    lists\TypeList
-};
+use sad_spirit\pg_builder\nodes\GenericNode;
+use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
- * AST node representing an IS [NOT] OF expression
- *
- * Cannot be an OperatorExpression due to specific right operand
+ * AST node representing "foo IS [NOT] DISTINCT FROM bar" expression
  *
  * @property ScalarExpression $left
- * @property TypeList         $right
+ * @property ScalarExpression $right
  * @property bool             $not
  */
-class IsOfExpression extends GenericNode implements ScalarExpression
+class IsDistinctFromExpression extends GenericNode implements ScalarExpression
 {
-    public function __construct(ScalarExpression $left, TypeList $right, bool $not = false)
+    public function __construct(ScalarExpression $left, ScalarExpression $right, bool $not = false)
     {
-        $this->setNamedProperty('left', $left);
-        $this->setNamedProperty('right', $right);
+        $this->setLeft($left);
+        $this->setRight($right);
         $this->setNot($not);
     }
 
     public function setLeft(ScalarExpression $left): void
     {
         $this->setNamedProperty('left', $left);
+    }
+
+    public function setRight(ScalarExpression $right): void
+    {
+        $this->setNamedProperty('right', $right);
     }
 
     public function setNot(bool $not): void
@@ -57,6 +57,6 @@ class IsOfExpression extends GenericNode implements ScalarExpression
 
     public function dispatch(TreeWalker $walker)
     {
-        return $walker->walkIsOfExpression($this);
+        return $walker->walkIsDistinctFromExpression($this);
     }
 }

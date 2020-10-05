@@ -22,9 +22,11 @@ namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
     exceptions\InvalidArgumentException,
+    exceptions\SyntaxException,
     nodes\GenericNode,
     nodes\QualifiedOperator,
     nodes\ScalarExpression,
+    Lexer,
     TreeWalker
 };
 
@@ -51,6 +53,12 @@ class OperatorExpression extends GenericNode implements ScalarExpression
                 '%s requires either a string or an instance of QualifiedOperator, %s given',
                 __CLASS__,
                 is_object($operator) ? 'object(' . get_class($operator) . ')' : gettype($operator)
+            ));
+        } elseif (is_string($operator) && strlen($operator) !== strspn($operator, Lexer::CHARS_OPERATOR)) {
+            throw new SyntaxException(sprintf(
+                "%s: '%s' does not look like a valid operator string",
+                __CLASS__,
+                $operator
             ));
         }
         if (null === $left && null === $right) {

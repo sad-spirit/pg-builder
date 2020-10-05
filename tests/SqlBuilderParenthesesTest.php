@@ -18,6 +18,8 @@
 
 namespace sad_spirit\pg_builder\tests;
 
+use sad_spirit\pg_builder\nodes\expressions\IsDistinctFromExpression;
+use sad_spirit\pg_builder\nodes\expressions\IsExpression;
 use sad_spirit\pg_builder\SqlBuilderWalker;
 use sad_spirit\pg_builder\nodes\ColumnReference;
 use sad_spirit\pg_builder\Node;
@@ -137,46 +139,52 @@ class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
     {
         return [
             [
-                new OperatorExpression(
-                    'is null',
+                new IsExpression(
                     new OperatorExpression(
                         '=',
                         new Constant(false),
                         new Constant(true)
-                    )
+                    ),
+                    IsExpression::NULL
                 ),
                 'false = true is null'
             ],
             [
-                new OperatorExpression(
-                    'is distinct from',
+                new IsDistinctFromExpression(
                     new OperatorExpression(
                         '@#!',
                         new ColumnReference([new Identifier('foo')]),
                         new ColumnReference([new Identifier('bar')])
                     ),
-                    new ColumnReference([new Identifier('baz')])
+                    new OperatorExpression(
+                        '+',
+                        new ColumnReference([new Identifier('baz')]),
+                        new ColumnReference([new Identifier('quux')])
+                    ),
+                    true
                 ),
-                'foo @#! bar is distinct from baz'
+                'foo @#! bar is not distinct from baz + quux'
             ],
             [
-                new OperatorExpression(
-                    'is not true',
+                new IsExpression(
                     new PatternMatchingExpression(
                         new Constant('foo'),
                         new Constant('bar')
-                    )
+                    ),
+                    IsExpression::TRUE,
+                    true
                 ),
                 "'foo' like 'bar' is not true"
             ],
             [
-                new OperatorExpression(
-                    'is not false',
+                new IsExpression(
                     new BetweenExpression(
                         new ColumnReference([new Identifier('foo')]),
                         new Constant(false),
                         new Constant(true)
-                    )
+                    ),
+                    IsExpression::FALSE,
+                    true
                 ),
                 'foo between false and true is not false'
             ]

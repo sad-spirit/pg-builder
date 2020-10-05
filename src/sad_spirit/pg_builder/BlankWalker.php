@@ -288,6 +288,11 @@ abstract class BlankWalker implements TreeWalker
         $this->walkGenericNodeList($expression);
     }
 
+    public function walkAtTimeZoneExpression(nodes\expressions\AtTimeZoneExpression $expression)
+    {
+        $expression->left->dispatch($this);
+        $expression->right->dispatch($this);
+    }
 
     public function walkBetweenExpression(nodes\expressions\BetweenExpression $expression)
     {
@@ -332,6 +337,17 @@ abstract class BlankWalker implements TreeWalker
     {
         $expression->left->dispatch($this);
         $expression->right->dispatch($this);
+    }
+
+    public function walkIsDistinctFromExpression(nodes\expressions\IsDistinctFromExpression $expression)
+    {
+        $expression->left->dispatch($this);
+        $expression->right->dispatch($this);
+    }
+
+    public function walkIsExpression(nodes\expressions\IsExpression $expression)
+    {
+        $expression->argument->dispatch($this);
     }
 
     public function walkIsOfExpression(nodes\expressions\IsOfExpression $expression)
