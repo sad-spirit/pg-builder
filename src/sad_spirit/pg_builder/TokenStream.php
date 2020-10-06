@@ -124,6 +124,14 @@ class TokenStream
     }
 
     /**
+     * Resets the pointer to the first token in the stream
+     */
+    public function reset(): void
+    {
+        $this->current = 0;
+    }
+
+    /**
      * Checks whether current token matches given type and/or value
      *
      * Possible parameters

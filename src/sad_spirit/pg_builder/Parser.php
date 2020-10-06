@@ -702,6 +702,7 @@ class Parser
 
         if ($arguments[0] instanceof TokenStream) {
             $this->stream = $arguments[0];
+            $this->stream->reset();
         } else {
             $this->stream = $this->lexer->tokenize($arguments[0]);
         }
