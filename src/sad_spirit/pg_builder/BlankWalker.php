@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder;
 
 /**
@@ -34,10 +36,11 @@ abstract class BlankWalker implements TreeWalker
     protected function walkCommonSelectClauses(SelectCommon $statement)
     {
         $statement->order->dispatch($this);
-        if ($statement->limit) {
+        $statement->locking->dispatch($this);
+        if (null !== $statement->limit) {
             $statement->limit->dispatch($this);
         }
-        if ($statement->offset) {
+        if (null !== $statement->offset) {
             $statement->offset->dispatch($this);
         }
     }
@@ -77,6 +80,7 @@ abstract class BlankWalker implements TreeWalker
     public function walkDeleteStatement(Delete $statement)
     {
         $statement->with->dispatch($this);
+        $statement->relation->dispatch($this);
         $statement->using->dispatch($this);
         $statement->where->dispatch($this);
         $statement->returning->dispatch($this);
@@ -85,11 +89,12 @@ abstract class BlankWalker implements TreeWalker
     public function walkInsertStatement(Insert $statement)
     {
         $statement->with->dispatch($this);
+        $statement->relation->dispatch($this);
         $statement->cols->dispatch($this);
-        if ($statement->values) {
+        if (null !== $statement->values) {
             $statement->values->dispatch($this);
         }
-        if ($statement->onConflict) {
+        if (null !== $statement->onConflict) {
             $statement->onConflict->dispatch($this);
         }
         $statement->returning->dispatch($this);
@@ -98,6 +103,7 @@ abstract class BlankWalker implements TreeWalker
     public function walkUpdateStatement(Update $statement)
     {
         $statement->with->dispatch($this);
+        $statement->relation->dispatch($this);
         $statement->set->dispatch($this);
         $statement->from->dispatch($this);
         $statement->where->dispatch($this);
@@ -107,23 +113,23 @@ abstract class BlankWalker implements TreeWalker
 
     public function walkArrayIndexes(nodes\ArrayIndexes $node)
     {
-        if ($node->lower) {
+        if (null !== $node->lower) {
             $node->lower->dispatch($this);
         }
-        if ($node->upper) {
+        if (null !== $node->upper) {
             $node->upper->dispatch($this);
         }
     }
 
     public function walkColumnReference(nodes\ColumnReference $node)
     {
-        if ($node->catalog) {
+        if (null !== $node->catalog) {
             $node->catalog->dispatch($this);
         }
-        if ($node->schema) {
+        if (null !== $node->schema) {
             $node->schema->dispatch($this);
         }
-        if ($node->relation) {
+        if (null !== $node->relation) {
             $node->relation->dispatch($this);
         }
         $node->column->dispatch($this);
@@ -132,6 +138,8 @@ abstract class BlankWalker implements TreeWalker
     public function walkCommonTableExpression(nodes\CommonTableExpression $node)
     {
         $node->statement->dispatch($this);
+        $node->alias->dispatch($this);
+        $node->columnAliases->dispatch($this);
     }
 
     public function walkConstant(nodes\Constant $node)
@@ -176,10 +184,10 @@ abstract class BlankWalker implements TreeWalker
 
     public function walkQualifiedName(nodes\QualifiedName $node)
     {
-        if ($node->catalog) {
+        if (null !== $node->catalog) {
             $node->catalog->dispatch($this);
         }
-        if ($node->schema) {
+        if (null !== $node->schema) {
             $node->schema->dispatch($this);
         }
         $node->relation->dispatch($this);
@@ -228,7 +236,7 @@ abstract class BlankWalker implements TreeWalker
     public function walkTargetElement(nodes\TargetElement $node)
     {
         $node->expression->dispatch($this);
-        if ($node->alias) {
+        if (null !== $node->alias) {
             $node->alias->dispatch($this);
         }
     }
@@ -243,22 +251,22 @@ abstract class BlankWalker implements TreeWalker
 
     public function walkWhereOrHavingClause(nodes\WhereOrHavingClause $node)
     {
-        if ($node->condition) {
+        if (null !== $node->condition) {
             $node->condition->dispatch($this);
         }
     }
 
     public function walkWindowDefinition(nodes\WindowDefinition $node)
     {
-        if ($node->name) {
+        if (null !== $node->name) {
             $node->name->dispatch($this);
         }
-        if ($node->refName) {
+        if (null !== $node->refName) {
             $node->refName->dispatch($this);
         }
         $node->partition->dispatch($this);
         $node->order->dispatch($this);
-        if ($node->frame) {
+        if (null !== $node->frame) {
             $node->frame->dispatch($this);
         }
     }
@@ -266,14 +274,14 @@ abstract class BlankWalker implements TreeWalker
     public function walkWindowFrameClause(nodes\WindowFrameClause $node)
     {
         $node->start->dispatch($this);
-        if ($node->end) {
+        if (null !== $node->end) {
             $node->end->dispatch($this);
         }
     }
 
     public function walkWindowFrameBound(nodes\WindowFrameBound $node)
     {
-        if ($node->value) {
+        if (null !== $node->value) {
             $node->value->dispatch($this);
         }
     }
@@ -303,7 +311,7 @@ abstract class BlankWalker implements TreeWalker
 
     public function walkCaseExpression(nodes\expressions\CaseExpression $expression)
     {
-        if ($expression->argument) {
+        if (null !== $expression->argument) {
             $expression->argument->dispatch($this);
         }
         /* @var nodes\expressions\WhenExpression $whenClause */
@@ -311,7 +319,7 @@ abstract class BlankWalker implements TreeWalker
             $whenClause->when->dispatch($this);
             $whenClause->then->dispatch($this);
         }
-        if ($expression->else) {
+        if (null !== $expression->else) {
             $expression->else->dispatch($this);
         }
     }
@@ -325,10 +333,10 @@ abstract class BlankWalker implements TreeWalker
     public function walkFunctionExpression(nodes\expressions\FunctionExpression $expression)
     {
         $this->walkFunctionCall($expression);
-        if ($expression->filter) {
+        if (null !== $expression->filter) {
             $expression->filter->dispatch($this);
         }
-        if ($expression->over) {
+        if (null !== $expression->over) {
             $expression->over->dispatch($this);
         }
     }
@@ -368,10 +376,13 @@ abstract class BlankWalker implements TreeWalker
 
     public function walkOperatorExpression(nodes\expressions\OperatorExpression $expression)
     {
-        if ($expression->left) {
+        if ($expression->operator instanceof nodes\QualifiedOperator) {
+            $expression->operator->dispatch($this);
+        }
+        if (null !== $expression->left) {
             $expression->left->dispatch($this);
         }
-        if ($expression->right) {
+        if (null !== $expression->right) {
             $expression->right->dispatch($this);
         }
     }
@@ -386,7 +397,7 @@ abstract class BlankWalker implements TreeWalker
     {
         $expression->argument->dispatch($this);
         $expression->pattern->dispatch($this);
-        if ($expression->escape) {
+        if (null !== $expression->escape) {
             $expression->escape->dispatch($this);
         }
     }
@@ -430,17 +441,17 @@ abstract class BlankWalker implements TreeWalker
     {
         $node->name->dispatch($this);
         $node->type->dispatch($this);
-        if ($node->collation) {
+        if (null !== $node->collation) {
             $node->collation->dispatch($this);
         }
     }
 
     protected function walkRangeItemAliases(nodes\range\FromElement $rangeItem)
     {
-        if ($rangeItem->tableAlias) {
+        if (null !== $rangeItem->tableAlias) {
             $rangeItem->tableAlias->dispatch($this);
         }
-        if ($rangeItem->columnAliases) {
+        if (null !== $rangeItem->columnAliases) {
             $rangeItem->columnAliases->dispatch($this);
         }
     }
@@ -455,10 +466,10 @@ abstract class BlankWalker implements TreeWalker
     {
         $rangeItem->left->dispatch($this);
         $rangeItem->right->dispatch($this);
-        if ($rangeItem->on) {
+        if (null !== $rangeItem->on) {
             $rangeItem->on->dispatch($this);
         }
-        if ($rangeItem->using) {
+        if (null !== $rangeItem->using) {
             $rangeItem->using->dispatch($this);
         }
         $this->walkRangeItemAliases($rangeItem);
@@ -491,7 +502,7 @@ abstract class BlankWalker implements TreeWalker
     public function walkInsertTarget(nodes\range\InsertTarget $target)
     {
         $target->relation->dispatch($this);
-        if ($target->alias) {
+        if (null !== $target->alias) {
             $target->alias->dispatch($this);
         }
     }
@@ -506,7 +517,7 @@ abstract class BlankWalker implements TreeWalker
         $rangeItem->relation->dispatch($this);
         $rangeItem->method->dispatch($this);
         $rangeItem->arguments->dispatch($this);
-        if ($rangeItem->repeatable) {
+        if (null !== $rangeItem->repeatable) {
             $rangeItem->repeatable->dispatch($this);
         }
     }
@@ -532,7 +543,7 @@ abstract class BlankWalker implements TreeWalker
     public function walkXmlPi(nodes\xml\XmlPi $xml)
     {
         $xml->name->dispatch($this);
-        if ($xml->content) {
+        if (null !== $xml->content) {
             $xml->content->dispatch($this);
         }
     }
@@ -555,18 +566,19 @@ abstract class BlankWalker implements TreeWalker
         $table->rowExpression->dispatch($this);
         $table->columns->dispatch($this);
         $table->namespaces->dispatch($this);
+        $this->walkRangeItemAliases($table);
     }
 
     public function walkXmlColumnDefinition(nodes\xml\XmlColumnDefinition $column)
     {
         $column->name->dispatch($this);
-        if ($column->type) {
+        if (null !== $column->type) {
             $column->type->dispatch($this);
         }
-        if ($column->path) {
+        if (null !== $column->path) {
             $column->path->dispatch($this);
         }
-        if ($column->default) {
+        if (null !== $column->default) {
             $column->default->dispatch($this);
         }
     }
@@ -574,14 +586,14 @@ abstract class BlankWalker implements TreeWalker
     public function walkXmlNamespace(nodes\xml\XmlNamespace $ns)
     {
         $ns->value->dispatch($this);
-        if ($ns->alias) {
+        if (null !== $ns->alias) {
             $ns->alias->dispatch($this);
         }
     }
 
     public function walkOnConflictClause(nodes\OnConflictClause $onConflict)
     {
-        if ($onConflict->target) {
+        if (null !== $onConflict->target) {
             $onConflict->target->dispatch($this);
         }
         $onConflict->set->dispatch($this);
@@ -597,10 +609,10 @@ abstract class BlankWalker implements TreeWalker
     public function walkIndexElement(nodes\IndexElement $element)
     {
         $element->expression->dispatch($this);
-        if ($element->collation) {
+        if (null !== $element->collation) {
             $element->collation->dispatch($this);
         }
-        if ($element->opClass) {
+        if (null !== $element->opClass) {
             $element->opClass->dispatch($this);
         }
     }
