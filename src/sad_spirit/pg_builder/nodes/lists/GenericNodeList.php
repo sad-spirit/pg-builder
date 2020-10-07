@@ -75,7 +75,11 @@ abstract class GenericNodeList extends GenericNode implements NodeList
         parent::__clone();
         foreach ($this->nodes as &$node) {
             $node = clone $node;
-            $node->setParentNode($this);
+            if ($node instanceof GenericNode) {
+                $node->parentNode = $this;
+            } else {
+                $node->setParentNode($this);
+            }
         }
     }
 
@@ -94,7 +98,11 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     {
         parent::__wakeup();
         foreach ($this->nodes as $node) {
-            $node->setParentNode($this);
+            if ($node instanceof GenericNode) {
+                $node->parentNode = $this;
+            } else {
+                $node->setParentNode($this);
+            }
         }
     }
 

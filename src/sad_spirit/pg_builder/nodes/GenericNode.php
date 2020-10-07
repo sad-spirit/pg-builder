@@ -105,12 +105,14 @@ abstract class GenericNode implements Node
         foreach ($this->props as &$item) {
             if ($item instanceof Node) {
                 $item = clone $item;
+                if ($item instanceof self) {
+                    $item->parentNode = $this;
+                } else {
+                    $item->setParentNode($this);
+                }
             }
         }
-        $this->updatePropsParentNode();
-        if (null !== $this->parentNode) {
-            $this->parentNode = null;
-        }
+        $this->parentNode = null;
     }
 
     /**
@@ -126,7 +128,13 @@ abstract class GenericNode implements Node
      */
     public function __wakeup()
     {
-        $this->updatePropsParentNode();
+        foreach ($this->props as $item) {
+            if ($item instanceof self) {
+                $item->parentNode = $this;
+            } elseif ($item instanceof Node) {
+                $item->setParentNode($this);
+            }
+        }
         $this->settingParentNode = false;
     }
 
@@ -242,18 +250,6 @@ abstract class GenericNode implements Node
             return $parser;
         }
         throw new InvalidArgumentException(sprintf("Passed a string as %s without a Parser available", $as));
-    }
-
-    /**
-     * Sets this node as parent node of all nodes in $props
-     */
-    protected function updatePropsParentNode(): void
-    {
-        foreach ($this->props as $prop) {
-            if ($prop instanceof Node) {
-                $prop->setParentNode($this);
-            }
-        }
     }
 
     /**
