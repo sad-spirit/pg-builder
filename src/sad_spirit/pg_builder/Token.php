@@ -113,12 +113,14 @@ class Token
      */
     public function matches(int $type, $values = null): bool
     {
-        return ($type & $this->type) === $type
-               && (
-                   null === $values
-                   || (is_array($values) && in_array($this->value, $values))
-                   || $this->value === $values
-               );
+        if ($type !== ($type & $this->type)) {
+            return false;
+        } elseif (null === $values) {
+            return true;
+        } else {
+            return $this->value === $values
+                   || (is_array($values) && in_array($this->value, $values, true));
+        }
     }
 
     /**

@@ -279,6 +279,28 @@ class Parser
     ];
 
     /**
+     * Keywords that can appear in {@link ExpressionAtom()} on their own right
+     */
+    private const ATOM_KEYWORDS = [
+        'row', 'array', 'exists', 'case', 'grouping', 'true', 'false', 'null'
+    ];
+
+    /**
+     * A bit mask of Token types that are checked first in {@link ExpressionAtom()}
+     */
+    private const ATOM_SPECIAL_TYPES = Token::TYPE_SPECIAL | Token::TYPE_PARAMETER | Token::TYPE_LITERAL;
+
+    /**
+     * Token types that can appear as the first part of an Identifier in {@link NamedExpressionAtom()}
+     */
+    private const ATOM_IDENTIFIER_TYPES = [
+        Token::TYPE_TYPE_FUNC_NAME_KEYWORD => true,
+        Token::TYPE_COL_NAME_KEYWORD       => true,
+        Token::TYPE_UNRESERVED_KEYWORD     => true,
+        Token::TYPE_IDENTIFIER             => true
+    ];
+
+    /**
      * Methods that are exposed through __call()
      * @var array
      */
@@ -337,13 +359,6 @@ class Parser
      * @var TokenStream
      */
     private $stream;
-
-    /**
-     * Cache for various match...() calls
-     *
-     * @var array
-     */
-    private $matched;
 
     /**
      * Guesses the type of parenthesised expression
@@ -489,38 +504,47 @@ class Parser
      */
     private function matchesFuncName()
     {
-        $key = 'FuncName:' . $this->stream->getCurrent()->getPosition();
-
-        if (!array_key_exists($key, $this->matched)) {
-            if (
-                !$this->stream->matches(Token::TYPE_IDENTIFIER)
-                && (!$this->stream->matches(Token::TYPE_KEYWORD)
-                    || $this->stream->matches(Token::TYPE_RESERVED_KEYWORD))
-            ) {
-                $this->matched[$key] = false;
-            } else {
-                $first = $this->stream->getCurrent();
-                $idx   = 0;
-                while (
-                    $this->stream->look($idx + 1)->matches(Token::TYPE_SPECIAL_CHAR, '.')
-                    && ($this->stream->look($idx + 2)->matches(Token::TYPE_IDENTIFIER)
-                        || $this->stream->look($idx + 2)->matches(Token::TYPE_KEYWORD))
-                ) {
-                    $idx += 2;
-                }
-                if (
-                    Token::TYPE_TYPE_FUNC_NAME_KEYWORD === $first->getType() && 1 < $idx
-                    || Token::TYPE_COL_NAME_KEYWORD === $first->getType() && 1 === $idx
-                ) {
-                    // does not match func_name production
-                    $this->matched[$key] = false;
-                } else {
-                    $this->matched[$key] = $idx + 1;
-                }
-            }
+        $firstType = $this->stream->getCurrent()->getType();
+        if (!isset(self::ATOM_IDENTIFIER_TYPES[$firstType])) {
+            return false;
         }
+        $idx = 1;
+        while (
+            $this->stream->look($idx)->matches(Token::TYPE_SPECIAL_CHAR, '.')
+            && ($this->stream->look($idx + 1)->matches(Token::TYPE_IDENTIFIER)
+                || $this->stream->look($idx + 1)->matches(Token::TYPE_KEYWORD))
+        ) {
+            $idx += 2;
+        }
+        if (
+            Token::TYPE_TYPE_FUNC_NAME_KEYWORD === $firstType && 1 < $idx
+            || Token::TYPE_COL_NAME_KEYWORD === $firstType && 1 === $idx
+        ) {
+            // does not match func_name production
+            return false;
+        } else {
+            return $idx;
+        }
+    }
 
-        return $this->matched[$key];
+    /**
+     * Tests whether current position of stream matches a system function call
+     *
+     * @return bool
+     */
+    private function matchesSpecialFunctionCall(): bool
+    {
+        static $dontCheckParens = null;
+
+        if (null === $dontCheckParens) {
+            $dontCheckParens = array_merge(self::SYSTEM_FUNCTIONS_NO_PARENS, self::SYSTEM_FUNCTIONS_OPTIONAL_PARENS);
+        }
+        return $this->stream->matchesKeyword($dontCheckParens) // function-like stuff that doesn't need parentheses
+               // known system functions that require parentheses
+               || ($this->stream->matchesKeyword(self::SYSTEM_FUNCTIONS_REQUIRED_PARENS)
+                   && $this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, '('))
+               || ($this->stream->matchesKeywordSequence('collation', 'for') // COLLATION FOR (...)
+                   && $this->stream->look(2)->matches(Token::TYPE_SPECIAL_CHAR, '('));
     }
 
     /**
@@ -530,27 +554,9 @@ class Parser
      */
     private function matchesFunctionCall(): bool
     {
-        static $dontCheckParens = null;
-
-        if (null === $dontCheckParens) {
-            $dontCheckParens = array_merge(self::SYSTEM_FUNCTIONS_NO_PARENS, self::SYSTEM_FUNCTIONS_OPTIONAL_PARENS);
-        }
-
-        if (
-            // function-like stuff that doesn't need parentheses
-            $this->stream->matchesKeyword($dontCheckParens)
-            // known system functions that require parentheses
-            || ($this->stream->matchesKeyword(self::SYSTEM_FUNCTIONS_REQUIRED_PARENS)
-                && $this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, '('))
-            || ($this->stream->matchesKeywordSequence('collation', 'for') // COLLATION FOR (...)
-                && $this->stream->look(2)->matches(Token::TYPE_SPECIAL_CHAR, '('))
-        ) {
-            return true;
-        } else {
-            // generic function name
-            return false !== ($idx = $this->matchesFuncName())
-                   && $this->stream->look($idx)->matches(Token::TYPE_SPECIAL_CHAR, '(');
-        }
+        return $this->matchesSpecialFunctionCall()
+               || false !== ($idx = $this->matchesFuncName())
+                  && $this->stream->look($idx)->matches(Token::TYPE_SPECIAL_CHAR, '(');
     }
 
     /**
@@ -563,8 +569,7 @@ class Parser
      */
     private function matchesExpressionStart(): bool
     {
-        return (!$this->stream->matches(Token::TYPE_RESERVED_KEYWORD)
-                && !$this->stream->matches(Token::TYPE_SPECIAL))
+        return !$this->stream->matchesAnyType(Token::TYPE_RESERVED_KEYWORD, Token::TYPE_SPECIAL)
                || $this->stream->matchesKeyword(['not', 'true', 'false', 'null', 'row', 'array', 'case', 'exists'])
                || $this->stream->matchesSpecialChar(['(', '+', '-'])
                || $this->stream->matches(Token::TYPE_OPERATOR)
@@ -588,7 +593,7 @@ class Parser
                 self::STANDARD_TYPES_CHARACTER,
                 self::STANDARD_TYPES_NUMERIC,
                 self::STANDARD_TYPES_DATETIME,
-                [self::STANDARD_TYPES_BIT]
+                [self::STANDARD_TYPES_BIT, 'interval']
             );
             $trailingTimezone = array_flip(self::STANDARD_TYPES_DATETIME);
         }
@@ -625,30 +630,6 @@ class Parser
             && $this->stream->look($idx)->matches(Token::TYPE_KEYWORD, ['with', 'without'])
         ) {
             $idx += 3;
-        }
-
-        return $this->stream->look($idx)->matches(Token::TYPE_STRING);
-    }
-
-    /**
-     * Tests whether current position of stream looks like a constant with a type cast: typename 'string constant'
-     *
-     * @return bool
-     */
-    private function matchesTypecast()
-    {
-        if ($this->matchesConstTypecast()) {
-            return true;
-
-        } elseif (false === ($idx = $this->matchesFuncName())) {
-            return false;
-        }
-
-        if (
-            $this->stream->look($idx)->matches(Token::TYPE_SPECIAL_CHAR, '(')
-            && !$this->stream->look($idx + 1)->matches(Token::TYPE_SPECIAL_CHAR, ')')
-        ) {
-            $idx = $this->skipParentheses($idx);
         }
 
         return $this->stream->look($idx)->matches(Token::TYPE_STRING);
@@ -706,8 +687,6 @@ class Parser
         } else {
             $this->stream = $this->lexer->tokenize($arguments[0]);
         }
-
-        $this->matched = [];
 
         $parsed = call_user_func([$this, $matches[1]]);
 
@@ -2139,10 +2118,11 @@ class Parser
         return null !== $operand ? new nodes\expressions\TypecastExpression($operand, $typeNode) : $typeNode;
     }
 
-    protected function GenericTypeName(): ?nodes\TypeName
+    protected function GenericTypeName(array $typeName = []): ?nodes\TypeName
     {
         if (
-            !$this->stream->matchesAnyType(
+            empty($typeName)
+            && !$this->stream->matchesAnyType(
                 Token::TYPE_IDENTIFIER,
                 Token::TYPE_UNRESERVED_KEYWORD,
                 Token::TYPE_TYPE_FUNC_NAME_KEYWORD
@@ -2151,15 +2131,17 @@ class Parser
             return null;
         }
 
-        $typeName  = [new nodes\Identifier($this->stream->next())];
         $modifiers = null;
-        while ($this->stream->matchesSpecialChar('.')) {
-            $this->stream->next();
-            if ($this->stream->matches(Token::TYPE_IDENTIFIER)) {
-                $typeName[] = new nodes\Identifier($this->stream->next());
-            } else {
-                // any keyword goes, see ColLabel
-                $typeName[] = new nodes\Identifier($this->stream->expect(Token::TYPE_KEYWORD));
+        if (empty($typeName)) {
+            $typeName = [new nodes\Identifier($this->stream->next())];
+            while ($this->stream->matchesSpecialChar('.')) {
+                $this->stream->next();
+                if ($this->stream->matches(Token::TYPE_IDENTIFIER)) {
+                    $typeName[] = new nodes\Identifier($this->stream->next());
+                } else {
+                    // any keyword goes, see ColLabel
+                    $typeName[] = new nodes\Identifier($this->stream->expect(Token::TYPE_KEYWORD));
+                }
             }
         }
 
@@ -2319,23 +2301,7 @@ class Parser
     protected function ExpressionAtom(): nodes\ScalarExpression
     {
         $token = $this->stream->getCurrent();
-        if ($token->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
-            switch ($this->checkContentsOfParentheses()) {
-                case self::PARENTHESES_ROW:
-                    return $this->RowConstructor();
-
-                case self::PARENTHESES_SELECT:
-                    $atom = new nodes\expressions\SubselectExpression($this->SelectWithParentheses());
-                    break;
-
-                case self::PARENTHESES_EXPRESSION:
-                default:
-                    $this->stream->next();
-                    $atom = $this->Expression();
-                    $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-            }
-
-        } elseif ($token->matches(Token::TYPE_KEYWORD)) {
+        if ($this->stream->matchesKeyword(self::ATOM_KEYWORDS)) {
             switch ($token->getValue()) {
                 case 'row':
                     if ($this->stream->look()->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
@@ -2362,22 +2328,44 @@ class Parser
                     return new nodes\Constant($this->stream->next());
             }
 
-        } elseif ($token->matches(Token::TYPE_PARAMETER)) {
-            $atom = new nodes\Parameter($this->stream->next());
+        } elseif (0 !== ($token->getType() & self::ATOM_SPECIAL_TYPES)) {
+            if ($token->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+                switch ($this->checkContentsOfParentheses()) {
+                    case self::PARENTHESES_ROW:
+                        return $this->RowConstructor();
 
-        } elseif ($token->matches(Token::TYPE_LITERAL)) {
-            return new nodes\Constant($this->stream->next());
+                    case self::PARENTHESES_SELECT:
+                        $atom = new nodes\expressions\SubselectExpression($this->SelectWithParentheses());
+                        break;
+
+                    case self::PARENTHESES_EXPRESSION:
+                    default:
+                        $this->stream->next();
+                        $atom = $this->Expression();
+                        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+                }
+
+            } elseif ($token->matches(Token::TYPE_PARAMETER)) {
+                $atom = new nodes\Parameter($this->stream->next());
+
+            } elseif ($token->matches(Token::TYPE_LITERAL)) {
+                return new nodes\Constant($this->stream->next());
+            }
         }
 
         if (!isset($atom)) {
-            if ($this->matchesTypecast()) {
-                return $this->LeadingTypecast();
+            if ($this->matchesConstTypecast()) {
+                return $this->ConstLeadingTypecast();
 
-            } elseif ($this->matchesFunctionCall()) {
-                return $this->FunctionExpression();
+            } elseif ($this->matchesSpecialFunctionCall()) {
+                return $this->convertSpecialFunctionCallToFunctionExpression($this->SpecialFunctionCall());
 
             } else {
-                return $this->ColumnReference();
+                // By the time we got here everything that can still legitimately be matched should
+                // start with a (potentially qualified) name. To prevent back-and-forth match()ing and look()ing
+                // the NamedExpressionAtom() matches such name as far as possible
+                // and then passes the matched parts for further processing if expression looks legit.
+                return $this->NamedExpressionAtom();
             }
         }
 
@@ -2386,6 +2374,58 @@ class Parser
         }
 
         return $atom;
+    }
+
+    protected function NamedExpressionAtom(): nodes\ScalarExpression
+    {
+        $token       = $this->stream->getCurrent();
+        $firstType   = $token->getType();
+
+        // This will throw an Exception if current token in stream cannot start a name
+        if (!isset(self::ATOM_IDENTIFIER_TYPES[$firstType])) {
+            $this->stream->expect(Token::TYPE_IDENTIFIER);
+        }
+
+        $identifiers = [new nodes\Identifier($token)];
+
+        $lookIdx = 1;
+        while ($this->stream->look($lookIdx)->matches(Token::TYPE_SPECIAL_CHAR, '.')) {
+            $token = $this->stream->look($lookIdx + 1);
+            if (!$token->matches(Token::TYPE_IDENTIFIER) && !$token->matches(Token::TYPE_KEYWORD)) {
+                break;
+            }
+            $identifiers[]  = new nodes\Identifier($token);
+            $lookIdx       += 2;
+        }
+
+        if (
+            // check that whatever we got looks like func_name production
+            !(1 === count($identifiers) && Token::TYPE_COL_NAME_KEYWORD === $firstType
+              || 1 < count($identifiers) && Token::TYPE_TYPE_FUNC_NAME_KEYWORD === $firstType)
+        ) {
+            if ($this->stream->look($lookIdx)->matches(Token::TYPE_STRING)) {
+                $this->stream->skip($lookIdx);
+                return $this->GenericLeadingTypecast($identifiers);
+            } elseif ($this->stream->look($lookIdx)->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+                $this->stream->skip($lookIdx);
+                if ($this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, ')')) {
+                    return $this->FunctionExpression($identifiers);
+                } else {
+                    $beyond = $this->skipParentheses(0);
+                    return $this->stream->look($beyond)->matches(Token::TYPE_STRING)
+                           ? $this->GenericLeadingTypecast($identifiers)
+                           : $this->FunctionExpression($identifiers);
+                }
+            }
+        }
+
+        // This will throw an exception if matched name is an invalid ColumnReference
+        if (Token::TYPE_TYPE_FUNC_NAME_KEYWORD === $firstType) {
+            $this->stream->expect(Token::TYPE_IDENTIFIER);
+        }
+
+        $this->stream->skip($lookIdx);
+        return $this->ColumnReference($identifiers);
     }
 
     protected function RowList(): nodes\lists\RowList
@@ -2511,7 +2551,7 @@ class Parser
         return $expression;
     }
 
-    protected function LeadingTypecast(): nodes\expressions\TypecastExpression
+    protected function ConstLeadingTypecast(): nodes\expressions\TypecastExpression
     {
         if (null !== ($typeCast = $this->IntervalTypeName(true))) {
             // interval is a special case since its options may come *after* string constant
@@ -2521,8 +2561,7 @@ class Parser
         $typeName = $this->DateTimeTypeName()
                     ?? $this->CharacterTypeName(true)
                     ?? $this->BitTypeName(true)
-                    ?? $this->NumericTypeName()
-                    ?? $this->GenericTypeName();
+                    ?? $this->NumericTypeName();
 
         if (null !== $typeName) {
             return new nodes\expressions\TypecastExpression(
@@ -2532,6 +2571,14 @@ class Parser
         }
 
         throw new exceptions\SyntaxException('Expecting type name, got ' . $this->stream->getCurrent());
+    }
+
+    protected function GenericLeadingTypecast(array $identifiers): nodes\expressions\TypecastExpression
+    {
+        return new nodes\expressions\TypecastExpression(
+            new nodes\Constant($this->stream->expect(Token::TYPE_STRING)),
+            $this->GenericTypeName($identifiers)
+        );
     }
 
     /**
@@ -2897,21 +2944,22 @@ class Parser
         return new nodes\TargetElement($value, $attName);
     }
 
-    protected function FunctionExpression(): nodes\ScalarExpression
+    protected function convertSpecialFunctionCallToFunctionExpression(Node $function): nodes\ScalarExpression
     {
-        if (null !== ($function = $this->SpecialFunctionCall())) {
-            return ($function instanceof nodes\FunctionCall)
-                   ? new nodes\expressions\FunctionExpression(
-                       is_object($function->name) ? clone $function->name : $function->name,
-                       clone $function->arguments,
-                       $function->distinct,
-                       $function->variadic,
-                       clone $function->order
-                   )
-                   : $function;
-        }
+        return ($function instanceof nodes\FunctionCall)
+               ? new nodes\expressions\FunctionExpression(
+                   is_object($function->name) ? clone $function->name : $function->name,
+                   clone $function->arguments,
+                   $function->distinct,
+                   $function->variadic,
+                   clone $function->order
+               )
+               : $function;
+    }
 
-        $function    = $this->GenericFunctionCall();
+    protected function FunctionExpression(array $identifiers): nodes\ScalarExpression
+    {
+        $function    = $this->GenericFunctionCall($identifiers);
         $withinGroup = false;
         $order       = $filter = $over = null;
 
@@ -2988,13 +3036,13 @@ class Parser
         return $funcNode;
     }
 
-    protected function GenericFunctionCall(): nodes\FunctionCall
+    protected function GenericFunctionCall(array $identifiers = []): nodes\FunctionCall
     {
         $positionalArguments = $namedArguments = [];
         $variadic = $distinct = false;
         $orderBy  = null;
 
-        $funcName = $this->GenericFunctionName();
+        $funcName = empty($identifiers) ? $this->GenericFunctionName() : new nodes\QualifiedName($identifiers);
 
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
         if ($this->stream->matchesSpecialChar('*')) {
@@ -3056,10 +3104,7 @@ class Parser
 
     protected function GenericFunctionName(): nodes\QualifiedName
     {
-        if (
-            $this->stream->matches(Token::TYPE_KEYWORD)
-            && !$this->stream->matches(Token::TYPE_RESERVED_KEYWORD)
-        ) {
+        if (isset(self::ATOM_IDENTIFIER_TYPES[$this->stream->getCurrent()->getType()])) {
             $firstToken = $this->stream->next();
         } else {
             $firstToken = $this->stream->expect(Token::TYPE_IDENTIFIER);
@@ -3113,13 +3158,13 @@ class Parser
     }
 
     /**
+     * @param nodes\Identifier[] $identifiers Name parts matched in GenericExpressionAtom()
      * @return nodes\ColumnReference|nodes\Indirection
      */
-    protected function ColumnReference(): nodes\ScalarExpression
+    protected function ColumnReference(array $identifiers): nodes\ScalarExpression
     {
-        $parts = [$this->ColId()];
-
-        $indirection = $this->Indirection();
+        $parts       = [array_shift($identifiers)];
+        $indirection = array_merge($identifiers, $this->Indirection());
         while (!empty($indirection) && !($indirection[0] instanceof nodes\ArrayIndexes)) {
             $parts[] = array_shift($indirection);
         }

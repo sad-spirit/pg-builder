@@ -33,6 +33,12 @@ class TokenStream
     private $source;
 
     /**
+     * A flag to prevent useless calls to Token::matches() from matchesKeyword()
+     * @var bool
+     */
+    private $isAtKeyword = false;
+
+    /**
      * Constructor
      *
      * @param array  $tokens Array of tokens extracted by Lexer
@@ -41,9 +47,9 @@ class TokenStream
      */
     public function __construct(array $tokens, string $source)
     {
-        $this->tokens  = $tokens;
-        $this->source  = $source;
-        $this->current = 0;
+        $this->tokens = $tokens;
+        $this->source = $source;
+        $this->reset();
     }
 
     /**
@@ -67,6 +73,7 @@ class TokenStream
         if (!isset($this->tokens[++$this->current])) {
             throw new exceptions\SyntaxException('Unexpected end of input');
         }
+        $this->isAtKeyword = $this->tokens[$this->current]->matches(Token::TYPE_KEYWORD);
 
         return $this->tokens[$this->current - 1];
     }
@@ -85,6 +92,7 @@ class TokenStream
         }
 
         $this->current += $number;
+        $this->isAtKeyword = $this->tokens[$this->current]->matches(Token::TYPE_KEYWORD);
     }
 
     /**
@@ -128,7 +136,8 @@ class TokenStream
      */
     public function reset(): void
     {
-        $this->current = 0;
+        $this->current     = 0;
+        $this->isAtKeyword = $this->tokens[$this->current]->matches(Token::TYPE_KEYWORD);
     }
 
     /**
@@ -155,7 +164,7 @@ class TokenStream
      */
     public function matchesKeyword($keyword): bool
     {
-        return $this->tokens[$this->current]->matches(Token::TYPE_KEYWORD, $keyword);
+        return $this->isAtKeyword && $this->tokens[$this->current]->matches(Token::TYPE_KEYWORD, $keyword);
     }
 
     /**
@@ -193,7 +202,7 @@ class TokenStream
      */
     public function matchesKeywordSequence(...$keywords)
     {
-        if ($this->current + count($keywords) > count($this->tokens)) {
+        if (!$this->isAtKeyword || $this->current + count($keywords) >= count($this->tokens)) {
             return false;
         }
         foreach ($keywords as $i => $keyword) {
