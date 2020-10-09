@@ -16,47 +16,59 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\tests;
 
+use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\Parser;
 use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\nodes\ColumnReference;
-use sad_spirit\pg_builder\nodes\Constant;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\OrderByElement;
-use sad_spirit\pg_builder\nodes\QualifiedName;
-use sad_spirit\pg_builder\nodes\Star;
-use sad_spirit\pg_builder\nodes\TargetElement;
-use sad_spirit\pg_builder\nodes\TypeName;
-use sad_spirit\pg_builder\nodes\WindowDefinition;
-use sad_spirit\pg_builder\nodes\WindowFrameBound;
-use sad_spirit\pg_builder\nodes\WindowFrameClause;
-use sad_spirit\pg_builder\nodes\expressions\FunctionExpression;
-use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
-use sad_spirit\pg_builder\nodes\expressions\TypecastExpression;
-use sad_spirit\pg_builder\nodes\lists\ExpressionList;
-use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
-use sad_spirit\pg_builder\nodes\lists\OrderByList;
-use sad_spirit\pg_builder\nodes\lists\TargetList;
-use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
-use sad_spirit\pg_builder\nodes\xml\XmlElement;
-use sad_spirit\pg_builder\nodes\xml\XmlForest;
-use sad_spirit\pg_builder\nodes\xml\XmlParse;
-use sad_spirit\pg_builder\nodes\xml\XmlPi;
-use sad_spirit\pg_builder\nodes\xml\XmlRoot;
-use sad_spirit\pg_builder\nodes\xml\XmlSerialize;
+use sad_spirit\pg_builder\exceptions\SyntaxException;
+use sad_spirit\pg_builder\nodes\{
+    ColumnReference,
+    Constant,
+    Identifier,
+    OrderByElement,
+    QualifiedName,
+    Star,
+    TargetElement,
+    TypeName,
+    WindowDefinition,
+    WindowFrameBound,
+    WindowFrameClause
+};
+use sad_spirit\pg_builder\nodes\expressions\{
+    FunctionExpression,
+    OperatorExpression,
+    TypecastExpression
+};
+use sad_spirit\pg_builder\nodes\lists\{
+    ExpressionList,
+    FunctionArgumentList,
+    OrderByList,
+    TargetList,
+    TypeModifierList
+};
+use sad_spirit\pg_builder\nodes\xml\{
+    XmlElement,
+    XmlForest,
+    XmlParse,
+    XmlPi,
+    XmlRoot,
+    XmlSerialize
+};
 
 /**
  * Tests parsing all possible function calls and function-like constructs
  */
-class ParseFunctionCallTest extends \PHPUnit\Framework\TestCase
+class ParseFunctionCallTest extends TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }
@@ -118,9 +130,7 @@ QRY
             $list
         );
 
-        $this->expectException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException'
-        );
+        $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('expecting integer literal');
         $this->parser->parseExpressionList('current_time(foo)');
     }
@@ -255,7 +265,7 @@ QRY
             $this->parser->parseExpression("nullif(a, 'b') ")
         );
 
-        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectException(SyntaxException::class);
         $this->parser->parseExpression('nullif(a, b, c)');
     }
 
@@ -365,9 +375,7 @@ QRY
             $this->parser->parseExpressionList('normalize(foo), normalize(bar, nFd)')
         );
 
-        $this::expectException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException'
-        );
+        $this::expectException(SyntaxException::class);
         $this::expectExceptionMessage("Unexpected special character ','");
         $this->parser->parseExpression("normalize(baz, nfc, nfd)");
     }
@@ -455,12 +463,12 @@ QRY
 
     /**
      * @dataProvider getInvalidNamedAndVariadicParameters
+     * @param string $functionCall
+     * @param string $message
      */
-    public function testInvalidNamedAndVariadicParameters($functionCall, $message)
+    public function testInvalidNamedAndVariadicParameters(string $functionCall, string $message)
     {
-        $this->expectException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException'
-        );
+        $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage($message);
         $this->parser->parseExpression($functionCall);
     }
@@ -485,10 +493,11 @@ QRY
 
     /**
      * @dataProvider getInvalidFunctionNames
+     * @param string $functionCall
      */
-    public function testInvalidFunctionNames($functionCall)
+    public function testInvalidFunctionNames(string $functionCall)
     {
-        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectException(SyntaxException::class);
         $this->parser->parseExpression($functionCall);
     }
 
@@ -675,12 +684,12 @@ QRY
 
     /**
      * @dataProvider getInvalidWindowSpecification
+     * @param string $spec
+     * @param string $message
      */
-    public function testInvalidWindowSpecifications($spec, $message)
+    public function testInvalidWindowSpecifications(string $spec, string $message)
     {
-        $this->expectException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException'
-        );
+        $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage($message);
         $this->parser->parseExpression($spec);
     }
@@ -721,12 +730,12 @@ QRY
 
     /**
      * @dataProvider getInvalidWithinGroupUsage
+     * @param string $expression
+     * @param string $message
      */
-    public function testInvalidWithinGroupUsage($expression, $message)
+    public function testInvalidWithinGroupUsage(string $expression, string $message)
     {
-        $this->expectException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException'
-        );
+        $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage($message);
         $this->parser->parseExpression($expression);
     }

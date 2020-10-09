@@ -16,33 +16,45 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\tests;
 
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_wrapper\Connection;
-use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\Parser;
-use sad_spirit\pg_builder\StatementFactory;
-use sad_spirit\pg_builder\nodes\ColumnReference;
-use sad_spirit\pg_builder\nodes\Constant;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\QualifiedName;
-use sad_spirit\pg_builder\nodes\SetTargetElement;
-use sad_spirit\pg_builder\nodes\SetToDefault;
-use sad_spirit\pg_builder\nodes\SingleSetClause;
-use sad_spirit\pg_builder\nodes\TargetElement;
-use sad_spirit\pg_builder\nodes\lists\RowList;
-use sad_spirit\pg_builder\nodes\lists\FromList;
-use sad_spirit\pg_builder\nodes\lists\SetClauseList;
-use sad_spirit\pg_builder\nodes\lists\TargetList;
-use sad_spirit\pg_builder\nodes\range\InsertTarget;
-use sad_spirit\pg_builder\nodes\range\RelationReference;
-use sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
+use sad_spirit\pg_builder\{
+    Lexer,
+    Parser,
+    StatementFactory
+};
+use sad_spirit\pg_builder\nodes\{
+    ColumnReference,
+    Constant,
+    Identifier,
+    QualifiedName,
+    SetTargetElement,
+    SetToDefault,
+    SingleSetClause,
+    TargetElement
+};
+use sad_spirit\pg_builder\nodes\lists\{
+    RowList,
+    FromList,
+    SetClauseList,
+    TargetList
+};
+use sad_spirit\pg_builder\nodes\range\{
+    InsertTarget,
+    RelationReference,
+    UpdateOrDeleteTarget
+};
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Unit test for StatementFactory class
  */
-class StatementFactoryTest extends \PHPUnit\Framework\TestCase
+class StatementFactoryTest extends TestCase
 {
     public function testCreatesDefaultParser()
     {
@@ -58,11 +70,12 @@ class StatementFactoryTest extends \PHPUnit\Framework\TestCase
         if (!TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING) {
             $this->markTestSkipped('Connection string is not configured');
         }
-        /* @var $mockPool CacheItemPoolInterface|\PHPUnit\Framework\MockObject\MockObject */
-        $cache      = $this->createMock('Psr\Cache\CacheItemPoolInterface');
+        /* @var $mockPool CacheItemPoolInterface|MockObject */
+        $cache      = $this->createMock(CacheItemPoolInterface::class);
         $connection = new Connection(TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING);
         $connection->execute("set standard_conforming_strings = off");
         $connection->setMetadataCache($cache);
+        
         $factory    = new StatementFactory($connection);
 
         $expected   = new Parser(new Lexer(['standard_conforming_strings' => false]), $cache);
@@ -70,6 +83,10 @@ class StatementFactoryTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, $factory->getParser());
     }
 
+    /**
+     * @noinspection SqlNoDataSourceInspection
+     * @noinspection SqlResolve
+     */
     public function testSetsParserOnCreatingFromString()
     {
         $factory = new StatementFactory();
@@ -133,7 +150,7 @@ class StatementFactoryTest extends \PHPUnit\Framework\TestCase
             new TargetElement(new ColumnReference(['barsource', 'bar']))
         ]);
         $this->assertEquals($targetList, clone $select2->list);
-        $this->assertEquals(0, count($select2->from));
+        $this->assertCount(0, $select2->from);
 
         $select3 = $factory->select($targetList, clone $fromList);
         $this->assertSame($targetList, $select3->list);

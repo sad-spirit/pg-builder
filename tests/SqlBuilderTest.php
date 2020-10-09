@@ -16,13 +16,21 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\Parser;
-use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\SqlBuilderWalker;
-use sad_spirit\pg_builder\nodes\Constant;
-use sad_spirit\pg_builder\nodes\lists\ExpressionList;
+use PHPUnit\Framework\TestCase;
+use sad_spirit\pg_builder\{
+    Lexer,
+    Parser,
+    SqlBuilderWalker,
+    exceptions\InvalidArgumentException
+};
+use sad_spirit\pg_builder\nodes\{
+    Constant,
+    lists\ExpressionList
+};
 
 /**
  * Tests building SQL from ASTs
@@ -30,7 +38,7 @@ use sad_spirit\pg_builder\nodes\lists\ExpressionList;
  * We assume that Parser works sufficiently well, so don't build ASTs by hand, but use
  * those created by Parser
  */
-class SqlBuilderTest extends \PHPUnit\Framework\TestCase
+class SqlBuilderTest extends TestCase
 {
     /**
      * @var Parser
@@ -42,7 +50,7 @@ class SqlBuilderTest extends \PHPUnit\Framework\TestCase
      */
     protected $builder;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->parser  = new Parser(new Lexer());
         $this->builder = new SqlBuilderWalker();
@@ -205,9 +213,13 @@ QRY
         );
     }
 
+    /**
+     * @noinspection SqlNoDataSourceInspection
+     * @noinspection SqlResolve
+     */
     public function testPreventNamedParameters()
     {
-        $this->expectException('sad_spirit\pg_builder\exceptions\InvalidArgumentException');
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('should not contain named parameters');
         $parsed = $this->parser->parseStatement('select somefoo from foo where idfoo = :id');
         $parsed->dispatch($this->builder);

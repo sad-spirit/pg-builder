@@ -16,36 +16,44 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\Parser;
-use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\Select;
-use sad_spirit\pg_builder\Delete;
-use sad_spirit\pg_builder\nodes\ColumnReference;
-use sad_spirit\pg_builder\nodes\CommonTableExpression;
-use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
-use sad_spirit\pg_builder\nodes\Star;
-use sad_spirit\pg_builder\nodes\WithClause;
-use sad_spirit\pg_builder\nodes\QualifiedName;
-use sad_spirit\pg_builder\nodes\TargetElement;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\lists\IdentifierList;
-use sad_spirit\pg_builder\nodes\lists\TargetList;
-use sad_spirit\pg_builder\nodes\range\RelationReference;
-use sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
+use PHPUnit\Framework\TestCase;
+use sad_spirit\pg_builder\{
+    Parser,
+    Lexer,
+    Select,
+    Delete
+};
+use sad_spirit\pg_builder\exceptions\NotImplementedException;
+use sad_spirit\pg_builder\nodes\{
+    ColumnReference,
+    CommonTableExpression,
+    expressions\OperatorExpression,
+    Star,
+    WithClause,
+    QualifiedName,
+    TargetElement,
+    Identifier,
+    lists\IdentifierList,
+    lists\TargetList,
+    range\RelationReference,
+    range\UpdateOrDeleteTarget
+};
 
 /**
  * Tests parsing all possible parts of DELETE statement
  */
-class ParseDeleteStatementTest extends \PHPUnit\Framework\TestCase
+class ParseDeleteStatementTest extends TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }
@@ -90,9 +98,12 @@ QRY
         $this->assertEquals($built, $parsed);
     }
 
+    /**
+     * @noinspection SqlNoDataSourceInspection, SqlResolve
+     */
     public function testDisallowWhereCurrentOf()
     {
-        $this->expectException('sad_spirit\pg_builder\exceptions\NotImplementedException');
+        $this->expectException(NotImplementedException::class);
         $this->expectExceptionMessage('WHERE CURRENT OF clause is not supported');
         $this->parser->parseStatement("delete from foo where current of blah");
     }

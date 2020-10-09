@@ -14,48 +14,64 @@
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
+ *
+ * @noinspection SqlNoDataSourceInspection, SqlResolve
  */
+
+declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\Parser;
-use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\Select;
-use sad_spirit\pg_builder\Update;
-use sad_spirit\pg_builder\nodes\ColumnReference;
-use sad_spirit\pg_builder\nodes\CommonTableExpression;
-use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
-use sad_spirit\pg_builder\nodes\expressions\RowExpression;
-use sad_spirit\pg_builder\nodes\expressions\SubselectExpression;
-use sad_spirit\pg_builder\nodes\Star;
-use sad_spirit\pg_builder\nodes\WithClause;
-use sad_spirit\pg_builder\nodes\QualifiedName;
-use sad_spirit\pg_builder\nodes\Constant;
-use sad_spirit\pg_builder\nodes\SetTargetElement;
-use sad_spirit\pg_builder\nodes\MultipleSetClause;
-use sad_spirit\pg_builder\nodes\SingleSetClause;
-use sad_spirit\pg_builder\nodes\TargetElement;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\ArrayIndexes;
-use sad_spirit\pg_builder\nodes\SetToDefault;
-use sad_spirit\pg_builder\nodes\lists\IdentifierList;
-use sad_spirit\pg_builder\nodes\lists\SetClauseList;
-use sad_spirit\pg_builder\nodes\lists\SetTargetList;
-use sad_spirit\pg_builder\nodes\lists\TargetList;
-use sad_spirit\pg_builder\nodes\range\RelationReference;
-use sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
+use PHPUnit\Framework\TestCase;
+use sad_spirit\pg_builder\{
+    Parser,
+    Lexer,
+    Select,
+    Update,
+    exceptions\NotImplementedException,
+};
+use sad_spirit\pg_builder\nodes\{
+    ColumnReference,
+    CommonTableExpression,
+    Star,
+    WithClause,
+    QualifiedName,
+    Constant,
+    SetTargetElement,
+    MultipleSetClause,
+    SingleSetClause,
+    TargetElement,
+    Identifier,
+    ArrayIndexes,
+    SetToDefault
+};
+use sad_spirit\pg_builder\nodes\expressions\{
+    OperatorExpression,
+    RowExpression,
+    SubselectExpression
+};
+use sad_spirit\pg_builder\nodes\lists\{
+    IdentifierList,
+    SetClauseList,
+    SetTargetList,
+    TargetList
+};
+use sad_spirit\pg_builder\nodes\range\{
+    RelationReference,
+    UpdateOrDeleteTarget
+};
 
 /**
  * Tests parsing all possible parts of UPDATE statement
  */
-class ParseUpdateStatementTest extends \PHPUnit\Framework\TestCase
+class ParseUpdateStatementTest extends TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }
@@ -184,7 +200,7 @@ QRY
 
     public function testDisallowWhereCurrentOf()
     {
-        $this->expectException('sad_spirit\pg_builder\exceptions\NotImplementedException');
+        $this->expectException(NotImplementedException::class);
         $this->expectExceptionMessage('WHERE CURRENT OF clause is not supported');
         $this->parser->parseStatement("update foo set bar = 'bar' where current of blah");
     }

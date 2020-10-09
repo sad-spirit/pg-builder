@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder;
 
 /**
@@ -24,15 +26,34 @@ namespace sad_spirit\pg_builder;
  */
 class ParameterWalker extends BlankWalker
 {
+    /**
+     * Mapping parameter name => parameter number
+     * @var array
+     */
     protected $namedParameterMap = [];
+
+    /**
+     * Parameter types extracted from typecasts
+     * @var array
+     */
     protected $parameterTypes    = [];
 
-    public function getNamedParameterMap()
+    /**
+     * Returns mapping from parameter names to parameter numbers
+     *
+     * @return array
+     */
+    public function getNamedParameterMap(): array
     {
         return $this->namedParameterMap;
     }
 
-    public function getParameterTypes()
+    /**
+     * Returns information about parameter types extracted from SQL typecasts
+     *
+     * @return array
+     */
+    public function getParameterTypes(): array
     {
         return $this->parameterTypes;
     }

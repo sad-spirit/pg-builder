@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\nodes\{
@@ -38,15 +40,15 @@ class FunctionExpression extends FunctionCall implements ScalarExpression
     public function __construct(
         $funcName,
         $arguments = null,
-        $distinct = false,
-        $variadic = false,
+        bool $distinct = false,
+        bool $variadic = false,
         OrderByList $orderBy = null,
-        $withinGroup = false,
+        bool $withinGroup = false,
         ScalarExpression $filter = null,
         WindowDefinition $over = null
     ) {
         parent::__construct($funcName, $arguments, $distinct, $variadic, $orderBy);
-        $this->setNamedProperty('withinGroup', (bool)$withinGroup);
+        $this->setNamedProperty('withinGroup', $withinGroup);
         $this->setNamedProperty('filter', $filter);
         $this->setNamedProperty('over', $over);
     }

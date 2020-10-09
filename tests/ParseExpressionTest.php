@@ -16,60 +16,71 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\tests;
 
+use PHPUnit\Framework\TestCase;
+use sad_spirit\pg_builder\{
+    Parser,
+    Lexer,
+    Select
+};
 use sad_spirit\pg_builder\exceptions\SyntaxException;
-use sad_spirit\pg_builder\nodes\ColumnReference;
-use sad_spirit\pg_builder\nodes\Constant;
-use sad_spirit\pg_builder\nodes\expressions\AtTimeZoneExpression;
-use sad_spirit\pg_builder\nodes\expressions\IsDistinctFromExpression;
-use sad_spirit\pg_builder\nodes\expressions\IsExpression;
-use sad_spirit\pg_builder\nodes\expressions\NotExpression;
-use sad_spirit\pg_builder\nodes\expressions\OverlapsExpression;
-use sad_spirit\pg_builder\nodes\lists\ExpressionList;
-use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
-use sad_spirit\pg_builder\nodes\lists\TypeList;
-use sad_spirit\pg_builder\nodes\lists\TargetList;
-use sad_spirit\pg_builder\nodes\OrderByElement;
-use sad_spirit\pg_builder\nodes\QualifiedOperator;
-use sad_spirit\pg_builder\Parser;
-use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\Indirection;
-use sad_spirit\pg_builder\nodes\Parameter;
-use sad_spirit\pg_builder\nodes\expressions\RowExpression;
-use sad_spirit\pg_builder\Select;
-use sad_spirit\pg_builder\nodes\ArrayIndexes;
-use sad_spirit\pg_builder\nodes\expressions\ArrayExpression;
-use sad_spirit\pg_builder\nodes\expressions\InExpression;
-use sad_spirit\pg_builder\nodes\expressions\IsOfExpression;
-use sad_spirit\pg_builder\nodes\expressions\LogicalExpression;
-use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
-use sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression;
-use sad_spirit\pg_builder\nodes\expressions\BetweenExpression;
-use sad_spirit\pg_builder\nodes\expressions\CaseExpression;
-use sad_spirit\pg_builder\nodes\expressions\CollateExpression;
-use sad_spirit\pg_builder\nodes\expressions\FunctionExpression;
-use sad_spirit\pg_builder\nodes\expressions\SubselectExpression;
-use sad_spirit\pg_builder\nodes\expressions\TypecastExpression;
-use sad_spirit\pg_builder\nodes\expressions\WhenExpression;
-use sad_spirit\pg_builder\nodes\TypeName;
-use sad_spirit\pg_builder\nodes\TargetElement;
-use sad_spirit\pg_builder\nodes\QualifiedName;
+use sad_spirit\pg_builder\nodes\{
+    ColumnReference,
+    Constant,
+    OrderByElement,
+    QualifiedOperator,
+    Identifier,
+    Indirection,
+    Parameter,
+    ArrayIndexes,
+    TypeName,
+    TargetElement,
+    QualifiedName
+};
 use sad_spirit\pg_builder\nodes\range\RelationReference;
-use sad_spirit\pg_builder\nodes\expressions\GroupingExpression;
+use sad_spirit\pg_builder\nodes\lists\{
+    ExpressionList,
+    FunctionArgumentList,
+    TypeList,
+    TargetList
+};
+use sad_spirit\pg_builder\nodes\expressions\{
+    AtTimeZoneExpression,
+    IsDistinctFromExpression,
+    IsExpression,
+    NotExpression,
+    OverlapsExpression,
+    RowExpression,
+    ArrayExpression,
+    InExpression,
+    IsOfExpression,
+    LogicalExpression,
+    OperatorExpression,
+    PatternMatchingExpression,
+    BetweenExpression,
+    CaseExpression,
+    CollateExpression,
+    FunctionExpression,
+    SubselectExpression,
+    TypecastExpression,
+    WhenExpression,
+    GroupingExpression
+};
 
 /**
  * Tests parsing all possible scalar expressions
  */
-class ParseExpressionTest extends \PHPUnit\Framework\TestCase
+class ParseExpressionTest extends TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }
@@ -146,12 +157,12 @@ QRY
 
     /**
      * @dataProvider getUnbalancedParentheses
+     * @param string $expr
+     * @param string $message
      */
-    public function testUnbalanceParentheses($expr, $message)
+    public function testUnbalanceParentheses(string $expr, string $message)
     {
-        $this->expectException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException'
-        );
+        $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage($message);
         $this->parser->parseExpression($expr);
     }
@@ -218,7 +229,7 @@ QRY
             $expr
         );
 
-        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectException(SyntaxException::class);
         $this->parser->parseExpression(<<<QRY
     'foo' like 'bar' like 'baz'
 QRY
@@ -246,7 +257,7 @@ QRY
         );
 
         $this->expectException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException'
+            SyntaxException::class
         );
         $this->expectExceptionMessage('Wrong number of items');
         $this->parser->parseExpression(<<<QRY

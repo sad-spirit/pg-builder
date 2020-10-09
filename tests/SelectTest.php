@@ -14,20 +14,31 @@
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
+ *
+ * @noinspection SqlNoDataSourceInspection, SqlResolve
  */
+
+declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\Parser;
-use sad_spirit\pg_builder\SetOpSelect;
-use sad_spirit\pg_builder\Select;
-use sad_spirit\pg_builder\SqlBuilderWalker;
+use PHPUnit\Framework\TestCase;
+use sad_spirit\pg_builder\{
+    Lexer,
+    Parser,
+    SetOpSelect,
+    Select,
+    SqlBuilderWalker
+};
+use sad_spirit\pg_builder\nodes\expressions\{
+    InExpression,
+    SubselectExpression
+};
 
 /**
  * Tests helper methods of Select node
  */
-class SelectTest extends \PHPUnit\Framework\TestCase
+class SelectTest extends TestCase
 {
     /**
      * @var Parser
@@ -38,7 +49,7 @@ class SelectTest extends \PHPUnit\Framework\TestCase
      */
     protected $builder;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->parser  = new Parser(new Lexer());
         $this->builder = new SqlBuilderWalker([
@@ -52,6 +63,7 @@ class SelectTest extends \PHPUnit\Framework\TestCase
     {
         $select = $this->parser->parseSelectStatement('select * from foo');
         $select->setParser($this->parser);
+        
         $setOp = $select->union('select * from bar', false);
         $this->assertSame($this->parser, $setOp->getParser());
         $this->assertEquals(
@@ -76,6 +88,7 @@ class SelectTest extends \PHPUnit\Framework\TestCase
         /* @var $select Select */
         $select = $this->parser->parseSelectStatement('select foo.* from (select * from foosource) as foo');
         $select->setParser($this->parser);
+        
         $select->from[0]->query->intersect('select * from barsource');
         $this->assertEquals(
             'select foo.* from (select * from foosource intersect select * from barsource) as foo',
@@ -90,10 +103,10 @@ class SelectTest extends \PHPUnit\Framework\TestCase
             'select * from foo where foo_id in (select id from bar) or foo_name > any(select baz_name from baz)'
         );
         $select->setParser($this->parser);
-        /* @var $in \sad_spirit\pg_builder\nodes\expressions\InExpression */
+        /* @var $in InExpression */
         $in = $select->where->condition[0];
         $in->right->union('select id from quux');
-        /* @var $any \sad_spirit\pg_builder\nodes\expressions\SubselectExpression */
+        /* @var $any SubselectExpression */
         $any = $select->where->condition[1]->right;
         $any->query->except('select xyzzy_name from xyzzy');
 

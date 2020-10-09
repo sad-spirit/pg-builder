@@ -16,31 +16,39 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\Parser;
-use sad_spirit\pg_builder\nodes\ColumnReference;
-use sad_spirit\pg_builder\nodes\Constant;
-use sad_spirit\pg_builder\nodes\lists\ExpressionList;
-use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\TypeName;
-use sad_spirit\pg_builder\nodes\IntervalTypeName;
-use sad_spirit\pg_builder\nodes\expressions\TypecastExpression;
-use sad_spirit\pg_builder\nodes\QualifiedName;
+use PHPUnit\Framework\TestCase;
+use sad_spirit\pg_builder\{
+    Lexer,
+    Parser,
+    exceptions\SyntaxException
+};
+use sad_spirit\pg_builder\nodes\{
+    ColumnReference,
+    Constant,
+    Identifier,
+    QualifiedName,
+    TypeName,
+    IntervalTypeName,
+    expressions\TypecastExpression,
+    lists\ExpressionList,
+    lists\TypeModifierList
+};
 
 /**
  * Tests parsing all possible types of typecast expressions
  */
-class ParseTypecastTest extends \PHPUnit\Framework\TestCase
+class ParseTypecastTest extends TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }
@@ -254,6 +262,7 @@ QRY
         $foo    = new ColumnReference(['foo']);
         $array5 = new TypeName(new QualifiedName(['text']));
         $array5->setBounds([5]);
+        
         $setof  = new TypeName(new QualifiedName(['text']));
         $setof->setSetOf(true);
 
@@ -342,12 +351,12 @@ QRY
 
     /**
      * @dataProvider getInvalidTypeSpecifications
+     * @param string $expression
+     * @param string $message
      */
-    public function testInvalidTypeSpecification($expression, $message)
+    public function testInvalidTypeSpecification(string $expression, string $message)
     {
-        $this->expectException(
-            'sad_spirit\pg_builder\exceptions\SyntaxException'
-        );
+        $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage($message);
         $this->parser->parseExpression($expression);
     }

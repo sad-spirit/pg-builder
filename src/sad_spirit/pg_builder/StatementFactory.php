@@ -16,6 +16,8 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_wrapper\Connection;
@@ -114,7 +116,7 @@ class StatementFactory
      *
      * @return TreeWalker
      */
-    public function getBuilder()
+    public function getBuilder(): TreeWalker
     {
         if (null === $this->builder) {
             $this->builder = new SqlBuilderWalker();
@@ -129,7 +131,7 @@ class StatementFactory
      * @return Statement
      * @throws exceptions\SyntaxException
      */
-    public function createFromString($sql)
+    public function createFromString(string $sql): Statement
     {
         $parser = $this->getParser();
         $stmt   = $parser->parseStatement($sql);
@@ -144,7 +146,7 @@ class StatementFactory
      * @param Statement $ast
      * @return NativeStatement
      */
-    public function createFromAST(Statement $ast)
+    public function createFromAST(Statement $ast): NativeStatement
     {
         $pw = new ParameterWalker();
         $ast->dispatch($pw);
@@ -162,7 +164,7 @@ class StatementFactory
      * @param string|nodes\range\UpdateOrDeleteTarget $from
      * @return Delete
      */
-    public function delete($from)
+    public function delete($from): Delete
     {
         if ($from instanceof nodes\range\UpdateOrDeleteTarget) {
             $relation = $from;
@@ -182,7 +184,7 @@ class StatementFactory
      * @param string|nodes\QualifiedName|nodes\range\InsertTarget $into
      * @return Insert
      */
-    public function insert($into)
+    public function insert($into): Insert
     {
         if ($into instanceof nodes\range\InsertTarget) {
             $relation = $into;
@@ -201,11 +203,11 @@ class StatementFactory
     /**
      * Creates a SELECT statement object
      *
-     * @param string|array|nodes\lists\TargetList $list
-     * @param string|array|nodes\lists\FromList   $from
+     * @param string|array|nodes\lists\TargetList    $list
+     * @param string|array|nodes\lists\FromList|null $from
      * @return Select
      */
-    public function select($list, $from = null)
+    public function select($list, $from = null): Select
     {
         if ($list instanceof nodes\lists\TargetList) {
             $targetList = $list;
@@ -237,7 +239,7 @@ class StatementFactory
      * @param string|array|nodes\lists\SetClauseList  $set
      * @return Update
      */
-    public function update($table, $set)
+    public function update($table, $set): Update
     {
         if ($table instanceof nodes\range\UpdateOrDeleteTarget) {
             $relation = $table;
@@ -271,14 +273,14 @@ class StatementFactory
      * @param string|array|nodes\lists\RowList $rows
      * @return Values
      */
-    public function values($rows)
+    public function values($rows): Values
     {
         if ($rows instanceof nodes\lists\RowList) {
             $rowList = $rows;
         } elseif (is_string($rows)) {
             $rowList = nodes\lists\RowList::createFromString($this->getParser(), $rows);
         } else {
-            // we don't pass $set since it may contain strings/arrays instead of CtextRows,
+            // we don't pass $rows as it may contain strings/arrays instead of RowExpression's,
             // Parser may be needed for that
             $rowList = new nodes\lists\RowList();
         }

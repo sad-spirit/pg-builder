@@ -16,25 +16,32 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\nodes\expressions\IsDistinctFromExpression;
-use sad_spirit\pg_builder\nodes\expressions\IsExpression;
-use sad_spirit\pg_builder\SqlBuilderWalker;
-use sad_spirit\pg_builder\nodes\ColumnReference;
+use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\Node;
-use sad_spirit\pg_builder\nodes\Constant;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\expressions\BetweenExpression;
-use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
-use sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression;
+use sad_spirit\pg_builder\SqlBuilderWalker;
+use sad_spirit\pg_builder\nodes\{
+    ColumnReference,
+    Constant,
+    Identifier
+};
+use sad_spirit\pg_builder\nodes\expressions\{
+    IsDistinctFromExpression,
+    IsExpression,
+    BetweenExpression,
+    OperatorExpression,
+    PatternMatchingExpression
+};
 
 /**
  * Tests checking the proper addition of parentheses (should follow Postgres 9.5+ operator precedence)
  *
  * We use a base class with two subclasses to easily notice which building mode fails
  */
-class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
+class SqlBuilderParenthesesTest extends TestCase
 {
     /** @var SqlBuilderWalker */
     protected $builder;
@@ -64,7 +71,7 @@ class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
      * @param Node   $ast
      * @param string $expected
      */
-    public function testChainedComparisonRequiresParentheses(Node $ast, $expected)
+    public function testChainedComparisonRequiresParentheses(Node $ast, string $expected)
     {
         $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builder));
     }
@@ -76,7 +83,7 @@ class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
      * @param string $expected
      * @dataProvider isPrecedenceProvider
      */
-    public function testCompatParenthesesForIsPrecedenceChanges(Node $ast, $expected)
+    public function testCompatParenthesesForIsPrecedenceChanges(Node $ast, string $expected)
     {
         $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builder));
     }
@@ -88,7 +95,7 @@ class SqlBuilderParenthesesTest extends \PHPUnit\Framework\TestCase
      * @param string $expected
      * @dataProvider inequalityPrecedenceProvider
      */
-    public function testCompatParenthesesForInequalityPrecedenceChanges(Node $ast, $expected)
+    public function testCompatParenthesesForInequalityPrecedenceChanges(Node $ast, string $expected)
     {
         $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builder));
     }

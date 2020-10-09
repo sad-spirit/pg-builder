@@ -14,46 +14,64 @@
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
+ *
+ * @noinspection SqlNoDataSourceInspection, SqlResolve
  */
+
+declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\nodes\expressions\TypecastExpression;
-use sad_spirit\pg_builder\nodes\TypeName;
-use sad_spirit\pg_builder\Parser;
-use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\Select;
-use sad_spirit\pg_builder\nodes\ColumnReference;
-use sad_spirit\pg_builder\nodes\Constant;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\LockingElement;
-use sad_spirit\pg_builder\nodes\QualifiedName;
-use sad_spirit\pg_builder\nodes\Star;
-use sad_spirit\pg_builder\nodes\TargetElement;
-use sad_spirit\pg_builder\nodes\WindowDefinition;
-use sad_spirit\pg_builder\nodes\WindowFrameBound;
-use sad_spirit\pg_builder\nodes\WindowFrameClause;
-use sad_spirit\pg_builder\nodes\expressions\FunctionExpression;
-use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
-use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
-use sad_spirit\pg_builder\nodes\lists\TargetList;
-use sad_spirit\pg_builder\nodes\lists\ExpressionList;
-use sad_spirit\pg_builder\nodes\lists\LockList;
-use sad_spirit\pg_builder\nodes\lists\WindowList;
+use PHPUnit\Framework\TestCase;
+use sad_spirit\pg_builder\{
+    Node,
+    Parser,
+    Lexer,
+    Select,
+    SetOpSelect
+};
+use sad_spirit\pg_builder\exceptions\{
+    SyntaxException,
+    NotImplementedException
+};
+use sad_spirit\pg_builder\nodes\{
+    TypeName,
+    ColumnReference,
+    Constant,
+    Identifier,
+    LockingElement,
+    QualifiedName,
+    Star,
+    TargetElement,
+    WindowDefinition,
+    WindowFrameBound,
+    WindowFrameClause
+};
+use sad_spirit\pg_builder\nodes\expressions\{
+    TypecastExpression,
+    FunctionExpression,
+    OperatorExpression
+};
+use sad_spirit\pg_builder\nodes\lists\{
+    FunctionArgumentList,
+    TargetList,
+    ExpressionList,
+    LockList,
+    WindowList
+};
 use sad_spirit\pg_builder\nodes\range\RelationReference;
-use sad_spirit\pg_builder\SetOpSelect;
 
 /**
  * Tests parsing all possible parts of SELECT statement
  */
-class ParseSelectStatementTest extends \PHPUnit\Framework\TestCase
+class ParseSelectStatementTest extends TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }
@@ -81,7 +99,7 @@ QRY
                         false,
                         false,
                         null,
-                        null,
+                        false,
                         null,
                         new WindowDefinition(new Identifier('win95'))
                     ),
@@ -148,10 +166,11 @@ QRY
 
     /**
      * @dataProvider getMultipleClausesQueries
+     * @param string $query
      */
-    public function testPreventMultipleClauses($query)
+    public function testPreventMultipleClauses(string $query)
     {
-        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('Multiple');
         $this->parser->parseStatement($query);
     }
@@ -168,17 +187,17 @@ QRY
 
     /**
      * @dataProvider getLimitOffsetClauses
+     * @param string         $stmt
+     * @param int|float|Node $limit
+     * @param int|null       $offset
+     * @param bool           $withTies
      */
-    public function testLimitOffsetClauses($stmt, $limit, $offset, $withTies = false)
+    public function testLimitOffsetClauses(string $stmt, $limit, ?int $offset = null, bool $withTies = false)
     {
         $parsed = $this->parser->parseStatement($stmt);
 
         $built = new Select(new TargetList([new Star()]));
-        if (is_scalar($limit)) {
-            $built->limit = new Constant($limit);
-        } else {
-            $built->limit = $limit;
-        }
+        $built->limit = is_scalar($limit) ? new Constant($limit) : $limit;
         if ($offset) {
             $built->offset = new Constant($offset);
         }
@@ -217,6 +236,7 @@ QRY
 
     public function testLockingClauses()
     {
+        /* @var Select $select */
         $select = $this->parser->parseStatement(<<<QRY
     select * from a.foo, b.bar, c.baz for share of a.foo, c.baz for no key update of b.bar skip locked
 QRY
@@ -232,6 +252,7 @@ QRY
 
     public function testAllowMultipleLockingClauses()
     {
+        /* @var Select $select */
         $select = $this->parser->parseStatement(<<<QRY
     (select * from foo, bar for update of foo) for update of bar nowait
 QRY
@@ -247,13 +268,14 @@ QRY
 
     public function testCannotLockValues()
     {
-        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('cannot be applied to VALUES');
         $this->parser->parseStatement('values (1), (2) for update of foo');
     }
 
     public function testParseWindowClause()
     {
+        /* @var Select $select */
         $select = $this->parser->parseStatement(<<<QRY
     select * window foo as (), bar as (foo), baz as (partition by whatever),
                     quux as (range between unbounded preceding and current row)
@@ -284,7 +306,7 @@ QRY
 
     public function testDisallowSelectInto()
     {
-        $this->expectException('sad_spirit\pg_builder\exceptions\NotImplementedException');
+        $this->expectException(NotImplementedException::class);
         $this->expectExceptionMessage('SELECT INTO clauses are not supported');
         $this->parser->parseStatement('select foo into bar from baz');
     }

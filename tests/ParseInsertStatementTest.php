@@ -14,46 +14,55 @@
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
+ *
+ * @noinspection SqlNoDataSourceInspection, SqlResolve
  */
+
+declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\Parser;
-use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\Insert;
-use sad_spirit\pg_builder\Select;
-use sad_spirit\pg_builder\nodes\ColumnReference;
-use sad_spirit\pg_builder\nodes\CommonTableExpression;
-use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
-use sad_spirit\pg_builder\nodes\Star;
-use sad_spirit\pg_builder\nodes\WithClause;
-use sad_spirit\pg_builder\nodes\QualifiedName;
-use sad_spirit\pg_builder\nodes\Constant;
-use sad_spirit\pg_builder\nodes\TargetElement;
-use sad_spirit\pg_builder\nodes\SetTargetElement;
-use sad_spirit\pg_builder\nodes\SingleSetClause;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\ArrayIndexes;
-use sad_spirit\pg_builder\nodes\OnConflictClause;
-use sad_spirit\pg_builder\nodes\IndexElement;
-use sad_spirit\pg_builder\nodes\IndexParameters;
-use sad_spirit\pg_builder\nodes\lists\IdentifierList;
-use sad_spirit\pg_builder\nodes\lists\SetClauseList;
-use sad_spirit\pg_builder\nodes\lists\TargetList;
-use sad_spirit\pg_builder\nodes\range\InsertTarget;
-use sad_spirit\pg_builder\nodes\range\RelationReference;
+use PHPUnit\Framework\TestCase;
+use sad_spirit\pg_builder\{
+    Parser,
+    Lexer,
+    Insert,
+    Select
+};
+use sad_spirit\pg_builder\nodes\{
+    ColumnReference,
+    CommonTableExpression,
+    expressions\OperatorExpression,
+    Star,
+    WithClause,
+    QualifiedName,
+    Constant,
+    TargetElement,
+    SetTargetElement,
+    SingleSetClause,
+    Identifier,
+    ArrayIndexes,
+    OnConflictClause,
+    IndexElement,
+    IndexParameters,
+    lists\IdentifierList,
+    lists\SetClauseList,
+    lists\TargetList,
+    range\InsertTarget,
+    range\RelationReference
+};
 
 /**
  * Tests parsing all possible parts of INSERT statement
  */
-class ParseInsertStatementTest extends \PHPUnit\Framework\TestCase
+class ParseInsertStatementTest extends TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }
@@ -136,7 +145,7 @@ QRY
      * @param string           $sql
      * @param OnConflictClause $expected
      */
-    public function testParseOnConflictClause($sql, OnConflictClause $expected)
+    public function testParseOnConflictClause(string $sql, OnConflictClause $expected)
     {
         $this->assertEquals($expected, $this->parser->parseOnConflict($sql));
     }
@@ -161,9 +170,9 @@ QRY
                 )
             ],
             [
-                '(did) DO UPDATE
-                 SET dname = EXCLUDED.dname || \' (formerly \' || d.dname || \')\'
-                 WHERE d.zipcode <> \'21201\'',
+                "(did) DO UPDATE
+                 SET dname = EXCLUDED.dname || ' (formerly ' || d.dname || ')'
+                 WHERE d.zipcode <> '21201'",
                 new OnConflictClause(
                     'update',
                     new IndexParameters([

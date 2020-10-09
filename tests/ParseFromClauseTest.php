@@ -16,53 +16,69 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\Parser;
-use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\Select;
-use sad_spirit\pg_builder\nodes\TargetElement;
-use sad_spirit\pg_builder\nodes\FunctionCall;
-use sad_spirit\pg_builder\nodes\Constant;
-use sad_spirit\pg_builder\nodes\ColumnReference;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\TypeName;
-use sad_spirit\pg_builder\nodes\QualifiedName;
-use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
-use sad_spirit\pg_builder\nodes\expressions\SubselectExpression;
-use sad_spirit\pg_builder\nodes\range\JoinExpression;
-use sad_spirit\pg_builder\nodes\range\RelationReference;
-use sad_spirit\pg_builder\nodes\range\FunctionCall as RangeFunctionCall;
-use sad_spirit\pg_builder\nodes\range\RowsFrom;
-use sad_spirit\pg_builder\nodes\range\RowsFromElement;
-use sad_spirit\pg_builder\nodes\range\Subselect;
-use sad_spirit\pg_builder\nodes\range\ColumnDefinition;
-use sad_spirit\pg_builder\nodes\range\TableSample;
-use sad_spirit\pg_builder\nodes\range\XmlTable;
-use sad_spirit\pg_builder\nodes\lists\ExpressionList;
-use sad_spirit\pg_builder\nodes\lists\FromList;
-use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
-use sad_spirit\pg_builder\nodes\lists\IdentifierList;
-use sad_spirit\pg_builder\nodes\lists\ColumnDefinitionList;
-use sad_spirit\pg_builder\nodes\lists\RowsFromList;
-use sad_spirit\pg_builder\nodes\lists\TargetList;
-use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
-use sad_spirit\pg_builder\nodes\xml\XmlColumnDefinition;
-use sad_spirit\pg_builder\nodes\xml\XmlColumnList;
-use sad_spirit\pg_builder\nodes\xml\XmlNamespace;
-use sad_spirit\pg_builder\nodes\xml\XmlNamespaceList;
+use PHPUnit\Framework\TestCase;
+use sad_spirit\pg_builder\{
+    Parser,
+    Lexer,
+    Select
+};
+use sad_spirit\pg_builder\exceptions\SyntaxException;
+use sad_spirit\pg_builder\nodes\{
+    TargetElement,
+    FunctionCall,
+    Constant,
+    ColumnReference,
+    Identifier,
+    TypeName,
+    QualifiedName
+};
+use sad_spirit\pg_builder\nodes\expressions\{
+    OperatorExpression,
+    SubselectExpression
+};
+use sad_spirit\pg_builder\nodes\range\{
+    JoinExpression,
+    RelationReference,
+    FunctionCall as RangeFunctionCall,
+    RowsFrom,
+    RowsFromElement,
+    Subselect,
+    ColumnDefinition,
+    TableSample,
+    XmlTable
+};
+use sad_spirit\pg_builder\nodes\lists\{
+    ExpressionList,
+    FromList,
+    FunctionArgumentList,
+    IdentifierList,
+    ColumnDefinitionList,
+    RowsFromList,
+    TargetList,
+    TypeModifierList
+};
+use sad_spirit\pg_builder\nodes\xml\{
+    XmlColumnDefinition,
+    XmlColumnList,
+    XmlNamespace,
+    XmlNamespaceList
+};
 
 /**
  * Tests parsing all possible expressions appearing in FROM clause
  */
-class ParseFromClauseTest extends \PHPUnit\Framework\TestCase
+class ParseFromClauseTest extends TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }
@@ -99,13 +115,16 @@ QRY
         );
         $foo = new RelationReference(new QualifiedName(['foo']));
         $foo->setAlias(new Identifier('fooalias'));
+
         $bar = new RelationReference(new QualifiedName(['barschema', 'bar']), false);
         $bar->setAlias(new Identifier('baralias'));
+
         $baz = new RelationReference(new QualifiedName(['baz']), true);
         $baz->setAlias(
             new Identifier('bazalias'),
             new IdentifierList(['one', 'two'])
         );
+
         $quux = new RelationReference(new QualifiedName(['quuxschema', 'quux']), true);
         $quux->setAlias(
             new Identifier('quuxalias'),
@@ -173,8 +192,10 @@ QRY
 
         $a = new RelationReference(new QualifiedName(['a']));
         $a->setAlias(new Identifier('aa'));
+        
         $b = new RelationReference(new QualifiedName(['b']));
         $b->setAlias(new Identifier('bb'));
+        
         $ab = new JoinExpression($a, $b, 'inner');
         $ab->setNatural(true);
 
@@ -209,14 +230,14 @@ QRY
 
     public function testNoMoreThanTwoDots()
     {
-        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('Too many dots');
         $this->parser->parseFromList('foo.bar.baz.quux');
     }
 
     public function testSubselectsRequireAnAlias()
     {
-        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('should have an alias');
         $this->parser->parseFromList("(select 'foo')");
     }

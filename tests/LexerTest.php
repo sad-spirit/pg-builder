@@ -16,22 +16,26 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\tests;
 
+use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\Lexer;
 use sad_spirit\pg_builder\Token;
+use sad_spirit\pg_builder\exceptions\SyntaxException;
 
 /**
  * Unit test for query lexer
  */
-class LexerTest extends \PHPUnit\Framework\TestCase
+class LexerTest extends TestCase
 {
     /**
      * @var Lexer
      */
     protected $lexer;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->lexer = new Lexer();
     }
@@ -82,6 +86,8 @@ QRY
 
     /**
      * @dataProvider getConcatenatedStrings
+     * @param string $sql
+     * @param array $tokens
      */
     public function testConcatenateStringLiterals(string $sql, array $tokens)
     {
@@ -91,7 +97,7 @@ QRY
         }
     }
 
-    public function getConcatenatedStrings()
+    public function getConcatenatedStrings(): array
     {
         return [
             [
@@ -175,43 +181,44 @@ QRY
 
     public function testUnterminatedCStyleComment()
     {
-        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('Unterminated /* comment');
         $this->lexer->tokenize('/* foo');
     }
 
     public function testUnterminatedQuotedIdentifier()
     {
-        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('Unterminated quoted identifier');
         $this->lexer->tokenize('update "foo ');
     }
 
     public function testZeroLengthQuotedIdentifier()
     {
-        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('Zero-length quoted identifier');
         $this->lexer->tokenize('select "" as foo');
     }
 
     public function testUnterminatedDollarQuotedString()
     {
-        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('Unterminated dollar-quoted string');
         $this->lexer->tokenize('select $foo$ blah $$ blah');
     }
 
     /**
      * @dataProvider getUnterminatedLiterals
+     * @param string $literal
      */
-    public function testUnterminatedStringLiteral($literal)
+    public function testUnterminatedStringLiteral(string $literal)
     {
-        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
+        $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('Unterminated string literal');
         $this->lexer->tokenize($literal);
     }
 
-    public function getUnterminatedLiterals()
+    public function getUnterminatedLiterals(): array
     {
         return [
             ["select 'foo  "],
@@ -224,8 +231,8 @@ QRY
 
     public function testUnexpectedSymbol()
     {
-        $this->expectException('sad_spirit\pg_builder\exceptions\SyntaxException');
-        $this->expectExceptionMessage('Unexpected \'{\'');
+        $this->expectException(SyntaxException::class);
+        $this->expectExceptionMessage("Unexpected '{'");
         $this->lexer->tokenize('select foo{bar}');
     }
 

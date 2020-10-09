@@ -16,36 +16,48 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\nodes\ColumnReference;
-use sad_spirit\pg_builder\nodes\expressions\IsDistinctFromExpression;
-use sad_spirit\pg_builder\nodes\expressions\IsExpression;
-use sad_spirit\pg_builder\Parser;
-use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\Node;
-use sad_spirit\pg_builder\nodes\Constant;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\IntervalTypeName;
-use sad_spirit\pg_builder\nodes\QualifiedName;
-use sad_spirit\pg_builder\nodes\expressions\BetweenExpression;
-use sad_spirit\pg_builder\nodes\expressions\FunctionExpression;
-use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
-use sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression;
-use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
-use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
+use PHPUnit\Framework\TestCase;
+use sad_spirit\pg_builder\{
+    Parser,
+    Lexer,
+    Node
+};
+use sad_spirit\pg_builder\exceptions\SyntaxException;
+use sad_spirit\pg_builder\nodes\{
+    ColumnReference,
+    Constant,
+    Identifier,
+    IntervalTypeName,
+    QualifiedName
+};
+use sad_spirit\pg_builder\nodes\expressions\{
+    IsDistinctFromExpression,
+    IsExpression,
+    BetweenExpression,
+    FunctionExpression,
+    OperatorExpression,
+    PatternMatchingExpression
+};
+use sad_spirit\pg_builder\nodes\lists\{
+    FunctionArgumentList,
+    TypeModifierList
+};
 
 /**
  * Operator precedence tests (checking that precedence follows Postgres 9.5+)
  */
-class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
+class OperatorPrecedenceTest extends TestCase
 {
     /**
      * @var Parser
      */
     protected $parser;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->parser = new Parser(new Lexer());
     }
@@ -56,14 +68,14 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
      * @param string      $expression
      * @param string|Node $parsed
      */
-    protected function doTest($expression, $parsed)
+    protected function doTest(string $expression, $parsed)
     {
         if (!is_string($parsed)) {
             $this->assertEquals($parsed, $this->parser->parseExpression($expression));
 
         } else {
             $this->expectException(
-                'sad_spirit\pg_builder\exceptions\SyntaxException'
+                SyntaxException::class
             );
             $this->expectExceptionMessage($parsed);
             $this->parser->parseExpression($expression);
@@ -75,7 +87,7 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
      * @param string      $expression
      * @param string|Node $parsedCurrent
      */
-    public function testAssociativeEquality($expression, $parsedCurrent)
+    public function testAssociativeEquality(string $expression, $parsedCurrent)
     {
         $this->doTest($expression, $parsedCurrent);
     }
@@ -85,7 +97,7 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
      * @param string      $expression
      * @param string|Node $parsedCurrent
      */
-    public function testInequalityPrecedence($expression, $parsedCurrent)
+    public function testInequalityPrecedence(string $expression, $parsedCurrent)
     {
         $this->doTest($expression, $parsedCurrent);
     }
@@ -95,7 +107,7 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
      * @param string      $expression
      * @param string|Node $parsedCurrent
      */
-    public function testInequalityWithCustomOperatorsPrecedence($expression, $parsedCurrent)
+    public function testInequalityWithCustomOperatorsPrecedence(string $expression, $parsedCurrent)
     {
         $this->doTest($expression, $parsedCurrent);
     }
@@ -105,7 +117,7 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
      * @param string      $expression
      * @param string|Node $parsedCurrent
      */
-    public function testIsWhateverPrecedence($expression, $parsedCurrent)
+    public function testIsWhateverPrecedence(string $expression, $parsedCurrent)
     {
         $this->doTest($expression, $parsedCurrent);
     }
@@ -115,7 +127,7 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
      * @param string      $expression
      * @param string|Node $parsedCurrent
      */
-    public function testBetweenPrecedence($expression, $parsedCurrent)
+    public function testBetweenPrecedence(string $expression, $parsedCurrent)
     {
         $this->doTest($expression, $parsedCurrent);
     }
@@ -125,7 +137,7 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
      * @param string      $expression
      * @param string|Node $parsedCurrent
      */
-    public function testEqualsGreaterOperator($expression, $parsedCurrent)
+    public function testEqualsGreaterOperator(string $expression, $parsedCurrent)
     {
         $this->doTest($expression, $parsedCurrent);
     }
@@ -135,12 +147,12 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
      * @param string      $expression
      * @param string|Node $parsedCurrent
      */
-    public function testIntervalTypeSpecification($expression, $parsedCurrent)
+    public function testIntervalTypeSpecification(string $expression, $parsedCurrent)
     {
         $this->doTest($expression, $parsedCurrent);
     }
 
-    public function associativeEqualityProvider()
+    public function associativeEqualityProvider(): array
     {
         return [
             [
@@ -150,7 +162,7 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    public function inequalityPrecedenceProvider()
+    public function inequalityPrecedenceProvider(): array
     {
         return [
             [
@@ -175,7 +187,7 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
     }
 
 
-    public function isWhateverPrecedenceProvider()
+    public function isWhateverPrecedenceProvider(): array
     {
         return [
             [
@@ -214,7 +226,7 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    public function betweenPrecedenceProvider()
+    public function betweenPrecedenceProvider(): array
     {
         return [
             [
@@ -236,7 +248,7 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    public function inequalityWithCustomOperatorsPrecedenceProvider()
+    public function inequalityWithCustomOperatorsPrecedenceProvider(): array
     {
         // Based on Tom Lane's message to pgsql-hackers which started the whole precedence brouhaha
         // https://www.postgresql.org/message-id/12603.1424360914%40sss.pgh.pa.us
@@ -260,7 +272,7 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    public function equalsGreaterOperatorProvider()
+    public function equalsGreaterOperatorProvider(): array
     {
         return [
             [
@@ -279,7 +291,7 @@ class OperatorPrecedenceTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    public function intervalTypeProvider()
+    public function intervalTypeProvider(): array
     {
         $interval = new IntervalTypeName(new TypeModifierList([
             new Constant(10)

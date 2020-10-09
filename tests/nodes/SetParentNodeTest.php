@@ -16,70 +16,85 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\tests\nodes;
 
-use sad_spirit\pg_builder\Delete;
-use sad_spirit\pg_builder\Insert;
-use sad_spirit\pg_builder\Select;
-use sad_spirit\pg_builder\SetOpSelect;
-use sad_spirit\pg_builder\Update;
-use sad_spirit\pg_builder\Values;
-use sad_spirit\pg_builder\nodes\ArrayIndexes;
-use sad_spirit\pg_builder\nodes\ColumnReference;
-use sad_spirit\pg_builder\nodes\CommonTableExpression;
-use sad_spirit\pg_builder\nodes\Constant;
-use sad_spirit\pg_builder\nodes\FunctionCall;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\Indirection;
-use sad_spirit\pg_builder\nodes\IntervalTypeName;
-use sad_spirit\pg_builder\nodes\OrderByElement;
-use sad_spirit\pg_builder\nodes\Parameter;
-use sad_spirit\pg_builder\nodes\QualifiedName;
-use sad_spirit\pg_builder\nodes\SetTargetElement;
-use sad_spirit\pg_builder\nodes\SingleSetClause;
-use sad_spirit\pg_builder\nodes\TargetElement;
-use sad_spirit\pg_builder\nodes\TypeName;
-use sad_spirit\pg_builder\nodes\WindowDefinition;
-use sad_spirit\pg_builder\nodes\WindowFrameBound;
-use sad_spirit\pg_builder\nodes\WithClause;
-use sad_spirit\pg_builder\nodes\expressions\BetweenExpression;
-use sad_spirit\pg_builder\nodes\expressions\CaseExpression;
-use sad_spirit\pg_builder\nodes\expressions\CollateExpression;
-use sad_spirit\pg_builder\nodes\expressions\InExpression;
-use sad_spirit\pg_builder\nodes\expressions\IsOfExpression;
-use sad_spirit\pg_builder\nodes\expressions\OperatorExpression;
-use sad_spirit\pg_builder\nodes\expressions\PatternMatchingExpression;
-use sad_spirit\pg_builder\nodes\expressions\SubselectExpression;
-use sad_spirit\pg_builder\nodes\expressions\TypecastExpression;
-use sad_spirit\pg_builder\nodes\expressions\WhenExpression;
-use sad_spirit\pg_builder\nodes\lists\ColumnDefinitionList;
-use sad_spirit\pg_builder\nodes\lists\RowList;
-use sad_spirit\pg_builder\nodes\lists\ExpressionList;
-use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
-use sad_spirit\pg_builder\nodes\lists\IdentifierList;
-use sad_spirit\pg_builder\nodes\lists\OrderByList;
-use sad_spirit\pg_builder\nodes\lists\SetClauseList;
-use sad_spirit\pg_builder\nodes\lists\TargetList;
-use sad_spirit\pg_builder\nodes\lists\TypeList;
-use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
-use sad_spirit\pg_builder\nodes\range\ColumnDefinition;
-use sad_spirit\pg_builder\nodes\range\FunctionCall as RangeFunctionCall;
-use sad_spirit\pg_builder\nodes\range\InsertTarget;
-use sad_spirit\pg_builder\nodes\range\JoinExpression;
-use sad_spirit\pg_builder\nodes\range\RelationReference;
-use sad_spirit\pg_builder\nodes\range\Subselect;
-use sad_spirit\pg_builder\nodes\range\UpdateOrDeleteTarget;
-use sad_spirit\pg_builder\nodes\xml\XmlElement;
-use sad_spirit\pg_builder\nodes\xml\XmlParse;
-use sad_spirit\pg_builder\nodes\xml\XmlPi;
-use sad_spirit\pg_builder\nodes\xml\XmlRoot;
-use sad_spirit\pg_builder\nodes\xml\XmlSerialize;
-use sad_spirit\pg_builder\nodes\WindowFrameClause;
+use PHPUnit\Framework\TestCase;
+use sad_spirit\pg_builder\{
+    Delete,
+    Insert,
+    Select,
+    SetOpSelect,
+    Update,
+    Values
+};
+use sad_spirit\pg_builder\nodes\{
+    ArrayIndexes,
+    ColumnReference,
+    CommonTableExpression,
+    Constant,
+    FunctionCall,
+    Identifier,
+    Indirection,
+    IntervalTypeName,
+    OrderByElement,
+    Parameter,
+    QualifiedName,
+    SetTargetElement,
+    SingleSetClause,
+    TargetElement,
+    TypeName,
+    WindowDefinition,
+    WindowFrameBound,
+    WithClause,
+    WindowFrameClause
+};
+use sad_spirit\pg_builder\nodes\expressions\{
+    BetweenExpression,
+    CaseExpression,
+    CollateExpression,
+    InExpression,
+    IsOfExpression,
+    OperatorExpression,
+    PatternMatchingExpression,
+    SubselectExpression,
+    TypecastExpression,
+    WhenExpression
+};
+use sad_spirit\pg_builder\nodes\lists\{
+    ColumnDefinitionList,
+    RowList,
+    ExpressionList,
+    FunctionArgumentList,
+    IdentifierList,
+    OrderByList,
+    SetClauseList,
+    TargetList,
+    TypeList,
+    TypeModifierList
+};
+use sad_spirit\pg_builder\nodes\range\{
+    ColumnDefinition,
+    FunctionCall as RangeFunctionCall,
+    InsertTarget,
+    JoinExpression,
+    RelationReference,
+    Subselect,
+    UpdateOrDeleteTarget
+};
+use sad_spirit\pg_builder\nodes\xml\{
+    XmlElement,
+    XmlParse,
+    XmlPi,
+    XmlRoot,
+    XmlSerialize
+};
 
 /**
  * Tests that parent node is properly set on children
  */
-class SetParentNodeTest extends \PHPUnit\Framework\TestCase
+class SetParentNodeTest extends TestCase
 {
     public function testDeleteStatement()
     {

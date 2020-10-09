@@ -16,18 +16,26 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\tests\nodes;
 
-use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\Parser;
-use sad_spirit\pg_builder\nodes\ColumnReference;
-use sad_spirit\pg_builder\nodes\WhereOrHavingClause;
-use sad_spirit\pg_builder\nodes\expressions\LogicalExpression;
+use PHPUnit\Framework\TestCase;
+use sad_spirit\pg_builder\{
+    Lexer,
+    Parser,
+    Select
+};
+use sad_spirit\pg_builder\nodes\{
+    ColumnReference,
+    WhereOrHavingClause,
+    expressions\LogicalExpression
+};
 
 /**
  * Tests helper methods for WhereOrHavingClause
  */
-class WhereOrHavingClauseTest extends \PHPUnit\Framework\TestCase
+class WhereOrHavingClauseTest extends TestCase
 {
     public function testAddConditionsWithAnd()
     {
@@ -119,11 +127,13 @@ class WhereOrHavingClauseTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @doesNotPerformAssertions
+     * @noinspection SqlNoDataSourceInspection
+     * @noinspection SqlResolve
      */
     public function testNestedWhereShouldHaveParser()
     {
         $parser = new Parser(new Lexer());
-        /* @var $select \sad_spirit\pg_builder\Select */
+        /* @var $select Select */
         $select = $parser->parseSelectStatement("select * from foo where bar = 'baz'");
         $select->setParser($parser);
 

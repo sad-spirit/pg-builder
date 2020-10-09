@@ -14,21 +14,29 @@
  * @author    Alexey Borzov <avb@php.net>
  * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
+ *
+ * @noinspection SqlNoDataSourceInspection, SqlResolve
  */
+
+declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\Parser;
-use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\ParameterWalker;
-use sad_spirit\pg_builder\SqlBuilderWalker;
-use sad_spirit\pg_builder\nodes\QualifiedName;
-use sad_spirit\pg_builder\nodes\TypeName;
+use PHPUnit\Framework\TestCase;
+use sad_spirit\pg_builder\{
+    Parser,
+    Lexer,
+    ParameterWalker,
+    SqlBuilderWalker,
+    exceptions\InvalidArgumentException,
+    nodes\QualifiedName,
+    nodes\TypeName
+};
 
 /**
  * Unit test for ParameterWalker
  */
-class ParameterWalkerTest extends \PHPUnit\Framework\TestCase
+class ParameterWalkerTest extends TestCase
 {
     /**
      * @var Parser
@@ -45,7 +53,7 @@ class ParameterWalkerTest extends \PHPUnit\Framework\TestCase
      */
     protected $walker;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->parser  = new Parser(new Lexer());
         $this->builder = new SqlBuilderWalker([
@@ -58,7 +66,7 @@ class ParameterWalkerTest extends \PHPUnit\Framework\TestCase
 
     public function testDisallowMixedParameters()
     {
-        $this->expectException('sad_spirit\pg_builder\exceptions\InvalidArgumentException');
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Mixing named and positional parameters is not allowed');
         $statement = $this->parser->parseStatement(<<<QRY
     select foo, bar from foosource where foo = :foo or bar = $1
@@ -104,10 +112,10 @@ QRY
 
         $map   = $this->walker->getNamedParameterMap();
         $types = $this->walker->getParameterTypes();
-        preg_match_all('/\\$[0-9]+/', $statement->dispatch($this->builder), $matches);
-        $this->assertEquals(37, count($map));
-        $this->assertEquals(37, count($types));
-        $this->assertEquals(37, count($matches[0]));
+        preg_match_all('#\$\d+#', $statement->dispatch($this->builder), $matches);
+        $this->assertCount(37, $map);
+        $this->assertCount(37, $types);
+        $this->assertCount(37, $matches[0]);
 
         $text = new TypeName(new QualifiedName(['text']));
         $text->setBounds([-1]);
@@ -126,8 +134,8 @@ QRY
         );
         $statement->dispatch($this->walker);
 
-        $this->assertEquals(1, count($this->walker->getNamedParameterMap()));
-        $this->assertEquals(1, count($this->walker->getParameterTypes()));
+        $this->assertCount(1, $this->walker->getNamedParameterMap());
+        $this->assertCount(1, $this->walker->getParameterTypes());
         $this->assertEquals(4, substr_count($statement->dispatch($this->builder), '$1'));
     }
 
@@ -163,6 +171,7 @@ QRY
     {
         $statement = $this->parser->parseStatement('update foo set name = $1::text where id = $2');
         $statement->dispatch($this->walker);
+
         $result = $statement->dispatch($this->builder);
         $types  = $this->walker->getParameterTypes();
         $this->assertStringContainsString('$1', $result);

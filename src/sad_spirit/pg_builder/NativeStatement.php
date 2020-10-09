@@ -16,12 +16,16 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_wrapper\Connection;
-use sad_spirit\pg_wrapper\PreparedStatement;
-use sad_spirit\pg_wrapper\ResultSet;
-use sad_spirit\pg_wrapper\exceptions\ServerException;
+use sad_spirit\pg_wrapper\{
+    Connection,
+    PreparedStatement,
+    ResultSet,
+    exceptions\ServerException
+};
 
 /**
  * Wraps the results of query building process, can be serialized and stored in cache
@@ -58,7 +62,7 @@ class NativeStatement
      * @param array $parameterTypes
      * @param array $namedParameterMap
      */
-    public function __construct($sql, array $parameterTypes, array $namedParameterMap)
+    public function __construct(string $sql, array $parameterTypes, array $namedParameterMap)
     {
         $this->sql               = $sql;
         $this->parameterTypes    = $parameterTypes;
@@ -78,7 +82,7 @@ class NativeStatement
      *
      * @return string
      */
-    public function getSql()
+    public function getSql(): string
     {
         return $this->sql;
     }
@@ -88,7 +92,7 @@ class NativeStatement
      *
      * @return array
      */
-    public function getNamedParameterMap()
+    public function getNamedParameterMap(): array
     {
         return $this->namedParameterMap;
     }
@@ -98,7 +102,7 @@ class NativeStatement
      *
      * @return array
      */
-    public function getParameterTypes()
+    public function getParameterTypes(): array
     {
         return $this->parameterTypes;
     }
@@ -110,7 +114,7 @@ class NativeStatement
      * @return array
      * @throws exceptions\InvalidArgumentException
      */
-    public function mapNamedParameters(array $parameters)
+    public function mapNamedParameters(array $parameters): array
     {
         $positional = [];
         foreach ($this->namedParameterMap as $name => $position) {
@@ -136,7 +140,7 @@ class NativeStatement
      * @return array
      * @throws exceptions\InvalidArgumentException
      */
-    public function mergeInputTypes(array $inputTypes)
+    public function mergeInputTypes(array $inputTypes): array
     {
         $types = $this->parameterTypes;
         foreach ($inputTypes as $key => $type) {
@@ -196,7 +200,7 @@ class NativeStatement
      *                               array take precedence over types from parameterTypes
      * @return PreparedStatement
      */
-    public function prepare(Connection $connection, array $types = [])
+    public function prepare(Connection $connection, array $types = []): PreparedStatement
     {
         $this->preparedStatement = $connection->prepare($this->sql, $this->mergeInputTypes($types));
         return $this->preparedStatement;

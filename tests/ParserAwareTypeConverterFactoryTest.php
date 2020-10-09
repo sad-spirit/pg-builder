@@ -16,26 +16,33 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\converters\ParserAwareTypeConverterFactory;
-use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\Parser;
-use sad_spirit\pg_builder\nodes\QualifiedName;
-use sad_spirit\pg_builder\nodes\TypeName;
+use PHPUnit\Framework\TestCase;
+use sad_spirit\pg_builder\{
+    Lexer,
+    Parser,
+    converters\ParserAwareTypeConverterFactory,
+    nodes\QualifiedName,
+    nodes\TypeName
+};
 use sad_spirit\pg_wrapper\Connection;
 use sad_spirit\pg_wrapper\TypeConverter;
-use sad_spirit\pg_wrapper\converters\containers\ArrayConverter;
-use sad_spirit\pg_wrapper\converters\datetime\IntervalConverter;
-use sad_spirit\pg_wrapper\converters\datetime\TimeStampTzConverter;
-use sad_spirit\pg_wrapper\converters\IntegerConverter;
-use sad_spirit\pg_wrapper\converters\NumericConverter;
-use sad_spirit\pg_wrapper\converters\StringConverter;
+use sad_spirit\pg_wrapper\converters\{
+    containers\ArrayConverter,
+    datetime\IntervalConverter,
+    datetime\TimeStampTzConverter,
+    IntegerConverter,
+    NumericConverter,
+    StringConverter
+};
 
 /**
  * Tests functionality added by ParserAwareTypeConverterFactory
  */
-class ParserAwareTypeConverterFactoryTest extends \PHPUnit\Framework\TestCase
+class ParserAwareTypeConverterFactoryTest extends TestCase
 {
     /** @var ParserAwareTypeConverterFactory */
     protected $factory;
@@ -73,7 +80,7 @@ class ParserAwareTypeConverterFactoryTest extends \PHPUnit\Framework\TestCase
      * @param TypeConverter $converter
      * @dataProvider complexTypeNamesProvider
      */
-    public function testParseComplexTypeNames($typeName, TypeConverter $converter)
+    public function testParseComplexTypeNames(string $typeName, TypeConverter $converter)
     {
         $this->assertEquals($converter, $this->factory->getConverterForTypeSpecification($typeName));
     }

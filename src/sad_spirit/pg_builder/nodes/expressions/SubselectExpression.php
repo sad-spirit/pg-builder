@@ -16,13 +16,17 @@
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
+declare(strict_types=1);
+
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\SelectCommon;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    SelectCommon,
+    TreeWalker,
+    exceptions\InvalidArgumentException,
+    nodes\GenericNode,
+    nodes\ScalarExpression
+};
 
 /**
  * AST node representing a subquery appearing in scalar expressions, possibly with a subquery operator applied
