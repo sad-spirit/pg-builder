@@ -21,11 +21,12 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\xml;
 
 use sad_spirit\pg_builder\{
+    TreeWalker,
+    exceptions\InvalidArgumentException,
+    nodes\ExpressionAtom,
     nodes\GenericNode,
     nodes\TypeName,
-    nodes\ScalarExpression,
-    exceptions\InvalidArgumentException,
-    TreeWalker
+    nodes\ScalarExpression
 };
 
 /**
@@ -37,6 +38,8 @@ use sad_spirit\pg_builder\{
  */
 class XmlSerialize extends GenericNode implements ScalarExpression
 {
+    use ExpressionAtom;
+
     public const DOCUMENT = 'document';
     public const CONTENT  = 'content';
 
@@ -65,15 +68,5 @@ class XmlSerialize extends GenericNode implements ScalarExpression
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkXmlSerialize($this);
-    }
-
-    public function getPrecedence(): int
-    {
-        return self::PRECEDENCE_ATOM;
-    }
-
-    public function getAssociativity(): string
-    {
-        return self::ASSOCIATIVE_NONE;
     }
 }

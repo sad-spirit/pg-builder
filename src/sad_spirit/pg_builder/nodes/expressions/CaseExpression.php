@@ -21,9 +21,10 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
-    nodes\ScalarExpression,
+    TreeWalker,
     exceptions\InvalidArgumentException,
-    TreeWalker
+    nodes\ExpressionAtom,
+    nodes\ScalarExpression
 };
 use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 
@@ -35,6 +36,8 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  */
 class CaseExpression extends NonAssociativeList implements ScalarExpression
 {
+    use ExpressionAtom;
+
     protected static function getAllowedElementClasses(): array
     {
         return [WhenExpression::class];
@@ -63,15 +66,5 @@ class CaseExpression extends NonAssociativeList implements ScalarExpression
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkCaseExpression($this);
-    }
-
-    public function getPrecedence(): int
-    {
-        return self::PRECEDENCE_ATOM;
-    }
-
-    public function getAssociativity(): string
-    {
-        return self::ASSOCIATIVE_NONE;
     }
 }

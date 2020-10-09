@@ -20,8 +20,11 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\xml;
 
-use sad_spirit\pg_builder\nodes\lists\TargetList;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\nodes\{
+    ExpressionAtom,
+    ScalarExpression,
+    lists\TargetList
+};
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -29,18 +32,10 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class XmlForest extends TargetList implements ScalarExpression
 {
+    use ExpressionAtom;
+
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkXmlForest($this);
-    }
-
-    public function getPrecedence(): int
-    {
-        return self::PRECEDENCE_ATOM;
-    }
-
-    public function getAssociativity(): string
-    {
-        return self::ASSOCIATIVE_NONE;
     }
 }

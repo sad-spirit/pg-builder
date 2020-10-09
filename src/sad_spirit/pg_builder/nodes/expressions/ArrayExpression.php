@@ -22,6 +22,7 @@ namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
     Node,
+    nodes\ExpressionAtom,
     nodes\ScalarExpression,
     TreeWalker
 };
@@ -32,6 +33,8 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  */
 class ArrayExpression extends NonAssociativeList implements ScalarExpression
 {
+    use ExpressionAtom;
+
     protected static function getAllowedElementClasses(): array
     {
         return [
@@ -51,15 +54,5 @@ class ArrayExpression extends NonAssociativeList implements ScalarExpression
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkArrayExpression($this);
-    }
-
-    public function getPrecedence(): int
-    {
-        return self::PRECEDENCE_ATOM;
-    }
-
-    public function getAssociativity(): string
-    {
-        return self::ASSOCIATIVE_NONE;
     }
 }

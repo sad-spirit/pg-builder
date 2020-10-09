@@ -20,8 +20,11 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\nodes\lists\ExpressionList;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\nodes\{
+    ExpressionAtom,
+    ScalarExpression,
+    lists\ExpressionList
+};
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -29,18 +32,10 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class GroupingExpression extends ExpressionList implements ScalarExpression
 {
+    use ExpressionAtom;
+
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkGroupingExpression($this);
-    }
-
-    public function getPrecedence(): int
-    {
-        return self::PRECEDENCE_ATOM;
-    }
-
-    public function getAssociativity(): string
-    {
-        return self::ASSOCIATIVE_NONE;
     }
 }

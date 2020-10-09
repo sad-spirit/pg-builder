@@ -24,6 +24,7 @@ use sad_spirit\pg_builder\{
     SelectCommon,
     TreeWalker,
     exceptions\InvalidArgumentException,
+    nodes\ExpressionAtom,
     nodes\GenericNode,
     nodes\ScalarExpression
 };
@@ -36,6 +37,8 @@ use sad_spirit\pg_builder\{
  */
 class SubselectExpression extends GenericNode implements ScalarExpression
 {
+    use ExpressionAtom;
+
     public const EXISTS = 'exists';
     public const ANY    = 'any';
     public const ALL    = 'all';
@@ -68,15 +71,5 @@ class SubselectExpression extends GenericNode implements ScalarExpression
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkSubselectExpression($this);
-    }
-
-    public function getPrecedence(): int
-    {
-        return self::PRECEDENCE_ATOM;
-    }
-
-    public function getAssociativity(): string
-    {
-        return self::ASSOCIATIVE_NONE;
     }
 }

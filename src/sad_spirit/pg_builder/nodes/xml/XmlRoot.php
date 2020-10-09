@@ -21,10 +21,11 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\xml;
 
 use sad_spirit\pg_builder\{
-    nodes\GenericNode,
-    nodes\ScalarExpression,
+    TreeWalker,
     exceptions\InvalidArgumentException,
-    TreeWalker
+    nodes\ExpressionAtom,
+    nodes\GenericNode,
+    nodes\ScalarExpression
 };
 
 /**
@@ -36,6 +37,8 @@ use sad_spirit\pg_builder\{
  */
 class XmlRoot extends GenericNode implements ScalarExpression
 {
+    use ExpressionAtom;
+
     public const YES      = 'yes';
     public const NO       = 'no';
     public const NO_VALUE = 'no value';
@@ -69,15 +72,5 @@ class XmlRoot extends GenericNode implements ScalarExpression
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkXmlRoot($this);
-    }
-
-    public function getPrecedence(): int
-    {
-        return self::PRECEDENCE_ATOM;
-    }
-
-    public function getAssociativity(): string
-    {
-        return self::ASSOCIATIVE_NONE;
     }
 }

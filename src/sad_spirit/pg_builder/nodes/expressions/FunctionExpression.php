@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\nodes\{
+    ExpressionAtom,
     FunctionCall,
     ScalarExpression,
     WindowDefinition,
@@ -37,6 +38,8 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class FunctionExpression extends FunctionCall implements ScalarExpression
 {
+    use ExpressionAtom;
+
     public function __construct(
         $funcName,
         $arguments = null,
@@ -56,15 +59,5 @@ class FunctionExpression extends FunctionCall implements ScalarExpression
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkFunctionExpression($this);
-    }
-
-    public function getPrecedence(): int
-    {
-        return self::PRECEDENCE_ATOM;
-    }
-
-    public function getAssociativity(): string
-    {
-        return self::ASSOCIATIVE_NONE;
     }
 }

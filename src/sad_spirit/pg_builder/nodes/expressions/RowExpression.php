@@ -22,10 +22,11 @@ namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
     Node,
+    TreeWalker,
+    Parser,
+    nodes\ExpressionAtom,
     nodes\ScalarExpression,
     nodes\SetToDefault,
-    TreeWalker,
-    Parser
 };
 use sad_spirit\pg_builder\nodes\lists\ExpressionList;
 
@@ -34,6 +35,8 @@ use sad_spirit\pg_builder\nodes\lists\ExpressionList;
  */
 class RowExpression extends ExpressionList implements ScalarExpression
 {
+    use ExpressionAtom;
+
     protected static function getAllowedElementClasses(): array
     {
         return [
@@ -50,15 +53,5 @@ class RowExpression extends ExpressionList implements ScalarExpression
     public static function createFromString(Parser $parser, string $sql): Node
     {
         return $parser->parseRowConstructor($sql);
-    }
-
-    public function getPrecedence(): int
-    {
-        return self::PRECEDENCE_ATOM;
-    }
-
-    public function getAssociativity(): string
-    {
-        return self::ASSOCIATIVE_NONE;
     }
 }

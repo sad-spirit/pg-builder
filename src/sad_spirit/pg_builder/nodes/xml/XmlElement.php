@@ -21,11 +21,12 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\xml;
 
 use sad_spirit\pg_builder\nodes\{
+    ExpressionAtom,
+    ScalarExpression,
     GenericNode,
     Identifier,
     lists\TargetList,
-    lists\ExpressionList,
-    ScalarExpression
+    lists\ExpressionList
 };
 use sad_spirit\pg_builder\TreeWalker;
 
@@ -38,6 +39,8 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class XmlElement extends GenericNode implements ScalarExpression
 {
+    use ExpressionAtom;
+
     public function __construct(Identifier $name, TargetList $attributes = null, ExpressionList $content = null)
     {
         $this->setNamedProperty('name', $name);
@@ -48,15 +51,5 @@ class XmlElement extends GenericNode implements ScalarExpression
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkXmlElement($this);
-    }
-
-    public function getPrecedence(): int
-    {
-        return self::PRECEDENCE_ATOM;
-    }
-
-    public function getAssociativity(): string
-    {
-        return self::ASSOCIATIVE_NONE;
     }
 }
