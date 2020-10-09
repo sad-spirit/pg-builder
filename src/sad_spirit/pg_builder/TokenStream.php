@@ -175,7 +175,7 @@ class TokenStream
      */
     public function matchesSpecialChar($char): bool
     {
-        return $this->tokens[$this->current]->matches(Token::TYPE_SPECIAL_CHAR, $char);
+        return !$this->isAtKeyword && $this->tokens[$this->current]->matches(Token::TYPE_SPECIAL_CHAR, $char);
     }
 
     /**
