@@ -408,6 +408,7 @@ class SetParentNodeTest extends TestCase
             new ColumnReference('foo'),
             new Constant('blah%'),
             'like',
+            false,
             new Constant('!')
         );
 

@@ -29,15 +29,15 @@ use sad_spirit\pg_builder\TreeWalker;
  *
  * @property ScalarExpression $left
  * @property ScalarExpression $right
- * @property bool             $not
+ * @property bool             $negated set to true for IS NOT DISTINCT FROM expressions
  */
 class IsDistinctFromExpression extends GenericNode implements ScalarExpression
 {
-    public function __construct(ScalarExpression $left, ScalarExpression $right, bool $not = false)
+    public function __construct(ScalarExpression $left, ScalarExpression $right, bool $negated = false)
     {
         $this->setLeft($left);
         $this->setRight($right);
-        $this->setNot($not);
+        $this->setNegated($negated);
     }
 
     public function setLeft(ScalarExpression $left): void
@@ -50,9 +50,9 @@ class IsDistinctFromExpression extends GenericNode implements ScalarExpression
         $this->setNamedProperty('right', $right);
     }
 
-    public function setNot(bool $not): void
+    public function setNegated(bool $negated): void
     {
-        $this->setNamedProperty('not', $not);
+        $this->setNamedProperty('negated', $negated);
     }
 
     public function dispatch(TreeWalker $walker)

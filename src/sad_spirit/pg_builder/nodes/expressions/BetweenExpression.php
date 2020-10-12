@@ -30,42 +30,36 @@ use sad_spirit\pg_builder\{
 /**
  * AST node representing [NOT] BETWEEN expression
  *
- * @property      ScalarExpression $argument
- * @property      ScalarExpression $left
- * @property      ScalarExpression $right
- * @property-read string           $operator
+ * @property ScalarExpression $argument
+ * @property ScalarExpression $left
+ * @property ScalarExpression $right
+ * @property string           $operator either of 'between' / 'between symmetric' / 'between asymmetric'
+ * @property bool             $negated  set to true for NOT BETWEEN expressions
  */
 class BetweenExpression extends GenericNode implements ScalarExpression
 {
     public const BETWEEN                = 'between';
     public const BETWEEN_SYMMETRIC      = 'between symmetric';
     public const BETWEEN_ASYMMETRIC     = 'between asymmetric';
-    public const NOT_BETWEEN            = 'not between';
-    public const NOT_BETWEEN_SYMMETRIC  = 'not between symmetric';
-    public const NOT_BETWEEN_ASYMMETRIC = 'not between asymmetric';
 
     private const ALLOWED_OPERATORS = [
         self::BETWEEN                => true,
         self::BETWEEN_SYMMETRIC      => true,
-        self::BETWEEN_ASYMMETRIC     => true,
-        self::NOT_BETWEEN            => true,
-        self::NOT_BETWEEN_SYMMETRIC  => true,
-        self::NOT_BETWEEN_ASYMMETRIC => true
+        self::BETWEEN_ASYMMETRIC     => true
     ];
 
     public function __construct(
         ScalarExpression $argument,
         ScalarExpression $left,
         ScalarExpression $right,
-        string $operator = self::BETWEEN
+        string $operator = self::BETWEEN,
+        bool $negated = false
     ) {
-        if (!isset(self::ALLOWED_OPERATORS[$operator])) {
-            throw new InvalidArgumentException("Unknown operator '{$operator}' for BETWEEN-style expression");
-        }
         $this->setNamedProperty('argument', $argument);
         $this->setNamedProperty('left', $left);
         $this->setNamedProperty('right', $right);
-        $this->props['operator'] = (string)$operator;
+        $this->setOperator($operator);
+        $this->setNegated($negated);
     }
 
     public function setArgument(ScalarExpression $argument): void
@@ -81,6 +75,19 @@ class BetweenExpression extends GenericNode implements ScalarExpression
     public function setRight(ScalarExpression $right): void
     {
         $this->setNamedProperty('right', $right);
+    }
+
+    public function setOperator(string $operator)
+    {
+        if (!isset(self::ALLOWED_OPERATORS[$operator])) {
+            throw new InvalidArgumentException("Unknown operator '{$operator}' for BETWEEN-style expression");
+        }
+        $this->props['operator'] = $operator;
+    }
+
+    public function setNegated(bool $negated)
+    {
+        $this->props['negated'] = $negated;
     }
 
     public function dispatch(TreeWalker $walker)

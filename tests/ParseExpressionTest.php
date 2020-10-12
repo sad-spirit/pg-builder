@@ -222,7 +222,8 @@ QRY
                 new PatternMatchingExpression(
                     new Constant('baz'),
                     new Constant('quux'),
-                    'not ilike',
+                    'ilike',
+                    true,
                     new Constant('!')
                 )
             ),
@@ -284,7 +285,8 @@ QRY
                         new ColumnReference(new Identifier('foofoo')),
                         new Constant('quux'),
                         new Constant('xyzzy'),
-                        'not between symmetric'
+                        'between symmetric',
+                        true
                     )
                 ],
                 'and'
@@ -320,7 +322,7 @@ QRY
                 new InExpression(
                     new ColumnReference(new Identifier('bar')),
                     $select,
-                    'not in'
+                    true
                 )
             ]),
             $list

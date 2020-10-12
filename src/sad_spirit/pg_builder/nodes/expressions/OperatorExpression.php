@@ -37,8 +37,7 @@ use sad_spirit\pg_builder\{
  *  * <left argument> <operator>
  *  * <operator> <right argument>
  *  * <left argument> <operator> <right argument>
- * that do not have their own nodes. "Operators" here are not just MathOp / all_Op / etc.
- * productions from grammar, but constructs like e.g. 'IS DISTINCT FROM' as well.
+ * Operator here is roughly equivalent to qual_all_Op production from grammar
  *
  * @property      ScalarExpression|null    $left
  * @property      ScalarExpression|null    $right

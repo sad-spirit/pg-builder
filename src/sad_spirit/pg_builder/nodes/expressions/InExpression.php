@@ -34,28 +34,17 @@ use sad_spirit\pg_builder\nodes\lists\ExpressionList;
  *
  * Cannot be an OperatorExpression due to specific right operands
  *
- * @property      ScalarExpression            $left
- * @property      SelectCommon|ExpressionList $right
- * @property-read string                      $operator
+ * @property ScalarExpression            $left
+ * @property SelectCommon|ExpressionList $right
+ * @property bool                        $negated set to true for NOT IN expressions
  */
 class InExpression extends GenericNode implements ScalarExpression
 {
-    public const IN     = 'in';
-    public const NOT_IN = 'not in';
-
-    private const ALLOWED_OPERATORS = [
-        self::IN     => true,
-        self::NOT_IN => true
-    ];
-
-    public function __construct(ScalarExpression $left, $right, string $operator = self::IN)
+    public function __construct(ScalarExpression $left, $right, bool $negated = false)
     {
-        if (!isset(self::ALLOWED_OPERATORS[$operator])) {
-            throw new InvalidArgumentException("Unknown operator '{$operator}' for IN-style expression");
-        }
         $this->setRight($right);
         $this->setLeft($left);
-        $this->props['operator'] = $operator;
+        $this->setNegated($negated);
     }
 
     public function setLeft(ScalarExpression $left): void
@@ -73,6 +62,11 @@ class InExpression extends GenericNode implements ScalarExpression
             ));
         }
         $this->setNamedProperty('right', $right);
+    }
+
+    public function setNegated(bool $negated)
+    {
+        $this->props['negated'] = $negated;
     }
 
     public function dispatch(TreeWalker $walker)

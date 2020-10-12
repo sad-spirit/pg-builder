@@ -34,15 +34,15 @@ use sad_spirit\pg_builder\TreeWalker;
  *
  * @property ScalarExpression $left
  * @property TypeList         $right
- * @property bool             $not
+ * @property bool             $negated set to true for IS NOT OF expressions
  */
 class IsOfExpression extends GenericNode implements ScalarExpression
 {
-    public function __construct(ScalarExpression $left, TypeList $right, bool $not = false)
+    public function __construct(ScalarExpression $left, TypeList $right, bool $negated = false)
     {
         $this->setNamedProperty('left', $left);
         $this->setNamedProperty('right', $right);
-        $this->setNot($not);
+        $this->setNegated($negated);
     }
 
     public function setLeft(ScalarExpression $left): void
@@ -50,9 +50,9 @@ class IsOfExpression extends GenericNode implements ScalarExpression
         $this->setNamedProperty('left', $left);
     }
 
-    public function setNot(bool $not): void
+    public function setNegated(bool $negated): void
     {
-        $this->setNamedProperty('not', $not);
+        $this->setNamedProperty('negated', $negated);
     }
 
     public function dispatch(TreeWalker $walker)

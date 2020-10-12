@@ -34,7 +34,7 @@ use sad_spirit\pg_builder\{
  *
  * @property ScalarExpression $argument
  * @property string           $what
- * @property bool             $not
+ * @property bool             $negated set to true for IS NOT expressions
  */
 class IsExpression extends GenericNode implements ScalarExpression
 {
@@ -62,11 +62,11 @@ class IsExpression extends GenericNode implements ScalarExpression
         self::NFKD_NORMALIZED => true
     ];
     
-    public function __construct(ScalarExpression $argument, string $what, bool $not = false)
+    public function __construct(ScalarExpression $argument, string $what, bool $negated = false)
     {
         $this->setArgument($argument);
         $this->setWhat($what);
-        $this->setNot($not);
+        $this->setNegated($negated);
     }
 
     public function setArgument(ScalarExpression $argument)
@@ -82,9 +82,9 @@ class IsExpression extends GenericNode implements ScalarExpression
         $this->setNamedProperty('what', $what);
     }
     
-    public function setNot(bool $not)
+    public function setNegated(bool $negated)
     {
-        $this->setNamedProperty('not', $not);
+        $this->setNamedProperty('negated', $negated);
     }
 
     public function dispatch(TreeWalker $walker)

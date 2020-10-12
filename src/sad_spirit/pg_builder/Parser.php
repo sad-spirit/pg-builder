@@ -255,18 +255,6 @@ class Parser
     ];
 
     /**
-     * Keyword sequence checks for {@link BetweenExpression()} method
-     */
-    private const CHECKS_BETWEEN = [
-        ['between', 'symmetric'],
-        ['between', 'asymmetric'],
-        ['not', 'between', 'symmetric'],
-        ['not', 'between', 'asymmetric'],
-        ['between'],
-        ['not', 'between']
-    ];
-
-    /**
      * Keyword sequence checks for {@link IsWhateverExpression()} method
      */
     private const CHECKS_IS_WHATEVER = [
@@ -1534,10 +1522,18 @@ class Parser
                     }
                 }
 
+                if ('not' !== $check[0]) {
+                    $negated = false;
+                } else {
+                    array_shift($check);
+                    $negated = true;
+                }
+
                 return new nodes\expressions\PatternMatchingExpression(
                     $string,
                     $pattern,
                     implode(' ', $check),
+                    $negated,
                     $escape
                 );
             }
@@ -1609,21 +1605,30 @@ class Parser
     {
         $value = $this->InExpression();
 
-        if ($this->stream->matchesKeyword(['between', 'not'])) { // speedup
-            foreach (self::CHECKS_BETWEEN as $check) {
-                if ($this->stream->matchesKeywordSequence(...$check)) {
-                    $this->stream->skip(count($check));
-                    $left  = $this->GenericOperatorExpression(true);
-                    $this->stream->expect(Token::TYPE_KEYWORD, 'and');
-                    // right argument of BETWEEN is defined as 'b_expr' in pre-9.5 grammar and as 'a_expr' afterwards
-                    $right = $this->GenericOperatorExpression(false);
-                    $value = new nodes\expressions\BetweenExpression($value, $left, $right, implode(' ', $check));
-                    break;
-                }
-            }
+        if (!$this->stream->matchesKeyword(['between', 'not'])) {
+            return $value;
         }
 
-        return $value;
+        if ('between' === ($this->stream->getCurrent()->getValue())) {
+            $negated = false;
+            $this->stream->next();
+        } elseif (!$this->stream->look(1)->matches(Token::TYPE_KEYWORD, 'between')) {
+            return $value;
+        } else {
+            $negated = true;
+            $this->stream->skip(2);
+        }
+        $operator = 'between';
+        if ($this->stream->matchesKeyword(['symmetric', 'asymmetric'])) {
+            $operator .= ' ' . $this->stream->next()->getValue();
+        }
+
+        $left  = $this->GenericOperatorExpression(true);
+        $this->stream->expect(Token::TYPE_KEYWORD, 'and');
+        // right argument of BETWEEN is defined as 'b_expr' in pre-9.5 grammar and as 'a_expr' afterwards
+        $right = $this->GenericOperatorExpression(false);
+
+        return new nodes\expressions\BetweenExpression($value, $left, $right, $operator, $negated);
     }
 
     protected function RestrictedExpression(): nodes\ScalarExpression
@@ -1646,14 +1651,15 @@ class Parser
     {
         $left = $this->GenericOperatorExpression();
 
-        while (
-            $this->stream->matchesKeyword('in')
-               || $this->stream->matchesKeyword('not')
-                  && $this->stream->look(1)->matches(Token::TYPE_KEYWORD, 'in')
-        ) {
-            $operator = $this->stream->next()->getValue();
-            if ('not' === $operator) {
-                $operator .= ' ' . $this->stream->next()->getValue();
+        while ($this->stream->matchesKeyword(['not', 'in'])) {
+            if ('in' === $this->stream->getCurrent()->getValue()) {
+                $negated = false;
+                $this->stream->next();
+            } elseif (!$this->stream->look(1)->matches(Token::TYPE_KEYWORD, 'in')) {
+                break;
+            } else {
+                $negated = true;
+                $this->stream->skip(2);
             }
 
             $check = $this->checkContentsOfParentheses();
@@ -1661,7 +1667,7 @@ class Parser
             $right = self::PARENTHESES_SELECT === $check ? $this->SelectStatement() : $this->ExpressionList();
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
-            $left = new nodes\expressions\InExpression($left, $right, $operator);
+            $left = new nodes\expressions\InExpression($left, $right, $negated);
         }
 
         return $left;

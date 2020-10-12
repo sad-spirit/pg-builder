@@ -737,7 +737,7 @@ class SqlBuilderWalker implements TreeWalker
     public function walkBetweenExpression(nodes\expressions\BetweenExpression $expression): string
     {
         return $this->optionalParentheses($expression->argument, $expression, false)
-               . ' ' . $expression->operator . ' '
+               . ($expression->negated ? 'not ' : ' ') . $expression->operator . ' '
                . $this->optionalParentheses($expression->left, $expression, true)
                . ' and '
                . $this->optionalParentheses($expression->right, $expression, true);
@@ -808,26 +808,26 @@ class SqlBuilderWalker implements TreeWalker
         }
 
         return $this->optionalParentheses($expression->left, $expression, false)
-               . ' ' . $expression->operator . ' ' . $right;
+               . ($expression->negated ? ' not in ' : ' in ') . $right;
     }
 
     public function walkIsDistinctFromExpression(nodes\expressions\IsDistinctFromExpression $expression): string
     {
         return $this->optionalParentheses($expression->left, $expression, false)
-               . ' is ' . ($expression->not ? 'not ' : '') . 'distinct from '
+               . ' is ' . ($expression->negated ? 'not ' : '') . 'distinct from '
                . $this->optionalParentheses($expression->right, $expression, true);
     }
 
     public function walkIsExpression(nodes\expressions\IsExpression $expression): string
     {
         return $this->optionalParentheses($expression->argument, $expression, false)
-               . ' is ' . ($expression->not ? 'not ' : '') . $expression->what;
+               . ' is ' . ($expression->negated ? 'not ' : '') . $expression->what;
     }
 
     public function walkIsOfExpression(nodes\expressions\IsOfExpression $expression)
     {
         return $this->optionalParentheses($expression->left, $expression, false)
-               . ' is ' . ($expression->not ? 'not ' : '') . 'of ('
+               . ' is ' . ($expression->negated ? 'not ' : '') . 'of ('
                . implode(', ', $expression->right->dispatch($this)) . ')';
     }
 
@@ -895,7 +895,7 @@ class SqlBuilderWalker implements TreeWalker
     public function walkPatternMatchingExpression(nodes\expressions\PatternMatchingExpression $expression): string
     {
         return $this->optionalParentheses($expression->argument, $expression, false)
-               . ' ' . $expression->operator . ' '
+               . ($expression->negated ? ' not ' : ' ') . $expression->operator . ' '
                . $this->optionalParentheses($expression->pattern, $expression, true)
                . (
                     null !== $expression->escape

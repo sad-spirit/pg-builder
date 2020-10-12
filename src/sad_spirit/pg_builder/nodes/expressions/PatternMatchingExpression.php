@@ -36,30 +36,26 @@ use sad_spirit\pg_builder\{
  * @property      ScalarExpression      $argument
  * @property      ScalarExpression      $pattern
  * @property      ScalarExpression|null $escape
- * @property-read string                $operator
+ * @property-read string                $operator either of 'like' / 'ilike' / 'similar to'
+ * @property      bool                  $negated  set to true for NOT LIKE and other negated expressions
  */
 class PatternMatchingExpression extends GenericNode implements ScalarExpression
 {
-    public const LIKE           = 'like';
-    public const NOT_LIKE       = 'not like';
-    public const ILIKE          = 'ilike';
-    public const NOT_ILIKE      = 'not ilike';
-    public const SIMILAR_TO     = 'similar to';
-    public const NOT_SIMILAR_TO = 'not similar to';
-    
+    public const LIKE       = 'like';
+    public const ILIKE      = 'ilike';
+    public const SIMILAR_TO = 'similar to';
+
     private const ALLOWED_OPERATORS = [
         self::LIKE           => true,
-        self::NOT_LIKE       => true,
         self::ILIKE          => true,
-        self::NOT_ILIKE      => true,
-        self::SIMILAR_TO     => true,
-        self::NOT_SIMILAR_TO => true
+        self::SIMILAR_TO     => true
     ];
 
     public function __construct(
         ScalarExpression $argument,
         ScalarExpression $pattern,
         string $operator = self::LIKE,
+        bool $negated = false,
         ScalarExpression $escape = null
     ) {
         if (!isset(self::ALLOWED_OPERATORS[$operator])) {
@@ -69,6 +65,7 @@ class PatternMatchingExpression extends GenericNode implements ScalarExpression
         $this->setNamedProperty('pattern', $pattern);
         $this->setNamedProperty('escape', $escape);
         $this->props['operator'] = $operator;
+        $this->setNegated($negated);
     }
 
     public function setArgument(ScalarExpression $argument): void
@@ -84,6 +81,11 @@ class PatternMatchingExpression extends GenericNode implements ScalarExpression
     public function setEscape(ScalarExpression $escape = null): void
     {
         $this->setNamedProperty('escape', $escape);
+    }
+
+    public function setNegated(bool $negated): void
+    {
+        $this->props['negated'] = $negated;
     }
 
     public function dispatch(TreeWalker $walker)
