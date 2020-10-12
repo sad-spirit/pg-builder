@@ -39,18 +39,18 @@ class WhereOrHavingClauseTest extends TestCase
 {
     public function testAddConditionsWithAnd()
     {
-        $where = new WhereOrHavingClause(new ColumnReference(['foo']));
-        $where->and(new ColumnReference(['bar']))
+        $where = new WhereOrHavingClause(new ColumnReference('foo'));
+        $where->and(new ColumnReference('bar'))
             ->and(new LogicalExpression([
-                new ColumnReference(['baz']),
-                new ColumnReference(['quux'])
+                new ColumnReference('baz'),
+                new ColumnReference('quux')
             ], 'and'));
         $this->assertEquals(
             new LogicalExpression([
-                new ColumnReference(['foo']),
-                new ColumnReference(['bar']),
-                new ColumnReference(['baz']),
-                new ColumnReference(['quux'])
+                new ColumnReference('foo'),
+                new ColumnReference('bar'),
+                new ColumnReference('baz'),
+                new ColumnReference('quux')
             ], 'and'),
             clone $where->condition
         );
@@ -58,18 +58,18 @@ class WhereOrHavingClauseTest extends TestCase
 
     public function testAddConditionsWithOr()
     {
-        $where = new WhereOrHavingClause(new ColumnReference(['foo']));
-        $where->or(new ColumnReference(['bar']))
+        $where = new WhereOrHavingClause(new ColumnReference('foo'));
+        $where->or(new ColumnReference('bar'))
             ->or(new LogicalExpression([
-                new ColumnReference(['baz']),
-                new ColumnReference(['quux'])
+                new ColumnReference('baz'),
+                new ColumnReference('quux')
             ], 'or'));
         $this->assertEquals(
             new LogicalExpression([
-                new ColumnReference(['foo']),
-                new ColumnReference(['bar']),
-                new ColumnReference(['baz']),
-                new ColumnReference(['quux'])
+                new ColumnReference('foo'),
+                new ColumnReference('bar'),
+                new ColumnReference('baz'),
+                new ColumnReference('quux')
             ], 'or'),
             clone $where->condition
         );
@@ -77,21 +77,21 @@ class WhereOrHavingClauseTest extends TestCase
 
     public function testAddConditionsWithAndAndOr()
     {
-        $where = new WhereOrHavingClause(new ColumnReference(['foo']));
-        $where->and(new ColumnReference(['bar']))
-            ->or(new ColumnReference(['baz']));
+        $where = new WhereOrHavingClause(new ColumnReference('foo'));
+        $where->and(new ColumnReference('bar'))
+            ->or(new ColumnReference('baz'));
 
         $this->assertEquals(
             new LogicalExpression(
                 [
                     new LogicalExpression(
                         [
-                            new ColumnReference(['foo']),
-                            new ColumnReference(['bar'])
+                            new ColumnReference('foo'),
+                            new ColumnReference('bar')
                         ],
                         'and'
                     ),
-                    new ColumnReference(['baz'])
+                    new ColumnReference('baz')
                 ],
                 'or'
             ),
@@ -101,20 +101,20 @@ class WhereOrHavingClauseTest extends TestCase
 
     public function testAddNestedConditions()
     {
-        $where = new WhereOrHavingClause(new ColumnReference(['foo']));
+        $where = new WhereOrHavingClause(new ColumnReference('foo'));
         $where->and(
-            $where->nested(new ColumnReference(['bar']))
-                ->or(new ColumnReference(['baz']))
+            $where->nested(new ColumnReference('bar'))
+                ->or(new ColumnReference('baz'))
         );
 
         $this->assertEquals(
             new LogicalExpression(
                 [
-                    new ColumnReference(['foo']),
+                    new ColumnReference('foo'),
                     new LogicalExpression(
                         [
-                            new ColumnReference(['bar']),
-                            new ColumnReference(['baz'])
+                            new ColumnReference('bar'),
+                            new ColumnReference('baz')
                         ],
                         'or'
                     )
@@ -146,22 +146,22 @@ class WhereOrHavingClauseTest extends TestCase
     {
         $where = new WhereOrHavingClause();
         $where->and(
-            $where->nested(new ColumnReference(['foo']))
-                ->or(new ColumnReference(['bar']))
+            $where->nested(new ColumnReference('foo'))
+                ->or(new ColumnReference('bar'))
         );
-        $where->and(new ColumnReference(['baz']));
+        $where->and(new ColumnReference('baz'));
 
         $this->assertEquals(
             new LogicalExpression(
                 [
                     new LogicalExpression(
                         [
-                            new ColumnReference(['foo']),
-                            new ColumnReference(['bar'])
+                            new ColumnReference('foo'),
+                            new ColumnReference('bar')
                         ],
                         'or'
                     ),
-                    new ColumnReference(['baz'])
+                    new ColumnReference('baz')
                 ],
                 'and'
             ),
@@ -172,11 +172,11 @@ class WhereOrHavingClauseTest extends TestCase
     public function testExplicitOrExpressionsShouldBeAutoNestedInAnd()
     {
         $where = new WhereOrHavingClause();
-        $where->and(new ColumnReference(['foo']));
+        $where->and(new ColumnReference('foo'));
         $where->and(new LogicalExpression(
             [
-                new ColumnReference(['bar']),
-                new ColumnReference(['baz']),
+                new ColumnReference('bar'),
+                new ColumnReference('baz'),
             ],
             'or'
         ));
@@ -184,11 +184,11 @@ class WhereOrHavingClauseTest extends TestCase
         $this->assertEquals(
             new LogicalExpression(
                 [
-                    new ColumnReference(['foo']),
+                    new ColumnReference('foo'),
                     new LogicalExpression(
                         [
-                            new ColumnReference(['bar']),
-                            new ColumnReference(['baz']),
+                            new ColumnReference('bar'),
+                            new ColumnReference('baz'),
                         ],
                         'or'
                     )
@@ -201,24 +201,24 @@ class WhereOrHavingClauseTest extends TestCase
         $where = new WhereOrHavingClause();
         $where->and(new LogicalExpression(
             [
-                new ColumnReference(['bar']),
-                new ColumnReference(['baz']),
+                new ColumnReference('bar'),
+                new ColumnReference('baz'),
             ],
             'or'
         ));
-        $where->and(new ColumnReference(['foo']));
+        $where->and(new ColumnReference('foo'));
 
         $this->assertEquals(
             new LogicalExpression(
                 [
                     new LogicalExpression(
                         [
-                            new ColumnReference(['bar']),
-                            new ColumnReference(['baz']),
+                            new ColumnReference('bar'),
+                            new ColumnReference('baz'),
                         ],
                         'or'
                     ),
-                    new ColumnReference(['foo'])
+                    new ColumnReference('foo')
                 ],
                 'and'
             ),

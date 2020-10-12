@@ -141,9 +141,9 @@ class ParserAwareTypeConverterFactory extends DefaultTypeConverterFactory
         } else {
             [$schemaName, $typeName] = $this->findTypeNameForOID($oid, __METHOD__);
             if ('pg_catalog' !== $schemaName) {
-                return new TypeName(new QualifiedName([$schemaName, $typeName]));
+                return new TypeName(new QualifiedName($schemaName, $typeName));
             } else {
-                return new TypeName(new QualifiedName([$typeName]));
+                return new TypeName(new QualifiedName($typeName));
             }
         }
     }

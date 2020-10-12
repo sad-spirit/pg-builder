@@ -57,7 +57,7 @@ class SqlBuilderWalker implements TreeWalker
 
         $this->dummyTypecast = new nodes\expressions\TypecastExpression(
             new nodes\Constant('dummy'),
-            new nodes\TypeName(new nodes\QualifiedName(['dummy']))
+            new nodes\TypeName(new nodes\QualifiedName('dummy'))
         );
     }
 

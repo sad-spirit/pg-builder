@@ -80,7 +80,7 @@ abstract class FromElement extends GenericNode
         } else {
             // $dummy is required here: if we pass $this to JoinExpression's constructor, then by the time
             // control reaches replaceChild() $this will not be a child of parentNode anymore.
-            $dummy = new RelationReference(new QualifiedName(['dummy']));
+            $dummy = new RelationReference(new QualifiedName('dummy'));
             /** @var JoinExpression $join */
             $join  = $this->getParentNode()->replaceChild(
                 $this,

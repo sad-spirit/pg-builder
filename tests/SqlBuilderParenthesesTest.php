@@ -106,11 +106,11 @@ class SqlBuilderParenthesesTest extends TestCase
             [
                 new OperatorExpression(
                     '=',
-                    new ColumnReference([new Identifier('foo')]),
+                    new ColumnReference(new Identifier('foo')),
                     new OperatorExpression(
                         '=',
-                        new ColumnReference([new Identifier('bar')]),
-                        new ColumnReference([new Identifier('baz')])
+                        new ColumnReference(new Identifier('bar')),
+                        new ColumnReference(new Identifier('baz'))
                     )
                 ),
                 'foo = (bar = baz)'
@@ -120,10 +120,10 @@ class SqlBuilderParenthesesTest extends TestCase
                     '<=',
                     new OperatorExpression(
                         '>=',
-                        new ColumnReference([new Identifier('a')]),
-                        new ColumnReference([new Identifier('b')])
+                        new ColumnReference(new Identifier('a')),
+                        new ColumnReference(new Identifier('b'))
                     ),
-                    new ColumnReference([new Identifier('c')])
+                    new ColumnReference(new Identifier('c'))
                 ),
                 '(a >= b) <= c',
             ],
@@ -160,13 +160,13 @@ class SqlBuilderParenthesesTest extends TestCase
                 new IsDistinctFromExpression(
                     new OperatorExpression(
                         '@#!',
-                        new ColumnReference([new Identifier('foo')]),
-                        new ColumnReference([new Identifier('bar')])
+                        new ColumnReference(new Identifier('foo')),
+                        new ColumnReference(new Identifier('bar'))
                     ),
                     new OperatorExpression(
                         '+',
-                        new ColumnReference([new Identifier('baz')]),
-                        new ColumnReference([new Identifier('quux')])
+                        new ColumnReference(new Identifier('baz')),
+                        new ColumnReference(new Identifier('quux'))
                     ),
                     true
                 ),
@@ -186,7 +186,7 @@ class SqlBuilderParenthesesTest extends TestCase
             [
                 new IsExpression(
                     new BetweenExpression(
-                        new ColumnReference([new Identifier('foo')]),
+                        new ColumnReference(new Identifier('foo')),
                         new Constant(false),
                         new Constant(true)
                     ),
@@ -206,12 +206,12 @@ class SqlBuilderParenthesesTest extends TestCase
                     '<=',
                     new OperatorExpression(
                         '->>',
-                        new ColumnReference([new Identifier('j')]),
+                        new ColumnReference(new Identifier('j')),
                         new Constant('space')
                     ),
                     new OperatorExpression(
                         '->>',
-                        new ColumnReference([new Identifier('j')]),
+                        new ColumnReference(new Identifier('j')),
                         new Constant('node')
                     )
                 ),

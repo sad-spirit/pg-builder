@@ -62,7 +62,7 @@ class ParserAwareTypeConverterFactoryTest extends TestCase
         $connection->setTypeConverterFactory($this->factory);
 
         $this->assertEquals(
-            new TypeName(new QualifiedName(['int4'])),
+            new TypeName(new QualifiedName('int4')),
             $this->factory->createTypeNameNodeForOid(23)
         );
     }
@@ -71,7 +71,7 @@ class ParserAwareTypeConverterFactoryTest extends TestCase
     {
         $this->assertEquals(
             new IntegerConverter(),
-            $this->factory->getConverterForTypeSpecification(new TypeName(new QualifiedName(['int4'])))
+            $this->factory->getConverterForTypeSpecification(new TypeName(new QualifiedName('int4')))
         );
     }
 

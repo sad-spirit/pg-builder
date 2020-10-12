@@ -40,7 +40,7 @@ class ColumnReference extends GenericNode implements ScalarExpression
     use ExpressionAtom;
 
     /** @noinspection PhpMissingBreakStatementInspection */
-    public function __construct(array $parts)
+    public function __construct(...$parts)
     {
         $this->props = [
             'catalog'  => null,
@@ -49,35 +49,18 @@ class ColumnReference extends GenericNode implements ScalarExpression
             'column'   => null
         ];
 
-        $starIdx = null;
-        foreach ($parts as $idx => &$part) {
-            if (is_string($part)) {
-                $part = '*' === $part ? new Star() : new Identifier($part);
-            } elseif (!($part instanceof Identifier) && !($part instanceof Star)) {
-                throw new InvalidArgumentException(sprintf(
-                    '%s expects an array containing strings, Identifiers or Stars, %s given at index %s',
-                    __CLASS__,
-                    is_object($part) ? 'object(' . get_class($part) . ')' : gettype($part),
-                    $idx
-                ));
-            }
-            if (null === $starIdx && $part instanceof Star) {
-                $starIdx = $idx;
-            }
-        }
-        if (null !== $starIdx && $starIdx < count($parts) - 1) {
-            throw new SyntaxException("Improper use of '*' in " . implode('.', $parts));
-        }
-
         switch (count($parts)) {
             case 4:
-                $this->setNamedProperty('catalog', array_shift($parts)); // fall-through is intentional
+                $this->setNamedProperty('catalog', $this->expectIdentifier(array_shift($parts), 'catalog'));
+                // fall-through is intentional
             case 3:
-                $this->setNamedProperty('schema', array_shift($parts)); // fall-through is intentional
+                $this->setNamedProperty('schema', $this->expectIdentifier(array_shift($parts), 'schema'));
+                // fall-through is intentional
             case 2:
-                $this->setNamedProperty('relation', array_shift($parts)); // fall-through is intentional
+                $this->setNamedProperty('relation', $this->expectIdentifier(array_shift($parts), 'relation'));
+                // fall-through is intentional
             case 1:
-                $this->setNamedProperty('column', array_shift($parts));
+                $this->setNamedProperty('column', $this->expectIdentifierOrStar(array_shift($parts)));
                 break;
 
             case 0:
@@ -87,6 +70,47 @@ class ColumnReference extends GenericNode implements ScalarExpression
 
             default:
                 throw new SyntaxException("Too many dots in column reference: " . implode('.', $parts));
+        }
+    }
+
+    /**
+     * Tries to convert last part of column reference to Identifier or Star
+     *
+     * @param mixed $namePart
+     * @return Identifier|Star
+     */
+    private function expectIdentifierOrStar($namePart)
+    {
+        if ($namePart instanceof Star) {
+            return $namePart;
+        } elseif ('*' === (string)$namePart) {
+            return new Star();
+        } else {
+            return $this->expectIdentifier($namePart, 'column');
+        }
+    }
+
+    /**
+     * Tries to convert part of column reference to Identifier
+     *
+     * @param mixed $namePart
+     * @param string $index
+     * @return Identifier
+     */
+    private function expectIdentifier($namePart, string $index): Identifier
+    {
+        if ($namePart instanceof Identifier) {
+            return $namePart;
+        }
+        try {
+            return new Identifier($namePart);
+        } catch (InvalidArgumentException $e) {
+            throw new InvalidArgumentException(sprintf(
+                "%s: %s part of column reference could not be converter to Identifier; %s",
+                __CLASS__,
+                $index,
+                $e->getMessage()
+            ));
         }
     }
 

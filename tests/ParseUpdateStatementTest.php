@@ -84,7 +84,7 @@ class ParseUpdateStatementTest extends TestCase
 QRY
         );
         $update = new Update(
-            new UpdateOrDeleteTarget(new QualifiedName(['foo']), new Identifier('bar')),
+            new UpdateOrDeleteTarget(new QualifiedName('foo'), new Identifier('bar')),
             new SetClauseList([
                 new SingleSetClause(
                     new SetTargetElement(new Identifier('blah'), [new Identifier('one')]),
@@ -111,9 +111,9 @@ QRY
                         new SetTargetElement(new Identifier('c')),
                     ]),
                     new SubselectExpression($select = new Select(new TargetList([
-                            new TargetElement(new ColumnReference(['aa'])),
-                            new TargetElement(new ColumnReference(['bb'])),
-                            new TargetElement(new ColumnReference(['cc']))
+                            new TargetElement(new ColumnReference('aa')),
+                            new TargetElement(new ColumnReference('bb')),
+                            new TargetElement(new ColumnReference('cc'))
                     ])))
                 ),
                 new MultipleSetClause(
@@ -122,12 +122,12 @@ QRY
                         new SetTargetElement(new Identifier('e')),
                     ]),
                     new RowExpression([
-                        new ColumnReference(['v', '*'])
+                        new ColumnReference('v', '*')
                     ])
                 )
             ])
         );
-        $select->from[] = new RelationReference(new QualifiedName(['somewhere']));
+        $select->from[] = new RelationReference(new QualifiedName('somewhere'));
 
         $this->assertEquals($update, $parsed);
     }
@@ -139,7 +139,7 @@ QRY
 QRY
         );
         $update = new Update(
-            new UpdateOrDeleteTarget(new QualifiedName(['foo'])),
+            new UpdateOrDeleteTarget(new QualifiedName('foo')),
             new SetClauseList([
                 new SingleSetClause(
                     new SetTargetElement(new Identifier('set')),
@@ -166,29 +166,29 @@ QRY
         );
 
         $built = new Update(
-            new UpdateOrDeleteTarget(new QualifiedName(['bar'])),
+            new UpdateOrDeleteTarget(new QualifiedName('bar')),
             new SetClauseList([
                 new SingleSetClause(
                     new SetTargetElement(new Identifier('blah')),
-                    new ColumnReference(['foo', 'blah'])
+                    new ColumnReference('foo', 'blah')
                 )
             ])
         );
         $built->from->replace([
-            new RelationReference(new QualifiedName(['foo']))
+            new RelationReference(new QualifiedName('foo'))
         ]);
         $built->where->condition = new OperatorExpression(
             '=',
-            new ColumnReference(['foo', 'id']),
-            new ColumnReference(['bar', 'foo_id'])
+            new ColumnReference('foo', 'id'),
+            new ColumnReference('bar', 'foo_id')
         );
         $built->returning->replace([new Star()]);
 
         $cte = new Select(new TargetList([
-            new TargetElement(new ColumnReference(['somefoo']))
+            new TargetElement(new ColumnReference('somefoo'))
         ]));
         $cte->from->replace([
-            new RelationReference(new QualifiedName(['basefoo']))
+            new RelationReference(new QualifiedName('basefoo'))
         ]);
 
         $built->with = new WithClause([

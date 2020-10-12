@@ -1932,7 +1932,7 @@ class Parser
                 }
                 $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
             }
-            return new nodes\TypeName(new nodes\QualifiedName(['pg_catalog', $floatName]));
+            return new nodes\TypeName(new nodes\QualifiedName('pg_catalog', $floatName));
 
         } elseif ('decimal' === $typeName || 'dec' === $typeName || 'numeric' === $typeName) {
             // NB: we explicitly require constants here, per comment in gram.y:
@@ -1953,7 +1953,7 @@ class Parser
         }
 
         return new nodes\TypeName(
-            new nodes\QualifiedName(['pg_catalog', self::STANDARD_TYPES_MAPPING[$typeName]]),
+            new nodes\QualifiedName('pg_catalog', self::STANDARD_TYPES_MAPPING[$typeName]),
             $modifiers
         );
     }
@@ -1983,7 +1983,7 @@ class Parser
             $modifiers = new nodes\lists\TypeModifierList([new nodes\Constant(1)]);
         }
         return new nodes\TypeName(
-            new nodes\QualifiedName(['pg_catalog', $typeName]),
+            new nodes\QualifiedName('pg_catalog', $typeName),
             $modifiers
         );
     }
@@ -2022,7 +2022,7 @@ class Parser
         }
 
         return new nodes\TypeName(
-            new nodes\QualifiedName(['pg_catalog', $varying ? 'varchar' : 'bpchar']),
+            new nodes\QualifiedName('pg_catalog', $varying ? 'varchar' : 'bpchar'),
             $modifiers
         );
     }
@@ -2050,7 +2050,7 @@ class Parser
             $this->stream->skip(2);
         }
 
-        return new nodes\TypeName(new nodes\QualifiedName(['pg_catalog', $typeName]), $modifiers);
+        return new nodes\TypeName(new nodes\QualifiedName('pg_catalog', $typeName), $modifiers);
     }
 
     /**
@@ -2155,7 +2155,7 @@ class Parser
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
         }
 
-        return new nodes\TypeName(new nodes\QualifiedName($typeName), $modifiers);
+        return new nodes\TypeName(new nodes\QualifiedName(...$typeName), $modifiers);
     }
 
     /**
@@ -2596,16 +2596,16 @@ class Parser
             // needed for rules, default values and such. we don't do these
             return new nodes\expressions\TypecastExpression(
                 new nodes\Constant('now'),
-                new nodes\TypeName(new nodes\QualifiedName(['pg_catalog', 'date']))
+                new nodes\TypeName(new nodes\QualifiedName('pg_catalog', 'date'))
             );
 
         } elseif (isset(self::SYSTEM_FUNCTIONS_MAPPING[$funcName])) {
             return new nodes\FunctionCall(
-                new nodes\QualifiedName(['pg_catalog', self::SYSTEM_FUNCTIONS_MAPPING[$funcName]])
+                new nodes\QualifiedName('pg_catalog', self::SYSTEM_FUNCTIONS_MAPPING[$funcName])
             );
 
         } else {
-            return new nodes\FunctionCall(new nodes\QualifiedName(['pg_catalog', $funcName]));
+            return new nodes\FunctionCall(new nodes\QualifiedName('pg_catalog', $funcName));
         }
     }
 
@@ -2626,7 +2626,7 @@ class Parser
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
         }
         $typeName = new nodes\TypeName(
-            new nodes\QualifiedName(['pg_catalog', self::SYSTEM_FUNCTIONS_MAPPING[$funcName]]),
+            new nodes\QualifiedName('pg_catalog', self::SYSTEM_FUNCTIONS_MAPPING[$funcName]),
             $modifiers
         );
         return new nodes\expressions\TypecastExpression(new nodes\Constant('now'), $typeName);
@@ -2776,7 +2776,7 @@ class Parser
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
         if (empty($funcNode)) {
             $funcNode = new nodes\FunctionCall(
-                new nodes\QualifiedName(['pg_catalog', $funcName]),
+                new nodes\QualifiedName('pg_catalog', $funcName),
                 new nodes\lists\FunctionArgumentList($arguments)
             );
         }
@@ -3028,7 +3028,7 @@ class Parser
             $argument = $this->Expression();
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
             $funcNode = new nodes\FunctionCall(
-                new nodes\QualifiedName(['pg_catalog', 'pg_collation_for']),
+                new nodes\QualifiedName('pg_catalog', 'pg_collation_for'),
                 new nodes\lists\FunctionArgumentList([$argument])
             );
         }
@@ -3042,7 +3042,7 @@ class Parser
         $variadic = $distinct = false;
         $orderBy  = null;
 
-        $funcName = empty($identifiers) ? $this->GenericFunctionName() : new nodes\QualifiedName($identifiers);
+        $funcName = empty($identifiers) ? $this->GenericFunctionName() : new nodes\QualifiedName(...$identifiers);
 
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
         if ($this->stream->matchesSpecialChar('*')) {
@@ -3131,7 +3131,7 @@ class Parser
             );
         }
 
-        return new nodes\QualifiedName($funcName);
+        return new nodes\QualifiedName(...$funcName);
     }
 
     protected function GenericFunctionArgument(): array
@@ -3169,10 +3169,10 @@ class Parser
             $parts[] = array_shift($indirection);
         }
         if (!empty($indirection)) {
-            return new nodes\Indirection($indirection, new nodes\ColumnReference($parts));
+            return new nodes\Indirection($indirection, new nodes\ColumnReference(...$parts));
         }
 
-        return new nodes\ColumnReference($parts);
+        return new nodes\ColumnReference(...$parts);
     }
 
     protected function Indirection(bool $allowStar = true): array
@@ -3638,7 +3638,7 @@ class Parser
             }
         }
 
-        return new nodes\QualifiedName($parts);
+        return new nodes\QualifiedName(...$parts);
     }
 
     protected function OrderByList(): nodes\lists\OrderByList

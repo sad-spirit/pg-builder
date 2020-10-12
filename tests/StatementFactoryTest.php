@@ -100,7 +100,7 @@ class StatementFactoryTest extends TestCase
 
         $delete   = $factory->delete('only foo as bar');
         $relation = new UpdateOrDeleteTarget(
-            new QualifiedName(['foo']),
+            new QualifiedName('foo'),
             new Identifier('bar'),
             false
         );
@@ -117,7 +117,7 @@ class StatementFactoryTest extends TestCase
 
         $insert   = $factory->insert('someschema.target as aliaz');
         $target   = new InsertTarget(
-            new QualifiedName(['someschema', 'target']),
+            new QualifiedName('someschema', 'target'),
             new Identifier('aliaz')
         );
         $this->assertEquals($target, clone $insert->relation);
@@ -133,12 +133,12 @@ class StatementFactoryTest extends TestCase
 
         $select = $factory->select('foo as newfoo, barsource.bar', 'someschema.foosource, otherschema.barsource');
         $targetList = new TargetList([
-            new TargetElement(new ColumnReference(['foo']), new Identifier('newfoo')),
-            new TargetElement(new ColumnReference(['barsource', 'bar']))
+            new TargetElement(new ColumnReference('foo'), new Identifier('newfoo')),
+            new TargetElement(new ColumnReference('barsource', 'bar'))
         ]);
         $fromList = new FromList([
-            new RelationReference(new QualifiedName(['someschema', 'foosource'])),
-            new RelationReference(new QualifiedName(['otherschema', 'barsource']))
+            new RelationReference(new QualifiedName('someschema', 'foosource')),
+            new RelationReference(new QualifiedName('otherschema', 'barsource'))
         ]);
 
         $this->assertEquals($targetList, clone $select->list);
@@ -147,7 +147,7 @@ class StatementFactoryTest extends TestCase
 
         $select2 = $factory->select([
             'foo as newfoo',
-            new TargetElement(new ColumnReference(['barsource', 'bar']))
+            new TargetElement(new ColumnReference('barsource', 'bar'))
         ]);
         $this->assertEquals($targetList, clone $select2->list);
         $this->assertCount(0, $select2->from);
@@ -163,7 +163,7 @@ class StatementFactoryTest extends TestCase
 
         $update   = $factory->update('someschema.foo as bar', 'blah = default, blahblah = 42');
         $relation = new UpdateOrDeleteTarget(
-            new QualifiedName(['someschema', 'foo']),
+            new QualifiedName('someschema', 'foo'),
             new Identifier('bar')
         );
         $setClauseList = new SetClauseList([

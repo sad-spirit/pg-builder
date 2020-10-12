@@ -95,7 +95,7 @@ QRY
         $this->assertEquals(
             new ExpressionList([
                 new Constant('foo'),
-                new ColumnReference([new Identifier('bar'), new Identifier('baz')]),
+                new ColumnReference(new Identifier('bar'), new Identifier('baz')),
                 new ArrayExpression(new ExpressionList([new Constant(1), new Constant(2)])),
                 new ArrayExpression(
                     [[new Constant(1), new Constant(2)], [new Constant(3), new Constant(4)]]
@@ -105,16 +105,16 @@ QRY
                 new Parameter('foo'),
                 new Constant(null),
                 new GroupingExpression([
-                    new ColumnReference([new Identifier('a')]),
-                    new ColumnReference([new Identifier('b')])
+                    new ColumnReference(new Identifier('a')),
+                    new ColumnReference(new Identifier('b'))
                 ]),
                 new Indirection(
                     [new ArrayIndexes(new Constant(1), null, true)],
-                    new ColumnReference([new Identifier('ary')])
+                    new ColumnReference(new Identifier('ary'))
                 ),
                 new Indirection(
                     [new ArrayIndexes(new Constant(1), null, false)],
-                    new ColumnReference([new Identifier('ary')])
+                    new ColumnReference(new Identifier('ary'))
                 )
             ]),
             $list
@@ -139,7 +139,7 @@ QRY
                 new Indirection(
                     [new Identifier('bar')],
                     new FunctionExpression(
-                        new QualifiedName(['foo']),
+                        new QualifiedName('foo'),
                         new FunctionArgumentList([new Constant(4), new Constant(5)])
                     )
                 ),
@@ -186,18 +186,18 @@ QRY
                 [
                     new LogicalExpression(
                         [
-                            new ColumnReference([new Identifier('a')]),
-                            new NotExpression(new ColumnReference([new Identifier('b')]))
+                            new ColumnReference(new Identifier('a')),
+                            new NotExpression(new ColumnReference(new Identifier('b')))
                         ],
                         'and'
                     ),
                     new LogicalExpression(
                         [
-                            new NotExpression(new NotExpression(new ColumnReference([new Identifier('c')]))),
-                            new ColumnReference([new Identifier('d')])
+                            new NotExpression(new NotExpression(new ColumnReference(new Identifier('c')))),
+                            new ColumnReference(new Identifier('d'))
                         ]
                     ),
-                    new ColumnReference([new Identifier('e')])
+                    new ColumnReference(new Identifier('e'))
                 ],
                 'or'
             ),
@@ -245,12 +245,12 @@ QRY
         $this->assertEquals(
             new OverlapsExpression(
                 new RowExpression([
-                    new ColumnReference([new Identifier('foo')]),
-                    new ColumnReference([new Identifier('bar')])
+                    new ColumnReference(new Identifier('foo')),
+                    new ColumnReference(new Identifier('bar'))
                 ]),
                 new RowExpression([
-                    new ColumnReference([new Identifier('baz')]),
-                    new ColumnReference([new Identifier('quux')])
+                    new ColumnReference(new Identifier('baz')),
+                    new ColumnReference(new Identifier('quux'))
                 ])
             ),
             $expr
@@ -276,12 +276,12 @@ QRY
             new LogicalExpression(
                 [
                     new BetweenExpression(
-                        new ColumnReference([new Identifier('foo')]),
+                        new ColumnReference(new Identifier('foo')),
                         new Constant('bar'),
                         new Constant('baz')
                     ),
                     new BetweenExpression(
-                        new ColumnReference([new Identifier('foofoo')]),
+                        new ColumnReference(new Identifier('foofoo')),
                         new Constant('quux'),
                         new Constant('xyzzy'),
                         'not between symmetric'
@@ -306,7 +306,7 @@ QRY
             new ExpressionList([
                 new InExpression(
                     new InExpression(
-                        new ColumnReference([new Identifier('foo')]),
+                        new ColumnReference(new Identifier('foo')),
                         new ExpressionList([
                             new Constant('foo'),
                             new Constant('bar')
@@ -318,7 +318,7 @@ QRY
                     ])
                 ),
                 new InExpression(
-                    new ColumnReference([new Identifier('bar')]),
+                    new ColumnReference(new Identifier('bar')),
                     $select,
                     'not in'
                 )
@@ -335,47 +335,47 @@ QRY
 QRY
         );
 
-        $foo = new Select(new TargetList([new TargetElement(new ColumnReference(['otherfoo']))]));
-        $foo->from[] = new RelationReference(new QualifiedName(['foosource']));
+        $foo = new Select(new TargetList([new TargetElement(new ColumnReference('otherfoo'))]));
+        $foo->from[] = new RelationReference(new QualifiedName('foosource'));
 
-        $bar = new Select(new TargetList([new TargetElement(new ColumnReference(['barpattern']))]));
-        $bar->from[] = new RelationReference(new QualifiedName(['barsource']));
+        $bar = new Select(new TargetList([new TargetElement(new ColumnReference('barpattern'))]));
+        $bar->from[] = new RelationReference(new QualifiedName('barsource'));
 
         $this->assertEquals(
             new ExpressionList([
                 new OperatorExpression(
                     '<',
-                    new ColumnReference(['foo']),
+                    new ColumnReference('foo'),
                     new SubselectExpression($foo, 'any')
                 ),
                 new PatternMatchingExpression(
-                    new ColumnReference(['bar']),
+                    new ColumnReference('bar'),
                     new SubselectExpression($bar, 'all'),
                     'like'
                 ),
                 new OperatorExpression(
                     '=',
-                    new ColumnReference(['baz']),
+                    new ColumnReference('baz'),
                     new FunctionExpression('some', new FunctionArgumentList([
-                        new ArrayExpression([new ColumnReference(['one']), new ColumnReference(['two'])])
+                        new ArrayExpression([new ColumnReference('one'), new ColumnReference('two')])
                     ]))
                 ),
                 new OperatorExpression(
                     '=',
                     new OperatorExpression(
                         '=',
-                        new ColumnReference([new Identifier('foo')]),
+                        new ColumnReference(new Identifier('foo')),
                         new FunctionExpression(
                             'any',
                             new FunctionArgumentList([
                                 new ArrayExpression(new ExpressionList([
-                                    new ColumnReference([new Identifier('bar')]),
-                                    new ColumnReference([new Identifier('baz')])
+                                    new ColumnReference(new Identifier('bar')),
+                                    new ColumnReference(new Identifier('baz'))
                                 ]))
                             ])
                         )
                     ),
-                    new ColumnReference([new Identifier('quux')])
+                    new ColumnReference(new Identifier('quux'))
                 )
             ]),
             $list
@@ -394,29 +394,29 @@ QRY
                     '?',
                     new OperatorExpression(
                         '#',
-                        new ColumnReference([new Identifier('w')]),
+                        new ColumnReference(new Identifier('w')),
                         new OperatorExpression(
                             '@',
                             null,
-                            new ColumnReference([new Identifier('v')])
+                            new ColumnReference(new Identifier('v'))
                         )
                     ),
-                    new ColumnReference([new Identifier('u')])
+                    new ColumnReference(new Identifier('u'))
                 ),
                 new OperatorExpression(
                     '!',
-                    new ColumnReference([new Identifier('q')]),
+                    new ColumnReference(new Identifier('q')),
                     null
                 ),
                 new OperatorExpression(
                     '!',
                     null,
-                    new ColumnReference([new Identifier('q')])
+                    new ColumnReference(new Identifier('q'))
                 ),
                 new OperatorExpression(
                     new QualifiedOperator('blah', '###'),
-                    new ColumnReference([new Identifier('r')]),
-                    new ColumnReference([new Identifier('s')])
+                    new ColumnReference(new Identifier('r')),
+                    new ColumnReference(new Identifier('s'))
                 ),
             ]),
             $list
@@ -462,14 +462,14 @@ QRY
             new ExpressionList([
                 new IsExpression(
                     new IsExpression(
-                        new ColumnReference([new Identifier('foo')]),
+                        new ColumnReference(new Identifier('foo')),
                         IsExpression::NULL
                     ),
                     IsExpression::NULL
                 ),
                 new IsExpression(
                     new IsExpression(
-                        new ColumnReference([new Identifier('bar')]),
+                        new ColumnReference(new Identifier('bar')),
                         IsExpression::NULL,
                         true
                     ),
@@ -481,12 +481,12 @@ QRY
                     new Constant('bar')
                 ),
                 new IsOfExpression(
-                    new ColumnReference([new Identifier('blah')]),
+                    new ColumnReference(new Identifier('blah')),
                     new TypeList(
                         [
-                            new TypeName(new QualifiedName(['pg_catalog', 'varchar'])),
-                            new TypeName(new QualifiedName(['text'])),
-                            new TypeName(new QualifiedName(['pg_catalog', 'timetz']))
+                            new TypeName(new QualifiedName('pg_catalog', 'varchar')),
+                            new TypeName(new QualifiedName('text')),
+                            new TypeName(new QualifiedName('pg_catalog', 'timetz'))
                         ]
                     )
                 ),
@@ -496,11 +496,11 @@ QRY
                     true
                 ),
                 new IsExpression(
-                    new ColumnReference([new Identifier('foobar')]),
+                    new ColumnReference(new Identifier('foobar')),
                     IsExpression::NORMALIZED
                 ),
                 new IsExpression(
-                    new ColumnReference([new Identifier('barbaz')]),
+                    new ColumnReference(new Identifier('barbaz')),
                     IsExpression::NFKC_NORMALIZED,
                     true
                 )
@@ -563,16 +563,16 @@ QRY
                         new WhenExpression(new Constant('baz'), new Constant(100))
                     ],
                     new Constant(1),
-                    new ColumnReference(['foo'])
+                    new ColumnReference('foo')
                 ),
                 new CaseExpression(
                     [
                         new WhenExpression(
-                            new OperatorExpression('=', new ColumnReference(['foo']), new Constant('bar')),
+                            new OperatorExpression('=', new ColumnReference('foo'), new Constant('bar')),
                             new Constant(10)
                         ),
                         new WhenExpression(
-                            new OperatorExpression('=', new ColumnReference(['foo']), new Constant('baz')),
+                            new OperatorExpression('=', new ColumnReference('foo'), new Constant('baz')),
                             new Constant(100)
                         )
                     ],
@@ -585,7 +585,7 @@ QRY
     public function testCollate()
     {
         $this->assertEquals(
-            new CollateExpression(new Constant('foo'), new QualifiedName(['bar', 'baz'])),
+            new CollateExpression(new Constant('foo'), new QualifiedName('bar', 'baz')),
             $this->parser->parseExpression("'foo' collate bar.baz")
         );
     }
@@ -593,7 +593,7 @@ QRY
     public function testAtTimeZone()
     {
         $this->assertEquals(
-            new AtTimeZoneExpression(new ColumnReference(['foo', 'bar']), new Constant('baz')),
+            new AtTimeZoneExpression(new ColumnReference('foo', 'bar'), new Constant('baz')),
             $this->parser->parseExpression("foo.bar at time zone 'baz'")
         );
     }
@@ -603,10 +603,10 @@ QRY
         $this->assertEquals(
             new OperatorExpression(
                 '>=',
-                new ColumnReference(['news_expire']),
+                new ColumnReference('news_expire'),
                 new TypecastExpression(
                     new Constant('now'),
-                    new TypeName(new QualifiedName(['pg_catalog', 'date']))
+                    new TypeName(new QualifiedName('pg_catalog', 'date'))
                 )
             ),
             $this->parser->parseExpression('news_expire >= current_date')

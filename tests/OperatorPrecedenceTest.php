@@ -206,10 +206,10 @@ class OperatorPrecedenceTest extends TestCase
                 new IsDistinctFromExpression(
                     new OperatorExpression(
                         '@#!',
-                        new ColumnReference([new Identifier('foo')]),
-                        new ColumnReference([new Identifier('bar')])
+                        new ColumnReference(new Identifier('foo')),
+                        new ColumnReference(new Identifier('bar'))
                     ),
-                    new ColumnReference([new Identifier('baz')])
+                    new ColumnReference(new Identifier('baz'))
                 )
             ],
             [
@@ -237,7 +237,7 @@ class OperatorPrecedenceTest extends TestCase
                 'foo between false and true is not false',
                 new IsExpression(
                     new BetweenExpression(
-                        new ColumnReference([new Identifier('foo')]),
+                        new ColumnReference(new Identifier('foo')),
                         new Constant(false),
                         new Constant(true)
                     ),
@@ -259,12 +259,12 @@ class OperatorPrecedenceTest extends TestCase
                     '<=',
                     new OperatorExpression(
                         '->>',
-                        new ColumnReference([new Identifier('j')]),
+                        new ColumnReference(new Identifier('j')),
                         new Constant('space')
                     ),
                     new OperatorExpression(
                         '->>',
-                        new ColumnReference([new Identifier('j')]),
+                        new ColumnReference(new Identifier('j')),
                         new Constant('node')
                     )
                 )
@@ -282,7 +282,7 @@ class OperatorPrecedenceTest extends TestCase
             [
                 "foo(bar => 'baz')",
                 new FunctionExpression(
-                    new QualifiedName([new Identifier('foo')]),
+                    new QualifiedName(new Identifier('foo')),
                     new FunctionArgumentList([
                         'bar' => new Constant('baz')
                     ])

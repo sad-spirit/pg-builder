@@ -38,7 +38,7 @@ class QualifiedName extends GenericNode
     use LeafNode;
 
     /** @noinspection PhpMissingBreakStatementInspection */
-    public function __construct(array $nameParts)
+    public function __construct(...$nameParts)
     {
         $this->props = [
             'catalog'  => null,
@@ -46,27 +46,16 @@ class QualifiedName extends GenericNode
             'relation' => null
         ];
 
-        foreach ($nameParts as $idx => &$part) {
-            if (is_string($part)) {
-                $part = new Identifier($part);
-
-            } elseif (!($part instanceof Identifier)) {
-                throw new InvalidArgumentException(sprintf(
-                    '%s expects an array containing strings or Identifiers, %s given at index %s',
-                    __CLASS__,
-                    is_object($part) ? 'object(' . get_class($part) . ')' : gettype($part),
-                    $idx
-                ));
-            }
-        }
-
         switch (count($nameParts)) {
             case 3:
-                $this->setNamedProperty('catalog', array_shift($nameParts)); // fall-through is intentional
+                $this->setNamedProperty('catalog', $this->expectIdentifier(array_shift($nameParts), 'catalog'));
+                // fall-through is intentional
             case 2:
-                $this->setNamedProperty('schema', array_shift($nameParts)); // fall-through is intentional
+                $this->setNamedProperty('schema', $this->expectIdentifier(array_shift($nameParts), 'schema'));
+                // fall-through is intentional
             case 1:
-                $this->setNamedProperty('relation', array_shift($nameParts)); // fall-through is intentional
+                $this->setNamedProperty('relation', $this->expectIdentifier(array_shift($nameParts), 'relation'));
+                // fall-through is intentional
                 break;
             case 0:
                 throw new InvalidArgumentException(
@@ -74,6 +63,30 @@ class QualifiedName extends GenericNode
                 );
             default:
                 throw new SyntaxException("Too many dots in qualified name: " . implode('.', $nameParts));
+        }
+    }
+
+    /**
+     * Tries to convert part of qualified name to Identifier
+     *
+     * @param mixed $namePart
+     * @param string $index
+     * @return Identifier
+     */
+    private function expectIdentifier($namePart, string $index): Identifier
+    {
+        if ($namePart instanceof Identifier) {
+            return $namePart;
+        }
+        try {
+            return new Identifier($namePart);
+        } catch (InvalidArgumentException $e) {
+            throw new InvalidArgumentException(sprintf(
+                "%s: %s part of qualified name could not be converter to Identifier; %s",
+                __CLASS__,
+                $index,
+                $e->getMessage()
+            ));
         }
     }
 

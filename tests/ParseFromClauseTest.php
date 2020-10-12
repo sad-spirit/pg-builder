@@ -95,9 +95,9 @@ QRY
 
         $this->assertEquals(
             new FromList([
-                new RelationReference(new QualifiedName(['foo', 'bar'])),
+                new RelationReference(new QualifiedName('foo', 'bar')),
                 new RangeFunctionCall(new FunctionCall(
-                    new QualifiedName(['baz']),
+                    new QualifiedName('baz'),
                     new FunctionArgumentList([new Constant(1), new Constant('string')])
                 )),
                 $subselect
@@ -113,19 +113,19 @@ QRY
     quuxschema.quux * quuxalias (three, four)
 QRY
         );
-        $foo = new RelationReference(new QualifiedName(['foo']));
+        $foo = new RelationReference(new QualifiedName('foo'));
         $foo->setAlias(new Identifier('fooalias'));
 
-        $bar = new RelationReference(new QualifiedName(['barschema', 'bar']), false);
+        $bar = new RelationReference(new QualifiedName('barschema', 'bar'), false);
         $bar->setAlias(new Identifier('baralias'));
 
-        $baz = new RelationReference(new QualifiedName(['baz']), true);
+        $baz = new RelationReference(new QualifiedName('baz'), true);
         $baz->setAlias(
             new Identifier('bazalias'),
             new IdentifierList(['one', 'two'])
         );
 
-        $quux = new RelationReference(new QualifiedName(['quuxschema', 'quux']), true);
+        $quux = new RelationReference(new QualifiedName('quuxschema', 'quux'), true);
         $quux->setAlias(
             new Identifier('quuxalias'),
             new IdentifierList(['three', 'four'])
@@ -143,37 +143,37 @@ QRY
 QRY
         );
         $blah = new RangeFunctionCall(new FunctionCall(
-            new QualifiedName(['blah', 'blah']),
+            new QualifiedName('blah', 'blah'),
             new FunctionArgumentList([new Constant(1), new Constant(2), new Constant(3)])
         ));
         $blah->setAlias(new Identifier('select'), new ColumnDefinitionList([
             new ColumnDefinition(
                 new Identifier('abort'),
-                new TypeName(new QualifiedName(['pg_catalog', 'int4']))
+                new TypeName(new QualifiedName('pg_catalog', 'int4'))
             ),
             new ColumnDefinition(
                 new Identifier('alter'),
-                new TypeName(new QualifiedName(['text'])),
-                new QualifiedName(['foo'])
+                new TypeName(new QualifiedName('text')),
+                new QualifiedName('foo')
             ),
             new ColumnDefinition(
                 new Identifier('begin'),
-                new TypeName(new QualifiedName(['pg_catalog', 'float8']))
+                new TypeName(new QualifiedName('pg_catalog', 'float8'))
             )
         ]));
         $blahblah = new RangeFunctionCall(new FunctionCall(
-            new QualifiedName(['blahblah']),
+            new QualifiedName('blahblah'),
             new FunctionArgumentList([new Constant(null)])
         ));
         $blahblah->setAlias(null, new ColumnDefinitionList([
             new ColumnDefinition(
                 new Identifier('start'),
-                new TypeName(new QualifiedName(['pg_catalog', 'varchar']))
+                new TypeName(new QualifiedName('pg_catalog', 'varchar'))
             ),
             new ColumnDefinition(
                 new Identifier('temporary'),
                 new TypeName(
-                    new QualifiedName(['pg_catalog', 'bit']),
+                    new QualifiedName('pg_catalog', 'bit'),
                     new TypeModifierList([new Constant(1)])
                 )
             )
@@ -190,18 +190,18 @@ QRY
 QRY
         );
 
-        $a = new RelationReference(new QualifiedName(['a']));
+        $a = new RelationReference(new QualifiedName('a'));
         $a->setAlias(new Identifier('aa'));
         
-        $b = new RelationReference(new QualifiedName(['b']));
+        $b = new RelationReference(new QualifiedName('b'));
         $b->setAlias(new Identifier('bb'));
         
         $ab = new JoinExpression($a, $b, 'inner');
         $ab->setNatural(true);
 
         $cd = new JoinExpression(
-            new RelationReference(new QualifiedName(['c'])),
-            new RelationReference(new QualifiedName(['d'])),
+            new RelationReference(new QualifiedName('c')),
+            new RelationReference(new QualifiedName('d')),
             'right'
         );
         $cd->setOn(new OperatorExpression('=', new Constant(true), new Constant(false)));
@@ -211,9 +211,9 @@ QRY
         $abcd->setUsing(new IdentifierList(['blah']));
 
         $fg = new JoinExpression(
-            new RelationReference(new QualifiedName(['f'])),
+            new RelationReference(new QualifiedName('f')),
             new RangeFunctionCall(new FunctionCall(
-                new QualifiedName(['g']),
+                new QualifiedName('g'),
                 new FunctionArgumentList([new Constant(1)])
             )),
             'full'
@@ -248,12 +248,12 @@ QRY
             'foo(1) with ordinality, bar(2) with ordinality as blah'
         );
         $foo = new RangeFunctionCall(new FunctionCall(
-            new QualifiedName(['foo']),
+            new QualifiedName('foo'),
             new FunctionArgumentList([new Constant(1)])
         ));
         $foo->withOrdinality = true;
         $bar = new RangeFunctionCall(new FunctionCall(
-            new QualifiedName(['bar']),
+            new QualifiedName('bar'),
             new FunctionArgumentList([new Constant(2)])
         ));
         $bar->setWithOrdinality(true);
@@ -272,32 +272,32 @@ QRY
         $rowsOne = new RowsFrom(new RowsFromList([
             new RowsFromElement(
                 new FunctionCall(
-                    new QualifiedName(['foo']),
+                    new QualifiedName('foo'),
                     new FunctionArgumentList([new Constant(1)])
                 ),
                 new ColumnDefinitionList([
                     new ColumnDefinition(
                         new Identifier('fooid'),
-                        new TypeName(new QualifiedName(['pg_catalog', 'int4']))
+                        new TypeName(new QualifiedName('pg_catalog', 'int4'))
                     ),
                     new ColumnDefinition(
                         new Identifier('fooname'),
-                        new TypeName(new QualifiedName(['text']))
+                        new TypeName(new QualifiedName('text'))
                     ),
                 ])
             ),
             new RowsFromElement(new FunctionCall(
-                new QualifiedName(['foo']),
+                new QualifiedName('foo'),
                 new FunctionArgumentList([new Constant(2)])
             ))
         ]));
         $rowsTwo = new RowsFrom(new RowsFromList([
             new RowsFromElement(new FunctionCall(
-                new QualifiedName(['generate_series']),
+                new QualifiedName('generate_series'),
                 new FunctionArgumentList([new Constant(1), new Constant(5)])
             )),
             new RowsFromElement(new FunctionCall(
-                new QualifiedName(['generate_series']),
+                new QualifiedName('generate_series'),
                 new FunctionArgumentList([new Constant(1), new Constant(10)])
             ))
         ]));
@@ -315,26 +315,26 @@ QRY
         );
 
         $sample1 = new TableSample(
-            new RelationReference(new QualifiedName(['foo'])),
-            new QualifiedName(['system']),
+            new RelationReference(new QualifiedName('foo')),
+            new QualifiedName('system'),
             new ExpressionList([
                 new OperatorExpression(
                     '*',
-                    new ColumnReference(['bar', 'baz']),
+                    new ColumnReference('bar', 'baz'),
                     new Constant(100)
                 )
             ])
         );
 
         $sample2 = new JoinExpression(
-            new RelationReference(new QualifiedName(['quux'])),
+            new RelationReference(new QualifiedName('quux')),
             new TableSample(
-                new RelationReference(new QualifiedName(['xyzzy'])),
-                new QualifiedName(['bernoulli']),
+                new RelationReference(new QualifiedName('xyzzy')),
+                new QualifiedName('bernoulli'),
                 new ExpressionList([
                     new Constant(50)
                 ]),
-                new ColumnReference(['seed'])
+                new ColumnReference('seed')
             )
         );
         $sample2->setNatural(true);
@@ -374,12 +374,12 @@ QRY
 
         $table1 = new XmlTable(
             new Constant('//ROWS/ROW'),
-            new ColumnReference(['data']),
+            new ColumnReference('data'),
             new XmlColumnList([
                 new XmlColumnDefinition(
                     new Identifier('id'),
                     false,
-                    new TypeName(new QualifiedName(['pg_catalog', 'int4'])),
+                    new TypeName(new QualifiedName('pg_catalog', 'int4')),
                     new Constant('@id')
                 ),
                 new XmlColumnDefinition(
@@ -389,30 +389,30 @@ QRY
                 new XmlColumnDefinition(
                     new Identifier('COUNTRY_NAME'),
                     false,
-                    new TypeName(new QualifiedName(['text']))
+                    new TypeName(new QualifiedName('text'))
                 ),
                 new XmlColumnDefinition(
                     new Identifier('country_id'),
                     false,
-                    new TypeName(new QualifiedName(['text'])),
+                    new TypeName(new QualifiedName('text')),
                     new Constant('COUNTRY_ID')
                 ),
                 new XmlColumnDefinition(
                     new Identifier('size_sq_km'),
                     false,
-                    new TypeName(new QualifiedName(['pg_catalog', 'float8'])),
+                    new TypeName(new QualifiedName('pg_catalog', 'float8')),
                     new Constant('SIZE[@unit = "sq_km"]')
                 ),
                 new XmlColumnDefinition(
                     new Identifier('size_other'),
                     false,
-                    new TypeName(new QualifiedName(['text'])),
+                    new TypeName(new QualifiedName('text')),
                     new Constant('concat(SIZE[@unit!="sq_km"], " ", SIZE[@unit!="sq_km"]/@unit)')
                 ),
                 new XmlColumnDefinition(
                     new Identifier('premier_name'),
                     false,
-                    new TypeName(new QualifiedName(['text'])),
+                    new TypeName(new QualifiedName('text')),
                     new Constant('PREMIER_NAME'),
                     null,
                     new Constant('not specified')
@@ -420,8 +420,8 @@ QRY
             ])
         );
 
-        $subselect = new Select(new TargetList([new TargetElement(new ColumnReference(['data']))]));
-        $subselect->from[] = new RelationReference(new QualifiedName(['xmldata']));
+        $subselect = new Select(new TargetList([new TargetElement(new ColumnReference('data'))]));
+        $subselect->from[] = new RelationReference(new QualifiedName('xmldata'));
         $table2 = new XmlTable(
             new Constant('/x:example/x:item'),
             new SubselectExpression($subselect),
@@ -429,13 +429,13 @@ QRY
                 new XmlColumnDefinition(
                     new Identifier('foo'),
                     false,
-                    new TypeName(new QualifiedName(['pg_catalog', 'int4'])),
+                    new TypeName(new QualifiedName('pg_catalog', 'int4')),
                     new Constant('@foo')
                 ),
                 new XmlColumnDefinition(
                     new Identifier('bar'),
                     false,
-                    new TypeName(new QualifiedName(['pg_catalog', 'int4'])),
+                    new TypeName(new QualifiedName('pg_catalog', 'int4')),
                     new Constant('@B:bar')
                 )
             ]),

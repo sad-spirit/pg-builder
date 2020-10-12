@@ -71,7 +71,7 @@ class ParseInsertStatementTest extends TestCase
     {
         $parsed = $this->parser->parseStatement("insert into foo as bar default values");
 
-        $built = new Insert(new InsertTarget(new QualifiedName(['foo']), new Identifier('bar')));
+        $built = new Insert(new InsertTarget(new QualifiedName('foo'), new Identifier('bar')));
 
         $this->assertEquals($built, $parsed);
     }
@@ -95,7 +95,7 @@ returning *
 QRY
         );
 
-        $built = new Insert(new InsertTarget(new QualifiedName(['baz']), new Identifier('bzzz')));
+        $built = new Insert(new InsertTarget(new QualifiedName('baz'), new Identifier('bzzz')));
         $built->cols->replace([
             new SetTargetElement(new Identifier('one')),
             new SetTargetElement(new Identifier('two'), [new ArrayIndexes(new Constant(1))])
@@ -105,17 +105,17 @@ QRY
         $built->onConflict = new OnConflictClause('nothing');
 
         $foo = new Select(new TargetList([
-            new TargetElement(new ColumnReference(['somefoo']))
+            new TargetElement(new ColumnReference('somefoo'))
         ]));
         $foo->from->replace([
-            new RelationReference(new QualifiedName(['basefoo']))
+            new RelationReference(new QualifiedName('basefoo'))
         ]);
 
         $bar = new Select(new TargetList([
-            new TargetElement(new ColumnReference(['somebar']))
+            new TargetElement(new ColumnReference('somebar'))
         ]));
         $bar->from->replace([
-            new RelationReference(new QualifiedName(['basebar']))
+            new RelationReference(new QualifiedName('basebar'))
         ]);
 
         $built->with = new WithClause([
@@ -124,17 +124,17 @@ QRY
         ]);
 
         $built->values = new Select(new TargetList([
-            new TargetElement(new ColumnReference(['id'])),
-            new TargetElement(new ColumnReference(['blah']))
+            new TargetElement(new ColumnReference('id')),
+            new TargetElement(new ColumnReference('blah'))
         ]));
         $built->values->from->replace([
-            new RelationReference(new QualifiedName(['foo'])),
-            new RelationReference(new QualifiedName(['bar']))
+            new RelationReference(new QualifiedName('foo')),
+            new RelationReference(new QualifiedName('bar'))
         ]);
         $built->values->where->condition = new OperatorExpression(
             '<',
-            new ColumnReference(['id']),
-            new ColumnReference(['blah'])
+            new ColumnReference('id'),
+            new ColumnReference('blah')
         );
 
         $this->assertEquals($built, $parsed);
@@ -164,7 +164,7 @@ QRY
                     new SetClauseList([
                         new SingleSetClause(
                             new SetTargetElement(new Identifier('dname')),
-                            new ColumnReference(['excluded', 'dname'])
+                            new ColumnReference('excluded', 'dname')
                         )
                     ])
                 )
@@ -187,10 +187,10 @@ QRY
                                     '||',
                                     new OperatorExpression(
                                         '||',
-                                        new ColumnReference(['excluded', 'dname']),
+                                        new ColumnReference('excluded', 'dname'),
                                         new Constant(" (formerly ")
                                     ),
-                                    new ColumnReference(['d', 'dname'])
+                                    new ColumnReference('d', 'dname')
                                 ),
                                 new Constant(")")
                             )
@@ -198,7 +198,7 @@ QRY
                     ]),
                     new OperatorExpression(
                         '<>',
-                        new ColumnReference(['d', 'zipcode']),
+                        new ColumnReference('d', 'zipcode'),
                         new Constant("21201")
                     )
                 )

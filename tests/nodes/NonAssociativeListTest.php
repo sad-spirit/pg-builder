@@ -95,10 +95,10 @@ class NonAssociativeListTest extends TestCase
 
         $this::assertEquals(
             [
-                new OperatorExpression('+', new ColumnReference(['a']), new ColumnReference(['b'])),
+                new OperatorExpression('+', new ColumnReference('a'), new ColumnReference('b')),
                 new SetToDefault(),
-                new OperatorExpression('-', new ColumnReference(['c']), new ColumnReference(['d'])),
-                new ColumnReference(['e'])
+                new OperatorExpression('-', new ColumnReference('c'), new ColumnReference('d')),
+                new ColumnReference('e')
             ],
             unserialize(serialize(iterator_to_array($nodeList)))
         );
@@ -106,8 +106,8 @@ class NonAssociativeListTest extends TestCase
 
     public function testReplaceIgnoresArrayKeys(): void
     {
-        $nodeOne   = new OperatorExpression('+', new ColumnReference(['a']), new ColumnReference(['b']));
-        $nodeTwo   = new OperatorExpression('-', new ColumnReference(['c']), new ColumnReference(['d']));
+        $nodeOne   = new OperatorExpression('+', new ColumnReference('a'), new ColumnReference('b'));
+        $nodeTwo   = new OperatorExpression('-', new ColumnReference('c'), new ColumnReference('d'));
         $nodeThree = new SetToDefault();
 
         $nodeList  = new NonAssociativeListImplementation([$nodeOne]);
@@ -123,8 +123,8 @@ class NonAssociativeListTest extends TestCase
 
     public function testMergeIgnoresArrayKeys(): void
     {
-        $nodeOne   = new OperatorExpression('+', new ColumnReference(['a']), new ColumnReference(['b']));
-        $nodeTwo   = new OperatorExpression('-', new ColumnReference(['c']), new ColumnReference(['d']));
+        $nodeOne   = new OperatorExpression('+', new ColumnReference('a'), new ColumnReference('b'));
+        $nodeTwo   = new OperatorExpression('-', new ColumnReference('c'), new ColumnReference('d'));
         $nodeThree = new SetToDefault();
 
         $nodeList  = new NonAssociativeListImplementation();

@@ -90,11 +90,11 @@ QRY
 
         $built = new Select(
             new TargetList([
-                new TargetElement(new ColumnReference(['foo'])),
-                new TargetElement(new ColumnReference(['bar'])),
+                new TargetElement(new ColumnReference('foo')),
+                new TargetElement(new ColumnReference('bar')),
                 new TargetElement(
                     new FunctionExpression(
-                        new QualifiedName(['baz']),
+                        new QualifiedName('baz'),
                         null,
                         false,
                         false,
@@ -105,28 +105,28 @@ QRY
                     ),
                     new Identifier('blah')
                 ),
-                new TargetElement(new ColumnReference(['quux']), new Identifier('alias'))
+                new TargetElement(new ColumnReference('quux'), new Identifier('alias'))
             ]),
-            new ExpressionList([new ColumnReference(['foo'])])
+            new ExpressionList([new ColumnReference('foo')])
         );
 
         $built->from->replace([
-            new RelationReference(new QualifiedName(['one'])),
-            new RelationReference(new QualifiedName(['two']))
+            new RelationReference(new QualifiedName('one')),
+            new RelationReference(new QualifiedName('two'))
         ]);
         $built->where->condition = new OperatorExpression(
             '=',
-            new ColumnReference(['one', 'id']),
-            new ColumnReference(['two', 'id'])
+            new ColumnReference('one', 'id'),
+            new ColumnReference('two', 'id')
         );
         $built->group->replace([
-            new ColumnReference(['bar'])
+            new ColumnReference('bar')
         ]);
         $built->having->condition = new OperatorExpression(
             '>',
             new FunctionExpression(
-                new QualifiedName(['count']),
-                new FunctionArgumentList([new ColumnReference(['quux'])])
+                new QualifiedName('count'),
+                new FunctionArgumentList([new ColumnReference('quux')])
             ),
             new Constant(1)
         );
@@ -226,7 +226,7 @@ QRY
             // fetch should allow c_expr (our ExpressionAtom)
             [
                 'select * fetch next cast(5 as integer) rows only',
-                new TypecastExpression(new Constant(5), new TypeName(new QualifiedName(['pg_catalog', 'int4']))),
+                new TypecastExpression(new Constant(5), new TypeName(new QualifiedName('pg_catalog', 'int4'))),
                 null
             ],
             // WITH TIES clause added in Postgres 13
@@ -243,8 +243,8 @@ QRY
         );
         $this->assertEquals(
             new LockList([
-                new LockingElement('share', [new QualifiedName(['a', 'foo']), new QualifiedName(['c', 'baz'])]),
-                new LockingElement('no key update', [new QualifiedName(['b', 'bar'])], false, true)
+                new LockingElement('share', [new QualifiedName('a', 'foo'), new QualifiedName('c', 'baz')]),
+                new LockingElement('no key update', [new QualifiedName('b', 'bar')], false, true)
             ]),
             clone $select->locking
         );
@@ -259,8 +259,8 @@ QRY
         );
         $this->assertEquals(
             new LockList([
-                new LockingElement('update', [new QualifiedName(['foo'])]),
-                new LockingElement('update', [new QualifiedName(['bar'])], true)
+                new LockingElement('update', [new QualifiedName('foo')]),
+                new LockingElement('update', [new QualifiedName('bar')], true)
             ]),
             clone $select->locking
         );
@@ -284,7 +284,7 @@ QRY
         $windows = [
             new WindowDefinition(),
             new WindowDefinition(new Identifier('foo')),
-            new WindowDefinition(null, new ExpressionList([new ColumnReference(['whatever'])])),
+            new WindowDefinition(null, new ExpressionList([new ColumnReference('whatever')])),
             new WindowDefinition(
                 null,
                 null,

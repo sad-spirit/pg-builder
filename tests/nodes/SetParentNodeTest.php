@@ -98,7 +98,7 @@ class SetParentNodeTest extends TestCase
 {
     public function testDeleteStatement()
     {
-        $delete = new Delete(new UpdateOrDeleteTarget(new QualifiedName(['foo', 'bar'])));
+        $delete = new Delete(new UpdateOrDeleteTarget(new QualifiedName('foo', 'bar')));
 
         $this->assertSame($delete, $delete->relation->getParentNode());
         $this->assertSame($delete, $delete->using->getParentNode());
@@ -116,7 +116,7 @@ class SetParentNodeTest extends TestCase
 
     public function testInsertStatement()
     {
-        $insert = new Insert(new InsertTarget(new QualifiedName(['foo', 'bar'])));
+        $insert = new Insert(new InsertTarget(new QualifiedName('foo', 'bar')));
 
         $this->assertSame($insert, $insert->relation->getParentNode());
         $this->assertSame($insert, $insert->cols->getParentNode());
@@ -133,10 +133,10 @@ class SetParentNodeTest extends TestCase
     {
         $select = new Select(
             new TargetList([
-                new TargetElement(new ColumnReference(['foo'])),
-                new TargetElement(new ColumnReference(['bar']))
+                new TargetElement(new ColumnReference('foo')),
+                new TargetElement(new ColumnReference('bar'))
             ]),
-            new ExpressionList([new ColumnReference(['foo'])])
+            new ExpressionList([new ColumnReference('foo')])
         );
 
         $this->assertSame($select, $select->list->getParentNode());
@@ -176,7 +176,7 @@ class SetParentNodeTest extends TestCase
     public function testUpdateStatement()
     {
         $update = new Update(
-            new UpdateOrDeleteTarget(new QualifiedName(['foo', 'bar'])),
+            new UpdateOrDeleteTarget(new QualifiedName('foo', 'bar')),
             new SetClauseList([
                 new SingleSetClause(
                     new SetTargetElement(new Identifier('baz')),
@@ -209,7 +209,7 @@ class SetParentNodeTest extends TestCase
 
     public function testColumnReference()
     {
-        $ref = new ColumnReference(['foo', 'bar', 'baz', 'quux']);
+        $ref = new ColumnReference('foo', 'bar', 'baz', 'quux');
 
         $this->assertSame($ref, $ref->catalog->getParentNode());
         $this->assertSame($ref, $ref->schema->getParentNode());
@@ -233,11 +233,11 @@ class SetParentNodeTest extends TestCase
     public function testFunctionCall()
     {
         $fn = new FunctionCall(
-            new QualifiedName(['foo', 'bar']),
+            new QualifiedName('foo', 'bar'),
             new FunctionArgumentList([new Constant(1)]),
             false,
             false,
-            new OrderByList([new OrderByElement(new ColumnReference(['baz']))])
+            new OrderByList([new OrderByElement(new ColumnReference('baz'))])
         );
 
         $this->assertSame($fn, $fn->name->getParentNode());
@@ -254,14 +254,14 @@ class SetParentNodeTest extends TestCase
 
     public function testOrderByElement()
     {
-        $order = new OrderByElement(new ColumnReference(['foo']), 'asc', 'last');
+        $order = new OrderByElement(new ColumnReference('foo'), 'asc', 'last');
 
         $this->assertSame($order, $order->expression->getParentNode());
     }
 
     public function testQualifiedName()
     {
-        $name = new QualifiedName(['foo', 'bar', 'baz']);
+        $name = new QualifiedName('foo', 'bar', 'baz');
 
         $this->assertSame($name, $name->catalog->getParentNode());
         $this->assertSame($name, $name->schema->getParentNode());
@@ -281,7 +281,7 @@ class SetParentNodeTest extends TestCase
     public function testTargetElement()
     {
         $target = new TargetElement(
-            new ColumnReference(['foo', 'bar']),
+            new ColumnReference('foo', 'bar'),
             new Identifier('baz')
         );
 
@@ -292,7 +292,7 @@ class SetParentNodeTest extends TestCase
     public function testTypeName()
     {
         $typename = new TypeName(
-            new QualifiedName(['foo', 'bar']),
+            new QualifiedName('foo', 'bar'),
             new TypeModifierList([new Constant(1)])
         );
 
@@ -316,8 +316,8 @@ class SetParentNodeTest extends TestCase
 
         $window = new WindowDefinition(
             new Identifier('reference'),
-            new ExpressionList([new ColumnReference(['foo'])]),
-            new OrderByList([new OrderByElement(new ColumnReference(['bar']))]),
+            new ExpressionList([new ColumnReference('foo')]),
+            new OrderByList([new OrderByElement(new ColumnReference('bar'))]),
             $frame = new WindowFrameClause('rows', $start, $end)
         );
 
@@ -338,7 +338,7 @@ class SetParentNodeTest extends TestCase
 
     public function testBetweenExpression()
     {
-        $between = new BetweenExpression(new ColumnReference(['foo']), new Constant(1), new Constant(2));
+        $between = new BetweenExpression(new ColumnReference('foo'), new Constant(1), new Constant(2));
 
         $this->assertSame($between, $between->argument->getParentNode());
         $this->assertSame($between, $between->left->getParentNode());
@@ -348,9 +348,9 @@ class SetParentNodeTest extends TestCase
     public function testCaseExpression()
     {
         $case = new CaseExpression(
-            [new WhenExpression(new ColumnReference(['foo']), new Constant('foo'))],
+            [new WhenExpression(new ColumnReference('foo'), new Constant('foo'))],
             new Constant(666),
-            new ColumnReference(['bar'])
+            new ColumnReference('bar')
         );
 
         $this->assertSame($case, $case->argument->getParentNode());
@@ -362,7 +362,7 @@ class SetParentNodeTest extends TestCase
 
     public function testCollateExpression()
     {
-        $collate = new CollateExpression(new ColumnReference(['foo']), new QualifiedName(['bar', 'baz']));
+        $collate = new CollateExpression(new ColumnReference('foo'), new QualifiedName('bar', 'baz'));
 
         $this->assertSame($collate, $collate->argument->getParentNode());
         $this->assertSame($collate, $collate->collation->getParentNode());
@@ -371,7 +371,7 @@ class SetParentNodeTest extends TestCase
     public function testInExpression()
     {
         $in = new InExpression(
-            new ColumnReference(['foo']),
+            new ColumnReference('foo'),
             new ExpressionList([new Constant('foo'), new Constant('bar')])
         );
 
@@ -382,8 +382,8 @@ class SetParentNodeTest extends TestCase
     public function testIsOfExpression()
     {
         $isOf = new IsOfExpression(
-            new ColumnReference(['foo']),
-            new TypeList([new TypeName(new QualifiedName(['pg_catalog', 'text']))])
+            new ColumnReference('foo'),
+            new TypeList([new TypeName(new QualifiedName('pg_catalog', 'text'))])
         );
 
         $this->assertSame($isOf, $isOf->left->getParentNode());
@@ -394,7 +394,7 @@ class SetParentNodeTest extends TestCase
     {
         $operator = new OperatorExpression(
             '=',
-            new ColumnReference(['foo']),
+            new ColumnReference('foo'),
             new Constant('foo')
         );
 
@@ -405,7 +405,7 @@ class SetParentNodeTest extends TestCase
     public function testPatternMatchingExpression()
     {
         $pattern = new PatternMatchingExpression(
-            new ColumnReference(['foo']),
+            new ColumnReference('foo'),
             new Constant('blah%'),
             'like',
             new Constant('!')
@@ -419,7 +419,7 @@ class SetParentNodeTest extends TestCase
     public function testSubselectExpression()
     {
         $subselect = new SubselectExpression(
-            new Select(new TargetList([new TargetElement(new ColumnReference(['foo']))]))
+            new Select(new TargetList([new TargetElement(new ColumnReference('foo'))]))
         );
 
         $this->assertSame($subselect, $subselect->query->getParentNode());
@@ -428,8 +428,8 @@ class SetParentNodeTest extends TestCase
     public function testTypecastExpression()
     {
         $typecast = new TypecastExpression(
-            new ColumnReference(['foo']),
-            new TypeName(new QualifiedName(['bar', 'baz']))
+            new ColumnReference('foo'),
+            new TypeName(new QualifiedName('bar', 'baz'))
         );
 
         $this->assertSame($typecast, $typecast->argument->getParentNode());
@@ -440,8 +440,8 @@ class SetParentNodeTest extends TestCase
     {
         $colDef = new ColumnDefinition(
             new Identifier('blah'),
-            new TypeName(new QualifiedName(['foo', 'bar'])),
-            new QualifiedName(['weirdcollation'])
+            new TypeName(new QualifiedName('foo', 'bar')),
+            new QualifiedName('weirdcollation')
         );
 
         $this->assertSame($colDef, $colDef->name->getParentNode());
@@ -451,7 +451,7 @@ class SetParentNodeTest extends TestCase
 
     public function testRelationReference()
     {
-        $ref = new RelationReference(new QualifiedName(['foo', 'bar']));
+        $ref = new RelationReference(new QualifiedName('foo', 'bar'));
 
         $this->assertSame($ref, $ref->name->getParentNode());
 
@@ -470,7 +470,7 @@ class SetParentNodeTest extends TestCase
     public function testRangeFunctionCall()
     {
         $fn = new RangeFunctionCall(new FunctionCall(
-            new QualifiedName(['foo', 'bar']),
+            new QualifiedName('foo', 'bar'),
             new FunctionArgumentList([new Constant(1)])
         ));
 
@@ -480,7 +480,7 @@ class SetParentNodeTest extends TestCase
         $columnAliases = new ColumnDefinitionList([
             new ColumnDefinition(
                 new Identifier('blahtext'),
-                new TypeName(new QualifiedName(['pg_catalog', 'text']))
+                new TypeName(new QualifiedName('pg_catalog', 'text'))
             )
         ]);
 
@@ -492,8 +492,8 @@ class SetParentNodeTest extends TestCase
     public function testJoinExpression()
     {
         $join = new JoinExpression(
-            new RelationReference(new QualifiedName(['foo', 'bar'])),
-            new RelationReference(new QualifiedName(['baz', 'quux']))
+            new RelationReference(new QualifiedName('foo', 'bar')),
+            new RelationReference(new QualifiedName('baz', 'quux'))
         );
 
         $this->assertSame($join, $join->left->getParentNode());
@@ -505,7 +505,7 @@ class SetParentNodeTest extends TestCase
 
         $join->using = null;
         $this->assertNull($using->getParentNode());
-        $join->setOn(new OperatorExpression('=', new ColumnReference(['one']), new ColumnReference(['two'])));
+        $join->setOn(new OperatorExpression('=', new ColumnReference('one'), new ColumnReference('two')));
         $this->assertSame($join, $join->on->getParentNode());
     }
 
@@ -548,7 +548,7 @@ class SetParentNodeTest extends TestCase
 
     public function testXmlRoot()
     {
-        $xml = new XmlRoot(new ColumnReference(['doc']), new Constant('1.2'), 'yes');
+        $xml = new XmlRoot(new ColumnReference('doc'), new Constant('1.2'), 'yes');
 
         $this->assertSame($xml, $xml->xml->getParentNode());
         $this->assertSame($xml, $xml->version->getParentNode());
@@ -558,8 +558,8 @@ class SetParentNodeTest extends TestCase
     {
         $xml = new XmlSerialize(
             'document',
-            new ColumnReference(['foo']),
-            new TypeName(new QualifiedName(['pg_catalog', 'text']))
+            new ColumnReference('foo'),
+            new TypeName(new QualifiedName('pg_catalog', 'text'))
         );
 
         $this->assertSame($xml, $xml->argument->getParentNode());
