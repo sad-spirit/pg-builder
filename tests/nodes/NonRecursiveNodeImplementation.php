@@ -23,13 +23,13 @@ namespace sad_spirit\pg_builder\tests\nodes;
 use sad_spirit\pg_builder\{
     exceptions\NotImplementedException,
     nodes\GenericNode,
-    nodes\LeafNode,
+    nodes\NonRecursiveNode,
     TreeWalker
 };
 
-class LeafNodeImplementation extends GenericNode
+class NonRecursiveNodeImplementation extends GenericNode
 {
-    use LeafNode;
+    use NonRecursiveNode;
 
     public function dispatch(TreeWalker $walker)
     {

@@ -22,7 +22,7 @@ namespace sad_spirit\pg_builder\nodes\group;
 
 use sad_spirit\pg_builder\{
     nodes\GenericNode,
-    nodes\LeafNode,
+    nodes\NonRecursiveNode,
     TreeWalker
 };
 
@@ -31,7 +31,7 @@ use sad_spirit\pg_builder\{
  */
 class EmptyGroupingSet extends GenericNode implements GroupByElement
 {
-    use LeafNode;
+    use NonRecursiveNode;
 
     public function dispatch(TreeWalker $walker)
     {

@@ -37,7 +37,7 @@ use sad_spirit\pg_builder\{
  */
 class QualifiedOperator extends GenericNode
 {
-    use LeafNode;
+    use NonRecursiveNode;
 
     /** @noinspection PhpMissingBreakStatementInspection */
     public function __construct(...$nameParts)

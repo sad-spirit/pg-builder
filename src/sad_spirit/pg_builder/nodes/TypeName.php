@@ -34,7 +34,7 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class TypeName extends GenericNode
 {
-    use LeafNode;
+    use NonRecursiveNode;
 
     public function __construct(QualifiedName $typeName, TypeModifierList $typeModifiers = null)
     {

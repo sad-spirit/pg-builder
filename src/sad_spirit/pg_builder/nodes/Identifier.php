@@ -34,7 +34,7 @@ use sad_spirit\pg_builder\{
  */
 class Identifier extends GenericNode
 {
-    use LeafNode;
+    use NonRecursiveNode;
 
     private static $needsQuoting = [];
 

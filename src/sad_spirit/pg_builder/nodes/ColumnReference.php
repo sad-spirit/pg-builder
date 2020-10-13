@@ -36,7 +36,7 @@ use sad_spirit\pg_builder\{
  */
 class ColumnReference extends GenericNode implements ScalarExpression
 {
-    use LeafNode;
+    use NonRecursiveNode;
     use ExpressionAtom;
 
     /** @noinspection PhpMissingBreakStatementInspection */

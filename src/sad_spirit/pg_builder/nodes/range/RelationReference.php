@@ -21,7 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\range;
 
 use sad_spirit\pg_builder\{
-    nodes\LeafNode,
+    nodes\NonRecursiveNode,
     nodes\QualifiedName,
     TreeWalker
 };
@@ -34,7 +34,7 @@ use sad_spirit\pg_builder\{
  */
 class RelationReference extends FromElement
 {
-    use LeafNode;
+    use NonRecursiveNode;
 
     public function __construct(QualifiedName $qualifiedName, ?bool $inheritOption = null)
     {

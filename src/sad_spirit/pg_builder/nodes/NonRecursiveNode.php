@@ -27,7 +27,7 @@ use sad_spirit\pg_builder\Node;
  *
  * Implements setParentNode() method without redundant checks for circular reference
  */
-trait LeafNode
+trait NonRecursiveNode
 {
     /**
      * Link to the Node containing current one

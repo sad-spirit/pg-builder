@@ -34,7 +34,7 @@ use sad_spirit\pg_builder\{
  */
 class Constant extends GenericNode implements ScalarExpression
 {
-    use LeafNode;
+    use NonRecursiveNode;
     use ExpressionAtom;
 
     public function __construct($tokenOrConstant)

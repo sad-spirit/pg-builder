@@ -23,7 +23,7 @@ namespace sad_spirit\pg_builder\nodes\range;
 use sad_spirit\pg_builder\nodes\{
     GenericNode,
     Identifier,
-    LeafNode,
+    NonRecursiveNode,
     TypeName,
     QualifiedName
 };
@@ -38,7 +38,7 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class ColumnDefinition extends GenericNode
 {
-    use LeafNode;
+    use NonRecursiveNode;
 
     public function __construct(Identifier $colId, TypeName $type, QualifiedName $collation = null)
     {

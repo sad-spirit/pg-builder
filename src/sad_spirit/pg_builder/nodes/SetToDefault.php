@@ -27,7 +27,7 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class SetToDefault extends GenericNode
 {
-    use LeafNode;
+    use NonRecursiveNode;
 
     public function dispatch(TreeWalker $walker)
     {

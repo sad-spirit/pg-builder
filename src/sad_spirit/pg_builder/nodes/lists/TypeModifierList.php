@@ -22,12 +22,15 @@ namespace sad_spirit\pg_builder\nodes\lists;
 
 use sad_spirit\pg_builder\nodes\Constant;
 use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\nodes\NonRecursiveNode;
 
 /**
  * List of type modifiers
  */
 class TypeModifierList extends NonAssociativeList
 {
+    use NonRecursiveNode;
+
     protected static function getAllowedElementClasses(): array
     {
         return [

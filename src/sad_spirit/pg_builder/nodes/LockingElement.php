@@ -33,7 +33,7 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  */
 class LockingElement extends NonAssociativeList
 {
-    use LeafNode;
+    use NonRecursiveNode;
 
     public const UPDATE        = 'update';
     public const NO_KEY_UPDATE = 'no key update';

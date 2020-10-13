@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\lists;
 
+use sad_spirit\pg_builder\nodes\NonRecursiveNode;
 use sad_spirit\pg_builder\nodes\range\ColumnDefinition;
 
 /**
@@ -27,6 +28,8 @@ use sad_spirit\pg_builder\nodes\range\ColumnDefinition;
  */
 class ColumnDefinitionList extends NonAssociativeList
 {
+    use NonRecursiveNode;
+
     protected static function getAllowedElementClasses(): array
     {
         return [ColumnDefinition::class];

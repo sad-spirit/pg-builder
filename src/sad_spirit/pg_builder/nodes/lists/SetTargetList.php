@@ -22,6 +22,7 @@ namespace sad_spirit\pg_builder\nodes\lists;
 
 use sad_spirit\pg_builder\{
     Node,
+    nodes\NonRecursiveNode,
     nodes\SetTargetElement,
     ElementParseable,
     Parseable,
@@ -33,6 +34,8 @@ use sad_spirit\pg_builder\{
  */
 class SetTargetList extends NonAssociativeList implements Parseable, ElementParseable
 {
+    use NonRecursiveNode;
+
     protected static function getAllowedElementClasses(): array
     {
         return [SetTargetElement::class];

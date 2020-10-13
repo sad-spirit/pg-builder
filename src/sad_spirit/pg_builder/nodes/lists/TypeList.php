@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\lists;
 
+use sad_spirit\pg_builder\nodes\NonRecursiveNode;
 use sad_spirit\pg_builder\nodes\TypeName;
 
 /**
@@ -27,6 +28,8 @@ use sad_spirit\pg_builder\nodes\TypeName;
  */
 class TypeList extends NonAssociativeList
 {
+    use NonRecursiveNode;
+
     protected static function getAllowedElementClasses(): array
     {
         return [TypeName::class];

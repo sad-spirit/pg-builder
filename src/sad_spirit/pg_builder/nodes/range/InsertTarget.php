@@ -23,7 +23,7 @@ namespace sad_spirit\pg_builder\nodes\range;
 use sad_spirit\pg_builder\nodes\{
     GenericNode,
     Identifier,
-    LeafNode,
+    NonRecursiveNode,
     QualifiedName
 };
 use sad_spirit\pg_builder\TreeWalker;
@@ -39,7 +39,7 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class InsertTarget extends GenericNode
 {
-    use LeafNode;
+    use NonRecursiveNode;
 
     public function __construct(QualifiedName $relation, Identifier $alias = null)
     {

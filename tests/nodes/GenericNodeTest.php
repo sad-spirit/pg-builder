@@ -241,7 +241,7 @@ class GenericNodeTest extends TestCase
     public function testSetParentNodeToNullRemovesFromParent()
     {
         $child = new GenericNodeImplementation();
-        $leaf  = new LeafNodeImplementation();
+        $leaf  = new NonRecursiveNodeImplementation();
 
         $this->node->child = $child;
         $child->child      = $leaf;

@@ -23,6 +23,7 @@ namespace sad_spirit\pg_builder\nodes\lists;
 use sad_spirit\pg_builder\{
     Node,
     nodes\Identifier,
+    nodes\NonRecursiveNode,
     Token
 };
 
@@ -31,6 +32,8 @@ use sad_spirit\pg_builder\{
  */
 class IdentifierList extends NonAssociativeList
 {
+    use NonRecursiveNode;
+
     protected static function getAllowedElementClasses(): array
     {
         return [Identifier::class];

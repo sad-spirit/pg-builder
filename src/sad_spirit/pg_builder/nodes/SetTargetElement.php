@@ -34,6 +34,8 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class SetTargetElement extends NonAssociativeList
 {
+    use NonRecursiveNode;
+
     protected static function getAllowedElementClasses(): array
     {
         return [

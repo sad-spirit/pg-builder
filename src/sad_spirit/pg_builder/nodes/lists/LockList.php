@@ -23,6 +23,7 @@ namespace sad_spirit\pg_builder\nodes\lists;
 use sad_spirit\pg_builder\{
     Node,
     nodes\LockingElement,
+    nodes\NonRecursiveNode,
     Parseable,
     ElementParseable,
     Parser
@@ -33,6 +34,8 @@ use sad_spirit\pg_builder\{
  */
 class LockList extends NonAssociativeList implements Parseable, ElementParseable
 {
+    use NonRecursiveNode;
+
     protected static function getAllowedElementClasses(): array
     {
         return [LockingElement::class];

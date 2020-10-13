@@ -27,7 +27,7 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class Star extends GenericNode
 {
-    use LeafNode;
+    use NonRecursiveNode;
 
     /**
      * This is only used for constructing exception messages
