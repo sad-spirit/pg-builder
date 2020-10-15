@@ -22,7 +22,6 @@ namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\{
     Lexer,
-    Token,
     TreeWalker,
     exceptions\InvalidArgumentException,
     exceptions\SyntaxException
@@ -39,25 +38,33 @@ class QualifiedOperator extends GenericNode
 {
     use NonRecursiveNode;
 
-    /** @noinspection PhpMissingBreakStatementInspection */
+    protected $props = [
+        'catalog'  => null,
+        'schema'   => null,
+        'operator' => null
+    ];
+
+    /**
+     * QualifiedOperator constructor, requires at least the operator, accepts up to three name parts
+     *
+     * @param string|Identifier ...$nameParts
+     * @noinspection PhpMissingBreakStatementInspection
+     */
     public function __construct(...$nameParts)
     {
-        $this->props = [
-            'catalog'  => null,
-            'schema'   => null,
-            'operator' => null
-        ];
-
         switch (count($nameParts)) {
             case 3:
-                $this->setNamedProperty('catalog', $this->expectIdentifier(array_shift($nameParts), 'catalog'));
+                $this->props['catalog'] = $this->expectIdentifier(array_shift($nameParts), 'catalog');
+                $this->props['catalog']->setParentNode($this);
                 // fall-through is intentional
             case 2:
-                $this->setNamedProperty('schema', $this->expectIdentifier(array_shift($nameParts), 'schema'));
+                $this->props['schema'] = $this->expectIdentifier(array_shift($nameParts), 'schema');
+                $this->props['schema']->setParentNode($this);
                 // fall-through is intentional
             case 1:
-                $this->setNamedProperty('operator', $this->expectOperator(array_shift($nameParts)));
+                $this->props['operator'] = $this->expectOperator(array_shift($nameParts));
                 break;
+
             case 0:
                 throw new InvalidArgumentException(__CLASS__ . ' expects operator name parts, none given');
             default:
@@ -79,9 +86,9 @@ class QualifiedOperator extends GenericNode
         }
         try {
             return new Identifier($namePart);
-        } catch (InvalidArgumentException $e) {
+        } catch (\Throwable $e) {
             throw new InvalidArgumentException(sprintf(
-                "%s: %s part of operator name could not be converter to Identifier; %s",
+                "%s: %s part of operator name could not be converted to Identifier; %s",
                 __CLASS__,
                 $index,
                 $e->getMessage()
@@ -97,38 +104,23 @@ class QualifiedOperator extends GenericNode
      */
     private function expectOperator($namePart): string
     {
-        if ($namePart instanceof Token) {
-            if ($namePart->matches(Token::TYPE_SPECIAL)) {
-                $operator = $namePart->getValue();
-            } else {
-                throw new InvalidArgumentException(sprintf(
-                    '%s requires an operator token, %s given',
-                    __CLASS__,
-                    Token::typeToString($namePart->getType())
-                ));
-            }
-        } elseif (
-            is_string($namePart)
-            || is_object($namePart) && method_exists($namePart, '__toString')
-        ) {
-            $operator = (string)$namePart;
-        } else {
+        if (!is_string($namePart)) {
             throw new InvalidArgumentException(sprintf(
-                '%s requires either an instance of Token or value convertible to string, %s given',
+                '%s requires a string for an operator, %s given',
                 __CLASS__,
                 is_object($namePart) ? 'object(' . get_class($namePart) . ')' : gettype($namePart)
             ));
         }
 
-        if (strlen($operator) !== strspn($operator, Lexer::CHARS_OPERATOR)) {
+        if (strlen($namePart) !== strspn($namePart, Lexer::CHARS_OPERATOR)) {
             throw new SyntaxException(sprintf(
                 "%s: '%s' does not look like a valid operator string",
                 __CLASS__,
-                $operator
+                $namePart
             ));
         }
 
-        return $operator;
+        return $namePart;
     }
 
     /**

@@ -37,30 +37,36 @@ class QualifiedName extends GenericNode
 {
     use NonRecursiveNode;
 
-    /** @noinspection PhpMissingBreakStatementInspection */
+    protected $props = [
+        'catalog'  => null,
+        'schema'   => null,
+        'relation' => null
+    ];
+
+    /**
+     * QualifiedName constructor, requires at least one name part, accepts up to three
+     *
+     * @param string|Identifier ...$nameParts
+     * @noinspection PhpMissingBreakStatementInspection
+     */
     public function __construct(...$nameParts)
     {
-        $this->props = [
-            'catalog'  => null,
-            'schema'   => null,
-            'relation' => null
-        ];
-
         switch (count($nameParts)) {
             case 3:
-                $this->setNamedProperty('catalog', $this->expectIdentifier(array_shift($nameParts), 'catalog'));
+                $this->props['catalog'] = $this->expectIdentifier(array_shift($nameParts), 'catalog');
+                $this->props['catalog']->setParentNode($this);
                 // fall-through is intentional
             case 2:
-                $this->setNamedProperty('schema', $this->expectIdentifier(array_shift($nameParts), 'schema'));
+                $this->props['schema'] = $this->expectIdentifier(array_shift($nameParts), 'schema');
+                $this->props['schema']->setParentNode($this);
                 // fall-through is intentional
             case 1:
-                $this->setNamedProperty('relation', $this->expectIdentifier(array_shift($nameParts), 'relation'));
-                // fall-through is intentional
+                $this->props['relation'] = $this->expectIdentifier(array_shift($nameParts), 'relation');
+                $this->props['relation']->setParentNode($this);
                 break;
+
             case 0:
-                throw new InvalidArgumentException(
-                    __CLASS__ . ' expects an array containing strings or Identifiers, empty array given'
-                );
+                throw new InvalidArgumentException(__CLASS__ . ' constructor expects at least one name part');
             default:
                 throw new SyntaxException("Too many dots in qualified name: " . implode('.', $nameParts));
         }
@@ -80,14 +86,32 @@ class QualifiedName extends GenericNode
         }
         try {
             return new Identifier($namePart);
-        } catch (InvalidArgumentException $e) {
+        } catch (\Throwable $e) {
             throw new InvalidArgumentException(sprintf(
-                "%s: %s part of qualified name could not be converter to Identifier; %s",
+                "%s: %s part of qualified name could not be converted to Identifier; %s",
                 __CLASS__,
                 $index,
                 $e->getMessage()
             ));
         }
+    }
+
+    public function serialize(): string
+    {
+        return serialize(array_map(function ($prop) {
+            return $prop instanceof Identifier ? $prop->value : $prop;
+        }, $this->props));
+    }
+
+    public function unserialize($serialized)
+    {
+        $this->props = array_map(function ($prop) {
+            if (null !== $prop) {
+                $prop = new Identifier($prop);
+                $prop->parentNode = $this;
+            }
+            return $prop;
+        }, unserialize($serialized));
     }
 
     public function dispatch(TreeWalker $walker)

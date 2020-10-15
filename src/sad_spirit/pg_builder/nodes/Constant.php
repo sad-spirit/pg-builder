@@ -44,47 +44,55 @@ class Constant extends GenericNode implements ScalarExpression
 
     public function __construct($tokenOrConstant)
     {
-        if ($tokenOrConstant instanceof Token) {
-            if (
-                0 === (Token::TYPE_LITERAL & $tokenOrConstant->getType())
-                && !$tokenOrConstant->matches(Token::TYPE_KEYWORD, ['null', 'false', 'true'])
-            ) {
-                throw new InvalidArgumentException(sprintf(
-                    '%s requires a literal token, %s given',
-                    __CLASS__,
-                    Token::typeToString($tokenOrConstant->getType())
-                ));
-            }
-            $this->props['type']  = $tokenOrConstant->getType();
-            $this->props['value'] = $tokenOrConstant->getValue();
+        switch (gettype($tokenOrConstant)) {
+            case 'NULL':
+                $this->props['type']  = Token::TYPE_RESERVED_KEYWORD;
+                $this->props['value'] = 'null';
+                break;
 
-        } elseif (is_null($tokenOrConstant)) {
-            $this->props['type']  = Token::TYPE_RESERVED_KEYWORD;
-            $this->props['value'] = 'null';
+            case 'boolean':
+                $this->props['type']  = Token::TYPE_RESERVED_KEYWORD;
+                $this->props['value'] = $tokenOrConstant ? 'true' : 'false';
+                break;
 
-        } elseif (!is_scalar($tokenOrConstant)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s requires a Token instance or a scalar value, %s given',
-                __CLASS__,
-                is_object($tokenOrConstant) ? 'object(' . get_class($tokenOrConstant) . ')'
-                           : gettype($tokenOrConstant)
-            ));
+            case 'integer':
+                $this->props['type']  = Token::TYPE_INTEGER;
+                $this->props['value'] = (string)$tokenOrConstant;
+                break;
 
-        } elseif (is_bool($tokenOrConstant)) {
-            $this->props['type']  = Token::TYPE_RESERVED_KEYWORD;
-            $this->props['value'] = $tokenOrConstant ? 'true' : 'false';
+            case 'double':
+                $this->props['type']  = Token::TYPE_FLOAT;
+                $this->props['value'] = str_replace(',', '.', (string)$tokenOrConstant);
+                break;
 
-        } elseif (is_float($tokenOrConstant)) {
-            $this->props['type']  = Token::TYPE_FLOAT;
-            $this->props['value'] = str_replace(',', '.', (string)$tokenOrConstant);
+            case 'string':
+                $this->props['type']  = Token::TYPE_STRING;
+                $this->props['value'] = $tokenOrConstant;
+                break;
 
-        } elseif (is_int($tokenOrConstant)) {
-            $this->props['type']  = Token::TYPE_INTEGER;
-            $this->props['value'] = (string)$tokenOrConstant;
+            default:
+                if (!$tokenOrConstant instanceof Token) {
+                    throw new InvalidArgumentException(sprintf(
+                        '%s requires a Token instance or a scalar value, %s given',
+                        __CLASS__,
+                        is_object($tokenOrConstant)
+                            ? 'object(' . get_class($tokenOrConstant) . ')'
+                            : gettype($tokenOrConstant)
+                    ));
 
-        } else {
-            $this->props['type']  = Token::TYPE_STRING;
-            $this->props['value'] = $tokenOrConstant;
+                } elseif (
+                    0 === (Token::TYPE_LITERAL & $tokenOrConstant->getType())
+                    && !$tokenOrConstant->matches(Token::TYPE_KEYWORD, ['null', 'false', 'true'])
+                ) {
+                    throw new InvalidArgumentException(sprintf(
+                        '%s requires a literal token, %s given',
+                        __CLASS__,
+                        Token::typeToString($tokenOrConstant->getType())
+                    ));
+
+                }
+                $this->props['type']  = $tokenOrConstant->getType();
+                $this->props['value'] = $tokenOrConstant->getValue();
         }
     }
 

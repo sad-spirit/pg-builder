@@ -42,42 +42,54 @@ class Identifier extends GenericNode
         'value' => ''
     ];
 
-    public function __construct($tokenOrValue)
+    public function __construct(string $value)
     {
-        if ($tokenOrValue instanceof Token) {
-            if (0 !== ((Token::TYPE_IDENTIFIER | Token::TYPE_KEYWORD) & $tokenOrValue->getType())) {
-                $this->props['value'] = $tokenOrValue->getValue();
-            } else {
-                throw new InvalidArgumentException(sprintf(
-                    '%s requires an identifier or keyword token, %s given',
-                    __CLASS__,
-                    Token::typeToString($tokenOrValue->getType())
-                ));
-            }
-        } elseif (
-            is_scalar($tokenOrValue)
-            || is_object($tokenOrValue) && method_exists($tokenOrValue, '__toString')
-        ) {
-            $this->props['value'] = (string)$tokenOrValue;
-        } else {
-            throw new InvalidArgumentException(sprintf(
-                '%s requires either an instance of Token or value convertible to string, %s given',
-                __CLASS__,
-                is_object($tokenOrValue) ? 'object(' . get_class($tokenOrValue) . ')' : gettype($tokenOrValue)
-            ));
+        if ('' === $value) {
+            throw new InvalidArgumentException("Identifier cannot be an empty string");
         }
+        $this->props['value'] = $value;
     }
 
+    /**
+     * Creates an instance of Identifier from identifier or keyword Token
+     *
+     * @param Token $token
+     * @return static
+     */
+    public static function createFromToken(Token $token): self
+    {
+        if (0 === ((Token::TYPE_IDENTIFIER | Token::TYPE_KEYWORD) & $token->getType())) {
+            throw new InvalidArgumentException(sprintf(
+                '%s requires an identifier or keyword token, %s given',
+                __CLASS__,
+                Token::typeToString($token->getType())
+            ));
+        }
+
+        return new self($token->getValue());
+    }
+
+    /**
+     * As Identifier cannot have any child Nodes, this just removes link to parent node
+     */
     public function __clone()
     {
         $this->parentNode = null;
     }
 
+    /**
+     * Serialized representation of Identifier is its value property
+     * @return string
+     */
     public function serialize(): string
     {
         return $this->props['value'];
     }
 
+    /**
+     * Sets the value property from given string
+     * @param string $serialized
+     */
     public function unserialize($serialized)
     {
         $this->props['value'] = $serialized;

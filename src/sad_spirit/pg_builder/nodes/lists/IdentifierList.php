@@ -23,8 +23,7 @@ namespace sad_spirit\pg_builder\nodes\lists;
 use sad_spirit\pg_builder\{
     Node,
     nodes\Identifier,
-    nodes\NonRecursiveNode,
-    Token
+    nodes\NonRecursiveNode
 };
 
 /**
@@ -41,7 +40,7 @@ class IdentifierList extends NonAssociativeList
 
     protected function prepareListElement($value): Node
     {
-        if (is_string($value) || $value instanceof Token) {
+        if (!$value instanceof Identifier) {
             $value = new Identifier($value);
         }
         return parent::prepareListElement($value);

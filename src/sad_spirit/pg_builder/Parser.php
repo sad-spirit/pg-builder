@@ -1754,13 +1754,13 @@ class Parser
             )
         ) {
             // ColId
-            $parts[] = new nodes\Identifier($this->stream->next());
+            $parts[] = nodes\Identifier::createFromToken($this->stream->next());
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '.');
         }
         if ($this->stream->matches(Token::TYPE_SPECIAL, self::MATH_OPERATORS)) {
-            $parts[] = $this->stream->next();
+            $parts[] = $this->stream->next()->getValue();
         } else {
-            $parts[] = $this->stream->expect(Token::TYPE_OPERATOR);
+            $parts[] = $this->stream->expect(Token::TYPE_OPERATOR)->getValue();
         }
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
@@ -2139,14 +2139,14 @@ class Parser
 
         $modifiers = null;
         if (empty($typeName)) {
-            $typeName = [new nodes\Identifier($this->stream->next())];
+            $typeName = [nodes\Identifier::createFromToken($this->stream->next())];
             while ($this->stream->matchesSpecialChar('.')) {
                 $this->stream->next();
                 if ($this->stream->matches(Token::TYPE_IDENTIFIER)) {
-                    $typeName[] = new nodes\Identifier($this->stream->next());
+                    $typeName[] = nodes\Identifier::createFromToken($this->stream->next());
                 } else {
                     // any keyword goes, see ColLabel
-                    $typeName[] = new nodes\Identifier($this->stream->expect(Token::TYPE_KEYWORD));
+                    $typeName[] = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_KEYWORD));
                 }
             }
         }
@@ -2187,7 +2187,7 @@ class Parser
             )
         ) {
             // allows ColId
-            return new nodes\Identifier($this->stream->next());
+            return nodes\Identifier::createFromToken($this->stream->next());
 
         } else {
             throw new exceptions\SyntaxException(
@@ -2392,7 +2392,7 @@ class Parser
             $this->stream->expect(Token::TYPE_IDENTIFIER);
         }
 
-        $identifiers = [new nodes\Identifier($token)];
+        $identifiers = [nodes\Identifier::createFromToken($token)];
 
         $lookIdx = 1;
         while ($this->stream->look($lookIdx)->matches(Token::TYPE_SPECIAL_CHAR, '.')) {
@@ -2400,7 +2400,7 @@ class Parser
             if (!$token->matches(Token::TYPE_IDENTIFIER) && !$token->matches(Token::TYPE_KEYWORD)) {
                 break;
             }
-            $identifiers[]  = new nodes\Identifier($token);
+            $identifiers[]  = nodes\Identifier::createFromToken($token);
             $lookIdx       += 2;
         }
 
@@ -2738,9 +2738,9 @@ class Parser
             case 'xmlpi':
                 $this->stream->expect(Token::TYPE_KEYWORD, 'name');
                 if ($this->stream->matches(Token::TYPE_KEYWORD)) {
-                    $name = new nodes\Identifier($this->stream->next());
+                    $name = nodes\Identifier::createFromToken($this->stream->next());
                 } else {
-                    $name = new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
+                    $name = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
                 }
                 $content = null;
                 if ($this->stream->matchesSpecialChar(',')) {
@@ -2878,9 +2878,9 @@ class Parser
     {
         $this->stream->expect(Token::TYPE_KEYWORD, 'name');
         if ($this->stream->matches(Token::TYPE_KEYWORD)) {
-            $name = new nodes\Identifier($this->stream->next());
+            $name = nodes\Identifier::createFromToken($this->stream->next());
         } else {
-            $name = new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
+            $name = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
         }
         $attributes = $content = null;
         if ($this->stream->matchesSpecialChar(',')) {
@@ -2942,9 +2942,9 @@ class Parser
         if ($this->stream->matchesKeyword('as')) {
             $this->stream->next();
             if ($this->stream->matches(Token::TYPE_KEYWORD)) {
-                $attName = new nodes\Identifier($this->stream->next());
+                $attName = nodes\Identifier::createFromToken($this->stream->next());
             } else {
-                $attName = new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
+                $attName = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
             }
         }
         return new nodes\TargetElement($value, $attName);
@@ -3115,14 +3115,14 @@ class Parser
         } else {
             $firstToken = $this->stream->expect(Token::TYPE_IDENTIFIER);
         }
-        $funcName = [new nodes\Identifier($firstToken)];
+        $funcName = [nodes\Identifier::createFromToken($firstToken)];
 
         while ($this->stream->matchesSpecialChar('.')) {
             $this->stream->next();
             if ($this->stream->matches(Token::TYPE_KEYWORD)) {
-                $funcName[] = new nodes\Identifier($this->stream->next());
+                $funcName[] = nodes\Identifier::createFromToken($this->stream->next());
             } else {
-                $funcName[] = new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
+                $funcName[] = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
             }
         }
 
@@ -3153,9 +3153,9 @@ class Parser
             || $this->stream->look(1)->matches(Token::TYPE_EQUALS_GREATER)
         ) {
             if ($this->stream->matchesAnyType(Token::TYPE_UNRESERVED_KEYWORD, Token::TYPE_TYPE_FUNC_NAME_KEYWORD)) {
-                $name = new nodes\Identifier($this->stream->next());
+                $name = nodes\Identifier::createFromToken($this->stream->next());
             } else {
-                $name = new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
+                $name = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
             }
             $this->stream->next();
         }
@@ -3195,9 +3195,9 @@ class Parser
                     $indirection[] = new nodes\Star();
                     break;
                 } elseif ($this->stream->matches(Token::TYPE_KEYWORD)) {
-                    $indirection[] = new nodes\Identifier($this->stream->next());
+                    $indirection[] = nodes\Identifier::createFromToken($this->stream->next());
                 } else {
-                    $indirection[] = new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
+                    $indirection[] = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
                 }
 
             } else {
@@ -3247,14 +3247,14 @@ class Parser
         }
         $element = $this->Expression();
         if ($this->stream->matches(Token::TYPE_IDENTIFIER)) {
-            $alias = new nodes\Identifier($this->stream->next());
+            $alias = nodes\Identifier::createFromToken($this->stream->next());
 
         } elseif ($this->stream->matchesKeyword('as')) {
             $this->stream->next();
             if ($this->stream->matches(Token::TYPE_KEYWORD)) {
-                $alias = new nodes\Identifier($this->stream->next());
+                $alias = nodes\Identifier::createFromToken($this->stream->next());
             } else {
-                $alias = new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
+                $alias = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
             }
         }
 
@@ -3625,9 +3625,9 @@ class Parser
     protected function ColId(): nodes\Identifier
     {
         if ($this->stream->matchesAnyType(Token::TYPE_UNRESERVED_KEYWORD, Token::TYPE_COL_NAME_KEYWORD)) {
-            return new nodes\Identifier($this->stream->next());
+            return nodes\Identifier::createFromToken($this->stream->next());
         } else {
-            return new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
+            return nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
         }
     }
 
@@ -3638,9 +3638,9 @@ class Parser
         while ($this->stream->matchesSpecialChar('.')) {
             $this->stream->next();
             if ($this->stream->matches(Token::TYPE_KEYWORD)) {
-                $parts[] = new nodes\Identifier($this->stream->next());
+                $parts[] = nodes\Identifier::createFromToken($this->stream->next());
             } else {
-                $parts[] = new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
+                $parts[] = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
             }
         }
 
@@ -3885,9 +3885,9 @@ class Parser
             $value = $this->RestrictedExpression();
             $this->stream->expect(Token::TYPE_KEYWORD, 'as');
             if ($this->stream->matches(Token::TYPE_KEYWORD)) {
-                $alias = new nodes\Identifier($this->stream->next());
+                $alias = nodes\Identifier::createFromToken($this->stream->next());
             } else {
-                $alias = new nodes\Identifier($this->stream->expect(Token::TYPE_IDENTIFIER));
+                $alias = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
             }
         }
 

@@ -39,35 +39,41 @@ class ColumnReference extends GenericNode implements ScalarExpression
     use NonRecursiveNode;
     use ExpressionAtom;
 
-    /** @noinspection PhpMissingBreakStatementInspection */
+    protected $props = [
+        'catalog'  => null,
+        'schema'   => null,
+        'relation' => null,
+        'column'   => null
+    ];
+
+    /**
+     * ColumnReference constructor, requires at least one name part, accepts up to four
+     *
+     * @param string|Identifier|Star ...$parts
+     * @noinspection PhpMissingBreakStatementInspection
+     */
     public function __construct(...$parts)
     {
-        $this->props = [
-            'catalog'  => null,
-            'schema'   => null,
-            'relation' => null,
-            'column'   => null
-        ];
-
         switch (count($parts)) {
             case 4:
-                $this->setNamedProperty('catalog', $this->expectIdentifier(array_shift($parts), 'catalog'));
+                $this->props['catalog'] = $this->expectIdentifier(array_shift($parts), 'catalog');
+                $this->props['catalog']->setParentNode($this);
                 // fall-through is intentional
             case 3:
-                $this->setNamedProperty('schema', $this->expectIdentifier(array_shift($parts), 'schema'));
+                $this->props['schema'] = $this->expectIdentifier(array_shift($parts), 'schema');
+                $this->props['schema']->setParentNode($this);
                 // fall-through is intentional
             case 2:
-                $this->setNamedProperty('relation', $this->expectIdentifier(array_shift($parts), 'relation'));
+                $this->props['relation'] = $this->expectIdentifier(array_shift($parts), 'relation');
+                $this->props['relation']->setParentNode($this);
                 // fall-through is intentional
             case 1:
-                $this->setNamedProperty('column', $this->expectIdentifierOrStar(array_shift($parts)));
+                $this->props['column'] = $this->expectIdentifierOrStar(array_shift($parts));
+                $this->props['column']->setParentNode($this);
                 break;
 
             case 0:
-                throw new InvalidArgumentException(
-                    __CLASS__ . ' expects an array containing strings or Identifiers, empty array given'
-                );
-
+                throw new InvalidArgumentException(__CLASS__ . ' constructor expects at least one name part');
             default:
                 throw new SyntaxException("Too many dots in column reference: " . implode('.', $parts));
         }
@@ -104,14 +110,35 @@ class ColumnReference extends GenericNode implements ScalarExpression
         }
         try {
             return new Identifier($namePart);
-        } catch (InvalidArgumentException $e) {
+        } catch (\Throwable $e) {
             throw new InvalidArgumentException(sprintf(
-                "%s: %s part of column reference could not be converter to Identifier; %s",
+                "%s: %s part of column reference could not be converted to Identifier; %s",
                 __CLASS__,
                 $index,
                 $e->getMessage()
             ));
         }
+    }
+
+    public function serialize(): string
+    {
+        return serialize(array_map(function ($prop) {
+            if (null !== $prop) {
+                return $prop instanceof Identifier ? $prop->value : '';
+            }
+            return null;
+        }, $this->props));
+    }
+
+    public function unserialize($serialized)
+    {
+        $this->props = array_map(function ($prop) {
+            if (null !== $prop) {
+                $prop = '' === $prop ? new Star() : new Identifier($prop);
+                $prop->parentNode = $this;
+            }
+            return $prop;
+        }, unserialize($serialized));
     }
 
     /**
