@@ -30,6 +30,12 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class Indirection extends NonAssociativeList implements ScalarExpression
 {
+    use HasBothPropsAndOffsets;
+
+    protected $props = [
+        'expression' => null
+    ];
+
     protected static function getAllowedElementClasses(): array
     {
         return [

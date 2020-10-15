@@ -24,6 +24,7 @@ use sad_spirit\pg_builder\{
     TreeWalker,
     exceptions\InvalidArgumentException,
     nodes\ExpressionAtom,
+    nodes\HasBothPropsAndOffsets,
     nodes\ScalarExpression
 };
 use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
@@ -37,6 +38,12 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 class CaseExpression extends NonAssociativeList implements ScalarExpression
 {
     use ExpressionAtom;
+    use HasBothPropsAndOffsets;
+
+    protected $props = [
+        'argument' => null,
+        'else'     => null
+    ];
 
     protected static function getAllowedElementClasses(): array
     {
@@ -46,7 +53,7 @@ class CaseExpression extends NonAssociativeList implements ScalarExpression
     public function __construct($whenClauses, ScalarExpression $elseClause = null, ScalarExpression $argument = null)
     {
         parent::__construct($whenClauses);
-        if (1 > count($this->nodes)) {
+        if (1 > count($this->offsets)) {
             throw new InvalidArgumentException(__CLASS__ . ': at least one WHEN clause is required');
         }
         $this->setNamedProperty('argument', $argument);

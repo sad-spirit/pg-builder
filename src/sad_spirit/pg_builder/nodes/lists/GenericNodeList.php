@@ -41,7 +41,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * Child nodes available through ArrayAccess
      * @var Node[]
      */
-    protected $nodes = [];
+    protected $offsets = [];
 
     /**
      * Instances of these classes / interfaces will be allowed as list elements (Node is always checked)
@@ -73,7 +73,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     public function __clone()
     {
         parent::__clone();
-        foreach ($this->nodes as &$node) {
+        foreach ($this->offsets as &$node) {
             $node = clone $node;
             if ($node instanceof GenericNode) {
                 $node->parentNode = $this;
@@ -84,20 +84,30 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     }
 
     /**
-     * Limits serialization to only $props and $nodes properties
+     * GenericNodeList only serializes its $offsets property by default
+     * @return string
      */
-    public function __sleep()
+    public function serialize(): string
     {
-        return array_merge(parent::__sleep(), ['nodes']);
+        return serialize($this->offsets);
     }
 
     /**
-     * Restores the parent node link for child nodes on unserializing the object
+     * GenericNodeList only unserializes its $offsets property by default
+     * @param string $serialized
      */
-    public function __wakeup()
+    public function unserialize($serialized)
     {
-        parent::__wakeup();
-        foreach ($this->nodes as $node) {
+        $this->offsets = unserialize($serialized);
+        $this->updateParentNodeOnOffsets();
+    }
+
+    /**
+     * Restores the parent node link for array offsets on unserializing the object
+     */
+    protected function updateParentNodeOnOffsets(): void
+    {
+        foreach ($this->offsets as $node) {
             if ($node instanceof GenericNode) {
                 $node->parentNode = $this;
             } else {
@@ -113,7 +123,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      */
     public function offsetExists($offset)
     {
-        return isset($this->nodes[$offset]);
+        return isset($this->offsets[$offset]);
     }
 
     /**
@@ -123,8 +133,8 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      */
     public function offsetGet($offset)
     {
-        if (isset($this->nodes[$offset])) {
-            return $this->nodes[$offset];
+        if (isset($this->offsets[$offset])) {
+            return $this->offsets[$offset];
         }
 
         throw new InvalidArgumentException("Undefined offset '{$offset}'");
@@ -137,25 +147,17 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      */
     public function offsetSet($offset, $value)
     {
-        $this->offsetSetPrepared($offset, $this->prepareListElement($value));
-    }
+        $prepared = $this->prepareListElement($value);
 
-    /**
-     * Stores the given Node at the given offset
-     *
-     * @param int|string|null $offset
-     * @param Node            $value
-     */
-    protected function offsetSetPrepared($offset, Node $value)
-    {
         if (null === $offset) {
-            $this->nodes[] = $value;
+            $this->offsets[] = $prepared;
+        } elseif (!isset($this->offsets[$offset])) {
+            $this->offsets[$offset] = $prepared;
         } else {
-            if (isset($this->nodes[$offset])) {
-                $oldNode = $this->nodes[$offset];
-            }
-            $this->nodes[$offset] = $value;
-            if (isset($oldNode)) {
+            [$oldNode, $this->offsets[$offset]] = [$this->offsets[$offset], $prepared];
+            if ($oldNode instanceof GenericNode) {
+                $oldNode->parentNode = null;
+            } else {
                 $oldNode->setParentNode(null);
             }
         }
@@ -168,9 +170,13 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      */
     public function offsetUnset($offset)
     {
-        if (array_key_exists($offset, $this->nodes)) {
-            $this->nodes[$offset]->setParentNode(null);
-            unset($this->nodes[$offset]);
+        if (isset($this->offsets[$offset])) {
+            if ($this->offsets[$offset] instanceof GenericNode) {
+                $this->offsets[$offset]->parentNode = null;
+            } else {
+                $this->offsets[$offset]->setParentNode(null);
+            }
+            unset($this->offsets[$offset]);
         }
     }
 
@@ -181,7 +187,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      */
     public function count()
     {
-        return count($this->nodes);
+        return count($this->offsets);
     }
 
     /**
@@ -191,7 +197,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      */
     public function getIterator()
     {
-        return new \ArrayIterator($this->nodes);
+        return new \ArrayIterator($this->offsets);
     }
 
     /**
@@ -204,7 +210,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
             $prepared[] = $this->convertToArray($list, __METHOD__);
         }
 
-        $this->nodes = array_merge($this->nodes, ...$prepared);
+        $this->offsets = array_merge($this->offsets, ...$prepared);
     }
 
     /**
@@ -214,10 +220,10 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     {
         $prepared = $this->convertToArray($list, __METHOD__);
 
-        foreach ($this->nodes as $node) {
+        foreach ($this->offsets as $node) {
             $node->setParentNode(null);
         }
-        $this->nodes = $prepared;
+        $this->offsets = $prepared;
     }
 
     /**
@@ -235,7 +241,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     {
         if (
             null === ($result = parent::replaceChild($oldChild, $newChild))
-            && false !== ($key = array_search($oldChild, $this->nodes, true))
+            && false !== ($key = array_search($oldChild, $this->offsets, true))
         ) {
             $this->offsetSet($key, $newChild);
             // offsetSet() is expected to check the value itself
@@ -251,7 +257,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     {
         if (
             null === ($result = parent::removeChild($child))
-            && false !== ($key = array_search($child, $this->nodes, true))
+            && false !== ($key = array_search($child, $this->offsets, true))
         ) {
             $this->offsetUnset($key);
             return $child;

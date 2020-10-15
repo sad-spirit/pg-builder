@@ -39,6 +39,12 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  */
 class IndexParameters extends NonAssociativeList implements Parseable, ElementParseable
 {
+    use HasBothPropsAndOffsets;
+
+    protected $props = [
+        'where' => null
+    ];
+
     protected static function getAllowedElementClasses(): array
     {
         return [IndexElement::class];
@@ -48,7 +54,7 @@ class IndexParameters extends NonAssociativeList implements Parseable, ElementPa
     {
         parent::__construct($list);
         $this->props['where'] = new WhereOrHavingClause();
-        $this->props['where']->setParentNode($this);
+        $this->props['where']->parentNode = $this;
     }
 
     public static function createFromString(Parser $parser, string $sql): Node

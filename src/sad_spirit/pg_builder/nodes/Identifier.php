@@ -38,6 +38,10 @@ class Identifier extends GenericNode
 
     private static $needsQuoting = [];
 
+    protected $props = [
+        'value' => ''
+    ];
+
     public function __construct($tokenOrValue)
     {
         if ($tokenOrValue instanceof Token) {
@@ -62,6 +66,21 @@ class Identifier extends GenericNode
                 is_object($tokenOrValue) ? 'object(' . get_class($tokenOrValue) . ')' : gettype($tokenOrValue)
             ));
         }
+    }
+
+    public function __clone()
+    {
+        $this->parentNode = null;
+    }
+
+    public function serialize(): string
+    {
+        return $this->props['value'];
+    }
+
+    public function unserialize($serialized)
+    {
+        $this->props['value'] = $serialized;
     }
 
     /**

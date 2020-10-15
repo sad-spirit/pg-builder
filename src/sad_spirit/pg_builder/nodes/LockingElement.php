@@ -34,6 +34,7 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 class LockingElement extends NonAssociativeList
 {
     use NonRecursiveNode;
+    use HasBothPropsAndOffsets;
 
     public const UPDATE        = 'update';
     public const NO_KEY_UPDATE = 'no key update';
@@ -45,6 +46,12 @@ class LockingElement extends NonAssociativeList
         self::NO_KEY_UPDATE => true,
         self::SHARE         => true,
         self::KEY_SHARE     => true
+    ];
+
+    protected $props = [
+        'strength'   => self::UPDATE,
+        'noWait'     => false,
+        'skipLocked' => false
     ];
 
     protected static function getAllowedElementClasses(): array

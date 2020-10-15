@@ -29,7 +29,7 @@ use sad_spirit\pg_builder\{
 /**
  * Base class for AST nodes
  */
-abstract class GenericNode implements Node
+abstract class GenericNode implements Node, \Serializable
 {
     /**
      * Properties accessible through magic __get() and (sometimes) __set() methods
@@ -116,17 +116,28 @@ abstract class GenericNode implements Node
     }
 
     /**
-     * Limits serialization to only $props property
+     * GenericNode only serializes its $props property by default
+     * @return string
      */
-    public function __sleep()
+    public function serialize(): string
     {
-        return ['props'];
+        return serialize($this->props);
+    }
+
+    /**
+     * GenericNode only unserializes its $props property by default
+     * @param string $serialized
+     */
+    public function unserialize($serialized)
+    {
+        $this->props = unserialize($serialized);
+        $this->updateParentNodeOnProps();
     }
 
     /**
      * Restores the parent node link for child nodes on unserializing the object
      */
-    public function __wakeup()
+    protected function updateParentNodeOnProps(): void
     {
         foreach ($this->props as $item) {
             if ($item instanceof self) {
@@ -135,7 +146,6 @@ abstract class GenericNode implements Node
                 $item->setParentNode($this);
             }
         }
-        $this->settingParentNode = false;
     }
 
     /**

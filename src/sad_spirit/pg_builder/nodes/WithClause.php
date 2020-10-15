@@ -36,6 +36,10 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  */
 class WithClause extends NonAssociativeList implements Parseable, ElementParseable
 {
+    protected $props = [
+        'recursive' => false
+    ];
+
     protected static function getAllowedElementClasses(): array
     {
         return [CommonTableExpression::class];
@@ -45,6 +49,17 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
     {
         parent::__construct($commonTableExpressions);
         $this->setRecursive($recursive);
+    }
+
+    public function serialize(): string
+    {
+        return ($this->props['recursive'] ? 't' : 'f') . '|' . parent::serialize();
+    }
+
+    public function unserialize($serialized)
+    {
+        $this->props['recursive'] = 't' === $serialized[0];
+        parent::unserialize(substr($serialized, 2));
     }
 
     public function dispatch(TreeWalker $walker)

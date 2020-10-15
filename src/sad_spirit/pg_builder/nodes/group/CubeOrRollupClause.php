@@ -39,10 +39,34 @@ class CubeOrRollupClause extends ExpressionList implements GroupByElement
         self::ROLLUP => true
     ];
 
+    protected $props = [
+        'type' => self::CUBE
+    ];
+
     public function __construct($list = null, string $type = self::CUBE)
     {
         parent::__construct($list);
         $this->setType($type);
+    }
+
+    /**
+     * Adds type property to serialized string produced by GenericNodeList
+     * @return string
+     */
+    public function serialize(): string
+    {
+        return $this->props['type'] . '|' . parent::serialize();
+    }
+
+    /**
+     * Unserializes both type property and offsets
+     * @param string $serialized
+     */
+    public function unserialize($serialized)
+    {
+        $pos = strpos($serialized, '|');
+        $this->props['type'] = substr($serialized, 0, $pos);
+        parent::unserialize(substr($serialized, $pos + 1));
     }
 
     public function setType(string $type): void

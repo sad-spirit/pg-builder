@@ -67,6 +67,16 @@ class Parameter extends GenericNode implements ScalarExpression
         }
     }
 
+    public function __clone()
+    {
+        $this->parentNode = null;
+    }
+
+    public function unserialize($serialized)
+    {
+        $this->props = unserialize($serialized);
+    }
+
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkParameter($this);

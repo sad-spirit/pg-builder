@@ -37,6 +37,11 @@ class Constant extends GenericNode implements ScalarExpression
     use NonRecursiveNode;
     use ExpressionAtom;
 
+    protected $props = [
+        'type'  => 0,
+        'value' => ''
+    ];
+
     public function __construct($tokenOrConstant)
     {
         if ($tokenOrConstant instanceof Token) {
@@ -81,6 +86,16 @@ class Constant extends GenericNode implements ScalarExpression
             $this->props['type']  = Token::TYPE_STRING;
             $this->props['value'] = $tokenOrConstant;
         }
+    }
+
+    public function __clone()
+    {
+        $this->parentNode = null;
+    }
+
+    public function unserialize($serialized)
+    {
+        $this->props = unserialize($serialized);
     }
 
     public function dispatch(TreeWalker $walker)

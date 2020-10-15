@@ -42,6 +42,10 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
         self::OR  => self::PRECEDENCE_OR
     ];
 
+    protected $props = [
+        'operator' => self::AND
+    ];
+
     public function __construct($terms = null, string $operator = self::AND)
     {
         if (!isset(self::PRECEDENCES[$operator])) {
@@ -49,6 +53,26 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
         }
         parent::__construct($terms);
         $this->props['operator'] = $operator;
+    }
+
+    /**
+     * Adds operator property to serialized string produced by GenericNodeList
+     * @return string
+     */
+    public function serialize(): string
+    {
+        return $this->props['operator'] . '|' . parent::serialize();
+    }
+
+    /**
+     * Unserializes both type property and offsets
+     * @param string $serialized
+     */
+    public function unserialize($serialized)
+    {
+        $pos = strpos($serialized, '|');
+        $this->props['operator'] = substr($serialized, 0, $pos);
+        parent::unserialize(substr($serialized, $pos + 1));
     }
 
     public function dispatch(TreeWalker $walker)
