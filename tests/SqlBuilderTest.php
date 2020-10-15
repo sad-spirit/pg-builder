@@ -83,6 +83,13 @@ QRY
             $this->parser->parseStatement($built),
             'AST of the built statement should be equal to that of the original statement'
         );
+
+        $unserialized = unserialize(serialize($parsed));
+        $this->assertEquals(
+            $parsed,
+            $unserialized,
+            'AST of unserialized statement should be equal to that of the original'
+        );
     }
 
     public function testBuildInsertStatement()
@@ -113,6 +120,13 @@ QRY
             $parsed,
             $this->parser->parseStatement($built),
             'AST of the built statement should be equal to that of the original statement'
+        );
+
+        $unserialized = unserialize(serialize($parsed));
+        $this->assertEquals(
+            $parsed,
+            $unserialized,
+            'AST of unserialized statement should be equal to that of the original'
         );
     }
 
@@ -189,6 +203,13 @@ QRY
             $this->parser->parseStatement($built),
             'AST of the built statement should be equal to that of the original statement'
         );
+
+        $unserialized = unserialize(serialize($parsed));
+        $this->assertEquals(
+            $parsed,
+            $unserialized,
+            'AST of unserialized statement should be equal to that of the original'
+        );
     }
 
     public function testBuildUpdateStatement()
@@ -210,6 +231,13 @@ QRY
             $parsed,
             $this->parser->parseStatement($built),
             'AST of the built statement should be equal to that of the original statement'
+        );
+
+        $unserialized = unserialize(serialize($parsed));
+        $this->assertEquals(
+            $parsed,
+            $unserialized,
+            'AST of unserialized statement should be equal to that of the original'
         );
     }
 

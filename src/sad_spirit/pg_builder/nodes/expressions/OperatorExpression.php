@@ -89,7 +89,11 @@ class OperatorExpression extends GenericNode implements ScalarExpression
         }
         $this->setNamedProperty('left', $left);
         $this->setNamedProperty('right', $right);
-        $this->props['operator'] = $operator;
+        if (!$operator instanceof QualifiedOperator) {
+            $this->props['operator'] = $operator;
+        } else {
+            $this->setNamedProperty('operator', $operator);
+        }
     }
 
     public function setLeft(ScalarExpression $left = null): void

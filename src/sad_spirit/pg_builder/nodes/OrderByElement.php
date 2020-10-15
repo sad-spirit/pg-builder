@@ -75,7 +75,11 @@ class OrderByElement extends GenericNode
         $this->setNamedProperty('expression', $expression);
         $this->props['direction']  = $direction;
         $this->props['nullsOrder'] = $nullsOrder;
-        $this->props['operator']   = $operator;
+        if (!$operator instanceof QualifiedOperator) {
+            $this->props['operator'] = $operator;
+        } else {
+            $this->setNamedProperty('operator', $operator);
+        }
     }
 
     public function setExpression(ScalarExpression $expression): void
