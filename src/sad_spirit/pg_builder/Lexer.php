@@ -55,18 +55,15 @@ class Lexer
      *  'standard_conforming_strings' - the same meaning as the postgresql.conf parameter. When true (default),
      *      then backslashes in '...' strings are treated literally, when false they are treated as escape
      *      characters.
-     *  'ascii_only_downcasing' - when true only ASCII letters in unquoted identifiers will be converted to
-     *      lower case, when false all letters (according to current mbstring encoding / locale). Only should
-     *      be set to false for single-byte encodings (see changelog for Postgres releases @ 2013-10-10)!
      *
      * @param array $options
      */
     public function __construct(array $options = [])
     {
-        $this->options  = array_merge([
-            'standard_conforming_strings' => true,
-            'ascii_only_downcasing'       => true
-        ], $options);
+        $this->options = array_merge(
+            ['standard_conforming_strings' => true],
+            $options
+        );
 
         $this->operatorCharHash     = array_flip(str_split(self::CHARS_OPERATOR));
         $this->specialCharHash      = array_flip(str_split(self::CHARS_SPECIAL));
@@ -152,9 +149,6 @@ REGEXP;
                 if (isset(Keywords::LIST[$lowCase])) {
                     $this->tokens[] = new Token(Keywords::LIST[$lowCase], $lowCase, $this->position);
                 } else {
-                    if (!$this->options['ascii_only_downcasing']) {
-                        $lowCase = extension_loaded('mbstring') ? mb_strtolower($lowCase) : strtolower($lowCase);
-                    }
                     $this->tokens[] = new Token(Token::TYPE_IDENTIFIER, $lowCase, $this->position);
                 }
                 $this->position += strlen($m[7]);
