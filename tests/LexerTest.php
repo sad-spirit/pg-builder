@@ -167,6 +167,16 @@ QRY
         $this->assertEquals('foo\\bar', $stream2->next()->getValue());
         $this->assertEquals('foo\\bar', $stream2->next()->getValue());
     }
+    
+    public function testCharacterEscapes()
+    {
+        $string = " e'\\xd0\\274\\320\\xbe\\320\\273\\xd0\\276\\320\\xb4\\320\\276\\xd0\\271 "
+                  . "\\u0441\\u043b\\u043e\\u043d\\U0000043e\\u043a "
+                  . "\\xd0\\275\\320\\xbe\\321\\201\\xd0\\260\\321\\x82\\321\\213\\xd0\\271' ";
+
+        $stream = $this->lexer->tokenize($string);
+        $this->assertEquals("молодой слонок носатый", $stream->next()->getValue());
+    }
 
     public function testDollarQuotedString()
     {

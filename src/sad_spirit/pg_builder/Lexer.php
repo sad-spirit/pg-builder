@@ -37,6 +37,19 @@ class Lexer
      */
     private const CHARS_SPECIAL  = ',()[].;:+-*/%^<>=';
 
+    /**
+     * Replacements for simple backslash escapes in e'...' strings
+     * @var array
+     * @link https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS-ESCAPE
+     */
+    private static $replacements = [
+        'b'  => "\10", // backspace, no equivalent in PHP
+        'f'  => "\f",
+        'n'  => "\n",
+        'r'  => "\r",
+        't'  => "\t"
+    ];
+
     private $source;
     private $position;
     private $length;
@@ -353,13 +366,85 @@ REGEXP;
             } elseif ($regex === $regexNoSlashes) {
                 $value .= strtr($m[1], ["''" => "'"]);
             } else {
-                $value .= strtr(stripcslashes($m[1]), ["''" => "'"]);
+                try {
+                    $value .= strtr(self::replaceEscapeSequences($m[1]), ["''" => "'"]);
+                } catch (exceptions\SyntaxException $e) {
+                    throw exceptions\SyntaxException::atPosition($e->getMessage(), $this->source, $this->position);
+                }
             }
             $this->position += ('' === $char ? 0 : 1) + strlen($m[0]);
             $char            = '';
         } while (preg_match("/{$concat}/Ax", $this->source, $m, 0, $this->position));
 
         $this->tokens[] = new Token($type, $value, $realPosition);
+    }
+
+    /**
+     * Replaces escape sequences in string constants with C-style escapes
+     *
+     * @param string $escaped String constant without quotes
+     * @return string String with escape sequences replaced
+     */
+    private static function replaceEscapeSequences(string $escaped): string
+    {
+        return preg_replace_callback(
+            '!\\\\(x[0-9a-fA-F]{1,2}|[0-7]{1,3}|u[0-9a-fA-F]{0,4}|U[0-9a-fA-F]{0,8}|[^0-7])!',
+            function ($matches) {
+                $sequence = $matches[1];
+
+                if (isset(self::$replacements[$sequence])) {
+                    return self::$replacements[$sequence];
+
+                } elseif ('x' === $sequence[0]) {
+                    return chr(hexdec(substr($sequence, 1)));
+
+                } elseif ('u' === $sequence[0] || 'U' === $sequence[0]) {
+                    $expected = 'u' === $sequence[0] ? 5 : 9;
+                    if ($expected > strlen($sequence)) {
+                        throw new exceptions\SyntaxException('invalid Unicode escape value ' . $matches[0]);
+                    }
+                    return self::codePointToUtf8(hexdec(substr($sequence, 1)));
+
+                } elseif (strspn($sequence, '01234567')) {
+                    return chr(octdec($sequence));
+
+                } else {
+                    // Just strip the escape and return the following char, as Postgres does
+                    return $sequence;
+                }
+            },
+            $escaped
+        );
+    }
+
+    /**
+     * Converts a Unicode code point to its UTF-8 encoded representation.
+     *
+     * Borrowed from nikic/php-parser
+     *
+     * @param int $codepoint Code point
+     * @return string UTF-8 representation of code point
+     */
+    private static function codePointToUtf8(int $codepoint): string
+    {
+        if ($codepoint <= 0x7F) {
+            return chr($codepoint);
+        }
+        if ($codepoint <= 0x7FF) {
+            return chr(($codepoint >> 6) + 0xC0) . chr(($codepoint & 0x3F) + 0x80);
+        }
+        if ($codepoint <= 0xFFFF) {
+            return chr(($codepoint >> 12) + 0xE0)
+                   . chr((($codepoint >> 6) & 0x3F) + 0x80)
+                   . chr(($codepoint & 0x3F) + 0x80);
+        }
+        if ($codepoint <= 0x1FFFFF) {
+            return chr(($codepoint >> 18) + 0xF0)
+                   . chr((($codepoint >> 12) & 0x3F) + 0x80)
+                   . chr((($codepoint >> 6) & 0x3F) + 0x80)
+                   . chr(($codepoint & 0x3F) + 0x80);
+        }
+        throw new exceptions\SyntaxException('Invalid Unicode escape sequence: Codepoint too large');
     }
 
     /**
