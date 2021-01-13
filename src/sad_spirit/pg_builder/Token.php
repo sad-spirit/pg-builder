@@ -38,8 +38,10 @@ class Token
     public const TYPE_HEX_STRING             = self::TYPE_LITERAL | 1 << 2;
     // I think this is just noise right now, behaves as simple string
     public const TYPE_NCHAR_STRING           = self::TYPE_LITERAL | 1 << 3;
-    public const TYPE_INTEGER                = self::TYPE_LITERAL | 1 << 4;
-    public const TYPE_FLOAT                  = self::TYPE_LITERAL | 1 << 5;
+    // String with unicode escapes, will only appear in Lexer, never in resultant TokenStream
+    public const TYPE_UNICODE_STRING         = self::TYPE_LITERAL | 1 << 4;
+    public const TYPE_INTEGER                = self::TYPE_LITERAL | 1 << 5;
+    public const TYPE_FLOAT                  = self::TYPE_LITERAL | 1 << 6;
 
     /* Parameter types */
     public const TYPE_POSITIONAL_PARAM       = self::TYPE_PARAMETER | 1 << 0;
@@ -52,6 +54,9 @@ class Token
     public const TYPE_OPERATOR               = self::TYPE_SPECIAL | 1 << 3;
     public const TYPE_INEQUALITY             = self::TYPE_SPECIAL | 1 << 4;
     public const TYPE_EQUALS_GREATER         = self::TYPE_SPECIAL | 1 << 5;
+
+    // Identifier with unicode escapes, will only appear in Lexer, never in resultant TokenStream
+    public const TYPE_UNICODE_IDENTIFIER     = self::TYPE_IDENTIFIER | 1 << 0;
 
     /* Keywords, as in src/include/parser/keywords.h */
     public const TYPE_UNRESERVED_KEYWORD     = self::TYPE_KEYWORD | 1 << 0;

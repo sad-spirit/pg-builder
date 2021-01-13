@@ -55,6 +55,7 @@ class Lexer
     private $length;
     private $tokens;
     private $options;
+    private $unescape;
 
     private $operatorCharHash;
     private $specialCharHash;
@@ -101,7 +102,7 @@ class Lexer
     # numeric constant, group 5
     ( (?: \d+ (?: \.\d+|\.(?!.))? | \.\d+) (?: [eE][+-]\d+ )? ) |
 
-    [uU]&["'] |                     # (currently unsupported) unicode escapes
+    [uU]&["'] |                     # unicode escapes
     \.\. |                          # double dot (error outside of PL/PgSQL)
     ([{$quotedSpecialChars}]) |     # everything that looks, well, special, group 6
     
@@ -130,6 +131,7 @@ REGEXP;
         $this->position = strspn($this->source, " \r\n\t\f", 0);
         $this->length   = strlen($sql);
         $this->tokens   = [];
+        $this->unescape = false;
 
         $this->doTokenize();
 
@@ -248,19 +250,32 @@ REGEXP;
                             $this->position
                         );
 
-                    default:
-                        if ('u' === $m[0][0] || 'U' === $m[0][0]) {
-                            throw new exceptions\NotImplementedException(
-                                'Support for unicode escapes not implemented yet'
-                            );
-                        } else {
-                            // should not reach this
+                    case 'u&"':
+                    case 'U&"':
+                        $this->unescape = true;
+                        $this->lexDoubleQuoted(true);
+                        break;
+
+                    case "u&'":
+                    case "U&'":
+                        if (!$this->options['standard_conforming_strings']) {
                             throw exceptions\SyntaxException::atPosition(
-                                "Unexpected '{$m[0]}'",
+                                "String constants with Unicode escapes cannot be used when standard_conforming_strings is off.",
                                 $this->source,
                                 $this->position
                             );
                         }
+                        $this->unescape = true;
+                        $this->lexString('u&');
+                        break;
+
+                    default:
+                        // should not reach this
+                        throw exceptions\SyntaxException::atPosition(
+                            "Unexpected '{$m[0]}'",
+                            $this->source,
+                            $this->position
+                        );
                 }
             }
 
@@ -272,11 +287,13 @@ REGEXP;
     /**
      * Processes a double-quoted identifier
      *
+     * @param bool $unicode Whether this is a u&"..." identifier
      * @throws exceptions\SyntaxException
      */
-    private function lexDoubleQuoted(): void
+    private function lexDoubleQuoted(bool $unicode = false): void
     {
-        if (!preg_match('/" ( (?>[^"]+ | "")* ) "/Ax', $this->source, $m, 0, $this->position)) {
+        $skip = $unicode ? 2 : 0;
+        if (!preg_match('/" ( (?>[^"]+ | "")* ) "/Ax', $this->source, $m, 0, $this->position + $skip)) {
             throw exceptions\SyntaxException::atPosition(
                 'Unterminated quoted identifier',
                 $this->source,
@@ -289,7 +306,11 @@ REGEXP;
                 $this->position
             );
         }
-        $this->tokens[] = new Token(Token::TYPE_IDENTIFIER, strtr($m[1], ['""' => '"']), $this->position);
+        $this->tokens[] = new Token(
+            $unicode ? Token::TYPE_UNICODE_IDENTIFIER : Token::TYPE_IDENTIFIER,
+            strtr($m[1], ['""' => '"']),
+            $this->position + $skip
+        );
         $this->position += strlen($m[0]);
     }
 
@@ -320,17 +341,17 @@ REGEXP;
     /**
      * Processes a single-quoted literal
      *
-     * @param string $char Character before quote that defines string type, one of 'b', 'e', 'x', 'n'
+     * @param string $prefix Characters before quote that define string type, one of 'b', 'e', 'x', 'n', 'u&'
      * @throws exceptions\SyntaxException
      */
-    private function lexString(string $char = ''): void
+    private function lexString(string $prefix = ''): void
     {
         $realPosition   = $this->position;
         $type           = Token::TYPE_STRING;
         $regexNoQuotes  = "'[^']*'";
         $regexSlashes   = "' ( (?>[^'\\\\]+ | '' | \\\\.)* ) '";
         $regexNoSlashes = "' ( (?>[^']+ | '')* ) '";
-        switch ($char) {
+        switch ($prefix) {
             case 'b':
                 $type  = Token::TYPE_BINARY_STRING;
                 $regex = $regexNoQuotes;
@@ -345,6 +366,11 @@ REGEXP;
                 $type  = Token::TYPE_HEX_STRING;
                 break;
 
+            case 'u&':
+                $regex = $regexNoSlashes;
+                $type  = Token::TYPE_UNICODE_STRING;
+                break;
+
             /** @noinspection PhpMissingBreakStatementInspection */
             case 'n':
                 $type  = Token::TYPE_NCHAR_STRING;
@@ -354,7 +380,7 @@ REGEXP;
                 $regex = $this->options['standard_conforming_strings'] ? $regexNoSlashes : $regexSlashes;
         }
 
-        if (!preg_match("/{$regex}/Ax", $this->source, $m, 0, $this->position + ('' === $char ? 0 : 1))) {
+        if (!preg_match("/{$regex}/Ax", $this->source, $m, 0, $this->position + strlen($prefix))) {
             throw exceptions\SyntaxException::atPosition('Unterminated string literal', $this->source, $this->position);
         }
 
@@ -372,8 +398,8 @@ REGEXP;
                     throw exceptions\SyntaxException::atPosition($e->getMessage(), $this->source, $this->position);
                 }
             }
-            $this->position += ('' === $char ? 0 : 1) + strlen($m[0]);
-            $char            = '';
+            $this->position += strlen($prefix) + strlen($m[0]);
+            $prefix          = '';
         } while (preg_match("/{$concat}/Ax", $this->source, $m, 0, $this->position));
 
         $this->tokens[] = new Token($type, $value, $realPosition);
