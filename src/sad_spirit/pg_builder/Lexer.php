@@ -22,8 +22,6 @@ namespace sad_spirit\pg_builder;
 
 /**
  * Scans an SQL string for tokens
- *
- * @todo Support for Unicode escapes in strings U&'...' and identifiers U&"..."
  */
 class Lexer
 {
@@ -53,9 +51,12 @@ class Lexer
     private $source;
     private $position;
     private $length;
+    /** @var Token[] */
     private $tokens;
     private $options;
     private $unescape;
+    private $pairFirst;
+    private $lastUnicodeEscape;
 
     private $operatorCharHash;
     private $specialCharHash;
@@ -102,7 +103,7 @@ class Lexer
     # numeric constant, group 5
     ( (?: \d+ (?: \.\d+|\.(?!.))? | \.\d+) (?: [eE][+-]\d+ )? ) |
 
-    [uU]&["'] |                     # unicode escapes
+    [uU]&["'] |                     # string/identifier with unicode escapes
     \.\. |                          # double dot (error outside of PL/PgSQL)
     ([{$quotedSpecialChars}]) |     # everything that looks, well, special, group 6
     
@@ -137,7 +138,12 @@ REGEXP;
 
         $this->tokens[] = new Token(Token::TYPE_EOF, '', $this->position);
 
-        return new TokenStream($this->tokens, $this->source);
+        if (!$this->unescape) {
+            return new TokenStream($this->tokens, $this->source);
+        } else {
+            $this->unescapeUnicodeTokens();
+            return new TokenStream(array_values($this->tokens), $this->source);
+        }
     }
 
     /**
@@ -260,7 +266,8 @@ REGEXP;
                     case "U&'":
                         if (!$this->options['standard_conforming_strings']) {
                             throw exceptions\SyntaxException::atPosition(
-                                "String constants with Unicode escapes cannot be used when standard_conforming_strings is off.",
+                                "String constants with Unicode escapes cannot be used "
+                                . "when standard_conforming_strings is off.",
                                 $this->source,
                                 $this->position
                             );
@@ -309,9 +316,9 @@ REGEXP;
         $this->tokens[] = new Token(
             $unicode ? Token::TYPE_UNICODE_IDENTIFIER : Token::TYPE_IDENTIFIER,
             strtr($m[1], ['""' => '"']),
-            $this->position + $skip
+            $this->position
         );
-        $this->position += strlen($m[0]);
+        $this->position += $skip + strlen($m[0]);
     }
 
     /**
@@ -392,11 +399,7 @@ REGEXP;
             } elseif ($regex === $regexNoSlashes) {
                 $value .= strtr($m[1], ["''" => "'"]);
             } else {
-                try {
-                    $value .= strtr(self::replaceEscapeSequences($m[1]), ["''" => "'"]);
-                } catch (exceptions\SyntaxException $e) {
-                    throw exceptions\SyntaxException::atPosition($e->getMessage(), $this->source, $this->position);
-                }
+                $value .= $this->unescapeCStyle($m[1], $this->position + strlen($prefix));
             }
             $this->position += strlen($prefix) + strlen($m[0]);
             $prefix          = '';
@@ -408,39 +411,77 @@ REGEXP;
     /**
      * Replaces escape sequences in string constants with C-style escapes
      *
-     * @param string $escaped String constant without quotes
+     * @param string $escaped String constant without delimiters
+     * @param int $position Position of string constant in source SQL (for exceptions)
      * @return string String with escape sequences replaced
      */
-    private static function replaceEscapeSequences(string $escaped): string
+    private function unescapeCStyle(string $escaped, int $position): string
     {
-        return preg_replace_callback(
-            '!\\\\(x[0-9a-fA-F]{1,2}|[0-7]{1,3}|u[0-9a-fA-F]{0,4}|U[0-9a-fA-F]{0,8}|[^0-7])!',
-            function ($matches) {
-                $sequence = $matches[1];
+        $this->pairFirst         = null;
+        $this->lastUnicodeEscape = 0;
 
-                if (isset(self::$replacements[$sequence])) {
-                    return self::$replacements[$sequence];
+        $unescaped  = '';
 
-                } elseif ('x' === $sequence[0]) {
-                    return chr(hexdec(substr($sequence, 1)));
+        foreach (
+            preg_split(
+                "!(\\\\(?:x[0-9a-fA-F]{1,2}|[0-7]{1,3}|u[0-9a-fA-F]{0,4}|U[0-9a-fA-F]{0,8}|[^0-7]))!",
+                $escaped,
+                -1,
+                PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_OFFSET_CAPTURE
+            ) as [$part, $partPosition]
+        ) {
+            if ('\\' !== $part[0]) {
+                if (null !== $this->pairFirst) {
+                    break;
+                }
+                $unescaped .= strtr($part, ["''" => "'"]);
 
-                } elseif ('u' === $sequence[0] || 'U' === $sequence[0]) {
-                    $expected = 'u' === $sequence[0] ? 5 : 9;
-                    if ($expected > strlen($sequence)) {
-                        throw new exceptions\SyntaxException('invalid Unicode escape value ' . $matches[0]);
-                    }
-                    return self::codePointToUtf8(hexdec(substr($sequence, 1)));
+            } elseif ('u' !== $part[1] && 'U' !== $part[1]) {
+                if (null !== $this->pairFirst) {
+                    break;
+                }
 
-                } elseif (strspn($sequence, '01234567')) {
-                    return chr(octdec($sequence));
+                if (isset(self::$replacements[$part[1]])) {
+                    $unescaped .= self::$replacements[$part[1]];
+
+                } elseif ('x' === $part[1]) {
+                    $unescaped .= chr(hexdec(substr($part, 2)));
+
+                } elseif (strspn($part, '01234567', 1)) {
+                    $unescaped .= chr(octdec(substr($part, 1)));
 
                 } else {
                     // Just strip the escape and return the following char, as Postgres does
-                    return $sequence;
+                    $unescaped .= $part[1];
                 }
-            },
-            $escaped
-        );
+
+            } else {
+                $expected = 'u' === $part[1] ? 6 : 10;
+                if ($expected > strlen($part)) {
+                    throw exceptions\SyntaxException::atPosition(
+                        'Invalid Unicode escape value',
+                        $this->source,
+                        $position + $partPosition
+                    );
+                }
+
+                $unescaped .= $this->handlePossibleSurrogatePairs(
+                    hexdec(substr($part, 2)),
+                    $partPosition,
+                    $position
+                );
+            }
+        }
+
+        if (null !== $this->pairFirst) {
+            throw exceptions\SyntaxException::atPosition(
+                'Unfinished Unicode surrogate pair',
+                $this->source,
+                $position + $this->lastUnicodeEscape
+            );
+        }
+
+        return $unescaped;
     }
 
     /**
@@ -470,7 +511,7 @@ REGEXP;
                    . chr((($codepoint >> 6) & 0x3F) + 0x80)
                    . chr(($codepoint & 0x3F) + 0x80);
         }
-        throw new exceptions\SyntaxException('Invalid Unicode escape sequence: Codepoint too large');
+        throw new exceptions\InvalidArgumentException('Invalid Unicode codepoint');
     }
 
     /**
@@ -528,5 +569,169 @@ REGEXP;
 
         $this->tokens[] = new Token(Token::TYPE_OPERATOR, $operator, $this->position);
         $this->position += $length;
+    }
+
+    /**
+     * Processes Unicode escapes in u&'...' string literals and u&"..." identifiers
+     *
+     * Handles possible trailing UESCAPE clauses, replaces TYPE_UNICODE_* tokens with simple
+     * TYPE_STRING and TYPE_IDENTIFIER ones having Unicode escapes in their values replaced by UTF-8 representations.
+     * Similar to what base_yylex() function in PostgreSQL's /src/backend/parser/parser.c does.
+     */
+    private function unescapeUnicodeTokens(): void
+    {
+        for ($i = 0, $tokenCount = count($this->tokens); $i < $tokenCount; $i++) {
+            $tokenType = $this->tokens[$i]->getType();
+            if (Token::TYPE_UNICODE_STRING !== $tokenType && Token::TYPE_UNICODE_IDENTIFIER !== $tokenType) {
+                continue;
+            }
+
+            if (!($hasUescape = $this->tokens[$i + 1]->matches(Token::TYPE_KEYWORD, 'uescape'))) {
+                $newValue = $this->unescapeUnicode($this->tokens[$i]);
+            } else {
+                if (Token::TYPE_STRING !== $this->tokens[$i + 2]->getType()) {
+                    throw exceptions\SyntaxException::atPosition(
+                        'UESCAPE must be followed by a simple string literal',
+                        $this->source,
+                        $this->tokens[$i + 2]->getPosition()
+                    );
+                }
+
+                $escape = $this->tokens[$i + 2]->getValue();
+                if (
+                    1 !== strlen($escape)
+                    || ctype_xdigit($escape)
+                    || ctype_space($escape)
+                    || in_array($escape, ['"', "'", '+'], true)
+                ) {
+                    throw exceptions\SyntaxException::atPosition(
+                        'Invalid Unicode escape character',
+                        $this->source,
+                        $this->tokens[$i + 2]->getPosition()
+                    );
+                }
+
+                $newValue = $this->unescapeUnicode($this->tokens[$i], $escape);
+            }
+
+            $this->tokens[$i] = new Token(
+                Token::TYPE_UNICODE_STRING === $tokenType ? Token::TYPE_STRING : Token::TYPE_IDENTIFIER,
+                $newValue,
+                $this->tokens[$i]->getPosition()
+            );
+
+            // Skip and remove uescape tokens, they aren't needed in TokenStream
+            if ($hasUescape) {
+                unset($this->tokens[$i + 1], $this->tokens[$i + 2]);
+                $i += 2;
+            }
+        }
+    }
+
+    /**
+     * Replaces Unicode escapes in values of string or identifier Tokens
+     *
+     * This is a bit more complex than replaceEscapeSequences() as the escapes may specify UTF-16 surrogate pairs
+     * that should be combined into single codepoint.
+     *
+     * @param Token  $token      The whole Token is needed to be able to use its position in exception messages
+     * @param string $escapeChar Value of escape character provided by UESCAPE 'X' clause, if present
+     * @return string value of Token with Unicode escapes replaced by their UTF-8 equivalents
+     */
+    private function unescapeUnicode(Token $token, string $escapeChar = '\\'): string
+    {
+        $this->pairFirst         = null;
+        $this->lastUnicodeEscape = 0;
+
+        $unescaped = '';
+        $quoted    = preg_quote($escapeChar);
+
+        foreach (
+            preg_split(
+                "/({$quoted}(?:{$quoted}|[0-9a-fA-F]{4}|\\+[0-9a-fA-F]{6}))/",
+                $token->getValue(),
+                -1,
+                PREG_SPLIT_NO_EMPTY | PREG_SPLIT_OFFSET_CAPTURE | PREG_SPLIT_DELIM_CAPTURE
+            ) as [$part, $position]
+        ) {
+            if ($escapeChar === $part[0] && $escapeChar !== $part[1]) {
+                $unescaped .= $this->handlePossibleSurrogatePairs(
+                    hexdec(ltrim($part, $escapeChar . '+')),
+                    $position,
+                    $token->getPosition() + 3
+                );
+
+            } elseif (null !== $this->pairFirst) {
+                break;
+
+            } elseif ($escapeChar === $part[0]) {
+                $unescaped .= $escapeChar;
+
+            } elseif (false !== ($escapePos = strpos($part, $escapeChar))) {
+                throw exceptions\SyntaxException::atPosition(
+                    "Invalid Unicode escape",
+                    $this->source,
+                    $token->getPosition() + 3 + $position + $escapePos
+                );
+
+            } else {
+                $unescaped .= $part;
+            }
+        }
+
+        if (null !== $this->pairFirst) {
+            throw exceptions\SyntaxException::atPosition(
+                'Unfinished Unicode surrogate pair',
+                $this->source,
+                $token->getPosition() + 3 + $this->lastUnicodeEscape
+            );
+        }
+
+        return $unescaped;
+    }
+
+    /**
+     * Converts a Unicode code point that can be a part of surrogate pair to its UTF-8 encoded representation
+     *
+     * @param int $codepoint
+     * @param int $position
+     * @param int $basePosition
+     * @return string
+     * @throws exceptions\SyntaxException
+     */
+    private function handlePossibleSurrogatePairs(int $codepoint, int $position, int $basePosition): string
+    {
+        $utf8              = '';
+        $isSurrogateFirst  = 0xD800 <= $codepoint && 0xDBFF >= $codepoint;
+        $isSurrogateSecond = 0xDC00 <= $codepoint && 0xDFFF >= $codepoint;
+        try {
+            if ((null !== $this->pairFirst) !== $isSurrogateSecond) {
+                throw exceptions\SyntaxException::atPosition(
+                    "Invalid Unicode surrogate pair",
+                    $this->source,
+                    $basePosition + (null !== $this->pairFirst ? $this->lastUnicodeEscape : $position)
+                );
+            } elseif (null !== $this->pairFirst) {
+                $utf8 = self::codePointToUtf8(
+                    (($this->pairFirst & 0x3FF) << 10) + 0x10000 + ($codepoint & 0x3FF)
+                );
+                $this->pairFirst = null;
+            } elseif ($isSurrogateFirst) {
+                $this->pairFirst = $codepoint;
+            } else {
+                $utf8 = self::codePointToUtf8($codepoint);
+            }
+
+        } catch (exceptions\InvalidArgumentException $e) {
+            throw exceptions\SyntaxException::atPosition(
+                $e->getMessage(),
+                $this->source,
+                $basePosition + $position
+            );
+        }
+
+        $this->lastUnicodeEscape = $position;
+
+        return $utf8;
     }
 }

@@ -167,15 +167,28 @@ QRY
         $this->assertEquals('foo\\bar', $stream2->next()->getValue());
         $this->assertEquals('foo\\bar', $stream2->next()->getValue());
     }
-    
-    public function testCharacterEscapes()
-    {
-        $string = " e'\\xd0\\274\\320\\xbe\\320\\273\\xd0\\276\\320\\xb4\\320\\276\\xd0\\271 "
-                  . "\\u0441\\u043b\\u043e\\u043d\\U0000043e\\u043a "
-                  . "\\xd0\\275\\320\\xbe\\321\\201\\xd0\\260\\321\\x82\\321\\213\\xd0\\271' ";
 
-        $stream = $this->lexer->tokenize($string);
-        $this->assertEquals("молодой слонок носатый", $stream->next()->getValue());
+    /**
+     * @param string $sql
+     * @param string $expected
+     * @dataProvider validCStyleEscapesProvider
+     */
+    public function testValidCStyleEscapes(string $sql, string $expected)
+    {
+        $stream = $this->lexer->tokenize($sql);
+        $this::assertEquals($expected, $stream->next()->getValue());
+    }
+
+    /**
+     * @param string $sql
+     * @param string $message
+     * @dataProvider invalidCStyleEscapesProvider
+     */
+    public function testInvalidCStyleEscapes(string $sql, string $message)
+    {
+        $this::expectException(SyntaxException::class);
+        $this::expectExceptionMessage($message);
+        $this->lexer->tokenize($sql);
     }
 
     public function testDollarQuotedString()
@@ -255,5 +268,103 @@ QRY
         $stream->expect(Token::TYPE_STRING, 'строка в долларах');
         $stream->expect(Token::TYPE_NAMED_PARAM, 'параметр');
         $this->assertTrue($stream->isEOF());
+    }
+
+    public function testDisallowStringsWithUnicodeEscapesWhenStandardConformingStringsIsOff()
+    {
+        $lexer = new Lexer(['standard_conforming_strings' => false]);
+
+        // Identifiers should be allowed anyway
+        $stream = $lexer->tokenize('U&"allowed"');
+        $stream->expect(Token::TYPE_IDENTIFIER, 'allowed');
+        $this::assertTrue($stream->isEOF());
+
+        // Strings should fail
+        $this::expectException(SyntaxException::class);
+        $this::expectExceptionMessage('standard_conforming_strings');
+        $lexer->tokenize("u&'not allowed'");
+    }
+
+    /**
+     * @param string $sql
+     * @param int $type
+     * @param string $value
+     * @dataProvider validUnicodeEscapesProvider
+     */
+    public function testValidUnicodeEscapes(string $sql, int $type, string $value)
+    {
+        $stream = $this->lexer->tokenize($sql);
+        $stream->expect($type, $value);
+        $this::assertTrue($stream->isEOF());
+    }
+
+    /**
+     * @param string $sql
+     * @param string $message
+     * @dataProvider invalidUnicodeEscapesProvider
+     */
+    public function testInvalidUnicodeEscapes(string $sql, string $message)
+    {
+        $this::expectException(SyntaxException::class);
+        $this::expectExceptionMessage($message);
+        $this->lexer->tokenize($sql);
+    }
+
+    public function validCStyleEscapesProvider(): array
+    {
+        return [
+            ["e''''",                                                                     "'"],
+            ["e'\\'\\''",                                                                 "''"],
+
+            ["e'\\n \\t\\z'",                                                             "\n \tz"],
+
+            ["e'\\xd0\\274\\320\\xbe\\320\\273\\xd0\\276\\320\\xb4\\320\\276\\xd0\\271'", 'молодой'],
+            ["e'\\u0441\\u043b\\u043e\\u043d\\U0000043e\\u043a'",                         'слонок'],
+            ["e'\\xd0\\275\\320\\xbe\\321\\201\\xd0\\260\\321\\x82\\321\\213\\xd0\\271'", 'носатый'],
+            ["e'\\uD83D\\uDE01 \\U0000D83D\\U0000DE2C'",                                  '😁 😬']
+        ];
+    }
+
+    public function invalidCStyleEscapesProvider(): array
+    {
+        return [
+            ["e'wrong: \\u061'",                    "Invalid Unicode escape"],
+            ["e'wrong: \\U0061'",                   "Invalid Unicode escape"],
+            ["e'wrong: \\udb99'",                   'Unfinished Unicode surrogate pair'],
+            ["e'wrong: \\udb99xy'",                 'Unfinished Unicode surrogate pair'],
+            ["e'wrong: \\udb99\\\\'",               'Unfinished Unicode surrogate pair'],
+            ["e'wrong: \\udb99\\u0061'",            'Invalid Unicode surrogate pair'],
+            ["e'wrong: \\U0000db99\\U00000061'",    'Invalid Unicode surrogate pair'],
+            ["e'wrong: \\U002FFFFF'",               'Invalid Unicode codepoint']
+        ];
+    }
+
+    public function validUnicodeEscapesProvider(): array
+    {
+        return [
+            ["U&'d\\0061t\\+000061'", Token::TYPE_STRING, 'data'],
+            ['U&"d\\0061t\\+000061"', Token::TYPE_IDENTIFIER, 'data'],
+            ["U&'d!0061t\\+000061' UESCAPE '!'", Token::TYPE_STRING, 'dat\\+000061'],
+            ['U&"d*0061t\\+000061" UESCAPE \'*\'', Token::TYPE_IDENTIFIER, 'dat\\+000061'],
+            ["U&'a\\\\b'", Token::TYPE_STRING, 'a\\b'],
+            ["U&' \\' UESCAPE '!'", Token::TYPE_STRING, ' \\'],
+            ["U&'\\D83D\\DE01 \\+00D83D\\+00DE2C'", Token::TYPE_STRING, '😁 😬']
+        ];
+    }
+
+    public function invalidUnicodeEscapesProvider(): array
+    {
+        return [
+            ["U&'wrong: \\061'", "Invalid Unicode escape"],
+            ["U&'wrong: \\+0061'", "Invalid Unicode escape"],
+            ["U&'wrong: +0061' UESCAPE +", 'UESCAPE must be followed by a simple string literal'],
+            ["U&'wrong: +0061' UESCAPE '+'", 'Invalid Unicode escape character'],
+            ["U&'wrong: \\db99'", 'Unfinished Unicode surrogate pair'],
+            ["U&'wrong: \\db99xy'", 'Unfinished Unicode surrogate pair'],
+            ["U&'wrong: \\db99\\\\'", 'Unfinished Unicode surrogate pair'],
+            ["U&'wrong: \\db99\\0061'", 'Invalid Unicode surrogate pair'],
+            ["U&'wrong: \\+00db99\\+000061'", 'Invalid Unicode surrogate pair'],
+            ["U&'wrong: \+2FFFFF'", 'Invalid Unicode codepoint']
+        ];
     }
 }
