@@ -69,6 +69,16 @@ class Token
      */
     public const TYPE_EOF                    = 1 << 16;
 
+    /**
+     * Values for these token types will be checked for valid UTF-8
+     */
+    private const NEEDS_UTF8_CHECK = [
+        self::TYPE_STRING       => true,
+        self::TYPE_NCHAR_STRING => true,
+        self::TYPE_NAMED_PARAM  => true,
+        self::TYPE_IDENTIFIER   => true
+    ];
+
     private $type;
     private $value;
     private $position;
@@ -82,6 +92,15 @@ class Token
      */
     public function __construct(int $type, string $value, int $position)
     {
+        if (isset(self::NEEDS_UTF8_CHECK[$type]) && !preg_match('//u', $value)) {
+            throw new exceptions\InvalidArgumentException(sprintf(
+                "Invalid UTF-8 in %s at position %d of input: %s",
+                self::typeToString($type),
+                $position,
+                $value
+            ));
+        }
+
         $this->type     = $type;
         $this->value    = $value;
         $this->position = $position;

@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\tests;
 
 use PHPUnit\Framework\TestCase;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\Lexer;
 use sad_spirit\pg_builder\Token;
 use sad_spirit\pg_builder\exceptions\SyntaxException;
@@ -310,6 +311,17 @@ QRY
         $this->lexer->tokenize($sql);
     }
 
+    /**
+     * @param string $sql
+     * @dataProvider invalidUTF8Provider
+     */
+    public function testDisallowInvalidUTF8(string $sql)
+    {
+        $this::expectException(InvalidArgumentException::class);
+        $this::expectExceptionMessage('Invalid UTF-8');
+        $this->lexer->tokenize($sql);
+    }
+
     public function validCStyleEscapesProvider(): array
     {
         return [
@@ -365,6 +377,20 @@ QRY
             ["U&'wrong: \\db99\\0061'", 'Invalid Unicode surrogate pair'],
             ["U&'wrong: \\+00db99\\+000061'", 'Invalid Unicode surrogate pair'],
             ["U&'wrong: \+2FFFFF'", 'Invalid Unicode codepoint']
+        ];
+    }
+
+    public function invalidUTF8Provider(): array
+    {
+        return [
+            ["e'\\xf0'"],
+            ["'\xf0'"],
+            ["n'\xf0'"],
+            ["u&'\xf0'"],
+            ['u&"' . chr(240) . '"'],
+            [':' . chr(240)],
+            ['"ident' . chr(240) . 'ifier"'],
+            ['ident' . chr(240) . 'ifier']
         ];
     }
 }
