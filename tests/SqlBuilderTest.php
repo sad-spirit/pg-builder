@@ -264,4 +264,26 @@ QRY
             $this->parser->parseExpressionList(implode(', ', $constants->dispatch($this->builder)))
         );
     }
+
+    /**
+     * @noinspection SqlNoDataSourceInspection
+     * @noinspection SqlResolve
+     * @noinspection SqlCheckUsingColumns
+     */
+    public function testEscapeUnicode()
+    {
+        $ast = $this->parser->parseStatement(
+<<<QRY
+    select молодой.слонок носатый, 'на лужайке '' какал \\ смачно'
+    from "на"."тракторе" as Егорка join подкрался.незаметно using (большим, ковшом, """чугунным""")
+    where схватил.слонка operator (за.#) жопу
+    order by 😁.😬
+QRY
+        );
+        $builder = new SqlBuilderWalker(['escape_unicode' => true]);
+        $built   = $ast->dispatch($builder);
+
+        $this::assertNotRegExp('/[\\x80-\\xff]/', $built, 'Built SQL should not contain non-ASCII symbols');
+        $this::assertEquals($ast, $this->parser->parseStatement($built));
+    }
 }

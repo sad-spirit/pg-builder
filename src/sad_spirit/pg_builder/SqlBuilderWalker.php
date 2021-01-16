@@ -36,13 +36,16 @@ class SqlBuilderWalker implements TreeWalker
      *  - 'indent': string used to indent statements
      *  - 'linebreak': string used as a line break
      *  - 'wrap': builder will try to wrap long lists of items before lines get that long
+     *  - 'escape_unicode': non-ASCII characters in string constants and identifiers will be represented
+     *    by Unicode escape sequences
      *
      * @var array
      */
     protected $options = [
-        'indent'      => "    ",
-        'linebreak'   => "\n",
-        'wrap'        => 120
+        'indent'         => "    ",
+        'linebreak'      => "\n",
+        'wrap'           => 120,
+        'escape_unicode' => false
     ];
 
     /**
@@ -50,6 +53,12 @@ class SqlBuilderWalker implements TreeWalker
      * @var nodes\expressions\TypecastExpression
      */
     private $dummyTypecast;
+
+    /**
+     * Identifiers are likely to appear in output more than once, so we cache the result of their escaping
+     * @var string[]
+     */
+    private $escapedUnicodeIdentifiers = [];
 
     public function __construct(array $options = [])
     {
@@ -432,7 +441,14 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkColumnReference(nodes\ColumnReference $node): string
     {
-        return $node->__toString();
+        if (!$this->options['escape_unicode']) {
+            return $node->__toString();
+        }
+
+        return (null !== $node->catalog ? $node->catalog->dispatch($this) . '.' : '')
+               . (null !== $node->schema ? $node->schema->dispatch($this) . '.' : '')
+               . (null !== $node->relation ? $node->relation->dispatch($this) . '.' : '')
+               . $node->column->dispatch($this);
     }
 
     public function walkCommonTableExpression(nodes\CommonTableExpression $node): string
@@ -477,7 +493,26 @@ class SqlBuilderWalker implements TreeWalker
 
             case Token::TYPE_NCHAR_STRING: // don't bother with generating N'...'
             case Token::TYPE_STRING:
-                if (false === strpos($node->value, "'") && false === strpos($node->value, '\\')) {
+                if ($this->options['escape_unicode'] && preg_match('/[\\x80-\\xff]/', $node->value)) {
+                    // We generate e'...' string instead of u&'...' one as the latter may be rejected by server
+                    // if standard_conforming_strings setting is off
+                    return "e'"
+                        . implode('', array_map(function (int $codePoint): string {
+                            if (0x27 === $codePoint) {
+                                return "\\'";
+                            } elseif (0x5c === $codePoint) {
+                                return '\\\\';
+                            } elseif ($codePoint < 0x80) {
+                                return chr($codePoint);
+                            } elseif ($codePoint < 0xFFFF) {
+                                return sprintf('\\u%04x', $codePoint);
+                            } else {
+                                return sprintf('\\U%08x', $codePoint);
+                            }
+                        }, self::utf8ToCodePoints($node->value)))
+                        . "'";
+
+                } elseif (false === strpos($node->value, "'") && false === strpos($node->value, '\\')) {
                     return "'" . $node->value . "'";
 
                 } elseif (false === strpos($node->value . '$', '$$')) {
@@ -511,7 +546,29 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkIdentifier(nodes\Identifier $node): string
     {
-        return $node->__toString();
+        if (!$this->options['escape_unicode'] || !preg_match('/[\\x80-\\xff]/', $node->value)) {
+            return $node->__toString();
+        }
+
+        if (!isset($this->escapedUnicodeIdentifiers[$node->value])) {
+            $this->escapedUnicodeIdentifiers[$node->value] = 'u&"'
+                . implode('', array_map(function (int $codePoint): string {
+                    if (0x5c === $codePoint) {
+                        return '\\\\';
+                    } elseif (0x22 === $codePoint) {
+                        return '""';
+                    } elseif ($codePoint < 0x80) {
+                        return chr($codePoint);
+                    } elseif ($codePoint < 0xFFFF) {
+                        return sprintf('\\%04x', $codePoint);
+                    } else {
+                        return sprintf('\\+%06x', $codePoint);
+                    }
+                }, self::utf8ToCodePoints($node->value)))
+                . '"';
+        }
+
+        return $this->escapedUnicodeIdentifiers[$node->value];
     }
 
     public function walkIndirection(nodes\Indirection $node): string
@@ -579,12 +636,23 @@ class SqlBuilderWalker implements TreeWalker
 
     public function walkQualifiedName(nodes\QualifiedName $node): string
     {
-        return $node->__toString();
+        if (!$this->options['escape_unicode']) {
+            return $node->__toString();
+        }
+        return (null !== $node->catalog ? $node->catalog->dispatch($this) . '.' : '')
+               . (null !== $node->schema ? $node->schema->dispatch($this) . '.' : '')
+               . $node->relation->dispatch($this);
     }
 
     public function walkQualifiedOperator(nodes\QualifiedOperator $node): string
     {
-        return $node->__toString();
+        if (!$this->options['escape_unicode']) {
+            return $node->__toString();
+        }
+        return 'operator('
+               . (null !== $node->catalog ? $node->catalog->dispatch($this) . '.' : '')
+               . (null !== $node->schema ? $node->schema->dispatch($this) . '.' : '')
+               . $node->operator . ')';
     }
 
     public function walkSetTargetElement(nodes\SetTargetElement $node): string
@@ -1252,5 +1320,79 @@ class SqlBuilderWalker implements TreeWalker
     public function walkGroupingSetsClause(nodes\group\GroupingSetsClause $clause): string
     {
         return 'grouping sets(' . implode(', ', $this->walkGenericNodeList($clause)) . ')';
+    }
+
+    /**
+     * Returns an array of code points corresponding to characters in UTF-8 string
+     *
+     * @param string $string
+     * @return int[]
+     */
+    protected static function utf8ToCodePoints(string $string): array
+    {
+        $codePoints = [];
+
+        for ($i = 0, $length = strlen($string); $i < $length; $i++) {
+            $code = ord($string[$i]);
+            if ($code < 0x80) {
+                $codePoint = $code;
+
+            } elseif (0xC0 === ($code & 0xE0)) {
+                if (
+                    $i >= $length - 1
+                    || 0x80 !== (ord($string[$i + 1]) & 0xC0)
+                ) {
+                    throw new exceptions\InvalidArgumentException('Invalid UTF-8: incomplete multibyte character');
+                }
+
+                $codePoint = (($code & 0x1F) << 6) + (ord($string[++$i]) & 0x3F);
+
+                if ($codePoint < 0x80) {
+                    throw new exceptions\InvalidArgumentException('Invalid UTF-8: overlong encoding');
+                }
+
+            } elseif (0xE0 === ($code & 0xF0)) {
+                if (
+                    $i >= $length - 2
+                    || 0x80 !== (ord($string[$i + 1]) & 0xC0)
+                    || 0x80 !== (ord($string[$i + 2]) & 0xC0)
+                ) {
+                    throw new exceptions\InvalidArgumentException('Invalid UTF-8: incomplete multibyte character');
+                }
+
+                $codePoint = (($code & 0xF) << 12) + ((ord($string[++$i]) & 0x3F) << 6) + (ord($string[++$i]) & 0x3F);
+
+                if ($codePoint < 0x800) {
+                    throw new exceptions\InvalidArgumentException('Invalid UTF-8: overlong encoding');
+                } elseif ($codePoint >= 0xD800 && $codePoint <= 0xDFFF) {
+                    throw new exceptions\InvalidArgumentException('Invalid code point encoded in UTF-8');
+                }
+
+            } elseif (0xF0 === ($code & 0xF8)) {
+                if (
+                    $i >= $length - 3
+                    || 0x80 !== (ord($string[$i + 1]) & 0xC0)
+                    || 0x80 !== (ord($string[$i + 2]) & 0xC0)
+                    || 0x80 !== (ord($string[$i + 3]) & 0xC0)
+                ) {
+                    throw new exceptions\InvalidArgumentException('Invalid UTF-8: incomplete multibyte character');
+                }
+
+                $codePoint = (($code & 0x7) << 18) + ((ord($string[++$i]) & 0x3F) << 12)
+                             + ((ord($string[++$i]) & 0x3F) << 6) + (ord($string[++$i]) & 0x3F);
+
+                if ($codePoint < 0x10000) {
+                    throw new exceptions\InvalidArgumentException('Invalid UTF-8: overlong encoding');
+                } elseif ($codePoint > 0x10FFFF) {
+                    throw new exceptions\InvalidArgumentException('Invalid code point encoded in UTF-8');
+                }
+
+            } else {
+                throw new exceptions\InvalidArgumentException('Invalid byte in UTF-8 string');
+            }
+            $codePoints[] = $codePoint;
+        }
+
+        return $codePoints;
     }
 }
