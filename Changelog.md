@@ -1,5 +1,49 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+* Improved Unicode support
+  * `Lexer` handles `\uXXXX` and `\UXXXXXXXX` escapes in string literals with C-style escapes and converts them to UTF-8 strings.
+  * `u&'...'` string literals and `u&"..."` identifiers are also supported, including trailing `UESCAPE` clauses. These are also converted to UTF-8.
+  * `SqlBuilderWalker` has a new `'escape_unicode'` option that will trigger converting multi-byte UTF-8 characters (i.e. non-ASCII) to Unicode escapes in generated SQL.
+* Substantial performance improvements, especially when using cache. Tested on PHP 7.4 against version 0.4.1:
+  * 15-20% faster SQL parsing
+  * 25% faster SQL building
+  * 25% faster unserialization of AST and 30% smaller serialized data length
+  * 50% faster cloning of AST
+
+### Changed
+* Requires at least PHP 7.2
+* Requires at least PostgreSQL 9.5
+* Parser expects incoming SQL to be encoded in UTF-8, will throw exceptions in case of invalid encoding
+* Changes to public API: 
+  * Methods `and_()` and `or_()` of `WhereOrHavingClause` were renamed to `and()` and `or()` as such names are allowed in PHP 7
+  * Signatures of constructors for `ColumnReference` and `QualifiedName` were changed from `__construct(array $parts)` to `__construct(...$parts)`
+  * `OperatorExpression` no longer accepts any string as an operator, it accepts either a string of characters valid for operator name or an instance
+    of new `QualifiedOperator` class. SQL constructs previously presented as `OperatorExpression` have their own nodes:
+    `AtTimeZoneExpression`, `IsDistinctFromExpression`, `IsExpression`, `OverlapsExpression`, `NotExpression`.
+  * `NOT` in SQL constructs like `IS NOT DISTINCT FROM` or `NOT BETWEEN` is represented as `$negated` property of a relevant `Node`
+  * Required changes to your code can be automated by using the provided rector rules, [consult the upgrade instructions](Upgrading.md).
+
+
+### Removed
+* Support for `mbstring.func_overload`, which was deprecated in PHP 7.2
+* Support for operator precedence of pre-9.5 Postgres
+* `'ascii_only_downcasing'` option for `Lexer`, it is now assumed to always be `true`
+
+### Fixed
+* Single quotes in string literals with C-style escapes could be unescaped twice
+* Subselect with several parentheses around it could be incorrectly parsed
+* `BlankWalker` missed several `dispatch()` calls to child nodes
+
+## [0.4.1] - 2020-09-30
+
+### Fixed
+* `SqlBuilderWalker` used incorrect operator precedence when generating SQL containing new `IS NORMALIZED` operator
+* A sub-optimal regular expression in `Lexer` could cause up to 10x lexing slowdown for some queries  
+
 ## [0.4.0] - 2020-09-26
 
 This is the last feature release to support PHP 5 and Postgres versions below 9.5
@@ -86,3 +130,5 @@ Initial release on GitHub
 [0.2.3]: https://github.com/sad-spirit/pg-builder/compare/v0.2.2...v0.2.3
 [0.3.0]: https://github.com/sad-spirit/pg-builder/compare/v0.2.3...v0.3.0
 [0.4.0]: https://github.com/sad-spirit/pg-builder/compare/v0.3.0...v0.4.0
+[0.4.1]: https://github.com/sad-spirit/pg-builder/compare/v0.4.0...v0.4.1
+[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v0.4.1...HEAD
