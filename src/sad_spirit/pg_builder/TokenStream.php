@@ -33,7 +33,7 @@ class TokenStream
     private $source;
 
     /**
-     * A flag to prevent useless calls to Token::matches() from matchesKeyword()
+     * A flag to prevent useless calls to Token::matches() from matchesKeyword() and matchesSpecialChar()
      * @var bool
      */
     private $isAtKeyword = false;
@@ -200,7 +200,7 @@ class TokenStream
      * @param mixed ...$keywords
      * @return bool
      */
-    public function matchesKeywordSequence(...$keywords)
+    public function matchesKeywordSequence(...$keywords): bool
     {
         if (!$this->isAtKeyword || $this->current + count($keywords) >= count($this->tokens)) {
             return false;
