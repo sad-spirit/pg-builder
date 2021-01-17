@@ -126,14 +126,14 @@ class ParserAwareTypeConverterFactory extends DefaultTypeConverterFactory
     }
 
     /**
-     * Returns TypeName node for query AST based on provided type oid
+     * Returns TypeName node for query AST based on provided type OID
      *
      * @param int $oid
      * @return TypeName
      */
-    public function createTypeNameNodeForOID($oid)
+    public function createTypeNameNodeForOID(int $oid): TypeName
     {
-        if ($this->isArrayTypeOid($oid, $baseTypeOid)) {
+        if ($this->isArrayTypeOID($oid, $baseTypeOid)) {
             $node = $this->createTypeNameNodeForOID($baseTypeOid);
             $node->bounds = [-1];
             return $node;
