@@ -39,7 +39,6 @@ use sad_spirit\pg_builder\nodes\{
     Indirection,
     IntervalTypeName,
     OrderByElement,
-    Parameter,
     QualifiedName,
     SetTargetElement,
     SingleSetClause,
@@ -56,6 +55,7 @@ use sad_spirit\pg_builder\nodes\expressions\{
     CollateExpression,
     InExpression,
     IsOfExpression,
+    NamedParameter,
     OperatorExpression,
     PatternMatchingExpression,
     SubselectExpression,
@@ -247,7 +247,7 @@ class SetParentNodeTest extends TestCase
 
     public function testIndirection()
     {
-        $indirection = new Indirection([new Identifier('foo')], new Parameter('bar'));
+        $indirection = new Indirection([new Identifier('foo')], new NamedParameter('bar'));
 
         $this->assertSame($indirection, $indirection->expression->getParentNode());
     }

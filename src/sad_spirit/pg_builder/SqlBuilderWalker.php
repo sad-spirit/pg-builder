@@ -113,7 +113,7 @@ class SqlBuilderWalker implements TreeWalker
             if ($expression[0] instanceof nodes\ArrayIndexes) {
                 return $argumentPrecedence < $expression::PRECEDENCE_ATOM;
             } else {
-                return !($argument instanceof nodes\Parameter
+                return !($argument instanceof nodes\expressions\Parameter
                          || $argument instanceof nodes\expressions\SubselectExpression
                             && !$argument->operator);
             }
@@ -619,19 +619,17 @@ class SqlBuilderWalker implements TreeWalker
         return $sql;
     }
 
-    public function walkParameter(nodes\Parameter $node): string
+    public function walkNamedParameter(nodes\expressions\NamedParameter $node)
     {
-        switch ($node->type) {
-            case Token::TYPE_POSITIONAL_PARAM:
-                return '$' . $node->value;
-            case Token::TYPE_NAMED_PARAM:
-                throw new exceptions\InvalidArgumentException(sprintf(
-                    "Generated SQL should not contain named parameters, ':%s' still present",
-                    $node->value
-                ));
-            default:
-                throw new exceptions\InvalidArgumentException(sprintf('Unexpected parameter type %d', $node->type));
-        }
+        throw new exceptions\InvalidArgumentException(sprintf(
+            "Generated SQL should not contain named parameters, ':%s' still present",
+            $node->name
+        ));
+    }
+
+    public function walkPositionalParameter(nodes\expressions\PositionalParameter $node): string
+    {
+        return '$' . $node->position;
     }
 
     public function walkQualifiedName(nodes\QualifiedName $node): string

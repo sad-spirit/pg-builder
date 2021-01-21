@@ -178,7 +178,11 @@ abstract class BlankWalker implements TreeWalker
         }
     }
 
-    public function walkParameter(nodes\Parameter $node)
+    public function walkNamedParameter(nodes\expressions\NamedParameter $node)
+    {
+    }
+
+    public function walkPositionalParameter(nodes\expressions\PositionalParameter $node)
     {
     }
 

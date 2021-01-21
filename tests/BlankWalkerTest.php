@@ -85,7 +85,7 @@ w10 as materialized (
     select f1.f2(variadic f3), f4.f5(f6, variadic f7), f8.f9(f10, b := f11, binary := f12)
     from f13(1, f14) as f15 (f16)
 )
-select distinct on (e1) e2.e3, e4.e5[e6], (e7.e8).e9, $1.e10, array[[e11,2],[3,e12]], row(e13,4),
+select distinct on (e1) e2.e3, e4.e5[e6], (e7.e8).e9, $1.e10, array[[e11,2],[3,e12]], row(e13,:foo),
        1 + e14 * 3, (1 + e15) * 3, e16 between e17 and e18,
        e19.e20 is of (character varying, text, time with time zone),
        case when e21 = e22 then e23 else e24 end,

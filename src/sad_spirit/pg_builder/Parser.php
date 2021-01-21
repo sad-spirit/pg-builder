@@ -2352,7 +2352,7 @@ class Parser
                 }
 
             } elseif ($token->matches(Token::TYPE_PARAMETER)) {
-                $atom = new nodes\Parameter($this->stream->next());
+                $atom = nodes\expressions\Parameter::createFromToken($this->stream->next());
 
             } elseif ($token->matches(Token::TYPE_LITERAL)) {
                 return new nodes\Constant($this->stream->next());

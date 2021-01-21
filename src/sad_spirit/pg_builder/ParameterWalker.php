@@ -30,13 +30,13 @@ class ParameterWalker extends BlankWalker
      * Mapping parameter name => parameter number
      * @var array
      */
-    protected $namedParameterMap = [];
+    private $namedParameterMap = [];
 
     /**
      * Parameter types extracted from typecasts
      * @var array
      */
-    protected $parameterTypes    = [];
+    private $parameterTypes    = [];
 
     /**
      * Returns mapping from parameter names to parameter numbers
@@ -58,49 +58,49 @@ class ParameterWalker extends BlankWalker
         return $this->parameterTypes;
     }
 
-    public function walkParameter(nodes\Parameter $node)
+    public function walkNamedParameter(nodes\expressions\NamedParameter $node)
     {
-        switch ($node->type) {
-            case Token::TYPE_POSITIONAL_PARAM:
-                if (!empty($this->namedParameterMap)) {
-                    throw new exceptions\InvalidArgumentException(
-                        "Mixing named and positional parameters is not allowed; "
-                        . "found positional parameter \${$node->value} after named ones"
-                    );
-                }
-                $paramIdx = (int)$node->value - 1;
-                break;
-
-            case Token::TYPE_NAMED_PARAM:
-                if (empty($this->namedParameterMap) && !empty($this->parameterTypes)) {
-                    throw new exceptions\InvalidArgumentException(
-                        "Mixing named and positional parameters is not allowed; "
-                        . "found named parameter :{$node->value} after positional ones"
-                    );
-                }
-                if (isset($this->namedParameterMap[$node->value])) {
-                    $paramIdx = $this->namedParameterMap[$node->value];
-                } else {
-                    $paramIdx = count($this->namedParameterMap);
-                    $this->namedParameterMap[$node->value] = $paramIdx;
-                }
-                break;
-
-            default:
-                throw new exceptions\InvalidArgumentException(sprintf('Unexpected parameter type %d', $node->type));
+        if (empty($this->namedParameterMap) && !empty($this->parameterTypes)) {
+            throw new exceptions\InvalidArgumentException(
+                "Mixing named and positional parameters is not allowed; "
+                . "found named parameter :{$node->name} after positional ones"
+            );
         }
 
+        if (isset($this->namedParameterMap[$node->name])) {
+            $paramIdx = $this->namedParameterMap[$node->name];
+        } else {
+            $paramIdx = count($this->namedParameterMap);
+            $this->namedParameterMap[$node->name] = $paramIdx;
+        }
+
+        $this->extractParameterType($node, $paramIdx);
+
+        $node->getParentNode()->replaceChild($node, new nodes\expressions\PositionalParameter($paramIdx + 1));
+    }
+
+    public function walkPositionalParameter(nodes\expressions\PositionalParameter $node)
+    {
+        if (!empty($this->namedParameterMap)) {
+            throw new exceptions\InvalidArgumentException(
+                "Mixing named and positional parameters is not allowed; "
+                . "found positional parameter \${$node->position} after named ones"
+            );
+        }
+        $paramIdx = $node->position - 1;
+
+        $this->extractParameterType($node, $paramIdx);
+    }
+
+    private function extractParameterType(nodes\expressions\Parameter $node, $idx)
+    {
         if (!($parent = $node->getParentNode())) {
             throw new exceptions\InvalidArgumentException("Parameter node doesn't contain a link to a parent node");
         }
-        if ($parent instanceof nodes\expressions\TypecastExpression && empty($this->parameterTypes[$paramIdx])) {
-            $this->parameterTypes[$paramIdx] = clone $parent->type;
-        } elseif (!array_key_exists($paramIdx, $this->parameterTypes)) {
-            $this->parameterTypes[$paramIdx] = null;
-        }
-
-        if (Token::TYPE_NAMED_PARAM === $node->type) {
-            $parent->replaceChild($node, new nodes\Parameter($paramIdx + 1));
+        if ($parent instanceof nodes\expressions\TypecastExpression && empty($this->parameterTypes[$idx])) {
+            $this->parameterTypes[$idx] = clone $parent->type;
+        } elseif (!array_key_exists($idx, $this->parameterTypes)) {
+            $this->parameterTypes[$idx] = null;
         }
     }
 

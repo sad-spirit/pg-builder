@@ -57,7 +57,9 @@ interface TreeWalker
 
     public function walkOrderByElement(nodes\OrderByElement $node);
 
-    public function walkParameter(nodes\Parameter $node);
+    public function walkNamedParameter(nodes\expressions\NamedParameter $node);
+
+    public function walkPositionalParameter(nodes\expressions\PositionalParameter $node);
 
     public function walkQualifiedName(nodes\QualifiedName $node);
 
