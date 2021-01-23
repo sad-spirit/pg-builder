@@ -21,7 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder;
 
 /**
- * A tree walker that extracts information about parameters' types and replaces
+ * A tree walker that extracts information about parameters' types and possibly replaces
  * named parameters with positional ones
  */
 class ParameterWalker extends BlankWalker
@@ -37,6 +37,22 @@ class ParameterWalker extends BlankWalker
      * @var array
      */
     private $parameterTypes    = [];
+
+    /**
+     * Whether to leave NamedParameter nodes in the AST or replace them with PositionalParameter ones
+     * @var bool
+     */
+    private $keepNamedParameters;
+
+    /**
+     * Constructor, specifies how to handle named parameters
+     *
+     * @param bool $keepNamedParameters
+     */
+    public function __construct(bool $keepNamedParameters = false)
+    {
+        $this->keepNamedParameters = $keepNamedParameters;
+    }
 
     /**
      * Returns mapping from parameter names to parameter numbers
@@ -76,7 +92,9 @@ class ParameterWalker extends BlankWalker
 
         $this->extractParameterType($node, $paramIdx);
 
-        $node->getParentNode()->replaceChild($node, new nodes\expressions\PositionalParameter($paramIdx + 1));
+        if (!$this->keepNamedParameters) {
+            $node->getParentNode()->replaceChild($node, new nodes\expressions\PositionalParameter($paramIdx + 1));
+        }
     }
 
     public function walkPositionalParameter(nodes\expressions\PositionalParameter $node)

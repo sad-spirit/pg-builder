@@ -178,4 +178,17 @@ QRY
         $this->assertStringContainsString('$2', $result);
         $this->assertEquals(new TypeName(new QualifiedName('text')), $types[0]);
     }
+
+    public function testLeaveNamedParametersAlone()
+    {
+        $statement = $this->parser->parseStatement('update foo set name = :name::text where id = :id');
+        $walker    = new ParameterWalker(true);
+        $statement->dispatch($walker);
+
+        $this::assertNotRegExp('!\\$\\d!', $statement->dispatch($this->builder));
+        $map   = $walker->getNamedParameterMap();
+        $types = $walker->getParameterTypes();
+
+        $this::assertEquals(new TypeName(new QualifiedName('text')), $types[$map['name']]);
+    }
 }

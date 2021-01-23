@@ -619,12 +619,9 @@ class SqlBuilderWalker implements TreeWalker
         return $sql;
     }
 
-    public function walkNamedParameter(nodes\expressions\NamedParameter $node)
+    public function walkNamedParameter(nodes\expressions\NamedParameter $node): string
     {
-        throw new exceptions\InvalidArgumentException(sprintf(
-            "Generated SQL should not contain named parameters, ':%s' still present",
-            $node->name
-        ));
+        return ':' . $node->name;
     }
 
     public function walkPositionalParameter(nodes\expressions\PositionalParameter $node): string

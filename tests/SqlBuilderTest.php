@@ -192,7 +192,7 @@ having count(quux.one) > over9000
 window win95 as (partition by anything range between unbounded preceding and current row exclude group)
 order by 1 using operator(detour.>>>) nulls first, 2 desc
 limit $3
-offset $4
+offset :foo
 for no key update of quux, xyzzy for share of anothertable skip locked
 QRY
         );
@@ -239,18 +239,6 @@ QRY
             $unserialized,
             'AST of unserialized statement should be equal to that of the original'
         );
-    }
-
-    /**
-     * @noinspection SqlNoDataSourceInspection
-     * @noinspection SqlResolve
-     */
-    public function testPreventNamedParameters()
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('should not contain named parameters');
-        $parsed = $this->parser->parseStatement('select somefoo from foo where idfoo = :id');
-        $parsed->dispatch($this->builder);
     }
 
     public function testTrailingDollarInStringConstantBug()
