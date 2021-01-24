@@ -626,7 +626,8 @@ class Parser
     /**
      * Constructor, sets Lexer and Cache implementations to use
      *
-     * It is recommended to always use cache in production: parsing is slow.
+     * It is recommended to always use cache in production: loading AST from cache is generally 3-4 times faster
+     * than parsing.
      *
      * @param Lexer                       $lexer
      * @param CacheItemPoolInterface|null $cache
@@ -634,6 +635,16 @@ class Parser
     public function __construct(Lexer $lexer, CacheItemPoolInterface $cache = null)
     {
         $this->lexer = $lexer;
+        $this->cache = $cache;
+    }
+
+    /**
+     * Sets the cache object used for storing of SQL parse results
+     *
+     * @param CacheItemPoolInterface $cache
+     */
+    public function setCache(CacheItemPoolInterface $cache)
+    {
         $this->cache = $cache;
     }
 
@@ -662,8 +673,8 @@ class Parser
             $cacheItem = null;
 
         } else {
-            $cacheKey  = 'parsetree-' . md5('{' . $name . '}' . $arguments[0]);
-            $cacheItem = $this->cache->getItem($cacheKey);
+            $source    = $arguments[0] instanceof TokenStream ? $arguments[0]->getSource() : (string)$arguments[0];
+            $cacheItem = $this->cache->getItem('parsetree-' . md5('{' . $name . '}' . $source));
             if ($cacheItem->isHit()) {
                 return clone $cacheItem->get();
             }
