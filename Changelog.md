@@ -8,6 +8,9 @@
   * `Lexer` handles `\uXXXX` and `\UXXXXXXXX` escapes in string literals with C-style escapes and converts them to UTF-8 strings.
   * `u&'...'` string literals and `u&"..."` identifiers are also supported, including trailing `UESCAPE` clauses. These are also converted to UTF-8.
   * `SqlBuilderWalker` has a new `'escape_unicode'` option that will trigger converting multi-byte UTF-8 characters (i.e. non-ASCII) to Unicode escapes in generated SQL.
+* It is now possible to use the package to generate queries suitable for PDO
+  * `StatementFactory` may be configured to keep `:foo` named parameters in generated SQL
+  * Convenience method `StatementFactory::forPDO()` creates an instance of `StatementFactory` based on passed PDO connection
 * Substantial performance improvements, especially when using cache. Tested on PHP 7.4 against version 0.4.1:
   * 15-20% faster SQL parsing
   * 25% faster SQL building
