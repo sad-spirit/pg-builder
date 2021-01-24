@@ -15,14 +15,16 @@
     },
     "require" : {
         "php":       ">=7.2.0",
-        "ext-pgsql": "*",
         "ext-ctype": "*"
     },
     "suggest": {
         "psr/cache-implementation": "Used for caching parsed queries",
-        "sad_spirit/pg_wrapper":    "Used for running built queries"
+        "sad_spirit/pg_wrapper":    "Used for running built queries",
+        "ext-pdo_pgsql":            "Used for running built queries"
     },
     "require-dev":  {
+        "ext-pgsql":             "*",
+        "ext-pdo_pgsql":         "*",
         "phpunit/phpunit":       "^8.0",
         "sad_spirit/pg_wrapper": "^1.0.0@beta",
         "psr/cache":             "^1.0"

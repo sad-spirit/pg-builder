@@ -56,7 +56,7 @@ class NativeStatementTest extends TestCase
         $this->connection = new Connection(TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING);
         $this->connection->setTypeConverterFactory(new ParserAwareTypeConverterFactory());
 
-        $this->factory    = new StatementFactory($this->connection);
+        $this->factory    = StatementFactory::forConnection($this->connection);
     }
 
     public function testNamedParameters()

@@ -26,6 +26,7 @@ use sad_spirit\pg_wrapper\Connection;
 use sad_spirit\pg_builder\{
     Lexer,
     Parser,
+    SqlBuilderWalker,
     StatementFactory
 };
 use sad_spirit\pg_builder\nodes\{
@@ -65,7 +66,7 @@ class StatementFactoryTest extends TestCase
         );
     }
 
-    public function testCreatesParserBasedOnConnection()
+    public function testCreatesFactoryForConnection()
     {
         if (!TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING) {
             $this->markTestSkipped('Connection string is not configured');
@@ -74,13 +75,33 @@ class StatementFactoryTest extends TestCase
         $cache      = $this->createMock(CacheItemPoolInterface::class);
         $connection = new Connection(TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING);
         $connection->execute("set standard_conforming_strings = off");
+        $connection->execute("set client_encoding = 'windows-1251'");
         $connection->setMetadataCache($cache);
         
-        $factory    = new StatementFactory($connection);
+        $factory         = StatementFactory::forConnection($connection);
+        $expectedParser  = new Parser(new Lexer(['standard_conforming_strings' => false]), $cache);
+        $expectedBuilder = new SqlBuilderWalker(['escape_unicode' => true]);
 
-        $expected   = new Parser(new Lexer(['standard_conforming_strings' => false]), $cache);
+        $this::assertEquals($expectedParser, $factory->getParser());
+        $this::assertEquals($expectedBuilder, $factory->getBuilder());
+    }
 
-        $this->assertEquals($expected, $factory->getParser());
+    public function testCreatesFactoryForPDO()
+    {
+        if (!TESTS_SAD_SPIRIT_PG_BUILDER_PDO_DSN) {
+            $this::markTestSkipped('PDO DSN is not configured');
+        }
+
+        $pdo = new \PDO(TESTS_SAD_SPIRIT_PG_BUILDER_PDO_DSN);
+        $pdo->exec('set standard_conforming_strings = off');
+        $pdo->exec("set client_encoding = 'windows-1251'");
+
+        $factory         = StatementFactory::forPDO($pdo);
+        $expectedParser  = new Parser(new Lexer(['standard_conforming_strings' => false]));
+        $expectedBuilder = new SqlBuilderWalker(['escape_unicode' => true]);
+
+        $this::assertEquals($expectedParser, $factory->getParser());
+        $this::assertEquals($expectedBuilder, $factory->getBuilder());
     }
 
     /**

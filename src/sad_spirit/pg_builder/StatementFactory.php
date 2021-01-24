@@ -21,7 +21,6 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_wrapper\Connection;
-use sad_spirit\pg_wrapper\exceptions\ServerException;
 
 /**
  * Helper class for creating statements and passing Parser object to them
@@ -29,98 +28,115 @@ use sad_spirit\pg_wrapper\exceptions\ServerException;
 class StatementFactory
 {
     /**
-     * Database connection
-     * @var Connection|null
-     */
-    private $connection;
-
-    /**
      * Query parser, will be passed to created statements
-     * @var Parser|null
+     * @var Parser
      */
     private $parser;
 
     /**
      * Query builder
-     * @var TreeWalker|null
+     * @var TreeWalker
      */
     private $builder;
 
     /**
-     * Constructor, can set the Connection and Parser objects
-     *
-     * @param Connection|null $connection
-     * @param Parser|null $parser
+     * Whether to generate SQL suitable for PDO
+     * @var bool
      */
-    public function __construct(Connection $connection = null, Parser $parser = null)
+    private $PDOCompatible;
+
+    /**
+     * Constructor, sets objects to parse and build SQL
+     *
+     * @param Parser|null     $parser        A Parser instance with default settings will be used if not given
+     * @param TreeWalker|null $builder       Usually an instance of SqlBuilderWalker. An instance of SqlBuilderWalker
+     *                                       with default settings will be used if not given.
+     * @param bool            $PDOCompatible Whether to generate SQL suitable for PDO rather than for native
+     *                                       pgsql extension: named parameters will not be replaced by positional ones
+     */
+    public function __construct(Parser $parser = null, TreeWalker $builder = null, bool $PDOCompatible = false)
     {
-        $this->connection = $connection;
-        $this->parser     = $parser;
+        $this->parser        = $parser ?? new Parser(new Lexer());
+        $this->builder       = $builder ?? new SqlBuilderWalker();
+        $this->PDOCompatible = $PDOCompatible;
+    }
+
+    /**
+     * Creates an instance of StatementFactory based on properties of native DB connection
+     *
+     * @param Connection $connection If Connection has a DB metadata cache object, that cache will also be used
+     *                               in Parser for storing ASTs
+     * @return static
+     */
+    public static function forConnection(Connection $connection): self
+    {
+        $serverVersion = pg_parameter_status($connection->getResource(), 'server_version');
+        if (version_compare($serverVersion, '9.5', '<')) {
+            throw new exceptions\RuntimeException(
+                'PostgreSQL versions earlier than 9.5 are no longer supported, '
+                . 'connected server reports version ' . $serverVersion
+            );
+        }
+
+        $column       = $connection->execute('show standard_conforming_strings')->fetchColumn(0);
+        $lexerOptions = ['standard_conforming_strings' => 'on' === $column[0]];
+
+        $clientEncoding = pg_parameter_status($connection->getResource(), 'client_encoding');
+        $builderOptions = ['escape_unicode' => 'UTF8' !== $clientEncoding];
+
+        return new self(
+            new Parser(new Lexer($lexerOptions), $connection->getMetadataCache()),
+            new SqlBuilderWalker($builderOptions)
+        );
+    }
+
+    /**
+     * Creates an instance of StatementFactory based on properties of PDO connection object
+     *
+     * @param \PDO $pdo
+     * @return static
+     */
+    public static function forPDO(\PDO $pdo): self
+    {
+        // obligatory sanity check
+        if ('pgsql' !== ($driver = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME))) {
+            throw new exceptions\InvalidArgumentException(
+                'Connection to PostgreSQL server expected, given PDO object reports ' . $driver . ' driver'
+            );
+        }
+        if (version_compare($version = $pdo->getAttribute(\PDO::ATTR_SERVER_VERSION), '9.5', '<')) {
+            throw new exceptions\RuntimeException(
+                'PostgreSQL versions earlier than 9.5 are no longer supported, '
+                . 'connected server reports version ' . $version
+            );
+        }
+
+        $column       = $pdo->query('show standard_conforming_strings')->fetchColumn(0);
+        $lexerOptions = ['standard_conforming_strings' => 'on' === $column[0]];
+
+        $serverInfo     = $pdo->getAttribute(\PDO::ATTR_SERVER_INFO);
+        $builderOptions = ['escape_unicode' => false === strpos($serverInfo, 'Client Encoding: UTF8')];
+
+        return new self(new Parser(new Lexer($lexerOptions)), new SqlBuilderWalker($builderOptions), true);
     }
 
     /**
      * Returns the Parser for converting SQL fragments to ASTs
      *
-     * If the parser was not provided to constructor it will be created here, using
-     * Connection for setting additional options if available
-     *
      * @return Parser
      */
-    public function getParser()
+    public function getParser(): Parser
     {
-        if (null === $this->parser) {
-            if (null === $this->connection) {
-                $cache         = null;
-                $lexerOptions  = [];
-
-            } else {
-                $serverVersion = pg_parameter_status($this->connection->getResource(), 'server_version');
-                if (version_compare($serverVersion, '9.5', '<')) {
-                    throw new exceptions\RuntimeException(
-                        'PostgreSQL versions earlier than 9.5 are no longer supported, '
-                        . 'connected server reports version ' . $serverVersion
-                    );
-                }
-
-                $cache = $this->connection->getMetadataCache();
-                try {
-                    $res = $this->connection->execute('show standard_conforming_strings');
-                    $lexerOptions = [
-                        'standard_conforming_strings' => 'on' === $res[0]['standard_conforming_strings']
-                    ];
-                } catch (ServerException $e) {
-                    // the server is not aware of the setting?
-                    $lexerOptions = ['standard_conforming_strings' => false];
-                }
-            }
-            $this->parser = new Parser(new Lexer($lexerOptions), $cache);
-        }
         return $this->parser;
-    }
-
-    /**
-     * Sets the SQL builder object used by createFromAST()
-     *
-     * @param TreeWalker $builder
-     */
-    public function setBuilder(TreeWalker $builder)
-    {
-        $this->builder = $builder;
     }
 
     /**
      * Returns the SQL builder object
      *
-     * If not explicitly set by setBuilder(), an instance of SqlBuilderWalker with default
-     * options will be created.
-     *
      * @return TreeWalker
      */
     public function getBuilder(): TreeWalker
     {
-        if (null === $this->builder) {
-            $this->builder = new SqlBuilderWalker();
-        }
         return $this->builder;
     }
 
@@ -148,7 +164,7 @@ class StatementFactory
      */
     public function createFromAST(Statement $ast): NativeStatement
     {
-        $pw = new ParameterWalker();
+        $pw = new ParameterWalker($this->PDOCompatible);
         $ast->dispatch($pw);
 
         return new NativeStatement(
