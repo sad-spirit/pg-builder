@@ -260,8 +260,7 @@ QRY
      */
     public function testEscapeUnicode()
     {
-        $ast = $this->parser->parseStatement(
-<<<QRY
+        $ast = $this->parser->parseStatement(<<<QRY
     select молодой.слонок носатый, 'на лужайке '' какал \\ смачно'
     from "на"."тракторе" as Егорка join подкрался.незаметно using (большим, ковшом, """чугунным""")
     where схватил.слонка operator (за.#) жопу
