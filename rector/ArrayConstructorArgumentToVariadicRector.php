@@ -77,14 +77,16 @@ CODE_SAMPLE
             return null;
         }
 
-        if (!$node->args[0]->value instanceof Array_) {
-            $node->args[0]->unpack = true;
-        } else {
+        if ($node->args[0]->value instanceof Array_) {
             $newArgs = array_map(function (ArrayItem $item): Arg {
                 return new Arg($item);
             }, $node->args[0]->value->items);
 
             $node->args = $newArgs;
+        } elseif (!$this->isArrayType($node->args[0]->value)) {
+            return null;
+        } else {
+            $node->args[0]->unpack = true;
         }
 
         return $node;
