@@ -142,7 +142,15 @@ abstract class BlankWalker implements TreeWalker
         $node->columnAliases->dispatch($this);
     }
 
-    public function walkConstant(nodes\Constant $node)
+    public function walkKeywordConstant(nodes\expressions\KeywordConstant $node)
+    {
+    }
+
+    public function walkNumericConstant(nodes\expressions\NumericConstant $node)
+    {
+    }
+
+    public function walkStringConstant(nodes\expressions\StringConstant $node)
     {
     }
 

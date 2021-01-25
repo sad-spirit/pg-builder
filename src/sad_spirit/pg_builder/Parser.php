@@ -1066,7 +1066,7 @@ class Parser
             $this->stream->next();
             if ($this->stream->matchesKeyword('all')) {
                 $this->stream->next();
-                $stmt->limit = new nodes\Constant(null);
+                $stmt->limit = new nodes\expressions\KeywordConstant(nodes\expressions\KeywordConstant::NULL);
             } else {
                 $stmt->limit = $this->Expression();
             }
@@ -1078,7 +1078,7 @@ class Parser
 
             if ($this->stream->matchesKeyword(['row', 'rows'])) {
                 // no limit specified -> 1 row
-                $stmt->limit = new nodes\Constant(1);
+                $stmt->limit = new nodes\expressions\NumericConstant('1');
             } elseif ($this->stream->matchesSpecialChar(['+', '-'])) {
                 // signed numeric constant: that case is not handled by ExpressionAtom()
                 $sign = $this->stream->next();
@@ -1088,9 +1088,9 @@ class Parser
                     $constantToken = $this->stream->expect(Token::TYPE_INTEGER);
                 }
                 if ('+' === $sign->getValue()) {
-                    $stmt->limit = new nodes\Constant($constantToken);
+                    $stmt->limit = nodes\expressions\Constant::createFromToken($constantToken);
                 } else {
-                    $stmt->limit = new nodes\Constant(new Token(
+                    $stmt->limit = nodes\expressions\Constant::createFromToken(new Token(
                         $constantToken->getType(),
                         '-' . $constantToken->getValue(),
                         $constantToken->getPosition()
@@ -1959,11 +1959,13 @@ class Parser
             if ($this->stream->matchesSpecialChar('(')) {
                 $this->stream->next();
                 $modifiers = new nodes\lists\TypeModifierList([
-                    new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
+                    nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_INTEGER))
                 ]);
                 if ($this->stream->matchesSpecialChar(',')) {
                     $this->stream->next();
-                    $modifiers[] = new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER));
+                    $modifiers[] = nodes\expressions\Constant::createFromToken(
+                        $this->stream->expect(Token::TYPE_INTEGER)
+                    );
                 }
                 $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
             }
@@ -1990,14 +1992,14 @@ class Parser
         if ($this->stream->matchesSpecialChar('(')) {
             $this->stream->next();
             $modifiers = new nodes\lists\TypeModifierList([
-                new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
+                nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_INTEGER))
             ]);
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
         }
         // BIT translates to bit(1) *unless* this is a leading typecast
         // where it translates to "any length" (with no modifiers)
         if (!$leading && $typeName === 'bit' && empty($modifiers)) {
-            $modifiers = new nodes\lists\TypeModifierList([new nodes\Constant(1)]);
+            $modifiers = new nodes\lists\TypeModifierList([new nodes\expressions\NumericConstant('1')]);
         }
         return new nodes\TypeName(
             new nodes\QualifiedName('pg_catalog', $typeName),
@@ -2028,14 +2030,14 @@ class Parser
         if ($this->stream->matchesSpecialChar('(')) {
             $this->stream->next();
             $modifiers = new nodes\lists\TypeModifierList([
-                new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
+                nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_INTEGER))
             ]);
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
         }
         // CHAR translates to char(1) *unless* this is a leading typecast
         // where it translates to "any length" (with no modifiers)
         if (!$leading && !$varying && null === $modifiers) {
-            $modifiers = new nodes\lists\TypeModifierList([new nodes\Constant(1)]);
+            $modifiers = new nodes\lists\TypeModifierList([new nodes\expressions\NumericConstant('1')]);
         }
 
         return new nodes\TypeName(
@@ -2055,7 +2057,7 @@ class Parser
         if ($this->stream->matchesSpecialChar('(')) {
             $this->stream->next();
             $modifiers = new nodes\lists\TypeModifierList([
-                new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
+                nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_INTEGER))
             ]);
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
         }
@@ -2087,12 +2089,12 @@ class Parser
         if ($this->stream->matchesSpecialChar('(')) {
             $this->stream->next();
             $modifiers = new nodes\lists\TypeModifierList([
-                new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
+                nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_INTEGER))
             ]);
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
         }
         if ($leading) {
-            $operand = new nodes\Constant($this->stream->expect(Token::TYPE_STRING));
+            $operand = nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_STRING));
         }
 
         if (
@@ -2122,7 +2124,7 @@ class Parser
             if ($second && $this->stream->matchesSpecialChar('(')) {
                 $this->stream->next();
                 $modifiers = new nodes\lists\TypeModifierList([
-                    new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
+                    nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_INTEGER))
                 ]);
                 $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
             }
@@ -2181,14 +2183,14 @@ class Parser
      * Type modifiers here are allowed according to typenameTypeMod() function from
      * src/backend/parser/parse_type.c
      *
-     * @return nodes\Constant|nodes\Identifier
+     * @return nodes\expressions\Constant|nodes\Identifier
      * @throws exceptions\SyntaxException
      */
     protected function GenericTypeModifier()
     {
         // Let's keep most common case at the top
         if ($this->stream->matchesAnyType(Token::TYPE_INTEGER, Token::TYPE_FLOAT, Token::TYPE_STRING)) {
-            return new nodes\Constant($this->stream->next());
+            return nodes\expressions\Constant::createFromToken($this->stream->next());
 
         } elseif (
             $this->stream->matchesAnyType(
@@ -2286,20 +2288,12 @@ class Parser
         $token    = $this->stream->next();
         $operator = $token->getValue();
         $operand  = $this->UnaryPlusMinusExpression();
-        if (
-            !$operand instanceof nodes\Constant
-            || (Token::TYPE_INTEGER !== $operand->type && Token::TYPE_FLOAT !== $operand->type)
-            || '-' !== $operator
-        ) {
+        if (!$operand instanceof nodes\expressions\NumericConstant || '-' !== $operator) {
             return new nodes\expressions\OperatorExpression($operator, null, $operand);
         } elseif ('-' === $operand->value[0]) {
-            return new nodes\Constant(
-                new Token($operand->type, substr($operand->value, 1), $token->getPosition())
-            );
+            return new nodes\expressions\NumericConstant(substr($operand->value, 1));
         } else {
-            return new nodes\Constant(
-                new Token($operand->type, '-' . $operand->value, $token->getPosition())
-            );
+            return new nodes\expressions\NumericConstant('-' . $operand->value);
         }
     }
 
@@ -2342,7 +2336,7 @@ class Parser
                 case 'true':
                 case 'false':
                 case 'null':
-                    return new nodes\Constant($this->stream->next());
+                    return nodes\expressions\Constant::createFromToken($this->stream->next());
             }
 
         } elseif (0 !== ($token->getType() & self::ATOM_SPECIAL_TYPES)) {
@@ -2366,7 +2360,7 @@ class Parser
                 $atom = nodes\expressions\Parameter::createFromToken($this->stream->next());
 
             } elseif ($token->matches(Token::TYPE_LITERAL)) {
-                return new nodes\Constant($this->stream->next());
+                return nodes\expressions\Constant::createFromToken($this->stream->next());
             }
         }
 
@@ -2582,7 +2576,7 @@ class Parser
 
         if (null !== $typeName) {
             return new nodes\expressions\TypecastExpression(
-                new nodes\Constant($this->stream->expect(Token::TYPE_STRING)),
+                nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_STRING)),
                 $typeName
             );
         }
@@ -2593,7 +2587,7 @@ class Parser
     protected function GenericLeadingTypecast(array $identifiers): nodes\expressions\TypecastExpression
     {
         return new nodes\expressions\TypecastExpression(
-            new nodes\Constant($this->stream->expect(Token::TYPE_STRING)),
+            nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_STRING)),
             $this->GenericTypeName($identifiers)
         );
     }
@@ -2612,7 +2606,7 @@ class Parser
             // we convert to 'now'::date instead of 'now'::text::date, since the latter is only
             // needed for rules, default values and such. we don't do these
             return new nodes\expressions\TypecastExpression(
-                new nodes\Constant('now'),
+                new nodes\expressions\StringConstant('now'),
                 new nodes\TypeName(new nodes\QualifiedName('pg_catalog', 'date'))
             );
 
@@ -2638,7 +2632,7 @@ class Parser
         } else {
             $this->stream->next();
             $modifiers = new nodes\lists\TypeModifierList([
-                new nodes\Constant($this->stream->expect(Token::TYPE_INTEGER))
+                nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_INTEGER))
             ]);
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
         }
@@ -2646,7 +2640,7 @@ class Parser
             new nodes\QualifiedName('pg_catalog', self::SYSTEM_FUNCTIONS_MAPPING[$funcName]),
             $modifiers
         );
-        return new nodes\expressions\TypecastExpression(new nodes\Constant('now'), $typeName);
+        return new nodes\expressions\TypecastExpression(new nodes\expressions\StringConstant('now'), $typeName);
     }
 
     protected function SystemFunctionCallRequiredParens(): ?Node
@@ -2677,9 +2671,11 @@ class Parser
                     $this->stream->matchesKeyword(['year', 'month', 'day', 'hour', 'minute', 'second'])
                     || $this->stream->matches(Token::TYPE_STRING)
                 ) {
-                    $arguments[] = new nodes\Constant($this->stream->next()->getValue());
+                    $arguments[] = new nodes\expressions\StringConstant($this->stream->next()->getValue());
                 } else {
-                    $arguments[] = new nodes\Constant($this->stream->expect(Token::TYPE_IDENTIFIER)->getValue());
+                    $arguments[] = new nodes\expressions\StringConstant(
+                        $this->stream->expect(Token::TYPE_IDENTIFIER)->getValue()
+                    );
                 }
                 $this->stream->expect(Token::TYPE_KEYWORD, 'from');
                 $arguments[] = $this->Expression();
@@ -2779,7 +2775,7 @@ class Parser
                 if ($this->stream->matchesSpecialChar(',')) {
                     $this->stream->skip(1);
                     $form = $this->stream->expect(Token::TYPE_KEYWORD, ['nfc', 'nfd', 'nfkc', 'nfkd']);
-                    $arguments[] = new nodes\Constant($form->getValue());
+                    $arguments[] = new nodes\expressions\StringConstant($form->getValue());
                 }
                 break;
 
@@ -2879,7 +2875,7 @@ class Parser
         } elseif (null !== $from) {
             $arguments[] = $from;
         } elseif (null !== $for) {
-            $arguments->merge([new nodes\Constant(1), $for]);
+            $arguments->merge([new nodes\expressions\NumericConstant('1'), $for]);
         }
 
         return $arguments;

@@ -33,7 +33,6 @@ use sad_spirit\pg_builder\nodes\{
     ArrayIndexes,
     ColumnReference,
     CommonTableExpression,
-    Constant,
     FunctionCall,
     Identifier,
     Indirection,
@@ -56,8 +55,10 @@ use sad_spirit\pg_builder\nodes\expressions\{
     InExpression,
     IsOfExpression,
     NamedParameter,
+    NumericConstant,
     OperatorExpression,
     PatternMatchingExpression,
+    StringConstant,
     SubselectExpression,
     TypecastExpression,
     WhenExpression
@@ -122,7 +123,7 @@ class SetParentNodeTest extends TestCase
         $this->assertSame($insert, $insert->cols->getParentNode());
         $this->assertSame($insert, $insert->returning->getParentNode());
 
-        $values = new Values(new RowList([[new Constant(1)], [new Constant(2)]]));
+        $values = new Values(new RowList([[new NumericConstant('1')], [new NumericConstant('2')]]));
         $insert->setValues($values);
         $this->assertSame($insert, $values->getParentNode());
         $insert->setValues(null);
@@ -153,7 +154,7 @@ class SetParentNodeTest extends TestCase
         $select->distinct = false;
         $this->assertNull($distinct->getParentNode());
 
-        $five  = new Constant(5);
+        $five  = new NumericConstant('5');
 
         $select->limit = $five;
         $this->assertSame($select, $five->getParentNode());
@@ -165,8 +166,8 @@ class SetParentNodeTest extends TestCase
 
     public function testSetOpSelectStatement()
     {
-        $selectOne = new Select(new TargetList([new TargetElement(new Constant('foo'))]));
-        $selectTwo = new Select(new TargetList([new TargetElement(new Constant('bar'))]));
+        $selectOne = new Select(new TargetList([new TargetElement(new StringConstant('foo'))]));
+        $selectTwo = new Select(new TargetList([new TargetElement(new StringConstant('bar'))]));
         $setOp     = new SetOpSelect($selectOne, $selectTwo);
 
         $this->assertSame($setOp, $selectOne->getParentNode());
@@ -180,7 +181,7 @@ class SetParentNodeTest extends TestCase
             new SetClauseList([
                 new SingleSetClause(
                     new SetTargetElement(new Identifier('baz')),
-                    new Constant('quux')
+                    new StringConstant('quux')
                 )
             ])
         );
@@ -194,14 +195,14 @@ class SetParentNodeTest extends TestCase
 
     public function testValuesStatement()
     {
-        $values = new Values(new RowList([[new Constant(1)], [new Constant(2)]]));
+        $values = new Values(new RowList([[new NumericConstant('1')], [new NumericConstant('2')]]));
 
         $this->assertSame($values, $values->rows->getParentNode());
     }
 
     public function testArrayIndexes()
     {
-        $indexes = new ArrayIndexes(new Constant(1), new Constant(10));
+        $indexes = new ArrayIndexes(new NumericConstant('1'), new NumericConstant('10'));
 
         $this->assertSame($indexes, $indexes->lower->getParentNode());
         $this->assertSame($indexes, $indexes->upper->getParentNode());
@@ -220,7 +221,7 @@ class SetParentNodeTest extends TestCase
     public function testCommonTableExpression()
     {
         $cte = new CommonTableExpression(
-            new Select(new TargetList([new TargetElement(new Constant('foo'))])),
+            new Select(new TargetList([new TargetElement(new StringConstant('foo'))])),
             new Identifier('bar'),
             new IdentifierList(['baz', 'quux'])
         );
@@ -234,7 +235,7 @@ class SetParentNodeTest extends TestCase
     {
         $fn = new FunctionCall(
             new QualifiedName('foo', 'bar'),
-            new FunctionArgumentList([new Constant(1)]),
+            new FunctionArgumentList([new NumericConstant('1')]),
             false,
             false,
             new OrderByList([new OrderByElement(new ColumnReference('baz'))])
@@ -293,20 +294,20 @@ class SetParentNodeTest extends TestCase
     {
         $typename = new TypeName(
             new QualifiedName('foo', 'bar'),
-            new TypeModifierList([new Constant(1)])
+            new TypeModifierList([new NumericConstant('1')])
         );
 
         $this->assertSame($typename, $typename->name->getParentNode());
         $this->assertSame($typename, $typename->modifiers->getParentNode());
 
-        $interval = new IntervalTypeName(new TypeModifierList([new Constant(1)]));
+        $interval = new IntervalTypeName(new TypeModifierList([new NumericConstant('1')]));
         $this->assertSame($interval, $interval->modifiers->getParentNode());
     }
 
     public function testWindowDefinition()
     {
-        $constant5  = new Constant(5);
-        $constant10 = new Constant(10);
+        $constant5  = new NumericConstant('5');
+        $constant10 = new NumericConstant('10');
         $start      = new WindowFrameBound('preceding', $constant5);
         $end        = new WindowFrameBound('following', $constant10);
 
@@ -338,7 +339,11 @@ class SetParentNodeTest extends TestCase
 
     public function testBetweenExpression()
     {
-        $between = new BetweenExpression(new ColumnReference('foo'), new Constant(1), new Constant(2));
+        $between = new BetweenExpression(
+            new ColumnReference('foo'),
+            new NumericConstant('1'),
+            new NumericConstant('2')
+        );
 
         $this->assertSame($between, $between->argument->getParentNode());
         $this->assertSame($between, $between->left->getParentNode());
@@ -348,8 +353,8 @@ class SetParentNodeTest extends TestCase
     public function testCaseExpression()
     {
         $case = new CaseExpression(
-            [new WhenExpression(new ColumnReference('foo'), new Constant('foo'))],
-            new Constant(666),
+            [new WhenExpression(new ColumnReference('foo'), new StringConstant('foo'))],
+            new NumericConstant('666'),
             new ColumnReference('bar')
         );
 
@@ -372,7 +377,7 @@ class SetParentNodeTest extends TestCase
     {
         $in = new InExpression(
             new ColumnReference('foo'),
-            new ExpressionList([new Constant('foo'), new Constant('bar')])
+            new ExpressionList([new StringConstant('foo'), new StringConstant('bar')])
         );
 
         $this->assertSame($in, $in->left->getParentNode());
@@ -395,7 +400,7 @@ class SetParentNodeTest extends TestCase
         $operator = new OperatorExpression(
             '=',
             new ColumnReference('foo'),
-            new Constant('foo')
+            new StringConstant('foo')
         );
 
         $this->assertSame($operator, $operator->left->getParentNode());
@@ -406,10 +411,10 @@ class SetParentNodeTest extends TestCase
     {
         $pattern = new PatternMatchingExpression(
             new ColumnReference('foo'),
-            new Constant('blah%'),
+            new StringConstant('blah%'),
             'like',
             false,
-            new Constant('!')
+            new StringConstant('!')
         );
 
         $this->assertSame($pattern, $pattern->argument->getParentNode());
@@ -472,7 +477,7 @@ class SetParentNodeTest extends TestCase
     {
         $fn = new RangeFunctionCall(new FunctionCall(
             new QualifiedName('foo', 'bar'),
-            new FunctionArgumentList([new Constant(1)])
+            new FunctionArgumentList([new NumericConstant('1')])
         ));
 
         $this->assertSame($fn, $fn->function->getParentNode());
@@ -513,7 +518,7 @@ class SetParentNodeTest extends TestCase
     public function testRangeSubselect()
     {
         $subselect = new Subselect(
-            new Select(new TargetList([new TargetElement(new Constant('foo'))]))
+            new Select(new TargetList([new TargetElement(new StringConstant('foo'))]))
         );
 
         $this->assertSame($subselect, $subselect->query->getParentNode());
@@ -523,8 +528,8 @@ class SetParentNodeTest extends TestCase
     {
         $xml = new XmlElement(
             new Identifier('name'),
-            new TargetList([new TargetElement(new Constant('attvalue'), new Identifier('attname'))]),
-            new ExpressionList([new Constant('stuff')])
+            new TargetList([new TargetElement(new StringConstant('attvalue'), new Identifier('attname'))]),
+            new ExpressionList([new StringConstant('stuff')])
         );
 
         $this->assertSame($xml, $xml->name->getParentNode());
@@ -534,14 +539,14 @@ class SetParentNodeTest extends TestCase
 
     public function testXmlParse()
     {
-        $xml = new XmlParse('document', new Constant('<foo>bar</foo>'), false);
+        $xml = new XmlParse('document', new StringConstant('<foo>bar</foo>'), false);
 
         $this->assertSame($xml, $xml->argument->getParentNode());
     }
 
     public function testXmlPi()
     {
-        $xml = new XmlPi(new Identifier('php'), new Constant("echo 'Hello world!';"));
+        $xml = new XmlPi(new Identifier('php'), new StringConstant("echo 'Hello world!';"));
 
         $this->assertSame($xml, $xml->content->getParentNode());
         $this->assertSame($xml, $xml->name->getParentNode());
@@ -549,7 +554,7 @@ class SetParentNodeTest extends TestCase
 
     public function testXmlRoot()
     {
-        $xml = new XmlRoot(new ColumnReference('doc'), new Constant('1.2'), 'yes');
+        $xml = new XmlRoot(new ColumnReference('doc'), new StringConstant('1.2'), 'yes');
 
         $this->assertSame($xml, $xml->xml->getParentNode());
         $this->assertSame($xml, $xml->version->getParentNode());

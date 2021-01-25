@@ -34,11 +34,11 @@ class BlankWalkerTest extends TestCase
 {
     private $sql = <<<'QRY'
 with recursive w1 (w2, w3) as (
-    select s1, s2, array[s3]
+    select s1, s2, array[s3], false
     from s4 as s5
     where s6.s7 = $1
     union all
-    select s8, s9.s10, s11 || s12
+    select s8, s9.s10, s11 || s12, true
     from s13 s14, s15 s16
     where s17.s18 = s19.s20 
     order by s21.s22

@@ -28,7 +28,8 @@ use sad_spirit\pg_builder\{
 };
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
-    Constant,
+    expressions\NumericConstant,
+    expressions\StringConstant,
     Identifier,
     QualifiedName,
     TypeName,
@@ -79,7 +80,7 @@ QRY
                     ),
                     new TypeName(
                         new QualifiedName('baz'),
-                        new TypeModifierList([new Constant(666)])
+                        new TypeModifierList([new NumericConstant('666')])
                     )
                 ),
                 new TypecastExpression(new ColumnReference('foo'), clone $arrayOfInt),
@@ -110,11 +111,11 @@ QRY
                 new TypecastExpression(clone $foo, new TypeName(new QualifiedName('pg_catalog', 'float8'))),
                 new TypecastExpression(clone $foo, new TypeName(
                     new QualifiedName('pg_catalog', 'numeric'),
-                    new TypeModifierList([new Constant(1), new Constant(2)])
+                    new TypeModifierList([new NumericConstant('1'), new NumericConstant('2')])
                 )),
                 new TypecastExpression(clone $foo, new TypeName(
                     new QualifiedName('pg_catalog', 'numeric'),
-                    new TypeModifierList([new Constant(3)])
+                    new TypeModifierList([new NumericConstant('3')])
                 )),
                 new TypecastExpression(clone $foo, new TypeName(new QualifiedName('pg_catalog', 'numeric'))),
                 new TypecastExpression(clone $foo, new TypeName(new QualifiedName('pg_catalog', 'bool')))
@@ -130,12 +131,12 @@ QRY
 QRY
         );
         $foo   = new ColumnReference('foo');
-        $mod10 = new TypeModifierList([new Constant(10)]);
+        $mod10 = new TypeModifierList([new NumericConstant('10')]);
         $this->assertEquals(
             new ExpressionList([
                 new TypecastExpression(clone $foo, new TypeName(
                     new QualifiedName('pg_catalog', 'bit'),
-                    new TypeModifierList([new Constant(1)])
+                    new TypeModifierList([new NumericConstant('1')])
                 )),
                 new TypecastExpression(clone $foo, new TypeName(new QualifiedName('pg_catalog', 'varbit'))),
                 new TypecastExpression(
@@ -156,8 +157,8 @@ QRY
 QRY
         );
         $blah  = new ColumnReference('blah');
-        $mod13 = new TypeModifierList([new Constant(13)]);
-        $mod1  = new TypeModifierList([new Constant(1)]);
+        $mod13 = new TypeModifierList([new NumericConstant('13')]);
+        $mod1  = new TypeModifierList([new NumericConstant('1')]);
 
         $this->assertEquals(
             new ExpressionList([
@@ -202,7 +203,7 @@ QRY
 QRY
         );
         $foo  = new ColumnReference('foo');
-        $mod3 = new TypeModifierList([new Constant(3)]);
+        $mod3 = new TypeModifierList([new NumericConstant('3')]);
         $this->assertEquals(
             new ExpressionList([
                 new TypecastExpression(
@@ -238,7 +239,7 @@ QRY
         );
 
         $foo    = new ColumnReference('foo');
-        $mod10  = new TypeModifierList([new Constant(10)]);
+        $mod10  = new TypeModifierList([new NumericConstant('10')]);
         $masked = new IntervalTypeName($mod10);
         $masked->setMask('hour to second');
 
@@ -280,10 +281,12 @@ QRY
     {
         $this->assertEquals(
             new TypecastExpression(
-                new Constant('a value'),
+                new StringConstant('a value'),
                 new TypeName(
                     new QualifiedName('foo', 'bar', 'baz'),
-                    new TypeModifierList([new Identifier('quux'), new Constant('xyzzy'), new Constant(42)])
+                    new TypeModifierList([
+                        new Identifier('quux'), new StringConstant('xyzzy'), new NumericConstant('42')
+                    ])
                 )
             ),
             $this->parser->parseExpression("cast('a value' as foo.bar.baz(quux, 'xyzzy', 42))")
@@ -298,8 +301,8 @@ QRY
     timestamp without time zone 'a value', interval 'a value' minute to second (10), quux.xyzzy 'a value'
 QRY
         );
-        $val      = new Constant('a value');
-        $mod10    = new TypeModifierList([new Constant(10)]);
+        $val      = new StringConstant('a value');
+        $mod10    = new TypeModifierList([new NumericConstant('10')]);
         $interval = new IntervalTypeName($mod10);
         $interval->setMask('minute to second');
         $this->assertEquals(
@@ -361,7 +364,7 @@ QRY
         $this->parser->parseExpression($expression);
     }
 
-    public function getInvalidTypeSpecifications()
+    public function getInvalidTypeSpecifications(): array
     {
         return [
             [

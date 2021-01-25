@@ -65,7 +65,7 @@ class SqlBuilderWalker implements TreeWalker
         $this->options = array_merge($this->options, $options);
 
         $this->dummyTypecast = new nodes\expressions\TypecastExpression(
-            new nodes\Constant('dummy'),
+            new nodes\expressions\StringConstant('dummy'),
             new nodes\TypeName(new nodes\QualifiedName('dummy'))
         );
     }
@@ -471,63 +471,55 @@ class SqlBuilderWalker implements TreeWalker
         return $sql . $this->options['linebreak'] . $this->getIndent() . ')';
     }
 
-    /**
-     *
-     * @param nodes\Constant $node
-     * @throws exceptions\InvalidArgumentException
-     * @return string
-     */
-    public function walkConstant(nodes\Constant $node): string
+    public function walkKeywordConstant(nodes\expressions\KeywordConstant $node): string
     {
-        switch ($node->type) {
-            case Token::TYPE_RESERVED_KEYWORD:
-            case Token::TYPE_INTEGER:
-            case Token::TYPE_FLOAT:
-                return $node->value;
+        return $node->value;
+    }
 
-            case Token::TYPE_BINARY_STRING:
-                return "b'" . $node->value . "'";
+    public function walkNumericConstant(nodes\expressions\NumericConstant $node): string
+    {
+        return $node->value;
+    }
 
-            case Token::TYPE_HEX_STRING:
-                return "x'" . $node->value . "'";
+    public function walkStringConstant(nodes\expressions\StringConstant $node): string
+    {
+        // binary and hex strings do not require escaping
+        if ($node::TYPE_CHARACTER !== $node->type) {
+            return "{$node->type}'{$node->value}'";
+        }
 
-            case Token::TYPE_NCHAR_STRING: // don't bother with generating N'...'
-            case Token::TYPE_STRING:
-                if ($this->options['escape_unicode'] && preg_match('/[\\x80-\\xff]/', $node->value)) {
-                    // We generate e'...' string instead of u&'...' one as the latter may be rejected by server
-                    // if standard_conforming_strings setting is off
-                    return "e'"
-                        . implode('', array_map(function (int $codePoint): string {
-                            if (0x27 === $codePoint) {
-                                return "\\'";
-                            } elseif (0x5c === $codePoint) {
-                                return '\\\\';
-                            } elseif ($codePoint < 0x80) {
-                                return chr($codePoint);
-                            } elseif ($codePoint < 0xFFFF) {
-                                return sprintf('\\u%04x', $codePoint);
-                            } else {
-                                return sprintf('\\U%08x', $codePoint);
-                            }
-                        }, self::utf8ToCodePoints($node->value)))
-                        . "'";
-
-                } elseif (false === strpos($node->value, "'") && false === strpos($node->value, '\\')) {
-                    return "'" . $node->value . "'";
-
-                } elseif (false === strpos($node->value . '$', '$$')) {
-                    return '$$' . $node->value . '$$';
-
-                } else {
-                    $i = 1;
-                    while (false !== strpos($node->value . '$', '$_' . $i . '$')) {
-                        $i++;
+        if ($this->options['escape_unicode'] && preg_match('/[\\x80-\\xff]/', $node->value)) {
+            // We generate e'...' string instead of u&'...' one as the latter may be rejected by server
+            // if standard_conforming_strings setting is off
+            return "e'"
+                . implode('', array_map(function (int $codePoint): string {
+                    if (0x27 === $codePoint) {
+                        return "\\'";
+                    } elseif (0x5c === $codePoint) {
+                        return '\\\\';
+                    } elseif ($codePoint < 0x80) {
+                        return chr($codePoint);
+                    } elseif ($codePoint < 0xFFFF) {
+                        return sprintf('\\u%04x', $codePoint);
+                    } else {
+                        return sprintf('\\U%08x', $codePoint);
                     }
-                    return '$_' . $i . '$' . $node->value . '$_' . $i . '$';
-                }
+                }, self::utf8ToCodePoints($node->value)))
+                . "'";
+        }
 
-            default:
-                throw new exceptions\InvalidArgumentException(sprintf('Unexpected constant type %d', $node->type));
+        if (false === strpos($node->value, "'") && false === strpos($node->value, '\\')) {
+            return "'" . $node->value . "'";
+        }
+
+        if (false === strpos($node->value . '$', '$$')) {
+            return '$$' . $node->value . '$$';
+        } else {
+            $i = 1;
+            while (false !== strpos($node->value . '$', '$_' . $i . '$')) {
+                $i++;
+            }
+            return '$_' . $i . '$' . $node->value . '$_' . $i . '$';
         }
     }
 

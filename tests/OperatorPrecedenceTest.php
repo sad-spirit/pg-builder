@@ -29,7 +29,6 @@ use sad_spirit\pg_builder\{
 use sad_spirit\pg_builder\exceptions\SyntaxException;
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
-    Constant,
     Identifier,
     IntervalTypeName,
     QualifiedName
@@ -39,8 +38,11 @@ use sad_spirit\pg_builder\nodes\expressions\{
     IsExpression,
     BetweenExpression,
     FunctionExpression,
+    KeywordConstant,
+    NumericConstant,
     OperatorExpression,
-    PatternMatchingExpression
+    PatternMatchingExpression,
+    StringConstant
 };
 use sad_spirit\pg_builder\nodes\lists\{
     FunctionArgumentList,
@@ -195,8 +197,8 @@ class OperatorPrecedenceTest extends TestCase
                 new IsExpression(
                     new OperatorExpression(
                         '=',
-                        new Constant(false),
-                        new Constant(true)
+                        new KeywordConstant(KeywordConstant::FALSE),
+                        new KeywordConstant(KeywordConstant::TRUE)
                     ),
                     IsExpression::NULL
                 )
@@ -216,8 +218,8 @@ class OperatorPrecedenceTest extends TestCase
                 "'foo' like 'bar' is not true",
                 new IsExpression(
                     new PatternMatchingExpression(
-                        new Constant('foo'),
-                        new Constant('bar')
+                        new StringConstant('foo'),
+                        new StringConstant('bar')
                     ),
                     IsExpression::TRUE,
                     true
@@ -238,8 +240,8 @@ class OperatorPrecedenceTest extends TestCase
                 new IsExpression(
                     new BetweenExpression(
                         new ColumnReference(new Identifier('foo')),
-                        new Constant(false),
-                        new Constant(true)
+                        new KeywordConstant(KeywordConstant::FALSE),
+                        new KeywordConstant(KeywordConstant::TRUE)
                     ),
                     IsExpression::FALSE,
                     true
@@ -260,12 +262,12 @@ class OperatorPrecedenceTest extends TestCase
                     new OperatorExpression(
                         '->>',
                         new ColumnReference(new Identifier('j')),
-                        new Constant('space')
+                        new StringConstant('space')
                     ),
                     new OperatorExpression(
                         '->>',
                         new ColumnReference(new Identifier('j')),
-                        new Constant('node')
+                        new StringConstant('node')
                     )
                 )
             ]
@@ -284,7 +286,7 @@ class OperatorPrecedenceTest extends TestCase
                 new FunctionExpression(
                     new QualifiedName(new Identifier('foo')),
                     new FunctionArgumentList([
-                        'bar' => new Constant('baz')
+                        'bar' => new StringConstant('baz')
                     ])
                 )
             ]
@@ -294,7 +296,7 @@ class OperatorPrecedenceTest extends TestCase
     public function intervalTypeProvider(): array
     {
         $interval = new IntervalTypeName(new TypeModifierList([
-            new Constant(10)
+            new NumericConstant('10')
         ]));
         $interval->setMask('minute to second');
         return [

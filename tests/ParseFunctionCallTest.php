@@ -26,7 +26,6 @@ use sad_spirit\pg_builder\Lexer;
 use sad_spirit\pg_builder\exceptions\SyntaxException;
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
-    Constant,
     Identifier,
     OrderByElement,
     QualifiedName,
@@ -39,7 +38,9 @@ use sad_spirit\pg_builder\nodes\{
 };
 use sad_spirit\pg_builder\nodes\expressions\{
     FunctionExpression,
+    NumericConstant,
     OperatorExpression,
+    StringConstant,
     TypecastExpression
 };
 use sad_spirit\pg_builder\nodes\lists\{
@@ -81,7 +82,7 @@ QRY
         );
         $expected = [
             new TypecastExpression(
-                new Constant('now'),
+                new StringConstant('now'),
                 new TypeName(new QualifiedName('pg_catalog', 'date'))
             )
         ];
@@ -105,25 +106,25 @@ QRY
         $this->assertEquals(
             new ExpressionList([
                 new TypecastExpression(
-                    new Constant('now'),
+                    new StringConstant('now'),
                     new TypeName(new QualifiedName('pg_catalog', 'timetz'))
                 ),
                 new TypecastExpression(
-                    new Constant('now'),
+                    new StringConstant('now'),
                     new TypeName(
                         new QualifiedName('pg_catalog', 'timestamptz'),
-                        new TypeModifierList([new Constant(1)])
+                        new TypeModifierList([new NumericConstant('1')])
                     )
                 ),
                 new TypecastExpression(
-                    new Constant('now'),
+                    new StringConstant('now'),
                     new TypeName(
                         new QualifiedName('pg_catalog', 'time'),
-                        new TypeModifierList([new Constant(2)])
+                        new TypeModifierList([new NumericConstant('2')])
                     )
                 ),
                 new TypecastExpression(
-                    new Constant('now'),
+                    new StringConstant('now'),
                     new TypeName(new QualifiedName('pg_catalog', 'timestamp'))
                 )
             ]),
@@ -145,15 +146,15 @@ QRY
             new ExpressionList([
                 new FunctionExpression(
                     new QualifiedName('pg_catalog', 'date_part'),
-                    new FunctionArgumentList([new Constant('epoch'), new ColumnReference('foo')])
+                    new FunctionArgumentList([new StringConstant('epoch'), new ColumnReference('foo')])
                 ),
                 new FunctionExpression(
                     new QualifiedName('pg_catalog', 'date_part'),
-                    new FunctionArgumentList([new Constant('minute'), new ColumnReference('bar')])
+                    new FunctionArgumentList([new StringConstant('minute'), new ColumnReference('bar')])
                 ),
                 new FunctionExpression(
                     new QualifiedName('pg_catalog', 'date_part'),
-                    new FunctionArgumentList([new Constant('whatever'), new ColumnReference('baz')])
+                    new FunctionArgumentList([new StringConstant('whatever'), new ColumnReference('baz')])
                 )
             ]),
             $list
@@ -171,13 +172,14 @@ QRY
                 new FunctionExpression(
                     new QualifiedName('pg_catalog', 'overlay'),
                     new FunctionArgumentList([
-                        new Constant('fooxxxbaz'), new Constant('bar'), new Constant(3), new Constant(3)
+                        new StringConstant('fooxxxbaz'), new StringConstant('bar'),
+                        new NumericConstant('3'), new NumericConstant('3')
                     ])
                 ),
                 new FunctionExpression(
                     new QualifiedName('pg_catalog', 'overlay'),
                     new FunctionArgumentList([
-                        new Constant('adc'), new Constant('b'), new Constant(2)
+                        new StringConstant('adc'), new StringConstant('b'), new NumericConstant('2')
                     ])
                 )
             ]),
@@ -190,7 +192,7 @@ QRY
         $this->assertEquals(
             new FunctionExpression(
                 new QualifiedName('pg_catalog', 'position'),
-                new FunctionArgumentList([new Constant('foobar'), new Constant('a')])
+                new FunctionArgumentList([new StringConstant('foobar'), new StringConstant('a')])
             ),
             $this->parser->parseExpression("position('a' in 'foobar')")
         );
@@ -207,19 +209,27 @@ QRY
             new ExpressionList([
                 new FunctionExpression(
                     new QualifiedName('pg_catalog', 'substring'),
-                    new FunctionArgumentList([new Constant('foobar'), new Constant(2), new Constant(3)])
+                    new FunctionArgumentList([
+                        new StringConstant('foobar'), new NumericConstant('2'), new NumericConstant('3')
+                    ])
                 ),
                 new FunctionExpression(
                     new QualifiedName('pg_catalog', 'substring'),
-                    new FunctionArgumentList([new Constant('foobar'), new Constant(2), new Constant(3)])
+                    new FunctionArgumentList([
+                        new StringConstant('foobar'), new NumericConstant('2'), new NumericConstant('3')
+                    ])
                 ),
                 new FunctionExpression(
                     new QualifiedName('pg_catalog', 'substring'),
-                    new FunctionArgumentList([new Constant('foobar'), new Constant(2), new Constant(3)])
+                    new FunctionArgumentList([
+                        new StringConstant('foobar'), new NumericConstant('2'), new NumericConstant('3')
+                    ])
                 ),
                 new FunctionExpression(
                     new QualifiedName('pg_catalog', 'substring'),
-                    new FunctionArgumentList([new Constant('foobar'), new Constant(1), new Constant(3)])
+                    new FunctionArgumentList([
+                        new StringConstant('foobar'), new NumericConstant('1'), new NumericConstant('3')
+                    ])
                 )
             ]),
             $list
@@ -236,19 +246,19 @@ QRY
             new ExpressionList([
                 new FunctionExpression(
                     new QualifiedName('pg_catalog', 'btrim'),
-                    new FunctionArgumentList([new Constant(' foo ')])
+                    new FunctionArgumentList([new StringConstant(' foo ')])
                 ),
                 new FunctionExpression(
                     new QualifiedName('pg_catalog', 'ltrim'),
-                    new FunctionArgumentList([new Constant('_foo_'), new Constant('_')])
+                    new FunctionArgumentList([new StringConstant('_foo_'), new StringConstant('_')])
                 ),
                 new FunctionExpression(
                     new QualifiedName('pg_catalog', 'rtrim'),
-                    new FunctionArgumentList([new Constant('foo ')])
+                    new FunctionArgumentList([new StringConstant('foo ')])
                 ),
                 new FunctionExpression(
                     new QualifiedName('pg_catalog', 'rtrim'),
-                    new FunctionArgumentList([new Constant('foo'), new Constant('o')])
+                    new FunctionArgumentList([new StringConstant('foo'), new StringConstant('o')])
                 ),
             ]),
             $list
@@ -260,7 +270,7 @@ QRY
         $this->assertEquals(
             new FunctionExpression(
                 'nullif',
-                new FunctionArgumentList([new ColumnReference('a'), new Constant('b')])
+                new FunctionArgumentList([new ColumnReference('a'), new StringConstant('b')])
             ),
             $this->parser->parseExpression("nullif(a, 'b') ")
         );
@@ -281,7 +291,7 @@ QRY
                 new XmlElement(
                     new Identifier('foo'),
                     null,
-                    new ExpressionList([new ColumnReference('bar'), new Constant('content')])
+                    new ExpressionList([new ColumnReference('bar'), new StringConstant('content')])
                 ),
                 new XmlElement(
                     new Identifier('blah'),
@@ -289,7 +299,7 @@ QRY
                         new TargetElement(new ColumnReference('baz')),
                         new TargetElement(new ColumnReference('quux'), new Identifier('xyzzy'))
                     ]),
-                    new ExpressionList([new Constant('content')])
+                    new ExpressionList([new StringConstant('content')])
                 )
             ]),
             $list
@@ -302,8 +312,8 @@ QRY
             new FunctionExpression(
                 new QualifiedName('pg_catalog', 'xmlexists'),
                 new FunctionArgumentList([
-                    new Constant("//foo[text() = 'bar']"),
-                    new Constant('<blah><foo>bar</foo></blah>')
+                    new StringConstant("//foo[text() = 'bar']"),
+                    new StringConstant('<blah><foo>bar</foo></blah>')
                 ])
             ),
             $this->parser->parseExpression(
@@ -317,7 +327,7 @@ QRY
         $this->assertEquals(
             new XmlForest([
                 new TargetElement(new ColumnReference('foo')),
-                new TargetElement(new Constant('bar'), new Identifier('baz'))
+                new TargetElement(new StringConstant('bar'), new Identifier('baz'))
             ]),
             $this->parser->parseExpression("xmlforest(foo, 'bar' as baz)")
         );
@@ -334,7 +344,7 @@ QRY
     public function testXmlPi()
     {
         $this->assertEquals(
-            new XmlPi(new Identifier('php'), new Constant("echo 'Hello world!';")),
+            new XmlPi(new Identifier('php'), new StringConstant("echo 'Hello world!';")),
             $this->parser->parseExpression("xmlpi(name php, 'echo ''Hello world!'';')")
         );
     }
@@ -342,7 +352,7 @@ QRY
     public function testXmlRoot()
     {
         $this->assertEquals(
-            new XmlRoot(new ColumnReference('doc'), new Constant('1.2'), 'yes'),
+            new XmlRoot(new ColumnReference('doc'), new StringConstant('1.2'), 'yes'),
             $this->parser->parseExpression("xmlroot(doc, version '1.2', standalone yes)")
         );
     }
@@ -369,7 +379,7 @@ QRY
                 ),
                 new FunctionExpression(
                     new QualifiedName('pg_catalog', 'normalize'),
-                    new FunctionArgumentList([new ColumnReference('bar'), new Constant('nfd')])
+                    new FunctionArgumentList([new ColumnReference('bar'), new StringConstant('nfd')])
                 )
             ]),
             $this->parser->parseExpressionList('normalize(foo), normalize(bar, nFd)')
@@ -391,11 +401,11 @@ QRY
             new ExpressionList([
                 new FunctionExpression(
                     'coalesce',
-                    new FunctionArgumentList([new ColumnReference('a'), new Constant('b')])
+                    new FunctionArgumentList([new ColumnReference('a'), new StringConstant('b')])
                 ),
                 new FunctionExpression(
                     'greatest',
-                    new FunctionArgumentList([new Constant('c'), new ColumnReference('d')])
+                    new FunctionArgumentList([new StringConstant('c'), new ColumnReference('d')])
                 ),
                 new FunctionExpression(
                     'least',
@@ -473,7 +483,7 @@ QRY
         $this->parser->parseExpression($functionCall);
     }
 
-    public function getInvalidNamedAndVariadicParameters()
+    public function getInvalidNamedAndVariadicParameters(): array
     {
         return [
             [
@@ -501,7 +511,7 @@ QRY
         $this->parser->parseExpression($functionCall);
     }
 
-    public function getInvalidFunctionNames()
+    public function getInvalidFunctionNames(): array
     {
         return [
             ['out()'], // TYPE_COL_NAME_KEYWORD
@@ -550,11 +560,11 @@ QRY
                     false,
                     null,
                     false,
-                    new OperatorExpression('>', new ColumnReference('foo'), new Constant(100))
+                    new OperatorExpression('>', new ColumnReference('foo'), new NumericConstant('100'))
                 ),
                 new FunctionExpression(
                     new QualifiedName('percentile_disc'),
-                    new FunctionArgumentList([new Constant(0.5)]),
+                    new FunctionArgumentList([new NumericConstant('0.5')]),
                     false,
                     false,
                     new OrderByList([new OrderByElement(new ColumnReference('foo'))]),
@@ -622,7 +632,7 @@ QRY
                         null,
                         new WindowFrameClause(
                             'rows',
-                            new WindowFrameBound('preceding', new Constant(5)),
+                            new WindowFrameBound('preceding', new NumericConstant('5')),
                             new WindowFrameBound('following'),
                             'current row'
                         )
@@ -653,7 +663,7 @@ QRY
                         new WindowFrameClause(
                             'range',
                             new WindowFrameBound('preceding'),
-                            new WindowFrameBound('following', new Constant(3))
+                            new WindowFrameBound('following', new NumericConstant('3'))
                         )
                     )
                 ),
@@ -694,7 +704,7 @@ QRY
         $this->parser->parseExpression($spec);
     }
 
-    public function getInvalidWindowSpecification()
+    public function getInvalidWindowSpecification(): array
     {
         return [
             [
@@ -740,7 +750,7 @@ QRY
         $this->parser->parseExpression($expression);
     }
 
-    public function getInvalidWithinGroupUsage()
+    public function getInvalidWithinGroupUsage(): array
     {
         return [
             [

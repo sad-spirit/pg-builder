@@ -37,7 +37,6 @@ use sad_spirit\pg_builder\exceptions\{
 use sad_spirit\pg_builder\nodes\{
     TypeName,
     ColumnReference,
-    Constant,
     Identifier,
     LockingElement,
     QualifiedName,
@@ -48,6 +47,9 @@ use sad_spirit\pg_builder\nodes\{
     WindowFrameClause
 };
 use sad_spirit\pg_builder\nodes\expressions\{
+    Constant,
+    NumericConstant,
+    StringConstant,
     TypecastExpression,
     FunctionExpression,
     OperatorExpression
@@ -128,7 +130,7 @@ QRY
                 new QualifiedName('count'),
                 new FunctionArgumentList([new ColumnReference('quux')])
             ),
-            new Constant(1)
+            new NumericConstant('1')
         );
         $win95 = new WindowDefinition();
         $win95->setName(new Identifier('win95'));
@@ -148,11 +150,11 @@ QRY
 QRY
         );
 
-        $foo = new Select(new TargetList([new TargetElement(new Constant('foo'))]));
+        $foo = new Select(new TargetList([new TargetElement(new StringConstant('foo'))]));
 
-        $bar = new Select(new TargetList([new TargetElement(new Constant('bar'))]));
+        $bar = new Select(new TargetList([new TargetElement(new StringConstant('bar'))]));
 
-        $baz = new Select(new TargetList([new TargetElement(new Constant('baz'))]));
+        $baz = new Select(new TargetList([new TargetElement(new StringConstant('baz'))]));
 
         $this->assertEquals(
             new SetOpSelect($foo, new SetOpSelect($bar, $baz, 'intersect'), 'union'),
@@ -175,7 +177,7 @@ QRY
         $this->parser->parseStatement($query);
     }
 
-    public function getMultipleClausesQueries()
+    public function getMultipleClausesQueries(): array
     {
         return [
             ['(select * from foo order by 1) order by 2'],
@@ -197,9 +199,9 @@ QRY
         $parsed = $this->parser->parseStatement($stmt);
 
         $built = new Select(new TargetList([new Star()]));
-        $built->limit = is_scalar($limit) ? new Constant($limit) : $limit;
+        $built->limit = is_scalar($limit) ? Constant::createFromPHPValue($limit) : $limit;
         if ($offset) {
-            $built->offset = new Constant($offset);
+            $built->offset = Constant::createFromPHPValue($offset);
         }
         if ($withTies) {
             $built->limitWithTies = $withTies;
@@ -208,16 +210,20 @@ QRY
         $this->assertEquals($built, $parsed);
     }
 
-    public function getLimitOffsetClauses()
+    public function getLimitOffsetClauses(): array
     {
         return [
             ['select * limit 2 offset 3', 2, 3],
-            ['select * offset 3 limit 1 + 1', new OperatorExpression('+', new Constant(1), new Constant(1)), 3],
+            [
+             'select * offset 3 limit 1 + 1',
+             new OperatorExpression('+', new NumericConstant('1'), new NumericConstant('1')),
+             3
+            ],
             ['select * offset 2 rows fetch first row only', 1, 2],
             ['select * fetch first 5 rows only', 5, null],
             [
                 'select * fetch next (4 + 1) rows only',
-                new OperatorExpression('+', new Constant(4), new Constant(1)), null
+                new OperatorExpression('+', new NumericConstant('4'), new NumericConstant('1')), null
             ],
             // fetch should allow float constant, not just integer
             ['select * fetch next +6.66 rows only', 6.66, null],
@@ -226,7 +232,7 @@ QRY
             // fetch should allow c_expr (our ExpressionAtom)
             [
                 'select * fetch next cast(5 as integer) rows only',
-                new TypecastExpression(new Constant(5), new TypeName(new QualifiedName('pg_catalog', 'int4'))),
+                new TypecastExpression(new NumericConstant('5'), new TypeName(new QualifiedName('pg_catalog', 'int4'))),
                 null
             ],
             // WITH TIES clause added in Postgres 13

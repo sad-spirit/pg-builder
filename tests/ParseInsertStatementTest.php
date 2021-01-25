@@ -32,11 +32,12 @@ use sad_spirit\pg_builder\{
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
     CommonTableExpression,
+    expressions\NumericConstant,
     expressions\OperatorExpression,
+    expressions\StringConstant,
     Star,
     WithClause,
     QualifiedName,
-    Constant,
     TargetElement,
     SetTargetElement,
     SingleSetClause,
@@ -98,7 +99,7 @@ QRY
         $built = new Insert(new InsertTarget(new QualifiedName('baz'), new Identifier('bzzz')));
         $built->cols->replace([
             new SetTargetElement(new Identifier('one')),
-            new SetTargetElement(new Identifier('two'), [new ArrayIndexes(new Constant(1))])
+            new SetTargetElement(new Identifier('two'), [new ArrayIndexes(new NumericConstant('1'))])
         ]);
         $built->overriding = 'system';
         $built->returning->replace([new Star()]);
@@ -150,7 +151,7 @@ QRY
         $this->assertEquals($expected, $this->parser->parseOnConflict($sql));
     }
 
-    public function onConflictClauseProvider()
+    public function onConflictClauseProvider(): array
     {
         // directly from Postgres docs on the clause
         return [
@@ -188,18 +189,18 @@ QRY
                                     new OperatorExpression(
                                         '||',
                                         new ColumnReference('excluded', 'dname'),
-                                        new Constant(" (formerly ")
+                                        new StringConstant(" (formerly ")
                                     ),
                                     new ColumnReference('d', 'dname')
                                 ),
-                                new Constant(")")
+                                new StringConstant(")")
                             )
                         )
                     ]),
                     new OperatorExpression(
                         '<>',
                         new ColumnReference('d', 'zipcode'),
-                        new Constant("21201")
+                        new StringConstant("21201")
                     )
                 )
             ],

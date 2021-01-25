@@ -31,13 +31,16 @@ use sad_spirit\pg_builder\{
 };
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
-    Constant,
     Identifier,
     QualifiedName,
     SetTargetElement,
     SetToDefault,
     SingleSetClause,
     TargetElement
+};
+use sad_spirit\pg_builder\nodes\expressions\{
+    NumericConstant,
+    StringConstant
 };
 use sad_spirit\pg_builder\nodes\lists\{
     RowList,
@@ -194,7 +197,7 @@ class StatementFactoryTest extends TestCase
             ),
             new SingleSetClause(
                 new SetTargetElement(new Identifier('blahblah')),
-                new Constant(42)
+                new NumericConstant('42')
             )
         ]);
 
@@ -213,8 +216,8 @@ class StatementFactoryTest extends TestCase
 
         $values = $factory->values("('foo', 42), ('bar', default)");
         $rows   = new RowList([
-            [new Constant('foo'), new Constant(42)],
-            [new Constant('bar'), new SetToDefault()]
+            [new StringConstant('foo'), new NumericConstant('42')],
+            [new StringConstant('bar'), new SetToDefault()]
         ]);
 
         $this->assertEquals($rows, clone $values->rows);

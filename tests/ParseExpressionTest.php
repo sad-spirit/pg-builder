@@ -29,7 +29,6 @@ use sad_spirit\pg_builder\{
 use sad_spirit\pg_builder\exceptions\SyntaxException;
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
-    Constant,
     OrderByElement,
     QualifiedOperator,
     Identifier,
@@ -50,8 +49,10 @@ use sad_spirit\pg_builder\nodes\expressions\{
     AtTimeZoneExpression,
     IsDistinctFromExpression,
     IsExpression,
+    KeywordConstant,
     NamedParameter,
     NotExpression,
+    NumericConstant,
     OverlapsExpression,
     PositionalParameter,
     RowExpression,
@@ -65,6 +66,7 @@ use sad_spirit\pg_builder\nodes\expressions\{
     CaseExpression,
     CollateExpression,
     FunctionExpression,
+    StringConstant,
     SubselectExpression,
     TypecastExpression,
     WhenExpression,
@@ -95,26 +97,27 @@ QRY
         );
         $this->assertEquals(
             new ExpressionList([
-                new Constant('foo'),
+                new StringConstant('foo'),
                 new ColumnReference(new Identifier('bar'), new Identifier('baz')),
-                new ArrayExpression(new ExpressionList([new Constant(1), new Constant(2)])),
+                new ArrayExpression(new ExpressionList([new NumericConstant('1'), new NumericConstant('2')])),
                 new ArrayExpression(
-                    [[new Constant(1), new Constant(2)], [new Constant(3), new Constant(4)]]
+                    [[new NumericConstant('1'), new NumericConstant('2')],
+                     [new NumericConstant('3'), new NumericConstant('4')]]
                 ),
-                new RowExpression([new Constant(3), new Constant(4)]),
+                new RowExpression([new NumericConstant('3'), new NumericConstant('4')]),
                 new Indirection([new Identifier('blah')], new PositionalParameter(1)),
                 new NamedParameter('foo'),
-                new Constant(null),
+                new KeywordConstant(KeywordConstant::NULL),
                 new GroupingExpression([
                     new ColumnReference(new Identifier('a')),
                     new ColumnReference(new Identifier('b'))
                 ]),
                 new Indirection(
-                    [new ArrayIndexes(new Constant(1), null, true)],
+                    [new ArrayIndexes(new NumericConstant('1'), null, true)],
                     new ColumnReference(new Identifier('ary'))
                 ),
                 new Indirection(
-                    [new ArrayIndexes(new Constant(1), null, false)],
+                    [new ArrayIndexes(new NumericConstant('1'), null, false)],
                     new ColumnReference(new Identifier('ary'))
                 )
             ]),
@@ -128,27 +131,27 @@ QRY
     (1), (2,3), (foo(4,5)).bar, (array[6,7])[1], ((select 1), 2), (select 1), ((((select 1)) order by 1) limit 1)
 QRY
         );
-        $select       = new Select(new TargetList([new TargetElement(new Constant(1))]));
+        $select       = new Select(new TargetList([new TargetElement(new NumericConstant('1'))]));
         $selectParens = clone $select;
-        $selectParens->order[] = new OrderByElement(new Constant(1));
-        $selectParens->limit   = new Constant(1);
+        $selectParens->order[] = new OrderByElement(new NumericConstant('1'));
+        $selectParens->limit   = new NumericConstant('1');
 
         $this->assertEquals(
             new ExpressionList([
-                new Constant(1),
-                new RowExpression([new Constant(2), new Constant(3)]),
+                new NumericConstant('1'),
+                new RowExpression([new NumericConstant('2'), new NumericConstant('3')]),
                 new Indirection(
                     [new Identifier('bar')],
                     new FunctionExpression(
                         new QualifiedName('foo'),
-                        new FunctionArgumentList([new Constant(4), new Constant(5)])
+                        new FunctionArgumentList([new NumericConstant('4'), new NumericConstant('5')])
                     )
                 ),
                 new Indirection(
-                    [new ArrayIndexes(new Constant(1))],
-                    new ArrayExpression(new ExpressionList([new Constant(6), new Constant(7)]))
+                    [new ArrayIndexes(new NumericConstant('1'))],
+                    new ArrayExpression(new ExpressionList([new NumericConstant('6'), new NumericConstant('7')]))
                 ),
-                new RowExpression([new SubselectExpression($select), new Constant(2)]),
+                new RowExpression([new SubselectExpression($select), new NumericConstant('2')]),
                 new SubselectExpression(clone $select),
                 new SubselectExpression($selectParens)
             ]),
@@ -168,7 +171,7 @@ QRY
         $this->parser->parseExpression($expr);
     }
 
-    public function getUnbalancedParentheses()
+    public function getUnbalancedParentheses(): array
     {
         return [
             ['(foo', "Unbalanced '('"],
@@ -216,16 +219,16 @@ QRY
             new OperatorExpression(
                 '>',
                 new PatternMatchingExpression(
-                    new Constant('foo'),
-                    new Constant('bar'),
+                    new StringConstant('foo'),
+                    new StringConstant('bar'),
                     'like'
                 ),
                 new PatternMatchingExpression(
-                    new Constant('baz'),
-                    new Constant('quux'),
+                    new StringConstant('baz'),
+                    new StringConstant('quux'),
                     'ilike',
                     true,
-                    new Constant('!')
+                    new StringConstant('!')
                 )
             ),
             $expr
@@ -279,13 +282,13 @@ QRY
                 [
                     new BetweenExpression(
                         new ColumnReference(new Identifier('foo')),
-                        new Constant('bar'),
-                        new Constant('baz')
+                        new StringConstant('bar'),
+                        new StringConstant('baz')
                     ),
                     new BetweenExpression(
                         new ColumnReference(new Identifier('foofoo')),
-                        new Constant('quux'),
-                        new Constant('xyzzy'),
+                        new StringConstant('quux'),
+                        new StringConstant('xyzzy'),
                         'between symmetric',
                         true
                     )
@@ -303,7 +306,7 @@ QRY
 QRY
         );
 
-        $select = new Select(new TargetList([new TargetElement(new Constant('baz'))]));
+        $select = new Select(new TargetList([new TargetElement(new StringConstant('baz'))]));
 
         $this->assertEquals(
             new ExpressionList([
@@ -311,13 +314,13 @@ QRY
                     new InExpression(
                         new ColumnReference(new Identifier('foo')),
                         new ExpressionList([
-                            new Constant('foo'),
-                            new Constant('bar')
+                            new StringConstant('foo'),
+                            new StringConstant('bar')
                         ])
                     ),
                     new ExpressionList([
-                        new Constant(true),
-                        new Constant(false)
+                        new KeywordConstant(KeywordConstant::TRUE),
+                        new KeywordConstant(KeywordConstant::FALSE)
                     ])
                 ),
                 new InExpression(
@@ -444,7 +447,7 @@ QRY
         }
     }
 
-    public function getInvalidQualifiedOperators()
+    public function getInvalidQualifiedOperators(): array
     {
         return [
             [['this', 'sucks'], 'does not look like a valid operator string'],
@@ -480,8 +483,8 @@ QRY
                     true
                 ),
                 new IsDistinctFromExpression(
-                    new Constant('foo'),
-                    new Constant('bar')
+                    new StringConstant('foo'),
+                    new StringConstant('bar')
                 ),
                 new IsOfExpression(
                     new ColumnReference(new Identifier('blah')),
@@ -494,7 +497,7 @@ QRY
                     )
                 ),
                 new IsExpression(
-                    new Constant('xml'),
+                    new StringConstant('xml'),
                     IsExpression::DOCUMENT,
                     true
                 ),
@@ -525,25 +528,25 @@ QRY
                     '-',
                     new OperatorExpression(
                         '+',
-                        new Constant(1),
+                        new NumericConstant('1'),
                         new OperatorExpression(
                             '*',
-                            new Constant(-2),
+                            new NumericConstant('-2'),
                             new OperatorExpression(
                                 '^',
                                 new OperatorExpression(
                                     '^',
-                                    new Constant(3),
-                                    new Constant(-3)
+                                    new NumericConstant('3'),
+                                    new NumericConstant('-3')
                                 ),
-                                new Constant(3)
+                                new NumericConstant('3')
                             )
                         )
                     ),
                     new OperatorExpression(
                         '/',
-                        new Constant(5),
-                        new Constant(6)
+                        new NumericConstant('5'),
+                        new NumericConstant('6')
                     )
                 )
             ]),
@@ -562,24 +565,24 @@ QRY
             new ExpressionList([
                 new CaseExpression(
                     [
-                        new WhenExpression(new Constant('bar'), new Constant(10)),
-                        new WhenExpression(new Constant('baz'), new Constant(100))
+                        new WhenExpression(new StringConstant('bar'), new NumericConstant('10')),
+                        new WhenExpression(new StringConstant('baz'), new NumericConstant('100'))
                     ],
-                    new Constant(1),
+                    new NumericConstant('1'),
                     new ColumnReference('foo')
                 ),
                 new CaseExpression(
                     [
                         new WhenExpression(
-                            new OperatorExpression('=', new ColumnReference('foo'), new Constant('bar')),
-                            new Constant(10)
+                            new OperatorExpression('=', new ColumnReference('foo'), new StringConstant('bar')),
+                            new NumericConstant('10')
                         ),
                         new WhenExpression(
-                            new OperatorExpression('=', new ColumnReference('foo'), new Constant('baz')),
-                            new Constant(100)
+                            new OperatorExpression('=', new ColumnReference('foo'), new StringConstant('baz')),
+                            new NumericConstant('100')
                         )
                     ],
-                    new Constant(1)
+                    new NumericConstant('1')
                 )]),
             $list
         );
@@ -588,7 +591,7 @@ QRY
     public function testCollate()
     {
         $this->assertEquals(
-            new CollateExpression(new Constant('foo'), new QualifiedName('bar', 'baz')),
+            new CollateExpression(new StringConstant('foo'), new QualifiedName('bar', 'baz')),
             $this->parser->parseExpression("'foo' collate bar.baz")
         );
     }
@@ -596,7 +599,7 @@ QRY
     public function testAtTimeZone()
     {
         $this->assertEquals(
-            new AtTimeZoneExpression(new ColumnReference('foo', 'bar'), new Constant('baz')),
+            new AtTimeZoneExpression(new ColumnReference('foo', 'bar'), new StringConstant('baz')),
             $this->parser->parseExpression("foo.bar at time zone 'baz'")
         );
     }
@@ -608,7 +611,7 @@ QRY
                 '>=',
                 new ColumnReference('news_expire'),
                 new TypecastExpression(
-                    new Constant('now'),
+                    new StringConstant('now'),
                     new TypeName(new QualifiedName('pg_catalog', 'date'))
                 )
             ),

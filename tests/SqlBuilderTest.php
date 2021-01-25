@@ -24,11 +24,10 @@ use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Lexer,
     Parser,
-    SqlBuilderWalker,
-    exceptions\InvalidArgumentException
+    SqlBuilderWalker
 };
 use sad_spirit\pg_builder\nodes\{
-    Constant,
+    expressions\StringConstant,
     lists\ExpressionList
 };
 
@@ -244,8 +243,8 @@ QRY
     public function testTrailingDollarInStringConstantBug()
     {
         $constants = new ExpressionList([
-            new Constant('^\\d{3}-\\d{2}$'),
-            new Constant('\'$$$_1')
+            new StringConstant('^\\d{3}-\\d{2}$'),
+            new StringConstant('\'$$$_1')
         ]);
         $this->assertEquals(
             $constants,

@@ -25,15 +25,17 @@ use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\SqlBuilderWalker;
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
-    Constant,
     Identifier
 };
 use sad_spirit\pg_builder\nodes\expressions\{
     IsDistinctFromExpression,
     IsExpression,
     BetweenExpression,
+    KeywordConstant,
+    NumericConstant,
     OperatorExpression,
-    PatternMatchingExpression
+    PatternMatchingExpression,
+    StringConstant
 };
 
 /**
@@ -51,7 +53,7 @@ class SqlBuilderParenthesesTest extends TestCase
         $this->builder = new SqlBuilderWalker();
     }
 
-    private function normalizeWhitespace($string)
+    private function normalizeWhitespace(string $string): string
     {
         return implode(' ', preg_split('/\s+/', trim($string)));
     }
@@ -100,7 +102,7 @@ class SqlBuilderParenthesesTest extends TestCase
         $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builder));
     }
 
-    public function chainedComparisonProvider()
+    public function chainedComparisonProvider(): array
     {
         return [
             [
@@ -132,25 +134,25 @@ class SqlBuilderParenthesesTest extends TestCase
                     '=',
                     new OperatorExpression(
                         '<',
-                        new Constant(2),
-                        new Constant(3)
+                        new NumericConstant('2'),
+                        new NumericConstant('3')
                     ),
-                    new Constant(true)
+                    new KeywordConstant(KeywordConstant::TRUE)
                 ),
                 '(2 < 3) = true'
             ]
         ];
     }
 
-    public function isPrecedenceProvider()
+    public function isPrecedenceProvider(): array
     {
         return [
             [
                 new IsExpression(
                     new OperatorExpression(
                         '=',
-                        new Constant(false),
-                        new Constant(true)
+                        new KeywordConstant(KeywordConstant::FALSE),
+                        new KeywordConstant(KeywordConstant::TRUE)
                     ),
                     IsExpression::NULL
                 ),
@@ -175,8 +177,8 @@ class SqlBuilderParenthesesTest extends TestCase
             [
                 new IsExpression(
                     new PatternMatchingExpression(
-                        new Constant('foo'),
-                        new Constant('bar')
+                        new StringConstant('foo'),
+                        new StringConstant('bar')
                     ),
                     IsExpression::TRUE,
                     true
@@ -187,8 +189,8 @@ class SqlBuilderParenthesesTest extends TestCase
                 new IsExpression(
                     new BetweenExpression(
                         new ColumnReference(new Identifier('foo')),
-                        new Constant(false),
-                        new Constant(true)
+                        new KeywordConstant(KeywordConstant::FALSE),
+                        new KeywordConstant(KeywordConstant::TRUE)
                     ),
                     IsExpression::FALSE,
                     true
@@ -198,7 +200,7 @@ class SqlBuilderParenthesesTest extends TestCase
         ];
     }
 
-    public function inequalityPrecedenceProvider()
+    public function inequalityPrecedenceProvider(): array
     {
         return [
             [
@@ -207,12 +209,12 @@ class SqlBuilderParenthesesTest extends TestCase
                     new OperatorExpression(
                         '->>',
                         new ColumnReference(new Identifier('j')),
-                        new Constant('space')
+                        new StringConstant('space')
                     ),
                     new OperatorExpression(
                         '->>',
                         new ColumnReference(new Identifier('j')),
-                        new Constant('node')
+                        new StringConstant('node')
                     )
                 ),
                 "j ->> 'space' <= j ->> 'node'"

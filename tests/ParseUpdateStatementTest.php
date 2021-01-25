@@ -36,7 +36,6 @@ use sad_spirit\pg_builder\nodes\{
     Star,
     WithClause,
     QualifiedName,
-    Constant,
     SetTargetElement,
     MultipleSetClause,
     SingleSetClause,
@@ -46,8 +45,10 @@ use sad_spirit\pg_builder\nodes\{
     SetToDefault
 };
 use sad_spirit\pg_builder\nodes\expressions\{
+    NumericConstant,
     OperatorExpression,
     RowExpression,
+    StringConstant,
     SubselectExpression
 };
 use sad_spirit\pg_builder\nodes\lists\{
@@ -88,7 +89,7 @@ QRY
             new SetClauseList([
                 new SingleSetClause(
                     new SetTargetElement(new Identifier('blah'), [new Identifier('one')]),
-                    new Constant('blah')
+                    new StringConstant('blah')
                 ),
                 new SingleSetClause(
                     new SetTargetElement(new Identifier('blahblah')),
@@ -96,11 +97,11 @@ QRY
                 ),
                 new MultipleSetClause(
                     new SetTargetList([
-                        new SetTargetElement(new Identifier('baz'), [new ArrayIndexes(new Constant(1))]),
+                        new SetTargetElement(new Identifier('baz'), [new ArrayIndexes(new NumericConstant('1'))]),
                         new SetTargetElement(new Identifier('quux'))
                     ]),
                     new RowExpression([
-                        new Constant('quux'),
+                        new StringConstant('quux'),
                         new SetToDefault()
                     ])
                 ),
@@ -143,7 +144,7 @@ QRY
             new SetClauseList([
                 new SingleSetClause(
                     new SetTargetElement(new Identifier('set')),
-                    new Constant('set')
+                    new StringConstant('set')
                 )
             ])
         );

@@ -30,14 +30,16 @@ use sad_spirit\pg_builder\exceptions\SyntaxException;
 use sad_spirit\pg_builder\nodes\{
     TargetElement,
     FunctionCall,
-    Constant,
     ColumnReference,
     Identifier,
     TypeName,
     QualifiedName
 };
 use sad_spirit\pg_builder\nodes\expressions\{
+    KeywordConstant,
+    NumericConstant,
     OperatorExpression,
+    StringConstant,
     SubselectExpression
 };
 use sad_spirit\pg_builder\nodes\range\{
@@ -89,7 +91,7 @@ class ParseFromClauseTest extends TestCase
     foo.bar, baz(1, 'string'), (select 'quux') as quux
 QRY
         );
-        $select = new Select(new TargetList([new TargetElement(new Constant('quux'))]));
+        $select = new Select(new TargetList([new TargetElement(new StringConstant('quux'))]));
         $subselect = new Subselect($select);
         $subselect->setAlias(new Identifier('quux'));
 
@@ -98,7 +100,7 @@ QRY
                 new RelationReference(new QualifiedName('foo', 'bar')),
                 new RangeFunctionCall(new FunctionCall(
                     new QualifiedName('baz'),
-                    new FunctionArgumentList([new Constant(1), new Constant('string')])
+                    new FunctionArgumentList([new NumericConstant('1'), new StringConstant('string')])
                 )),
                 $subselect
             ]),
@@ -144,7 +146,7 @@ QRY
         );
         $blah = new RangeFunctionCall(new FunctionCall(
             new QualifiedName('blah', 'blah'),
-            new FunctionArgumentList([new Constant(1), new Constant(2), new Constant(3)])
+            new FunctionArgumentList([new NumericConstant('1'), new NumericConstant('2'), new NumericConstant('3')])
         ));
         $blah->setAlias(new Identifier('select'), new ColumnDefinitionList([
             new ColumnDefinition(
@@ -163,7 +165,7 @@ QRY
         ]));
         $blahblah = new RangeFunctionCall(new FunctionCall(
             new QualifiedName('blahblah'),
-            new FunctionArgumentList([new Constant(null)])
+            new FunctionArgumentList([new KeywordConstant(KeywordConstant::NULL)])
         ));
         $blahblah->setAlias(null, new ColumnDefinitionList([
             new ColumnDefinition(
@@ -174,7 +176,7 @@ QRY
                 new Identifier('temporary'),
                 new TypeName(
                     new QualifiedName('pg_catalog', 'bit'),
-                    new TypeModifierList([new Constant(1)])
+                    new TypeModifierList([new NumericConstant('1')])
                 )
             )
         ]));
@@ -204,7 +206,11 @@ QRY
             new RelationReference(new QualifiedName('d')),
             'right'
         );
-        $cd->setOn(new OperatorExpression('=', new Constant(true), new Constant(false)));
+        $cd->setOn(new OperatorExpression(
+            '=',
+            new KeywordConstant(KeywordConstant::TRUE),
+            new KeywordConstant(KeywordConstant::FALSE)
+        ));
         $cd->setAlias(new Identifier('joinalias'));
 
         $abcd = new JoinExpression($ab, $cd, 'left');
@@ -214,13 +220,17 @@ QRY
             new RelationReference(new QualifiedName('f')),
             new RangeFunctionCall(new FunctionCall(
                 new QualifiedName('g'),
-                new FunctionArgumentList([new Constant(1)])
+                new FunctionArgumentList([new NumericConstant('1')])
             )),
             'full'
         );
-        $fg->setOn(new OperatorExpression('<>', new Constant(false), new Constant(true)));
+        $fg->setOn(new OperatorExpression(
+            '<>',
+            new KeywordConstant(KeywordConstant::FALSE),
+            new KeywordConstant(KeywordConstant::TRUE)
+        ));
 
-        $select = new Select(new TargetList([new TargetElement(new Constant('blah'))]));
+        $select = new Select(new TargetList([new TargetElement(new StringConstant('blah'))]));
         $subselect = new Subselect($select);
         $subselect->setAlias(new Identifier('h'));
         $subselect->setLateral(true);
@@ -249,12 +259,12 @@ QRY
         );
         $foo = new RangeFunctionCall(new FunctionCall(
             new QualifiedName('foo'),
-            new FunctionArgumentList([new Constant(1)])
+            new FunctionArgumentList([new NumericConstant('1')])
         ));
         $foo->withOrdinality = true;
         $bar = new RangeFunctionCall(new FunctionCall(
             new QualifiedName('bar'),
-            new FunctionArgumentList([new Constant(2)])
+            new FunctionArgumentList([new NumericConstant('2')])
         ));
         $bar->setWithOrdinality(true);
         $bar->setAlias(new Identifier('blah'));
@@ -273,7 +283,7 @@ QRY
             new RowsFromElement(
                 new FunctionCall(
                     new QualifiedName('foo'),
-                    new FunctionArgumentList([new Constant(1)])
+                    new FunctionArgumentList([new NumericConstant('1')])
                 ),
                 new ColumnDefinitionList([
                     new ColumnDefinition(
@@ -288,17 +298,17 @@ QRY
             ),
             new RowsFromElement(new FunctionCall(
                 new QualifiedName('foo'),
-                new FunctionArgumentList([new Constant(2)])
+                new FunctionArgumentList([new NumericConstant('2')])
             ))
         ]));
         $rowsTwo = new RowsFrom(new RowsFromList([
             new RowsFromElement(new FunctionCall(
                 new QualifiedName('generate_series'),
-                new FunctionArgumentList([new Constant(1), new Constant(5)])
+                new FunctionArgumentList([new NumericConstant('1'), new NumericConstant('5')])
             )),
             new RowsFromElement(new FunctionCall(
                 new QualifiedName('generate_series'),
-                new FunctionArgumentList([new Constant(1), new Constant(10)])
+                new FunctionArgumentList([new NumericConstant('1'), new NumericConstant('10')])
             ))
         ]));
         $rowsTwo->setWithOrdinality(true);
@@ -321,7 +331,7 @@ QRY
                 new OperatorExpression(
                     '*',
                     new ColumnReference('bar', 'baz'),
-                    new Constant(100)
+                    new NumericConstant('100')
                 )
             ])
         );
@@ -332,7 +342,7 @@ QRY
                 new RelationReference(new QualifiedName('xyzzy')),
                 new QualifiedName('bernoulli'),
                 new ExpressionList([
-                    new Constant(50)
+                    new NumericConstant('50')
                 ]),
                 new ColumnReference('seed')
             )
@@ -373,14 +383,14 @@ QRY
         );
 
         $table1 = new XmlTable(
-            new Constant('//ROWS/ROW'),
+            new StringConstant('//ROWS/ROW'),
             new ColumnReference('data'),
             new XmlColumnList([
                 new XmlColumnDefinition(
                     new Identifier('id'),
                     false,
                     new TypeName(new QualifiedName('pg_catalog', 'int4')),
-                    new Constant('@id')
+                    new StringConstant('@id')
                 ),
                 new XmlColumnDefinition(
                     new Identifier('ordinality'),
@@ -395,27 +405,27 @@ QRY
                     new Identifier('country_id'),
                     false,
                     new TypeName(new QualifiedName('text')),
-                    new Constant('COUNTRY_ID')
+                    new StringConstant('COUNTRY_ID')
                 ),
                 new XmlColumnDefinition(
                     new Identifier('size_sq_km'),
                     false,
                     new TypeName(new QualifiedName('pg_catalog', 'float8')),
-                    new Constant('SIZE[@unit = "sq_km"]')
+                    new StringConstant('SIZE[@unit = "sq_km"]')
                 ),
                 new XmlColumnDefinition(
                     new Identifier('size_other'),
                     false,
                     new TypeName(new QualifiedName('text')),
-                    new Constant('concat(SIZE[@unit!="sq_km"], " ", SIZE[@unit!="sq_km"]/@unit)')
+                    new StringConstant('concat(SIZE[@unit!="sq_km"], " ", SIZE[@unit!="sq_km"]/@unit)')
                 ),
                 new XmlColumnDefinition(
                     new Identifier('premier_name'),
                     false,
                     new TypeName(new QualifiedName('text')),
-                    new Constant('PREMIER_NAME'),
+                    new StringConstant('PREMIER_NAME'),
                     null,
-                    new Constant('not specified')
+                    new StringConstant('not specified')
                 )
             ])
         );
@@ -423,25 +433,25 @@ QRY
         $subselect = new Select(new TargetList([new TargetElement(new ColumnReference('data'))]));
         $subselect->from[] = new RelationReference(new QualifiedName('xmldata'));
         $table2 = new XmlTable(
-            new Constant('/x:example/x:item'),
+            new StringConstant('/x:example/x:item'),
             new SubselectExpression($subselect),
             new XmlColumnList([
                 new XmlColumnDefinition(
                     new Identifier('foo'),
                     false,
                     new TypeName(new QualifiedName('pg_catalog', 'int4')),
-                    new Constant('@foo')
+                    new StringConstant('@foo')
                 ),
                 new XmlColumnDefinition(
                     new Identifier('bar'),
                     false,
                     new TypeName(new QualifiedName('pg_catalog', 'int4')),
-                    new Constant('@B:bar')
+                    new StringConstant('@B:bar')
                 )
             ]),
             new XmlNamespaceList([
-                new XmlNamespace(new Constant('http://example.com/myns'), new Identifier('x')),
-                new XmlNamespace(new Constant('http://example.com/b'), new Identifier('B'))
+                new XmlNamespace(new StringConstant('http://example.com/myns'), new Identifier('x')),
+                new XmlNamespace(new StringConstant('http://example.com/b'), new Identifier('B'))
             ])
         );
 

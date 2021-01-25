@@ -18,24 +18,26 @@
 
 declare(strict_types=1);
 
-namespace sad_spirit\pg_builder\nodes\lists;
+namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\nodes\expressions\Constant;
-use sad_spirit\pg_builder\nodes\Identifier;
-use sad_spirit\pg_builder\nodes\NonRecursiveNode;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
- * List of type modifiers
+ * Represents a numeric constant
  */
-class TypeModifierList extends NonAssociativeList
+class NumericConstant extends Constant
 {
-    use NonRecursiveNode;
-
-    protected static function getAllowedElementClasses(): array
+    public function __construct(string $value)
     {
-        return [
-            Constant::class,
-            Identifier::class
-        ];
+        if (!is_numeric($value)) {
+            throw new InvalidArgumentException(__CLASS__ . " expects a numeric string");
+        }
+        $this->props['value'] = $value;
+    }
+
+    public function dispatch(TreeWalker $walker)
+    {
+        return $walker->walkNumericConstant($this);
     }
 }
