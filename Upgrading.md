@@ -6,6 +6,7 @@ Some changes to `Node`s' API require the extensive rewrite of code using the cha
 
 You can use the [rector tool] to automate the following:
  * Renaming of `and_()` and `or_()` methods of `WhereOrHavingClause` to versions without trailing underscore.
+ * Replacing creation of `Constant` instances with either factory method calls or creation of specialized subclasses instances. 
  * Changed signatures of constructors for 
     * `QualifiedName`,
     * `ColumnReference`,
@@ -22,10 +23,12 @@ Following are the additions to `rector.php` config file that are needed to perfo
 
 ```PHP
 use Rector\Renaming\Rector\MethodCall\RenameMethodRector;
+use Rector\Renaming\Rector\Name\RenameClassRector;
 use Rector\Renaming\ValueObject\MethodCallRename;
 use sad_spirit\pg_builder\nodes\WhereOrHavingClause;
 use sad_spirit\pg_builder\rector\ArrayConstructorArgumentToVariadicRector;
 use sad_spirit\pg_builder\rector\NegatedExpressionsStreamlineRector;
+use sad_spirit\pg_builder\rector\NewConstantToFactoryMethodsAndSubclassesRector;
 use sad_spirit\pg_builder\rector\UseSpecializedNodesInsteadOfOperatorExpressionRector;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
@@ -36,6 +39,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services = $containerConfigurator->services();
     $services->set(ArrayConstructorArgumentToVariadicRector::class);
     $services->set(NegatedExpressionsStreamlineRector::class);
+    $services->set(NewConstantToFactoryMethodsAndSubclassesRector::class);
     $services->set(UseSpecializedNodesInsteadOfOperatorExpressionRector::class);
 
     $services->set(RenameMethodRector::class)
@@ -46,6 +50,13 @@ return static function (ContainerConfigurator $containerConfigurator): void {
                     new MethodCallRename(WhereOrHavingClause::class, 'or_', 'or'),
                 ]
             ),
+        ]]);
+    $services->set(RenameClassRector::class)
+        ->call('configure', [[
+            RenameClassRector::OLD_TO_NEW_CLASSES => [
+                '\sad_spirit\pg_builder\nodes\Constant'  => '\sad_spirit\pg_builder\nodes\expressions\Constant',
+                '\sad_spirit\pg_builder\nodes\Parameter' => '\sad_spirit\pg_builder\nodes\expressions\Parameter',
+            ],
         ]]);
 
     // Project specific config follows...
