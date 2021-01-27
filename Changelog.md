@@ -21,14 +21,26 @@
 * Requires at least PHP 7.2
 * Requires at least PostgreSQL 9.5
 * Parser expects incoming SQL to be encoded in UTF-8, will throw exceptions in case of invalid encoding
-* Changes to public API: 
+* Changes to `Node` subclasses API: 
   * Methods `and_()` and `or_()` of `WhereOrHavingClause` were renamed to `and()` and `or()` as such names are allowed in PHP 7
   * Signatures of constructors for `ColumnReference` and `QualifiedName` were changed from `__construct(array $parts)` to `__construct(...$parts)`
-  * `OperatorExpression` no longer accepts any string as an operator, it accepts either a string of characters valid for operator name or an instance
-    of new `QualifiedOperator` class. SQL constructs previously presented as `OperatorExpression` have their own nodes:
+  * `OperatorExpression` no longer accepts _any_ string as an operator, it accepts either a string of characters valid for operator name or an instance
+    of new `QualifiedOperator` class representing a namespaced operator like `operator(pg_catalog.+)`. 
+    SQL constructs previously represented by `OperatorExpression` have their own nodes:
     `AtTimeZoneExpression`, `IsDistinctFromExpression`, `IsExpression`, `OverlapsExpression`, `NotExpression`.
   * `NOT` in SQL constructs like `IS NOT DISTINCT FROM` or `NOT BETWEEN` is represented as `$negated` property of a relevant `Node`
-  * Required changes to your code can be automated by using the provided rector rules, [consult the upgrade instructions](Upgrading.md).
+  * `Constant` and `Parameter` nodes were essentially 1:1 mapping of `TYPE_LITERAL` and `TYPE_PARAMETER` `Token`s exposing `Token::TYPE_*` constants,
+    so branching code was needed to process them. Added specialized `KeywordConstant`, `NumericConstant`, `StringConstant`, 
+    `NamedParameter`, `PositionalParameter` child classes. `Constant` and `Parameter` are now abstract base classes
+    containing factory-like methods for creating child class instances.
+* Changes to `TreeWalker` interface
+  * Added `walkQualifiedOperator()` for visiting `QualifiedOperator` nodes.
+  * `walkConstant()` was replaced by `walkKeywordConstant()` / `walkNumericConstant()` / `walkStringConstant()` methods.
+  * Similarly, `walkParameter()` was replaced by `walkNamedParameter()` and `walkPositionalParameter()`.
+  * Added `walkAtTimeZoneExpression()`, `walkIsDistinctFromExpression()`, `walkIsExpression()`, `walkNotExpression()`,
+    `walkOverlapsExpression()` for visiting nodes previously represented by `OperatorExpression`.
+* Most of the required changes to your code can be automated by using the provided rector rules, [consult the upgrade instructions](Upgrading.md).
+  Changes to custom `TreeWalker` implementations should be done manually.
 
 
 ### Removed
