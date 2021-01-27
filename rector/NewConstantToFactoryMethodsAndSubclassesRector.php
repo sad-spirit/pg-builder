@@ -27,7 +27,7 @@ use Rector\Core\{
 /**
  * Use newly-introduced specialized subclasses of Constant node
  */
-class NewConstantToFactoryMethodsAndSubclassesRector extends AbstractRector
+final class NewConstantToFactoryMethodsAndSubclassesRector extends AbstractRector
 {
     /**
      * @inheritDoc
