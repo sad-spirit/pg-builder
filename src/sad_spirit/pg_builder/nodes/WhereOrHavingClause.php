@@ -92,10 +92,11 @@ class WhereOrHavingClause extends GenericNode
                 || ($condition instanceof LogicalExpression && LogicalExpression::AND !== $condition->operator)
             ) {
                 // nested condition, should always wrap in LogicalExpression
-                $this->setProperty($this->p_condition, new LogicalExpression(
+                $this->p_condition = new LogicalExpression(
                     [$condition instanceof self ? $condition->condition : $condition],
                     LogicalExpression::AND
-                ));
+                );
+                $this->p_condition->parentNode = $this;
 
             } else {
                 $this->setProperty($this->p_condition, $condition);
@@ -103,10 +104,8 @@ class WhereOrHavingClause extends GenericNode
 
         } else {
             if (!($this->p_condition instanceof LogicalExpression)) {
-                $this->setProperty($this->p_condition, new LogicalExpression(
-                    [$this->p_condition],
-                    LogicalExpression::AND
-                ));
+                $this->p_condition = new LogicalExpression([$this->p_condition], LogicalExpression::AND);
+                $this->p_condition->parentNode = $this;
             }
             if (LogicalExpression::AND === $this->p_condition->operator) {
                 $recipient = $this->p_condition;
@@ -151,10 +150,8 @@ class WhereOrHavingClause extends GenericNode
                 !($this->p_condition instanceof LogicalExpression)
                 || LogicalExpression::OR !== $this->p_condition->operator
             ) {
-                $this->setProperty($this->p_condition, new LogicalExpression(
-                    [$this->p_condition],
-                    LogicalExpression::OR
-                ));
+                $this->p_condition = new LogicalExpression([$this->p_condition], LogicalExpression::OR);
+                $this->p_condition->parentNode = $this;
             }
 
             if ($condition instanceof LogicalExpression && LogicalExpression::OR === $condition->operator) {
