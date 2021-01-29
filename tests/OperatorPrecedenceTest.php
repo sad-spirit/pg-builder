@@ -70,7 +70,7 @@ class OperatorPrecedenceTest extends TestCase
      * @param string      $expression
      * @param string|Node $parsed
      */
-    protected function doTest(string $expression, $parsed)
+    protected function doTest(string $expression, $parsed): void
     {
         if (!is_string($parsed)) {
             $this->assertEquals($parsed, $this->parser->parseExpression($expression));
@@ -89,7 +89,7 @@ class OperatorPrecedenceTest extends TestCase
      * @param string      $expression
      * @param string|Node $parsedCurrent
      */
-    public function testAssociativeEquality(string $expression, $parsedCurrent)
+    public function testAssociativeEquality(string $expression, $parsedCurrent): void
     {
         $this->doTest($expression, $parsedCurrent);
     }
@@ -99,7 +99,7 @@ class OperatorPrecedenceTest extends TestCase
      * @param string      $expression
      * @param string|Node $parsedCurrent
      */
-    public function testInequalityPrecedence(string $expression, $parsedCurrent)
+    public function testInequalityPrecedence(string $expression, $parsedCurrent): void
     {
         $this->doTest($expression, $parsedCurrent);
     }
@@ -109,7 +109,7 @@ class OperatorPrecedenceTest extends TestCase
      * @param string      $expression
      * @param string|Node $parsedCurrent
      */
-    public function testInequalityWithCustomOperatorsPrecedence(string $expression, $parsedCurrent)
+    public function testInequalityWithCustomOperatorsPrecedence(string $expression, $parsedCurrent): void
     {
         $this->doTest($expression, $parsedCurrent);
     }
@@ -119,7 +119,7 @@ class OperatorPrecedenceTest extends TestCase
      * @param string      $expression
      * @param string|Node $parsedCurrent
      */
-    public function testIsWhateverPrecedence(string $expression, $parsedCurrent)
+    public function testIsWhateverPrecedence(string $expression, $parsedCurrent): void
     {
         $this->doTest($expression, $parsedCurrent);
     }
@@ -129,7 +129,7 @@ class OperatorPrecedenceTest extends TestCase
      * @param string      $expression
      * @param string|Node $parsedCurrent
      */
-    public function testBetweenPrecedence(string $expression, $parsedCurrent)
+    public function testBetweenPrecedence(string $expression, $parsedCurrent): void
     {
         $this->doTest($expression, $parsedCurrent);
     }
@@ -139,7 +139,7 @@ class OperatorPrecedenceTest extends TestCase
      * @param string      $expression
      * @param string|Node $parsedCurrent
      */
-    public function testEqualsGreaterOperator(string $expression, $parsedCurrent)
+    public function testEqualsGreaterOperator(string $expression, $parsedCurrent): void
     {
         $this->doTest($expression, $parsedCurrent);
     }
@@ -149,7 +149,7 @@ class OperatorPrecedenceTest extends TestCase
      * @param string      $expression
      * @param string|Node $parsedCurrent
      */
-    public function testIntervalTypeSpecification(string $expression, $parsedCurrent)
+    public function testIntervalTypeSpecification(string $expression, $parsedCurrent): void
     {
         $this->doTest($expression, $parsedCurrent);
     }

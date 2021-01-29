@@ -58,7 +58,7 @@ class ParseDeleteStatementTest extends TestCase
         $this->parser = new Parser(new Lexer());
     }
 
-    public function testParseAllClauses()
+    public function testParseAllClauses(): void
     {
         $parsed = $this->parser->parseStatement(<<<QRY
 with foo (id) as (
@@ -101,7 +101,7 @@ QRY
     /**
      * @noinspection SqlNoDataSourceInspection, SqlResolve
      */
-    public function testDisallowWhereCurrentOf()
+    public function testDisallowWhereCurrentOf(): void
     {
         $this->expectException(NotImplementedException::class);
         $this->expectExceptionMessage('WHERE CURRENT OF clause is not supported');

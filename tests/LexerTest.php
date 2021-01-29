@@ -41,7 +41,7 @@ class LexerTest extends TestCase
         $this->lexer = new Lexer();
     }
 
-    public function testTokenTypes()
+    public function testTokenTypes(): void
     {
         $stream = $this->lexer->tokenize("sElEcT 'select' \"select\", FOO + 1.2, 3 ! <> :foo, $1::integer");
 
@@ -64,7 +64,7 @@ class LexerTest extends TestCase
         $this->assertTrue($stream->isEOF());
     }
 
-    public function testStripComments()
+    public function testStripComments(): void
     {
         $stream = $this->lexer->tokenize(<<<QRY
 select FOO -- this is a one-line comment
@@ -90,7 +90,7 @@ QRY
      * @param string $sql
      * @param array $tokens
      */
-    public function testConcatenateStringLiterals(string $sql, array $tokens)
+    public function testConcatenateStringLiterals(string $sql, array $tokens): void
     {
         $stream = $this->lexer->tokenize($sql);
         foreach ($tokens as $token) {
@@ -136,7 +136,7 @@ QRY
     /**
      * @doesNotPerformAssertions
      */
-    public function testMulticharacterOperators()
+    public function testMulticharacterOperators(): void
     {
         $stream = $this->lexer->tokenize(<<<QRY
 #!/*--
@@ -156,7 +156,7 @@ QRY
         $stream->expect(Token::TYPE_OPERATOR, '!=-');
     }
 
-    public function testStandardConformingStrings()
+    public function testStandardConformingStrings(): void
     {
         $string = " 'foo\\\\bar' e'foo\\\\bar' ";
         $stream = $this->lexer->tokenize($string);
@@ -174,7 +174,7 @@ QRY
      * @param string $expected
      * @dataProvider validCStyleEscapesProvider
      */
-    public function testValidCStyleEscapes(string $sql, string $expected)
+    public function testValidCStyleEscapes(string $sql, string $expected): void
     {
         $stream = $this->lexer->tokenize($sql);
         $this::assertEquals($expected, $stream->next()->getValue());
@@ -185,14 +185,14 @@ QRY
      * @param string $message
      * @dataProvider invalidCStyleEscapesProvider
      */
-    public function testInvalidCStyleEscapes(string $sql, string $message)
+    public function testInvalidCStyleEscapes(string $sql, string $message): void
     {
         $this::expectException(SyntaxException::class);
         $this::expectExceptionMessage($message);
         $this->lexer->tokenize($sql);
     }
 
-    public function testDollarQuotedString()
+    public function testDollarQuotedString(): void
     {
         $stream = $this->lexer->tokenize(<<<QRY
     $\$a string$$
@@ -203,28 +203,28 @@ QRY
         $this->assertEquals(' another $$ string \' \\ ', $stream->next()->getValue());
     }
 
-    public function testUnterminatedCStyleComment()
+    public function testUnterminatedCStyleComment(): void
     {
         $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('Unterminated /* comment');
         $this->lexer->tokenize('/* foo');
     }
 
-    public function testUnterminatedQuotedIdentifier()
+    public function testUnterminatedQuotedIdentifier(): void
     {
         $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('Unterminated quoted identifier');
         $this->lexer->tokenize('update "foo ');
     }
 
-    public function testZeroLengthQuotedIdentifier()
+    public function testZeroLengthQuotedIdentifier(): void
     {
         $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('Zero-length quoted identifier');
         $this->lexer->tokenize('select "" as foo');
     }
 
-    public function testUnterminatedDollarQuotedString()
+    public function testUnterminatedDollarQuotedString(): void
     {
         $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('Unterminated dollar-quoted string');
@@ -235,7 +235,7 @@ QRY
      * @dataProvider getUnterminatedLiterals
      * @param string $literal
      */
-    public function testUnterminatedStringLiteral(string $literal)
+    public function testUnterminatedStringLiteral(string $literal): void
     {
         $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('Unterminated string literal');
@@ -253,14 +253,14 @@ QRY
         ];
     }
 
-    public function testUnexpectedSymbol()
+    public function testUnexpectedSymbol(): void
     {
         $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage("Unexpected '{'");
         $this->lexer->tokenize('select foo{bar}');
     }
 
-    public function testNonAsciiIdentifiers()
+    public function testNonAsciiIdentifiers(): void
     {
         $stream = $this->lexer->tokenize('ИмЯ_бЕз_КаВыЧеК "ИмЯ_в_КаВыЧкАх" $ыыы$строка в долларах$ыыы$ :параметр');
 
@@ -271,7 +271,7 @@ QRY
         $this->assertTrue($stream->isEOF());
     }
 
-    public function testDisallowStringsWithUnicodeEscapesWhenStandardConformingStringsIsOff()
+    public function testDisallowStringsWithUnicodeEscapesWhenStandardConformingStringsIsOff(): void
     {
         $lexer = new Lexer(['standard_conforming_strings' => false]);
 
@@ -292,7 +292,7 @@ QRY
      * @param string $value
      * @dataProvider validUnicodeEscapesProvider
      */
-    public function testValidUnicodeEscapes(string $sql, int $type, string $value)
+    public function testValidUnicodeEscapes(string $sql, int $type, string $value): void
     {
         $stream = $this->lexer->tokenize($sql);
         $stream->expect($type, $value);
@@ -304,7 +304,7 @@ QRY
      * @param string $message
      * @dataProvider invalidUnicodeEscapesProvider
      */
-    public function testInvalidUnicodeEscapes(string $sql, string $message)
+    public function testInvalidUnicodeEscapes(string $sql, string $message): void
     {
         $this::expectException(SyntaxException::class);
         $this::expectExceptionMessage($message);
@@ -315,7 +315,7 @@ QRY
      * @param string $sql
      * @dataProvider invalidUTF8Provider
      */
-    public function testDisallowInvalidUTF8(string $sql)
+    public function testDisallowInvalidUTF8(string $sql): void
     {
         $this::expectException(InvalidArgumentException::class);
         $this::expectExceptionMessage('Invalid UTF-8');

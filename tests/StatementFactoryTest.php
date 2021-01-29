@@ -69,7 +69,7 @@ class StatementFactoryTest extends TestCase
         );
     }
 
-    public function testCreatesFactoryForConnection()
+    public function testCreatesFactoryForConnection(): void
     {
         if (!TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING) {
             $this->markTestSkipped('Connection string is not configured');
@@ -89,7 +89,7 @@ class StatementFactoryTest extends TestCase
         $this::assertEquals($expectedBuilder, $factory->getBuilder());
     }
 
-    public function testCreatesFactoryForPDO()
+    public function testCreatesFactoryForPDO(): void
     {
         if (!TESTS_SAD_SPIRIT_PG_BUILDER_PDO_DSN) {
             $this::markTestSkipped('PDO DSN is not configured');
@@ -111,14 +111,14 @@ class StatementFactoryTest extends TestCase
      * @noinspection SqlNoDataSourceInspection
      * @noinspection SqlResolve
      */
-    public function testSetsParserOnCreatingFromString()
+    public function testSetsParserOnCreatingFromString(): void
     {
         $factory = new StatementFactory();
         $select  = $factory->createFromString('select foo from bar');
         $this->assertSame($factory->getParser(), $select->getParser());
     }
 
-    public function testCreateDeleteStatement()
+    public function testCreateDeleteStatement(): void
     {
         $factory = new StatementFactory();
 
@@ -135,7 +135,7 @@ class StatementFactoryTest extends TestCase
         $this->assertSame($relation, $delete2->relation);
     }
 
-    public function testCreateInsertStatement()
+    public function testCreateInsertStatement(): void
     {
         $factory = new StatementFactory();
 
@@ -151,7 +151,7 @@ class StatementFactoryTest extends TestCase
         $this->assertSame($target, $insert2->relation);
     }
 
-    public function testCreateSelectStatement()
+    public function testCreateSelectStatement(): void
     {
         $factory = new StatementFactory();
 
@@ -181,7 +181,7 @@ class StatementFactoryTest extends TestCase
         $this->assertEquals($fromList, clone $select3->from);
     }
 
-    public function testCreateUpdateStatement()
+    public function testCreateUpdateStatement(): void
     {
         $factory = new StatementFactory();
 
@@ -210,7 +210,7 @@ class StatementFactoryTest extends TestCase
         $this->assertSame($setClauseList, $update2->set);
     }
 
-    public function testCreateValuesStatement()
+    public function testCreateValuesStatement(): void
     {
         $factory = new StatementFactory();
 

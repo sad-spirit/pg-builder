@@ -59,7 +59,7 @@ class NativeStatementTest extends TestCase
         $this->factory    = StatementFactory::forConnection($this->connection);
     }
 
-    public function testNamedParameters()
+    public function testNamedParameters(): void
     {
         $native = $this->factory->createFromAST($this->factory->createFromString(
             'select typname from pg_catalog.pg_type where oid = :oid'
@@ -70,7 +70,7 @@ class NativeStatementTest extends TestCase
         $this->assertEquals('int4', $result[0]['typname']);
     }
 
-    public function testMissingNamedParameter()
+    public function testMissingNamedParameter(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Missing parameter name');
@@ -80,7 +80,7 @@ class NativeStatementTest extends TestCase
         $native->executeParams($this->connection, ['name' => 'text']);
     }
 
-    public function testUnknownNamedParameter()
+    public function testUnknownNamedParameter(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Unknown keys');
@@ -90,7 +90,7 @@ class NativeStatementTest extends TestCase
         $native->executeParams($this->connection, ['oid' => 23, 'name' => 'text']);
     }
 
-    public function testMapInputTypes()
+    public function testMapInputTypes(): void
     {
         $native = $this->factory->createFromAST($this->factory->createFromString(
             'select typname from pg_catalog.pg_type where oid = any(:oid) order by typname'
@@ -103,7 +103,7 @@ class NativeStatementTest extends TestCase
         $this->assertEquals('int2', $result[0]['typname']);
     }
 
-    public function testExtractInputTypes()
+    public function testExtractInputTypes(): void
     {
         $native = $this->factory->createFromAST($this->factory->createFromString(
             'select typname from pg_catalog.pg_type where oid = any(:oid::integer[]) order by typname'
@@ -117,7 +117,7 @@ class NativeStatementTest extends TestCase
         $this->assertEquals('text', $result2[0]['typname']);
     }
 
-    public function testExecutePrepared()
+    public function testExecutePrepared(): void
     {
         $native = $this->factory->createFromAST($this->factory->createFromString(
             'select typname from pg_catalog.pg_type where oid = :oid'
@@ -132,7 +132,7 @@ class NativeStatementTest extends TestCase
         $this->assertEquals('int4', $resultTwo[0]['typname']);
     }
 
-    public function testExecutePreparedWithExplicitType()
+    public function testExecutePreparedWithExplicitType(): void
     {
         $native = $this->factory->createFromAST($this->factory->createFromString(
             'select typname from pg_catalog.pg_type where oid = any(:oid)'
@@ -143,7 +143,7 @@ class NativeStatementTest extends TestCase
         $this->assertEquals('int4', $result[0]['typname']);
     }
 
-    public function testCannotExecutePreparedWithoutPrepare()
+    public function testCannotExecutePreparedWithoutPrepare(): void
     {
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('prepare() should be called first');
@@ -153,7 +153,7 @@ class NativeStatementTest extends TestCase
         $native->executePrepared(['oid' => 23]);
     }
 
-    public function testPreparedStatementIsNotSerialized()
+    public function testPreparedStatementIsNotSerialized(): void
     {
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('prepare() should be called first');

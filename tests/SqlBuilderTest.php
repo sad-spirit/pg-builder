@@ -55,7 +55,7 @@ class SqlBuilderTest extends TestCase
         $this->builder = new SqlBuilderWalker();
     }
 
-    public function testBuildDeleteStatement()
+    public function testBuildDeleteStatement(): void
     {
         $parsed = $this->parser->parseStatement(<<<QRY
 with recursive items (id, title, level, path) as (
@@ -91,7 +91,7 @@ QRY
         );
     }
 
-    public function testBuildInsertStatement()
+    public function testBuildInsertStatement(): void
     {
         $parsed = $this->parser->parseStatement(<<<QRY
 with foobar as (
@@ -129,7 +129,7 @@ QRY
         );
     }
 
-    public function testBuildSelectStatement()
+    public function testBuildSelectStatement(): void
     {
         $parsed = $this->parser->parseStatement($ts = <<<QRY
 with xmlstuff as (
@@ -211,7 +211,7 @@ QRY
         );
     }
 
-    public function testBuildUpdateStatement()
+    public function testBuildUpdateStatement(): void
     {
         $parsed = $this->parser->parseStatement(<<<QRY
 with foo as (
@@ -240,7 +240,7 @@ QRY
         );
     }
 
-    public function testTrailingDollarInStringConstantBug()
+    public function testTrailingDollarInStringConstantBug(): void
     {
         $constants = new ExpressionList([
             new StringConstant('^\\d{3}-\\d{2}$'),
@@ -257,7 +257,7 @@ QRY
      * @noinspection SqlResolve
      * @noinspection SqlCheckUsingColumns
      */
-    public function testEscapeUnicode()
+    public function testEscapeUnicode(): void
     {
         $ast = $this->parser->parseStatement(<<<QRY
     select молодой.слонок носатый, 'на лужайке '' какал \\ смачно'

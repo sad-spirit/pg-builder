@@ -64,7 +64,7 @@ class ParameterWalkerTest extends TestCase
         $this->walker  = new ParameterWalker();
     }
 
-    public function testDisallowMixedParameters()
+    public function testDisallowMixedParameters(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Mixing named and positional parameters is not allowed');
@@ -76,7 +76,7 @@ QRY
     }
 
 
-    public function testReplaceNamedParametersInSelect()
+    public function testReplaceNamedParametersInSelect(): void
     {
         $statement = $this->parser->parseStatement(<<<QRY
 with blah as (
@@ -123,7 +123,7 @@ QRY
         $this->assertEquals(new TypeName(new QualifiedName('foo')), $types[$map['typecastop']]);
     }
 
-    public function testReplaceMultipleOccurences()
+    public function testReplaceMultipleOccurences(): void
     {
         $statement = $this->parser->parseStatement(<<<QRY
 select foo from foosource where foo ~ :foo
@@ -139,7 +139,7 @@ QRY
         $this->assertEquals(4, substr_count($statement->dispatch($this->builder), '$1'));
     }
 
-    public function testReplaceParametersInUpdate()
+    public function testReplaceParametersInUpdate(): void
     {
         $statement = $this->parser->parseStatement(<<<QRY
 update foo set bar = :bar, baz = :baz where quux = :quux
@@ -153,7 +153,7 @@ QRY
         );
     }
 
-    public function testReplaceParametersInInsert()
+    public function testReplaceParametersInInsert(): void
     {
         $statement = $this->parser->parseStatement(<<<QRY
 insert into foo (bar, baz) values (default, :bar), (:baz, default) on conflict (shit) do update set baz = :baz
@@ -167,7 +167,7 @@ QRY
         );
     }
 
-    public function testLeavesNumericParametersAlone()
+    public function testLeavesNumericParametersAlone(): void
     {
         $statement = $this->parser->parseStatement('update foo set name = $1::text where id = $2');
         $statement->dispatch($this->walker);
@@ -179,7 +179,7 @@ QRY
         $this->assertEquals(new TypeName(new QualifiedName('text')), $types[0]);
     }
 
-    public function testLeaveNamedParametersAlone()
+    public function testLeaveNamedParametersAlone(): void
     {
         $statement = $this->parser->parseStatement('update foo set name = :name::text where id = :id');
         $walker    = new ParameterWalker(true);

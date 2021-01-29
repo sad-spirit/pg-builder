@@ -39,13 +39,13 @@ class GenericNodeTest extends TestCase
         $this->error = null;
     }
 
-    public function testCanReadDefinedProperty()
+    public function testCanReadDefinedProperty(): void
     {
         $this::assertNull($this->node->child);
         $this::assertInstanceOf(Node::class, $this->node->readonly);
     }
 
-    public function testCannotReadUndefinedProperty()
+    public function testCannotReadUndefinedProperty(): void
     {
         $this::assertFalse(isset($this->node->foo));
 
@@ -55,7 +55,7 @@ class GenericNodeTest extends TestCase
         $this->error = $this->node->foo;
     }
 
-    public function testCannotWriteUndefinedProperty()
+    public function testCannotWriteUndefinedProperty(): void
     {
         $this::expectException(InvalidArgumentException::class);
         $this::expectExceptionMessage('Unknown property');
@@ -63,7 +63,7 @@ class GenericNodeTest extends TestCase
         $this->node->foo = 'bar';
     }
 
-    public function testWritingPropertyCallsExplicitSetter()
+    public function testWritingPropertyCallsExplicitSetter(): void
     {
         $this::assertEquals(0, $this->node->setChildCalled);
 
@@ -74,7 +74,7 @@ class GenericNodeTest extends TestCase
         $this::assertEquals(1, $this->node->setChildCalled);
     }
 
-    public function testRemoveChildCallsExplicitSetter()
+    public function testRemoveChildCallsExplicitSetter(): void
     {
         $newChild = new GenericNodeImplementation();
         $this->node->child = $newChild;
@@ -84,7 +84,7 @@ class GenericNodeTest extends TestCase
         $this::assertEquals(2, $this->node->setChildCalled);
     }
 
-    public function testReplaceChildCallsExplicitSetter()
+    public function testReplaceChildCallsExplicitSetter(): void
     {
         $newChild    = new GenericNodeImplementation();
         $newestChild = new GenericNodeImplementation();
@@ -96,7 +96,7 @@ class GenericNodeTest extends TestCase
         $this::assertEquals(2, $this->node->setChildCalled);
     }
 
-    public function testCannotWritePropertyWithoutExplicitSetter()
+    public function testCannotWritePropertyWithoutExplicitSetter(): void
     {
         $this::expectException(InvalidArgumentException::class);
         $this::expectExceptionMessage('is read-only');
@@ -104,7 +104,7 @@ class GenericNodeTest extends TestCase
         $this->node->readonly = new GenericNodeImplementation();
     }
 
-    public function testCannotReplaceChildWithoutExplicitSetter()
+    public function testCannotReplaceChildWithoutExplicitSetter(): void
     {
         $readonly = $this->node->readonly;
         $replace  = new GenericNodeImplementation();
@@ -115,7 +115,7 @@ class GenericNodeTest extends TestCase
         $this->node->replaceChild($readonly, $replace);
     }
 
-    public function testCannotRemoveChildWithoutExplicitSetter()
+    public function testCannotRemoveChildWithoutExplicitSetter(): void
     {
         $this::expectException(InvalidArgumentException::class);
         $this::expectExceptionMessage('is read-only');
@@ -123,7 +123,7 @@ class GenericNodeTest extends TestCase
         $this->node->removeChild($this->node->readonly);
     }
 
-    public function testCannotRemoveNonChild()
+    public function testCannotRemoveNonChild(): void
     {
         $nonChild = new GenericNodeImplementation();
 
@@ -132,7 +132,7 @@ class GenericNodeTest extends TestCase
         $this->node->removeChild($nonChild);
     }
 
-    public function testCannotReplaceNonChild()
+    public function testCannotReplaceNonChild(): void
     {
         $nonChildOne = new GenericNodeImplementation();
         $nonChildTwo = new GenericNodeImplementation();
@@ -142,7 +142,7 @@ class GenericNodeTest extends TestCase
         $this->node->replaceChild($nonChildOne, $nonChildTwo);
     }
 
-    public function testCannotCreateCycles()
+    public function testCannotCreateCycles(): void
     {
         $father = new GenericNodeImplementation();
         $child  = new GenericNodeImplementation();
@@ -156,7 +156,7 @@ class GenericNodeTest extends TestCase
         $child->child = $father;
     }
 
-    public function testSetParentNodeRemovesFromPreviousParent()
+    public function testSetParentNodeRemovesFromPreviousParent(): void
     {
         $child = new GenericNodeImplementation();
         $node  = new GenericNodeImplementation();
@@ -168,7 +168,7 @@ class GenericNodeTest extends TestCase
         $this::assertSame($node, $child->getParentNode());
     }
 
-    public function testSetPropertyRemovesFromPreviousParent()
+    public function testSetPropertyRemovesFromPreviousParent(): void
     {
         $child = new GenericNodeImplementation();
         $node  = new GenericNodeImplementation();
@@ -180,7 +180,7 @@ class GenericNodeTest extends TestCase
         $this::assertSame($node, $child->getParentNode());
     }
 
-    public function testReplaceChildRemovesFromPreviousParent()
+    public function testReplaceChildRemovesFromPreviousParent(): void
     {
         $oldChild = new GenericNodeImplementation();
         $newChild = new GenericNodeImplementation();
@@ -194,7 +194,7 @@ class GenericNodeTest extends TestCase
         $this::assertSame($newChild, $node->child);
     }
 
-    public function testClonePerformsDeepCloneAndRemovesParentNode()
+    public function testClonePerformsDeepCloneAndRemovesParentNode(): void
     {
         $father = new GenericNodeImplementation();
         $child  = new GenericNodeImplementation();
@@ -208,7 +208,7 @@ class GenericNodeTest extends TestCase
         $this::assertNotSame($this->node->child, $cloned->child);
     }
 
-    public function testUnserializeRestoresParentChildRelationships()
+    public function testUnserializeRestoresParentChildRelationships(): void
     {
         $father = new GenericNodeImplementation();
         $child  = new GenericNodeImplementation();
@@ -223,7 +223,7 @@ class GenericNodeTest extends TestCase
         $this::assertSame($unserialized->child, $unserialized->child->child->getParentNode());
     }
 
-    public function testSetParentNodeToNullRemovesFromParent()
+    public function testSetParentNodeToNullRemovesFromParent(): void
     {
         $child = new GenericNodeImplementation();
         $leaf  = new NonRecursiveNodeImplementation();

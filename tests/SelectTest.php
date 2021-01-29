@@ -59,7 +59,7 @@ class SelectTest extends TestCase
         ]);
     }
 
-    public function testSimpleUnion()
+    public function testSimpleUnion(): void
     {
         $select = $this->parser->parseSelectStatement('select * from foo');
         $select->setParser($this->parser);
@@ -72,7 +72,7 @@ class SelectTest extends TestCase
         );
     }
 
-    public function testNestedSetOp()
+    public function testNestedSetOp(): void
     {
         /** @var SetOpSelect $setOp */
         $setOp = $this->parser->parseSelectStatement('select * from foo intersect select * from bar');
@@ -83,7 +83,7 @@ class SelectTest extends TestCase
         );
     }
 
-    public function testRangeSubselectSetOp()
+    public function testRangeSubselectSetOp(): void
     {
         /** @var Select $select */
         $select = $this->parser->parseSelectStatement('select foo.* from (select * from foosource) as foo');
@@ -96,7 +96,7 @@ class SelectTest extends TestCase
         );
     }
 
-    public function testScalarSubselectSetOp()
+    public function testScalarSubselectSetOp(): void
     {
         /** @var Select $select */
         $select = $this->parser->parseSelectStatement(

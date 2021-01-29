@@ -85,7 +85,7 @@ class ParseFromClauseTest extends TestCase
         $this->parser = new Parser(new Lexer());
     }
 
-    public function testBasicItems()
+    public function testBasicItems(): void
     {
         $list = $this->parser->parseFromList(<<<QRY
     foo.bar, baz(1, 'string'), (select 'quux') as quux
@@ -108,7 +108,7 @@ QRY
         );
     }
 
-    public function testAliasedTables()
+    public function testAliasedTables(): void
     {
         $list = $this->parser->parseFromList(<<<QRY
     foo as fooalias, only barschema.bar baralias, baz * as bazalias (one, two),
@@ -136,7 +136,7 @@ QRY
         $this->assertEquals(new FromList([$foo, $bar, $baz, $quux]), $list);
     }
 
-    public function testAliasedFunctions()
+    public function testAliasedFunctions(): void
     {
         // this also checks that keywords are allowed for ColId's
         $list = $this->parser->parseFromList(<<<QRY
@@ -184,7 +184,7 @@ QRY
         $this->assertEquals(new FromList([$blah, $blahblah]), $list);
     }
 
-    public function testJoins()
+    public function testJoins(): void
     {
         $list = $this->parser->parseFromList(<<<QRY
     a as aa natural join b bb left join (c right join d on (true = false)) as joinalias using (blah),
@@ -238,21 +238,21 @@ QRY
         $this->assertEquals(new FromList([$abcd, new JoinExpression($fg, $subselect, 'cross')]), $list);
     }
 
-    public function testNoMoreThanTwoDots()
+    public function testNoMoreThanTwoDots(): void
     {
         $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('Too many dots');
         $this->parser->parseFromList('foo.bar.baz.quux');
     }
 
-    public function testSubselectsRequireAnAlias()
+    public function testSubselectsRequireAnAlias(): void
     {
         $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('should have an alias');
         $this->parser->parseFromList("(select 'foo')");
     }
 
-    public function testWithOrdinality()
+    public function testWithOrdinality(): void
     {
         $list = $this->parser->parseFromList(
             'foo(1) with ordinality, bar(2) with ordinality as blah'
@@ -272,7 +272,7 @@ QRY
         $this->assertEquals(new FromList([$foo, $bar]), $list);
     }
 
-    public function testRowsFrom()
+    public function testRowsFrom(): void
     {
         $list = $this->parser->parseFromList(<<<QRY
     rows from (foo(1) as (fooid integer, fooname text), foo(2)),
@@ -316,7 +316,7 @@ QRY
         $this->assertEquals(new FromList([$rowsOne, $rowsTwo]), $list);
     }
 
-    public function testTableSample()
+    public function testTableSample(): void
     {
         $list = $this->parser->parseFromList(<<<QRY
 foo tablesample system (bar.baz * 100),
@@ -356,7 +356,7 @@ QRY
         $this->assertEquals(new FromList([$sample1, $sample2]), $list);
     }
 
-    public function testXmlTable()
+    public function testXmlTable(): void
     {
         // from docs
         $list = $this->parser->parseFromList(<<<QRY

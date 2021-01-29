@@ -74,7 +74,7 @@ class ParseFunctionCallTest extends TestCase
         $this->parser = new Parser(new Lexer());
     }
 
-    public function testNoParenthesesFunctions()
+    public function testNoParenthesesFunctions(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     current_date, current_role, current_user, session_user, user, current_catalog, current_schema
@@ -96,7 +96,7 @@ QRY
         $this->assertEquals(new ExpressionList($expected), $list);
     }
 
-    public function testOptionalParenthesesFunctions()
+    public function testOptionalParenthesesFunctions(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     current_time, current_timestamp(1), localtime(2), localtimestamp
@@ -136,7 +136,7 @@ QRY
         $this->parser->parseExpressionList('current_time(foo)');
     }
 
-    public function testExtract()
+    public function testExtract(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     extract(epoch from foo), extract(minute from bar), extract('whatever' from baz)
@@ -161,7 +161,7 @@ QRY
         );
     }
 
-    public function testOverlay()
+    public function testOverlay(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     overlay('fooxxxbaz' placing 'bar' from 3 for 3), overlay('adc' placing 'b' from 2)
@@ -187,7 +187,7 @@ QRY
         );
     }
 
-    public function testPosition()
+    public function testPosition(): void
     {
         $this->assertEquals(
             new FunctionExpression(
@@ -198,7 +198,7 @@ QRY
         );
     }
 
-    public function testSubstring()
+    public function testSubstring(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     substring('foobar', 2, 3), substring('foobar' from 2 for 3), substring('foobar' for 3 from 2),
@@ -236,7 +236,7 @@ QRY
         );
     }
 
-    public function testTrim()
+    public function testTrim(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     trim(from ' foo '), trim(leading '_' from '_foo_'), trim(trailing from 'foo '), trim(trailing from 'foo', 'o')
@@ -265,7 +265,7 @@ QRY
         );
     }
 
-    public function testNullif()
+    public function testNullif(): void
     {
         $this->assertEquals(
             new FunctionExpression(
@@ -279,7 +279,7 @@ QRY
         $this->parser->parseExpression('nullif(a, b, c)');
     }
 
-    public function testXmlElement()
+    public function testXmlElement(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     xmlelement(name foo, bar, 'content'), xmlelement(name blah, xmlattributes(baz, quux as xyzzy), 'content')
@@ -306,7 +306,7 @@ QRY
         );
     }
 
-    public function testXmlExists()
+    public function testXmlExists(): void
     {
         $this->assertEquals(
             new FunctionExpression(
@@ -322,7 +322,7 @@ QRY
         );
     }
 
-    public function testXmlForest()
+    public function testXmlForest(): void
     {
         $this->assertEquals(
             new XmlForest([
@@ -333,7 +333,7 @@ QRY
         );
     }
 
-    public function testXmlParse()
+    public function testXmlParse(): void
     {
         $this->assertEquals(
             new XmlParse('document', new ColumnReference('xml', 'doc'), true),
@@ -341,7 +341,7 @@ QRY
         );
     }
 
-    public function testXmlPi()
+    public function testXmlPi(): void
     {
         $this->assertEquals(
             new XmlPi(new Identifier('php'), new StringConstant("echo 'Hello world!';")),
@@ -349,7 +349,7 @@ QRY
         );
     }
 
-    public function testXmlRoot()
+    public function testXmlRoot(): void
     {
         $this->assertEquals(
             new XmlRoot(new ColumnReference('doc'), new StringConstant('1.2'), 'yes'),
@@ -357,7 +357,7 @@ QRY
         );
     }
 
-    public function testXmlSerialize()
+    public function testXmlSerialize(): void
     {
         $this->assertEquals(
             new XmlSerialize(
@@ -369,7 +369,7 @@ QRY
         );
     }
 
-    public function testNormalize()
+    public function testNormalize(): void
     {
         $this::assertEquals(
             new ExpressionList([
@@ -390,7 +390,7 @@ QRY
         $this->parser->parseExpression("normalize(baz, nfc, nfd)");
     }
 
-    public function testExplicitlyKnownFunctionNames()
+    public function testExplicitlyKnownFunctionNames(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     coalesce(a, 'b'), greatest('c', d), least(e, f), xmlconcat(x, m, l)
@@ -424,7 +424,7 @@ QRY
         );
     }
 
-    public function testCollationFor()
+    public function testCollationFor(): void
     {
         $this->assertEquals(
             new FunctionExpression(
@@ -435,7 +435,7 @@ QRY
         );
     }
 
-    public function testNamedAndVariadicParameters()
+    public function testNamedAndVariadicParameters(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     blah.foo(variadic a), blah.bar(a, variadic b), blah.baz(a, b := c, binary := d)
@@ -476,7 +476,7 @@ QRY
      * @param string $functionCall
      * @param string $message
      */
-    public function testInvalidNamedAndVariadicParameters(string $functionCall, string $message)
+    public function testInvalidNamedAndVariadicParameters(string $functionCall, string $message): void
     {
         $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage($message);
@@ -505,7 +505,7 @@ QRY
      * @dataProvider getInvalidFunctionNames
      * @param string $functionCall
      */
-    public function testInvalidFunctionNames(string $functionCall)
+    public function testInvalidFunctionNames(string $functionCall): void
     {
         $this->expectException(SyntaxException::class);
         $this->parser->parseExpression($functionCall);
@@ -519,7 +519,7 @@ QRY
         ];
     }
 
-    public function testAggregateFunctionCalls()
+    public function testAggregateFunctionCalls(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     agg1(all blah), agg2(distinct blahblah), agg3(distinct foo, bar order by foo desc, bar nulls last),
@@ -575,7 +575,7 @@ QRY
         );
     }
 
-    public function testWindowFunctionCalls()
+    public function testWindowFunctionCalls(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     foo() over (), bar() over (blah), rank() over (partition by whatever),
@@ -697,7 +697,7 @@ QRY
      * @param string $spec
      * @param string $message
      */
-    public function testInvalidWindowSpecifications(string $spec, string $message)
+    public function testInvalidWindowSpecifications(string $spec, string $message): void
     {
         $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage($message);
@@ -743,7 +743,7 @@ QRY
      * @param string $expression
      * @param string $message
      */
-    public function testInvalidWithinGroupUsage(string $expression, string $message)
+    public function testInvalidWithinGroupUsage(string $expression, string $message): void
     {
         $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage($message);

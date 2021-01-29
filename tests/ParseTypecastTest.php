@@ -54,7 +54,7 @@ class ParseTypecastTest extends TestCase
         $this->parser = new Parser(new Lexer());
     }
 
-    public function testTypecastOperator()
+    public function testTypecastOperator(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     foo.bar::baz, foo::bar.baz, foo::bar::baz(666), foo::int array, foo::int[]
@@ -90,7 +90,7 @@ QRY
         );
     }
 
-    public function testNumericTypes()
+    public function testNumericTypes(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     cast (foo as int), cast(foo as integer), cast(foo as smallint), foo::bigint,
@@ -124,7 +124,7 @@ QRY
         );
     }
 
-    public function testBitTypes()
+    public function testBitTypes(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     foo::bit, cast(foo as bit varying), foo::bit varying(10), cast (foo as bit(10))
@@ -149,7 +149,7 @@ QRY
         );
     }
 
-    public function testCharacterTypes()
+    public function testCharacterTypes(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     cast(blah as character), blah::char varying, cast(blah as character varying(13)),
@@ -195,7 +195,7 @@ QRY
         );
     }
 
-    public function testDateTimeTypes()
+    public function testDateTimeTypes(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     foo::time, foo::timestamp(3), cast(foo as time with time zone), foo::timestamp without time zone,
@@ -231,7 +231,7 @@ QRY
         );
     }
 
-    public function testIntervalType()
+    public function testIntervalType(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     cast (foo as interval), foo::interval(10), foo::interval hour to second(10)
@@ -253,7 +253,7 @@ QRY
         );
     }
 
-    public function testComplexTypes()
+    public function testComplexTypes(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     cast (foo as setof text), cast (foo as text array[5]), cast (foo as text[5])
@@ -277,7 +277,7 @@ QRY
         );
     }
 
-    public function testGenericTypeModifiers()
+    public function testGenericTypeModifiers(): void
     {
         $this->assertEquals(
             new TypecastExpression(
@@ -293,7 +293,7 @@ QRY
         );
     }
 
-    public function testLeadingTypecast()
+    public function testLeadingTypecast(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     double precision 'a value', national char varying 'a value', varchar(10) 'a value',
@@ -357,7 +357,7 @@ QRY
      * @param string $expression
      * @param string $message
      */
-    public function testInvalidTypeSpecification(string $expression, string $message)
+    public function testInvalidTypeSpecification(string $expression, string $message): void
     {
         $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage($message);

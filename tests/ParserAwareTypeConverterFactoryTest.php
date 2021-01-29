@@ -52,7 +52,7 @@ class ParserAwareTypeConverterFactoryTest extends TestCase
         $this->factory = new ParserAwareTypeConverterFactory(new Parser(new Lexer()));
     }
 
-    public function testCreateTypeNameNode()
+    public function testCreateTypeNameNode(): void
     {
         if (!TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING) {
             $this->markTestSkipped('Connection string is not configured');
@@ -67,7 +67,7 @@ class ParserAwareTypeConverterFactoryTest extends TestCase
         );
     }
 
-    public function testGetConverterForTypeNameNode()
+    public function testGetConverterForTypeNameNode(): void
     {
         $this->assertEquals(
             new IntegerConverter(),
@@ -80,12 +80,12 @@ class ParserAwareTypeConverterFactoryTest extends TestCase
      * @param TypeConverter $converter
      * @dataProvider complexTypeNamesProvider
      */
-    public function testParseComplexTypeNames(string $typeName, TypeConverter $converter)
+    public function testParseComplexTypeNames(string $typeName, TypeConverter $converter): void
     {
         $this->assertEquals($converter, $this->factory->getConverterForTypeSpecification($typeName));
     }
 
-    public function complexTypeNamesProvider()
+    public function complexTypeNamesProvider(): array
     {
         return [
             ["decimal(1,2)",                   new NumericConverter()],

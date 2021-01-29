@@ -37,7 +37,7 @@ use sad_spirit\pg_builder\nodes\{
  */
 class WhereOrHavingClauseTest extends TestCase
 {
-    public function testAddConditionsWithAnd()
+    public function testAddConditionsWithAnd(): void
     {
         $where = new WhereOrHavingClause(new ColumnReference('foo'));
         $where->and(new ColumnReference('bar'))
@@ -56,7 +56,7 @@ class WhereOrHavingClauseTest extends TestCase
         );
     }
 
-    public function testAddConditionsWithOr()
+    public function testAddConditionsWithOr(): void
     {
         $where = new WhereOrHavingClause(new ColumnReference('foo'));
         $where->or(new ColumnReference('bar'))
@@ -75,7 +75,7 @@ class WhereOrHavingClauseTest extends TestCase
         );
     }
 
-    public function testAddConditionsWithAndAndOr()
+    public function testAddConditionsWithAndAndOr(): void
     {
         $where = new WhereOrHavingClause(new ColumnReference('foo'));
         $where->and(new ColumnReference('bar'))
@@ -99,7 +99,7 @@ class WhereOrHavingClauseTest extends TestCase
         );
     }
 
-    public function testAddNestedConditions()
+    public function testAddNestedConditions(): void
     {
         $where = new WhereOrHavingClause(new ColumnReference('foo'));
         $where->and(
@@ -130,7 +130,7 @@ class WhereOrHavingClauseTest extends TestCase
      * @noinspection SqlNoDataSourceInspection
      * @noinspection SqlResolve
      */
-    public function testNestedWhereShouldHaveParser()
+    public function testNestedWhereShouldHaveParser(): void
     {
         $parser = new Parser(new Lexer());
         /** @var Select $select */
@@ -142,7 +142,7 @@ class WhereOrHavingClauseTest extends TestCase
         );
     }
 
-    public function testBugWhenFirstConditionIsNested()
+    public function testBugWhenFirstConditionIsNested(): void
     {
         $where = new WhereOrHavingClause();
         $where->and(
@@ -169,7 +169,7 @@ class WhereOrHavingClauseTest extends TestCase
         );
     }
 
-    public function testExplicitOrExpressionsShouldBeAutoNestedInAnd()
+    public function testExplicitOrExpressionsShouldBeAutoNestedInAnd(): void
     {
         $where = new WhereOrHavingClause();
         $where->and(new ColumnReference('foo'));

@@ -77,7 +77,7 @@ class ParseUpdateStatementTest extends TestCase
         $this->parser = new Parser(new Lexer());
     }
 
-    public function testParseSetClause()
+    public function testParseSetClause(): void
     {
         $parsed = $this->parser->parseStatement(<<<QRY
     update foo bar set blah.one = 'blah', blahblah = default, (baz[1], quux) = ('quux', default),
@@ -133,7 +133,7 @@ QRY
         $this->assertEquals($update, $parsed);
     }
 
-    public function testTreatSetAsKeyword()
+    public function testTreatSetAsKeyword(): void
     {
         $parsed = $this->parser->parseStatement(<<<QRY
     update foo set set = 'set'
@@ -152,7 +152,7 @@ QRY
         $this->assertEquals($update, $parsed);
     }
 
-    public function testParseAllClauses()
+    public function testParseAllClauses(): void
     {
         $parsed = $this->parser->parseStatement(<<<QRY
 with foo as not materialized (
@@ -199,7 +199,7 @@ QRY
         $this->assertEquals($built, $parsed);
     }
 
-    public function testDisallowWhereCurrentOf()
+    public function testDisallowWhereCurrentOf(): void
     {
         $this->expectException(NotImplementedException::class);
         $this->expectExceptionMessage('WHERE CURRENT OF clause is not supported');

@@ -88,7 +88,7 @@ class ParseExpressionTest extends TestCase
         $this->parser = new Parser(new Lexer());
     }
 
-    public function testParseExpressionAtoms()
+    public function testParseExpressionAtoms(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     'foo', bar.baz, array[1,2], array[[1,2],[3,4]], row(3,4), $1.blah, :foo, null,
@@ -125,7 +125,7 @@ QRY
         );
     }
 
-    public function testParentheses()
+    public function testParentheses(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     (1), (2,3), (foo(4,5)).bar, (array[6,7])[1], ((select 1), 2), (select 1), ((((select 1)) order by 1) limit 1)
@@ -164,7 +164,7 @@ QRY
      * @param string $expr
      * @param string $message
      */
-    public function testUnbalanceParentheses(string $expr, string $message)
+    public function testUnbalanceParentheses(string $expr, string $message): void
     {
         $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage($message);
@@ -179,7 +179,7 @@ QRY
         ];
     }
 
-    public function testLogicalExpression()
+    public function testLogicalExpression(): void
     {
         $expr = $this->parser->parseExpression(<<<QRY
     a and not b or not not c and d or e
@@ -209,7 +209,7 @@ QRY
         );
     }
 
-    public function testPatternMatching()
+    public function testPatternMatching(): void
     {
         $expr = $this->parser->parseExpression(<<<QRY
     'foo' LIKE 'bar' > 'baz' noT ILIke 'quux' escape '!'
@@ -241,7 +241,7 @@ QRY
         );
     }
 
-    public function testOverlaps()
+    public function testOverlaps(): void
     {
         $expr = $this->parser->parseExpression(<<<QRY
     (foo, bar) overlaps row(baz, quux)
@@ -271,7 +271,7 @@ QRY
         );
     }
 
-    public function testBetween()
+    public function testBetween(): void
     {
         $expression = $this->parser->parseExpression(<<<QRY
     foo between 'bar' and 'baz' and foofoo NOT BETWEEN symmetric 'quux' and 'xyzzy'
@@ -299,7 +299,7 @@ QRY
         );
     }
 
-    public function testIn()
+    public function testIn(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     foo in ('foo', 'bar') in (true, false), bar not in (select 'baz')
@@ -333,7 +333,7 @@ QRY
         );
     }
 
-    public function testSubqueryExpressions()
+    public function testSubqueryExpressions(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     foo < any(select otherfoo from foosource), bar like all(select barpattern from barsource),
@@ -388,7 +388,7 @@ QRY
         );
     }
 
-    public function testGenericOperator()
+    public function testGenericOperator(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     w # @ v ? u, q !, ! q, r operator(blah.###) s
@@ -456,7 +456,7 @@ QRY
         ];
     }
 
-    public function testIsWhatever()
+    public function testIsWhatever(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     foo is null isnull, bar is not null notnull, 'foo' is distinct from 'bar',
@@ -515,7 +515,7 @@ QRY
         );
     }
 
-    public function testArithmetic()
+    public function testArithmetic(): void
     {
         $expr = $this->parser->parseExpressionList(<<<QRY
     1 + -2 * 3 ^ - 3 ^ 3 - 5 / 6
@@ -554,7 +554,7 @@ QRY
         );
     }
 
-    public function testCaseExpression()
+    public function testCaseExpression(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     case foo when 'bar' then 10 when 'baz' then 100 else 1 end,
@@ -588,7 +588,7 @@ QRY
         );
     }
 
-    public function testCollate()
+    public function testCollate(): void
     {
         $this->assertEquals(
             new CollateExpression(new StringConstant('foo'), new QualifiedName('bar', 'baz')),
@@ -596,7 +596,7 @@ QRY
         );
     }
 
-    public function testAtTimeZone()
+    public function testAtTimeZone(): void
     {
         $this->assertEquals(
             new AtTimeZoneExpression(new ColumnReference('foo', 'bar'), new StringConstant('baz')),
@@ -604,7 +604,7 @@ QRY
         );
     }
 
-    public function testBogusPostfixOperatorBug()
+    public function testBogusPostfixOperatorBug(): void
     {
         $this->assertEquals(
             new OperatorExpression(

@@ -58,7 +58,7 @@ class SqlBuilderParenthesesTest extends TestCase
         return implode(' ', preg_split('/\s+/', trim($string)));
     }
 
-    protected function assertStringsEqualIgnoringWhitespace($expected, $actual, $message = '')
+    protected function assertStringsEqualIgnoringWhitespace($expected, $actual, $message = ''): void
     {
         $this->assertEquals($this->normalizeWhitespace($expected), $this->normalizeWhitespace($actual), $message);
     }
@@ -73,7 +73,7 @@ class SqlBuilderParenthesesTest extends TestCase
      * @param Node   $ast
      * @param string $expected
      */
-    public function testChainedComparisonRequiresParentheses(Node $ast, string $expected)
+    public function testChainedComparisonRequiresParentheses(Node $ast, string $expected): void
     {
         $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builder));
     }
@@ -85,7 +85,7 @@ class SqlBuilderParenthesesTest extends TestCase
      * @param string $expected
      * @dataProvider isPrecedenceProvider
      */
-    public function testCompatParenthesesForIsPrecedenceChanges(Node $ast, string $expected)
+    public function testCompatParenthesesForIsPrecedenceChanges(Node $ast, string $expected): void
     {
         $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builder));
     }
@@ -97,7 +97,7 @@ class SqlBuilderParenthesesTest extends TestCase
      * @param string $expected
      * @dataProvider inequalityPrecedenceProvider
      */
-    public function testCompatParenthesesForInequalityPrecedenceChanges(Node $ast, string $expected)
+    public function testCompatParenthesesForInequalityPrecedenceChanges(Node $ast, string $expected): void
     {
         $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builder));
     }

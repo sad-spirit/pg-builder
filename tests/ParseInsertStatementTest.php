@@ -68,7 +68,7 @@ class ParseInsertStatementTest extends TestCase
         $this->parser = new Parser(new Lexer());
     }
 
-    public function testInsertDefaultValues()
+    public function testInsertDefaultValues(): void
     {
         $parsed = $this->parser->parseStatement("insert into foo as bar default values");
 
@@ -77,7 +77,7 @@ class ParseInsertStatementTest extends TestCase
         $this->assertEquals($built, $parsed);
     }
 
-    public function testParseAllClauses()
+    public function testParseAllClauses(): void
     {
         $parsed = $this->parser->parseStatement(<<<QRY
 with foo (id) as materialized (
@@ -146,7 +146,7 @@ QRY
      * @param string           $sql
      * @param OnConflictClause $expected
      */
-    public function testParseOnConflictClause(string $sql, OnConflictClause $expected)
+    public function testParseOnConflictClause(string $sql, OnConflictClause $expected): void
     {
         $this->assertEquals($expected, $this->parser->parseOnConflict($sql));
     }

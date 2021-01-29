@@ -159,7 +159,7 @@ QRY;
         return $nodes;
     }
 
-    private function assertAllNodeSubClassesAreUsed(Node $ast)
+    private function assertAllNodeSubClassesAreUsed(Node $ast): void
     {
         preg_match_all('{"(sad_spirit\\\\pg_builder\\\\(?:[^"]+))"}', serialize($ast), $m);
 
@@ -180,7 +180,7 @@ QRY;
      *  - List of Identifiers visited by BlankWalkerImplementation is the same as list of identifiers extracted
      *    from the query by a regexp
      */
-    public function testBlankWalkerVisitsEverything()
+    public function testBlankWalkerVisitsEverything(): void
     {
         $parser    = new Parser(new Lexer());
         $statement = $parser->parseStatement($this->sql);

@@ -78,7 +78,7 @@ class ParseSelectStatementTest extends TestCase
         $this->parser = new Parser(new Lexer());
     }
 
-    public function testParseAllSimpleSelectClauses()
+    public function testParseAllSimpleSelectClauses(): void
     {
         $parsed = $this->parser->parseStatement(<<<QRY
 select distinct on (foo) foo, bar, baz() over (win95) as blah, quux alias
@@ -139,7 +139,7 @@ QRY
         $this->assertEquals($built, $parsed);
     }
 
-    public function testSetOperationsPrecedence()
+    public function testSetOperationsPrecedence(): void
     {
         $list1 = $this->parser->parseStatement(<<<QRY
     select 'foo' union select 'bar' intersect select 'baz'
@@ -170,7 +170,7 @@ QRY
      * @dataProvider getMultipleClausesQueries
      * @param string $query
      */
-    public function testPreventMultipleClauses(string $query)
+    public function testPreventMultipleClauses(string $query): void
     {
         $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('Multiple');
@@ -194,7 +194,7 @@ QRY
      * @param int|null                   $offset
      * @param bool                       $withTies
      */
-    public function testLimitOffsetClauses(string $stmt, $limit, ?int $offset = null, bool $withTies = false)
+    public function testLimitOffsetClauses(string $stmt, $limit, ?int $offset = null, bool $withTies = false): void
     {
         $parsed = $this->parser->parseStatement($stmt);
 
@@ -240,7 +240,7 @@ QRY
         ];
     }
 
-    public function testLockingClauses()
+    public function testLockingClauses(): void
     {
         /** @var Select $select */
         $select = $this->parser->parseStatement(<<<QRY
@@ -256,7 +256,7 @@ QRY
         );
     }
 
-    public function testAllowMultipleLockingClauses()
+    public function testAllowMultipleLockingClauses(): void
     {
         /** @var Select $select */
         $select = $this->parser->parseStatement(<<<QRY
@@ -272,14 +272,14 @@ QRY
         );
     }
 
-    public function testCannotLockValues()
+    public function testCannotLockValues(): void
     {
         $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('cannot be applied to VALUES');
         $this->parser->parseStatement('values (1), (2) for update of foo');
     }
 
-    public function testParseWindowClause()
+    public function testParseWindowClause(): void
     {
         /** @var Select $select */
         $select = $this->parser->parseStatement(<<<QRY
@@ -310,7 +310,7 @@ QRY
         $this->assertEquals(new WindowList($windows), clone $select->window);
     }
 
-    public function testDisallowSelectInto()
+    public function testDisallowSelectInto(): void
     {
         $this->expectException(NotImplementedException::class);
         $this->expectExceptionMessage('SELECT INTO clauses are not supported');
