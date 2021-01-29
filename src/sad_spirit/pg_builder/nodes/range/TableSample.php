@@ -38,6 +38,16 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class TableSample extends FromElement
 {
+    /** @var array{'relation': RelationReference, 'method': QualifiedName,
+     *             'arguments': ExpressionList, 'repeatable': ScalarExpression|null}
+     */
+    protected $props = [
+        'relation'   => null,
+        'method'     => null,
+        'arguments'  => null,
+        'repeatable' => null
+    ];
+
     public function __construct(
         RelationReference $relation,
         QualifiedName $method,

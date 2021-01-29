@@ -242,7 +242,7 @@ QRY
 
     public function testLockingClauses()
     {
-        /* @var Select $select */
+        /** @var Select $select */
         $select = $this->parser->parseStatement(<<<QRY
     select * from a.foo, b.bar, c.baz for share of a.foo, c.baz for no key update of b.bar skip locked
 QRY
@@ -258,7 +258,7 @@ QRY
 
     public function testAllowMultipleLockingClauses()
     {
-        /* @var Select $select */
+        /** @var Select $select */
         $select = $this->parser->parseStatement(<<<QRY
     (select * from foo, bar for update of foo) for update of bar nowait
 QRY
@@ -281,7 +281,7 @@ QRY
 
     public function testParseWindowClause()
     {
-        /* @var Select $select */
+        /** @var Select $select */
         $select = $this->parser->parseStatement(<<<QRY
     select * window foo as (), bar as (foo), baz as (partition by whatever),
                     quux as (range between unbounded preceding and current row)

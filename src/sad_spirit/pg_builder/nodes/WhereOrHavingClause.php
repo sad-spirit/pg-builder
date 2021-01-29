@@ -31,6 +31,11 @@ use sad_spirit\pg_builder\nodes\expressions\LogicalExpression;
  */
 class WhereOrHavingClause extends GenericNode
 {
+    /** @var array{'condition': LogicalExpression|null} */
+    protected $props = [
+        'condition' => null
+    ];
+
     public function __construct(ScalarExpression $condition = null)
     {
         $this->setCondition($condition);
@@ -104,7 +109,6 @@ class WhereOrHavingClause extends GenericNode
                     LogicalExpression::AND
                 ));
             }
-            /* @var $recipient LogicalExpression */
             if (LogicalExpression::AND === $this->props['condition']->operator) {
                 $recipient = $this->props['condition'];
             } else {

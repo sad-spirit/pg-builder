@@ -41,6 +41,7 @@ class IndexParameters extends NonAssociativeList implements Parseable, ElementPa
 {
     use HasBothPropsAndOffsets;
 
+    /** @var array{'where': WhereOrHavingClause|null} */
     protected $props = [
         'where' => null
     ];

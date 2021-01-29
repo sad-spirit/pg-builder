@@ -1,0 +1,22 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\Identifier\\|sad_spirit\\\\pg_builder\\\\nodes\\\\Star\\:\\:\\$parentNode\\.$#"
+			count: 1
+			path: src/sad_spirit/pg_builder/nodes/ColumnReference.php
+
+		-
+			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\Identifier\\:\\:\\$parentNode\\.$#"
+			count: 1
+			path: src/sad_spirit/pg_builder/nodes/QualifiedName.php
+
+		-
+			message: "#^Access to an undefined property sad_spirit\\\\pg_builder\\\\tests\\\\nodes\\\\GenericNodeImplementation\\:\\:\\$foo\\.$#"
+			count: 4
+			path: tests/nodes/GenericNodeTest.php
+
+		-
+			message: "#^Access to an undefined property sad_spirit\\\\pg_builder\\\\Node\\:\\:\\$child\\.$#"
+			count: 1
+			path: tests/nodes/GenericNodeTest.php
+

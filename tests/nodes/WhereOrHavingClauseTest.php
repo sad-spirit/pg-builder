@@ -133,7 +133,7 @@ class WhereOrHavingClauseTest extends TestCase
     public function testNestedWhereShouldHaveParser()
     {
         $parser = new Parser(new Lexer());
-        /* @var $select Select */
+        /** @var Select $select */
         $select = $parser->parseSelectStatement("select * from foo where bar = 'baz'");
         $select->setParser($parser);
 

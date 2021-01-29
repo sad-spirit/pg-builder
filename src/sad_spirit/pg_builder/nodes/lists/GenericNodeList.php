@@ -276,7 +276,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     protected function prepareList($array, string $method): iterable
     {
         if (is_string($array) && $this instanceof Parseable) {
-            $array = static::createFromString($this->getParserOrFail("an argument to '{$method}'"), $array);
+            $array = $this::createFromString($this->getParserOrFail("an argument to '{$method}'"), $array);
         }
         if (!is_iterable($array)) {
             throw new InvalidArgumentException(sprintf(

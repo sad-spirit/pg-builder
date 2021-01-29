@@ -39,7 +39,7 @@ class NonAssociativeListTest extends TestCase
 {
     /**
      * @dataProvider invalidOffsetsProvider
-     * @param $offset
+     * @param mixed $offset
      */
     public function testDisallowsNonIntegerAndNegativeOffsets($offset): void
     {

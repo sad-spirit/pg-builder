@@ -1,0 +1,10 @@
+includes:
+	- phpstan-baseline.neon
+
+parameters:
+  level: 2
+  paths:
+    - src
+    - tests
+  bootstrapFiles:
+    - tests/config.php.dist

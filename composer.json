@@ -27,7 +27,8 @@
         "ext-pdo_pgsql":         "*",
         "phpunit/phpunit":       "^8.0",
         "sad_spirit/pg_wrapper": "^1.0.0@beta",
-        "psr/cache":             "^1.0"
+        "psr/cache":             "^1.0",
+        "phpstan/phpstan":       "^0.12"
     },
     "autoload":     {
         "psr-4":    {

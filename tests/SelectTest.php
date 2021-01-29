@@ -74,7 +74,7 @@ class SelectTest extends TestCase
 
     public function testNestedSetOp()
     {
-        /* @var $setOp SetOpSelect */
+        /** @var SetOpSelect $setOp */
         $setOp = $this->parser->parseSelectStatement('select * from foo intersect select * from bar');
         $setOp->right->except($this->parser->parseSelectStatement('select * from baz'));
         $this->assertEquals(
@@ -85,7 +85,7 @@ class SelectTest extends TestCase
 
     public function testRangeSubselectSetOp()
     {
-        /* @var $select Select */
+        /** @var Select $select */
         $select = $this->parser->parseSelectStatement('select foo.* from (select * from foosource) as foo');
         $select->setParser($this->parser);
         
@@ -98,15 +98,15 @@ class SelectTest extends TestCase
 
     public function testScalarSubselectSetOp()
     {
-        /* @var $select Select */
+        /** @var Select $select */
         $select = $this->parser->parseSelectStatement(
             'select * from foo where foo_id in (select id from bar) or foo_name > any(select baz_name from baz)'
         );
         $select->setParser($this->parser);
-        /* @var $in InExpression */
+        /** @var InExpression $in */
         $in = $select->where->condition[0];
         $in->right->union('select id from quux');
-        /* @var $any SubselectExpression */
+        /** @var SubselectExpression $any */
         $any = $select->where->condition[1]->right;
         $any->query->except('select xyzzy_name from xyzzy');
 
