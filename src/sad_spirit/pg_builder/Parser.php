@@ -2498,7 +2498,8 @@ class Parser
     }
 
     /**
-     * @return nodes\ScalarExpression[]|nodes\lists\ExpressionList
+     * @return array<int, nodes\ScalarExpression|array>|nodes\lists\ExpressionList the method is recursive but there
+     *         is currently no way to typehint a recursive array in phpstan
      */
     protected function ArrayExpression()
     {
@@ -2959,15 +2960,22 @@ class Parser
 
     protected function convertSpecialFunctionCallToFunctionExpression(Node $function): nodes\ScalarExpression
     {
-        return ($function instanceof nodes\FunctionCall)
-               ? new nodes\expressions\FunctionExpression(
-                   is_object($function->name) ? clone $function->name : $function->name,
-                   clone $function->arguments,
-                   $function->distinct,
-                   $function->variadic,
-                   clone $function->order
-               )
-               : $function;
+        if ($function instanceof nodes\FunctionCall) {
+            return new nodes\expressions\FunctionExpression(
+                is_object($function->name) ? clone $function->name : $function->name,
+                clone $function->arguments,
+                $function->distinct,
+                $function->variadic,
+                clone $function->order
+            );
+        } elseif ($function instanceof nodes\ScalarExpression) {
+            return $function;
+        }
+
+        throw new exceptions\InvalidArgumentException(
+            __FUNCTION__ . "() requires an instance of FunctionCall or ScalarExpression, "
+            . get_class($function) . " given"
+        );
     }
 
     protected function FunctionExpression(array $identifiers): nodes\ScalarExpression

@@ -47,7 +47,7 @@ class SetClauseList extends NonAssociativeList implements Parseable, ElementPars
         return $this->getParserOrFail('a list element')->parseSetClause($sql);
     }
 
-    public static function createFromString(Parser $parser, string $sql): Node
+    public static function createFromString(Parser $parser, string $sql): self
     {
         return $parser->parseSetClauseList($sql);
     }

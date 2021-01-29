@@ -57,7 +57,7 @@ class IndexParameters extends NonAssociativeList implements Parseable, ElementPa
         $this->p_where->parentNode = $this;
     }
 
-    public static function createFromString(Parser $parser, string $sql): Node
+    public static function createFromString(Parser $parser, string $sql): self
     {
         return $parser->parseIndexParameters($sql);
     }

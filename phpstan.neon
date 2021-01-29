@@ -2,9 +2,13 @@ includes:
 	- phpstan-baseline.neon
 
 parameters:
-  level: 2
+  level: 5
   paths:
     - src
     - tests
   bootstrapFiles:
     - tests/config.php.dist
+  dynamicConstantNames:
+    - TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING
+    - TESTS_SAD_SPIRIT_PG_BUILDER_PDO_DSN
+  treatPhpDocTypesAsCertain: false

@@ -49,7 +49,7 @@ class GroupByList extends NonAssociativeList implements Parseable, ElementParsea
         return $this->getParserOrFail('a list element')->parseGroupByElement($sql);
     }
 
-    public static function createFromString(Parser $parser, string $sql): Node
+    public static function createFromString(Parser $parser, string $sql): self
     {
         return $parser->parseGroupByList($sql);
     }

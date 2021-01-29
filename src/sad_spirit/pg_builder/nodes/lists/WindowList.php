@@ -43,7 +43,7 @@ class WindowList extends NonAssociativeList implements Parseable, ElementParseab
         return $this->getParserOrFail('a list element')->parseWindowDefinition($sql);
     }
 
-    public static function createFromString(Parser $parser, string $sql): Node
+    public static function createFromString(Parser $parser, string $sql): self
     {
         return $parser->parseWindowList($sql);
     }

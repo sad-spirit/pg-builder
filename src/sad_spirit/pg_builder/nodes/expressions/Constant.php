@@ -50,7 +50,7 @@ abstract class Constant extends GenericNode implements ScalarExpression
      * Creates an instance of proper Constant subclass based on given Token
      *
      * @param Token $token
-     * @return static
+     * @return self
      */
     public static function createFromToken(Token $token): self
     {
@@ -86,7 +86,7 @@ abstract class Constant extends GenericNode implements ScalarExpression
      * Creates an instance of proper Constant subclass based on PHP value
      *
      * @param mixed $value
-     * @return static
+     * @return self
      */
     public static function createFromPHPValue($value): self
     {

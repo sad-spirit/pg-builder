@@ -43,7 +43,7 @@ class XmlColumnList extends NonAssociativeList implements Parseable, ElementPars
         return $this->getParserOrFail('a list element')->parseXmlColumnDefinition($sql);
     }
 
-    public static function createFromString(Parser $parser, string $sql): Node
+    public static function createFromString(Parser $parser, string $sql): self
     {
         return $parser->parseXmlColumnList($sql);
     }

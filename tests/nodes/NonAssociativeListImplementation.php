@@ -54,9 +54,9 @@ class NonAssociativeListImplementation extends NonAssociativeList implements Par
         return $this->getParserOrFail('a list element')->parseExpressionWithDefault($sql);
     }
 
-    public static function createFromString(Parser $parser, string $sql): Node
+    public static function createFromString(Parser $parser, string $sql): self
     {
-        return $parser->parseExpressionList($sql);
+        return new self($parser->parseExpressionList($sql));
     }
 
     protected static function getAllowedElementClasses(): array

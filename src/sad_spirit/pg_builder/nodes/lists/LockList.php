@@ -46,7 +46,7 @@ class LockList extends NonAssociativeList implements Parseable, ElementParseable
         return $this->getParserOrFail('a list element')->parseLockingElement($sql);
     }
 
-    public static function createFromString(Parser $parser, string $sql): Node
+    public static function createFromString(Parser $parser, string $sql): self
     {
         return $parser->parseLockingList($sql);
     }

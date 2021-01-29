@@ -66,7 +66,7 @@ class StatementFactory
      *
      * @param Connection $connection If Connection has a DB metadata cache object, that cache will also be used
      *                               in Parser for storing ASTs
-     * @return static
+     * @return self
      */
     public static function forConnection(Connection $connection): self
     {
@@ -94,7 +94,7 @@ class StatementFactory
      * Creates an instance of StatementFactory based on properties of PDO connection object
      *
      * @param \PDO $pdo
-     * @return static
+     * @return self
      */
     public static function forPDO(\PDO $pdo): self
     {

@@ -41,7 +41,7 @@ abstract class Parameter extends GenericNode implements ScalarExpression
      * Creates an object of proper Parameter subclass based on given Token
      *
      * @param Token $token
-     * @return static
+     * @return self
      */
     public static function createFromToken(Token $token): self
     {

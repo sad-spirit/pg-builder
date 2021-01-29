@@ -57,7 +57,7 @@ class Identifier extends GenericNode
      * Creates an instance of Identifier from identifier or keyword Token
      *
      * @param Token $token
-     * @return static
+     * @return self
      */
     public static function createFromToken(Token $token): self
     {

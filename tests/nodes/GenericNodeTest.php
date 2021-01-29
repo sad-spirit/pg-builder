@@ -31,10 +31,12 @@ class GenericNodeTest extends TestCase
 {
     /** @var GenericNodeImplementation */
     private $node;
+    private $error;
 
     protected function setUp(): void
     {
-        $this->node = new GenericNodeImplementation(new GenericNodeImplementation());
+        $this->node  = new GenericNodeImplementation(new GenericNodeImplementation());
+        $this->error = null;
     }
 
     public function testCanReadDefinedProperty()
@@ -50,7 +52,7 @@ class GenericNodeTest extends TestCase
         $this::expectException(InvalidArgumentException::class);
         $this::expectExceptionMessage('Unknown property');
 
-        $this->node->foo;
+        $this->error = $this->node->foo;
     }
 
     public function testCannotWriteUndefinedProperty()

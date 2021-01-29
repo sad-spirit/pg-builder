@@ -41,7 +41,7 @@ class SetTargetList extends NonAssociativeList implements Parseable, ElementPars
         return [SetTargetElement::class];
     }
 
-    public static function createFromString(Parser $parser, string $sql): Node
+    public static function createFromString(Parser $parser, string $sql): self
     {
         return $parser->parseInsertTargetList($sql);
     }

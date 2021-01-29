@@ -21,7 +21,6 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
-    Node,
     TreeWalker,
     Parser,
     nodes\ExpressionAtom,
@@ -50,7 +49,7 @@ class RowExpression extends ExpressionList implements ScalarExpression
         return $walker->walkRowExpression($this);
     }
 
-    public static function createFromString(Parser $parser, string $sql): Node
+    public static function createFromString(Parser $parser, string $sql): ExpressionList
     {
         return $parser->parseRowConstructor($sql);
     }

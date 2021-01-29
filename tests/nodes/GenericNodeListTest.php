@@ -29,19 +29,21 @@ use sad_spirit\pg_builder\nodes\Star;
  */
 class GenericNodeListTest extends TestCase
 {
-    /** @var GenericNodeImplementation */
+    /** @var GenericNodeListImplementation */
     private $nodeList;
+    private $error;
 
     protected function setUp(): void
     {
         $this->nodeList = new GenericNodeListImplementation();
+        $this->error    = null;
     }
 
     public function testCannotReadUndefinedOffset(): void
     {
         $this::expectException(InvalidArgumentException::class);
         $this::expectExceptionMessage('Undefined offset');
-        $this->nodeList[1];
+        $this->error = $this->nodeList[1];
     }
 
     public function testAcceptsAnyNodeInstance(): void

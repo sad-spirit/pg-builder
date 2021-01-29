@@ -24,7 +24,6 @@ namespace sad_spirit\pg_builder\tests;
 
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
-    Node,
     Parser,
     Lexer,
     Select,
@@ -35,6 +34,7 @@ use sad_spirit\pg_builder\exceptions\{
     NotImplementedException
 };
 use sad_spirit\pg_builder\nodes\{
+    ScalarExpression,
     TypeName,
     ColumnReference,
     Identifier,
@@ -189,10 +189,10 @@ QRY
 
     /**
      * @dataProvider getLimitOffsetClauses
-     * @param string         $stmt
-     * @param int|float|Node $limit
-     * @param int|null       $offset
-     * @param bool           $withTies
+     * @param string                     $stmt
+     * @param int|float|ScalarExpression $limit
+     * @param int|null                   $offset
+     * @param bool                       $withTies
      */
     public function testLimitOffsetClauses(string $stmt, $limit, ?int $offset = null, bool $withTies = false)
     {

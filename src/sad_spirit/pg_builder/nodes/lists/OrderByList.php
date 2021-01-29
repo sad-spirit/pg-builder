@@ -43,7 +43,7 @@ class OrderByList extends NonAssociativeList implements Parseable, ElementParsea
         return $this->getParserOrFail('a list element')->parseOrderByElement($sql);
     }
 
-    public static function createFromString(Parser $parser, string $sql): Node
+    public static function createFromString(Parser $parser, string $sql): self
     {
         return $parser->parseOrderByList($sql);
     }
