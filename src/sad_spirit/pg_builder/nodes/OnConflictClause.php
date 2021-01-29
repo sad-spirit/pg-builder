@@ -42,16 +42,26 @@ class OnConflictClause extends GenericNode
         self::UPDATE  => true
     ];
 
+    /** @var string */
+    protected $p_action;
+    /** @var IndexParameters|Identifier|null */
+    protected $p_target;
+    /** @var SetClauseList */
+    protected $p_set;
+    /** @var WhereOrHavingClause */
+    protected $p_where;
+
     public function __construct(
         string $action,
         $target = null,
         SetClauseList $set = null,
         ScalarExpression $condition = null
     ) {
+        $this->generatePropertyNames();
         $this->setAction($action);
         $this->setTarget($target);
-        $this->setNamedProperty('set', $set ?? new SetClauseList());
-        $this->setNamedProperty('where', new WhereOrHavingClause($condition));
+        $this->setProperty($this->p_set, $set ?? new SetClauseList());
+        $this->setProperty($this->p_where, new WhereOrHavingClause($condition));
     }
 
     public function setAction($action): void
@@ -59,12 +69,12 @@ class OnConflictClause extends GenericNode
         if (!isset(self::ALLOWED_ACTIONS[$action])) {
             throw new InvalidArgumentException("Unknown ON CONFLICT action '{$action}'");
         }
-        $this->props['action'] = $action;
+        $this->p_action = $action;
     }
 
     public function setTarget($target = null): void
     {
-        if (self::UPDATE === $this->props['action'] && null === $target) {
+        if (self::UPDATE === $this->p_action && null === $target) {
             throw new InvalidArgumentException("Target must be provided for ON CONFLICT ... DO UPDATE clause");
 
         } elseif (
@@ -76,7 +86,7 @@ class OnConflictClause extends GenericNode
                 is_object($target) ? 'object(' . get_class($target) . ')' : gettype($target)
             ));
         }
-        $this->setNamedProperty('target', $target);
+        $this->setProperty($this->p_target, $target);
     }
 
     public function dispatch(TreeWalker $walker)

@@ -40,15 +40,21 @@ use sad_spirit\pg_builder\{
  */
 class TypecastExpression extends GenericNode implements ScalarExpression
 {
+    /** @var ScalarExpression */
+    protected $p_argument;
+    /** @var TypeName */
+    protected $p_type;
+
     public function __construct(ScalarExpression $argument, TypeName $type)
     {
-        $this->setNamedProperty('argument', $argument);
-        $this->setNamedProperty('type', $type);
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_argument, $argument);
+        $this->setProperty($this->p_type, $type);
     }
 
     public function setArgument(ScalarExpression $argument): void
     {
-        $this->setNamedProperty('argument', $argument);
+        $this->setProperty($this->p_argument, $argument);
     }
 
     public function dispatch(TreeWalker $walker)

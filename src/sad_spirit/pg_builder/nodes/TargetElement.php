@@ -30,15 +30,21 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class TargetElement extends GenericNode
 {
+    /** @var ScalarExpression */
+    protected $p_expression;
+    /** @var Identifier|null */
+    protected $p_alias;
+
     public function __construct(ScalarExpression $expression, Identifier $alias = null)
     {
-        $this->setNamedProperty('expression', $expression);
-        $this->setNamedProperty('alias', $alias);
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_expression, $expression);
+        $this->setProperty($this->p_alias, $alias);
     }
 
     public function setExpression(ScalarExpression $expression): void
     {
-        $this->setNamedProperty('expression', $expression);
+        $this->setProperty($this->p_expression, $expression);
     }
 
     public function dispatch(TreeWalker $walker)

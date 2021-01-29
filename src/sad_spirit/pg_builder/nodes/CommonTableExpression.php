@@ -37,26 +37,36 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class CommonTableExpression extends GenericNode
 {
+    /** @var Statement */
+    protected $p_statement;
+    /** @var Identifier */
+    protected $p_alias;
+    /** @var IdentifierList */
+    protected $p_columnAliases;
+    /** @var bool|null */
+    protected $p_materialized;
+
     public function __construct(
         Statement $statement,
         Identifier $alias,
         IdentifierList $columnAliases = null,
         ?bool $materialized = null
     ) {
+        $this->generatePropertyNames();
         $this->setStatement($statement);
-        $this->setNamedProperty('alias', $alias);
-        $this->setNamedProperty('columnAliases', $columnAliases ?? new IdentifierList());
+        $this->setProperty($this->p_alias, $alias);
+        $this->setProperty($this->p_columnAliases, $columnAliases ?? new IdentifierList());
         $this->setMaterialized($materialized);
     }
 
     public function setStatement(Statement $statement)
     {
-        $this->setNamedProperty('statement', $statement);
+        $this->setProperty($this->p_statement, $statement);
     }
 
     public function setMaterialized(?bool $materialized)
     {
-        $this->setNamedProperty('materialized', $materialized);
+        $this->p_materialized = $materialized;
     }
 
     public function dispatch(TreeWalker $walker)

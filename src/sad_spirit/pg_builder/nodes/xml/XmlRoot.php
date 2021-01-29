@@ -49,24 +49,33 @@ class XmlRoot extends GenericNode implements ScalarExpression
         self::NO_VALUE => true
     ];
 
+    /** @var ScalarExpression */
+    protected $p_xml;
+    /** @var ScalarExpression|null */
+    protected $p_version;
+    /** @var string|null */
+    protected $p_standalone;
+
     public function __construct(ScalarExpression $xml, ScalarExpression $version = null, ?string $standalone = null)
     {
         if (null !== $standalone && !isset(self::STANDALONE_OPTIONS[$standalone])) {
             throw new InvalidArgumentException("Unknown standalone option '{$standalone}'");
         }
-        $this->setNamedProperty('xml', $xml);
-        $this->setNamedProperty('version', $version);
-        $this->props['standalone'] = $standalone;
+
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_xml, $xml);
+        $this->setProperty($this->p_version, $version);
+        $this->p_standalone = $standalone;
     }
 
     public function setXml(ScalarExpression $xml): void
     {
-        $this->setNamedProperty('xml', $xml);
+        $this->setProperty($this->p_xml, $xml);
     }
 
     public function setVersion(ScalarExpression $version = null): void
     {
-        $this->setNamedProperty('version', $version);
+        $this->setProperty($this->p_version, $version);
     }
 
     public function dispatch(TreeWalker $walker)

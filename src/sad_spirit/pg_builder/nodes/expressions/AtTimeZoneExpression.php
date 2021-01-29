@@ -32,20 +32,26 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class AtTimeZoneExpression extends GenericNode implements ScalarExpression
 {
+    /** @var ScalarExpression */
+    protected $p_left;
+    /** @var ScalarExpression */
+    protected $p_right;
+
     public function __construct(ScalarExpression $left, ScalarExpression $right)
     {
+        $this->generatePropertyNames();
         $this->setLeft($left);
         $this->setRight($right);
     }
 
     public function setLeft(ScalarExpression $left): void
     {
-        $this->setNamedProperty('left', $left);
+        $this->setProperty($this->p_left, $left);
     }
 
     public function setRight(ScalarExpression $right): void
     {
-        $this->setNamedProperty('right', $right);
+        $this->setProperty($this->p_right, $right);
     }
 
     public function dispatch(TreeWalker $walker)

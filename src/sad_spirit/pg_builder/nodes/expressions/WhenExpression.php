@@ -35,20 +35,26 @@ use sad_spirit\pg_builder\{
  */
 class WhenExpression extends GenericNode
 {
+    /** @var ScalarExpression */
+    protected $p_when;
+    /** @var ScalarExpression */
+    protected $p_then;
+
     public function __construct(ScalarExpression $when, ScalarExpression $then)
     {
-        $this->setNamedProperty('when', $when);
-        $this->setNamedProperty('then', $then);
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_when, $when);
+        $this->setProperty($this->p_then, $then);
     }
 
     public function setWhen(ScalarExpression $when): void
     {
-        $this->setNamedProperty('when', $when);
+        $this->setProperty($this->p_when, $when);
     }
 
     public function setThen(ScalarExpression $then): void
     {
-        $this->setNamedProperty('then', $then);
+        $this->setProperty($this->p_then, $then);
     }
 
     public function dispatch(TreeWalker $walker)

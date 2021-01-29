@@ -31,29 +31,37 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class ArrayIndexes extends GenericNode
 {
+    /** @var ScalarExpression|null */
+    protected $p_lower;
+    /** @var ScalarExpression|null */
+    protected $p_upper;
+    /** @var bool */
+    protected $p_isSlice;
+
     public function __construct(
         ScalarExpression $lower = null,
         ScalarExpression $upper = null,
         bool $isSlice = false
     ) {
-        $this->setNamedProperty('lower', $lower);
-        $this->setNamedProperty('upper', $upper);
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_lower, $lower);
+        $this->setProperty($this->p_upper, $upper);
         $this->setIsSlice($isSlice);
     }
 
     public function setLower(ScalarExpression $lower = null): void
     {
-        $this->setNamedProperty('lower', $lower);
+        $this->setProperty($this->p_lower, $lower);
     }
 
     public function setUpper(ScalarExpression $upper = null): void
     {
-        $this->setNamedProperty('upper', $upper);
+        $this->setProperty($this->p_upper, $upper);
     }
 
     public function setIsSlice(bool $isSlice): void
     {
-        $this->props['isSlice'] = $isSlice;
+        $this->p_isSlice = $isSlice;
     }
 
     public function dispatch(TreeWalker $walker)

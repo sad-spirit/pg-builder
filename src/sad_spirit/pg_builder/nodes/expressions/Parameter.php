@@ -64,9 +64,4 @@ abstract class Parameter extends GenericNode implements ScalarExpression
     {
         $this->parentNode = null;
     }
-
-    public function unserialize($serialized)
-    {
-        $this->props = unserialize($serialized);
-    }
 }

@@ -41,21 +41,28 @@ class WindowFrameBound extends GenericNode
         self::CURRENT_ROW => true
     ];
 
+    /** @var string */
+    protected $p_direction;
+    /** @var ScalarExpression|null */
+    protected $p_value;
+
     public function __construct(string $direction, ScalarExpression $value = null)
     {
         if (!isset(self::ALLOWED_DIRECTIONS[$direction])) {
             throw new InvalidArgumentException("Unknown window frame direction '{$direction}'");
         }
-        $this->props['direction'] = $direction;
+
+        $this->generatePropertyNames();
+        $this->p_direction = $direction;
         $this->setValue($value);
     }
 
     public function setValue(ScalarExpression $value = null): void
     {
-        if (!is_null($value) && !in_array($this->props['direction'], [self::PRECEDING, self::FOLLOWING])) {
+        if (!is_null($value) && !in_array($this->p_direction, [self::PRECEDING, self::FOLLOWING])) {
             throw new InvalidArgumentException("Value can only be set for PRECEDING or FOLLOWING direction");
         }
-        $this->setNamedProperty('value', $value);
+        $this->setProperty($this->p_value, $value);
     }
 
     public function dispatch(TreeWalker $walker)

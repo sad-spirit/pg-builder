@@ -51,6 +51,17 @@ class PatternMatchingExpression extends GenericNode implements ScalarExpression
         self::SIMILAR_TO     => true
     ];
 
+    /** @var ScalarExpression */
+    protected $p_argument;
+    /** @var ScalarExpression */
+    protected $p_pattern;
+    /** @var ScalarExpression|null */
+    protected $p_escape;
+    /** @var string */
+    protected $p_operator;
+    /** @var bool */
+    protected $p_negated;
+
     public function __construct(
         ScalarExpression $argument,
         ScalarExpression $pattern,
@@ -61,31 +72,32 @@ class PatternMatchingExpression extends GenericNode implements ScalarExpression
         if (!isset(self::ALLOWED_OPERATORS[$operator])) {
             throw new InvalidArgumentException("Unknown operator '{$operator}' for pattern matching expression");
         }
-        $this->setNamedProperty('argument', $argument);
-        $this->setNamedProperty('pattern', $pattern);
-        $this->setNamedProperty('escape', $escape);
-        $this->props['operator'] = $operator;
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_argument, $argument);
+        $this->setProperty($this->p_pattern, $pattern);
+        $this->setProperty($this->p_escape, $escape);
+        $this->p_operator = $operator;
         $this->setNegated($negated);
     }
 
     public function setArgument(ScalarExpression $argument): void
     {
-        $this->setNamedProperty('argument', $argument);
+        $this->setProperty($this->p_argument, $argument);
     }
 
     public function setPattern(ScalarExpression $pattern): void
     {
-        $this->setNamedProperty('pattern', $pattern);
+        $this->setProperty($this->p_pattern, $pattern);
     }
 
     public function setEscape(ScalarExpression $escape = null): void
     {
-        $this->setNamedProperty('escape', $escape);
+        $this->setProperty($this->p_escape, $escape);
     }
 
     public function setNegated(bool $negated): void
     {
-        $this->props['negated'] = $negated;
+        $this->p_negated = $negated;
     }
 
     public function dispatch(TreeWalker $walker)

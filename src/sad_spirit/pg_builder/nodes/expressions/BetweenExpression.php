@@ -48,6 +48,17 @@ class BetweenExpression extends GenericNode implements ScalarExpression
         self::BETWEEN_ASYMMETRIC     => true
     ];
 
+    /** @var ScalarExpression */
+    protected $p_argument;
+    /** @var ScalarExpression */
+    protected $p_left;
+    /** @var ScalarExpression */
+    protected $p_right;
+    /** @var string */
+    protected $p_operator;
+    /** @var bool */
+    protected $p_negated;
+
     public function __construct(
         ScalarExpression $argument,
         ScalarExpression $left,
@@ -55,26 +66,27 @@ class BetweenExpression extends GenericNode implements ScalarExpression
         string $operator = self::BETWEEN,
         bool $negated = false
     ) {
-        $this->setNamedProperty('argument', $argument);
-        $this->setNamedProperty('left', $left);
-        $this->setNamedProperty('right', $right);
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_argument, $argument);
+        $this->setProperty($this->p_left, $left);
+        $this->setProperty($this->p_right, $right);
         $this->setOperator($operator);
         $this->setNegated($negated);
     }
 
     public function setArgument(ScalarExpression $argument): void
     {
-        $this->setNamedProperty('argument', $argument);
+        $this->setProperty($this->p_argument, $argument);
     }
 
     public function setLeft(ScalarExpression $left): void
     {
-        $this->setNamedProperty('left', $left);
+        $this->setProperty($this->p_left, $left);
     }
 
     public function setRight(ScalarExpression $right): void
     {
-        $this->setNamedProperty('right', $right);
+        $this->setProperty($this->p_right, $right);
     }
 
     public function setOperator(string $operator)
@@ -82,12 +94,12 @@ class BetweenExpression extends GenericNode implements ScalarExpression
         if (!isset(self::ALLOWED_OPERATORS[$operator])) {
             throw new InvalidArgumentException("Unknown operator '{$operator}' for BETWEEN-style expression");
         }
-        $this->props['operator'] = $operator;
+        $this->p_operator = $operator;
     }
 
     public function setNegated(bool $negated)
     {
-        $this->props['negated'] = $negated;
+        $this->p_negated = $negated;
     }
 
     public function dispatch(TreeWalker $walker)

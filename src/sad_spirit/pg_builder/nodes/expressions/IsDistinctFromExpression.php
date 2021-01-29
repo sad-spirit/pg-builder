@@ -33,8 +33,16 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class IsDistinctFromExpression extends GenericNode implements ScalarExpression
 {
+    /** @var ScalarExpression */
+    protected $p_left;
+    /** @var ScalarExpression */
+    protected $p_right;
+    /** @var bool */
+    protected $p_negated;
+
     public function __construct(ScalarExpression $left, ScalarExpression $right, bool $negated = false)
     {
+        $this->generatePropertyNames();
         $this->setLeft($left);
         $this->setRight($right);
         $this->setNegated($negated);
@@ -42,17 +50,17 @@ class IsDistinctFromExpression extends GenericNode implements ScalarExpression
 
     public function setLeft(ScalarExpression $left): void
     {
-        $this->setNamedProperty('left', $left);
+        $this->setProperty($this->p_left, $left);
     }
 
     public function setRight(ScalarExpression $right): void
     {
-        $this->setNamedProperty('right', $right);
+        $this->setProperty($this->p_right, $right);
     }
 
     public function setNegated(bool $negated): void
     {
-        $this->setNamedProperty('negated', $negated);
+        $this->p_negated = $negated;
     }
 
     public function dispatch(TreeWalker $walker)

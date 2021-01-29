@@ -48,6 +48,13 @@ class XmlSerialize extends GenericNode implements ScalarExpression
         self::CONTENT  => true
     ];
 
+    /** @var string */
+    protected $p_documentOrContent;
+    /** @var ScalarExpression */
+    protected $p_argument;
+    /** @var TypeName */
+    protected $p_type;
+
     public function __construct(string $documentOrContent, ScalarExpression $argument, TypeName $typeName)
     {
         if (!isset(self::ALLOWED_TYPES[$documentOrContent])) {
@@ -55,14 +62,16 @@ class XmlSerialize extends GenericNode implements ScalarExpression
                 "Either 'document' or 'content' option required, '{$documentOrContent}' given"
             );
         }
-        $this->props['documentOrContent'] = $documentOrContent;
-        $this->setNamedProperty('argument', $argument);
-        $this->setNamedProperty('type', $typeName);
+
+        $this->generatePropertyNames();
+        $this->p_documentOrContent = $documentOrContent;
+        $this->setProperty($this->p_argument, $argument);
+        $this->setProperty($this->p_type, $typeName);
     }
 
     public function setArgument(ScalarExpression $argument): void
     {
-        $this->setNamedProperty('argument', $argument);
+        $this->setProperty($this->p_argument, $argument);
     }
 
     public function dispatch(TreeWalker $walker)

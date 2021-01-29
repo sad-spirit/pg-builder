@@ -36,16 +36,13 @@ use sad_spirit\pg_builder\{
 class GenericNodeImplementation extends GenericNode
 {
     public $setChildCalled = 0;
+    protected $p_child;
+    protected $p_readonly;
 
     public function __construct(Node $readonly = null)
     {
-        $this->props['child'] = null;
-        $this->setNamedProperty('readonly', $readonly);
-    }
-
-    public function setNamedProperty(string $propertyName, $propertyValue): void
-    {
-        parent::setNamedProperty($propertyName, $propertyValue);
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_readonly, $readonly);
     }
 
     public function dispatch(TreeWalker $walker)
@@ -57,6 +54,6 @@ class GenericNodeImplementation extends GenericNode
     {
         $this->setChildCalled++;
 
-        $this->setNamedProperty('child', $child);
+        $this->setProperty($this->p_child, $child);
     }
 }

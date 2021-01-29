@@ -38,33 +38,46 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class XmlTable extends FromElement
 {
+    /** @var bool */
+    protected $p_lateral;
+    /** @var ScalarExpression */
+    protected $p_rowExpression;
+    /** @var ScalarExpression */
+    protected $p_documentExpression;
+    /** @var XmlColumnList */
+    protected $p_columns;
+    /** @var XmlNamespaceList */
+    protected $p_namespaces;
+
     public function __construct(
         ScalarExpression $rowExpression,
         ScalarExpression $documentExpression,
         XmlColumnList $columns,
         XmlNamespaceList $namespaces = null
     ) {
-        $this->props['lateral'] = false;
+        $this->generatePropertyNames();
+
+        $this->p_lateral = false;
 
         $this->setRowExpression($rowExpression);
         $this->setDocumentExpression($documentExpression);
-        $this->setNamedProperty('columns', $columns);
-        $this->setNamedProperty('namespaces', $namespaces ?? new XmlNamespaceList([]));
+        $this->setProperty($this->p_columns, $columns);
+        $this->setProperty($this->p_namespaces, $namespaces ?? new XmlNamespaceList([]));
     }
 
     public function setRowExpression(ScalarExpression $rowExpression): void
     {
-        $this->setNamedProperty('rowExpression', $rowExpression);
+        $this->setProperty($this->p_rowExpression, $rowExpression);
     }
 
     public function setDocumentExpression(ScalarExpression $documentExpression): void
     {
-        $this->setNamedProperty('documentExpression', $documentExpression);
+        $this->setProperty($this->p_documentExpression, $documentExpression);
     }
 
     public function setLateral(bool $lateral): void
     {
-        $this->props['lateral'] = $lateral;
+        $this->p_lateral = $lateral;
     }
 
     public function dispatch(TreeWalker $walker)

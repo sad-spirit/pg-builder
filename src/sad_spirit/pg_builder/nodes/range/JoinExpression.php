@@ -53,50 +53,59 @@ class JoinExpression extends FromElement
         self::INNER => true
     ];
 
+    /** @var FromElement */
+    protected $p_left;
+    /** @var FromElement */
+    protected $p_right;
+    /** @var string */
+    protected $p_type;
+    /** @var bool */
+    protected $p_natural;
+    /** @var IdentifierList|null */
+    protected $p_using;
+    /** @var ScalarExpression|null */
+    protected $p_on;
+
     public function __construct(FromElement $left, FromElement $right, string $joinType = self::INNER)
     {
         if (!isset(self::ALLOWED_TYPES[$joinType])) {
             throw new InvalidArgumentException("Unknown join type '{$joinType}'");
         }
 
+        $this->generatePropertyNames();
         $this->setLeft($left);
         $this->setRight($right);
-        $this->props = array_merge($this->props, [
-            'type'    => $joinType,
-            'natural' => null,
-            'using'   => null,
-            'on'      => null
-        ]);
+        $this->p_type = $joinType;
     }
 
     public function setLeft(FromElement $left): void
     {
-        $this->setNamedProperty('left', $left);
+        $this->setProperty($this->p_left, $left);
     }
 
     public function setRight(FromElement $right): void
     {
-        $this->setNamedProperty('right', $right);
+        $this->setProperty($this->p_right, $right);
     }
 
     public function setNatural(bool $natural): void
     {
         if ($natural) {
-            if (self::CROSS === $this->props['type']) {
+            if (self::CROSS === $this->p_type) {
                 throw new InvalidArgumentException('No join conditions are allowed for CROSS JOIN');
-            } elseif (!empty($this->props['using']) || !empty($this->props['on'])) {
+            } elseif (!empty($this->p_using) || !empty($this->p_on)) {
                 throw new InvalidArgumentException('Only one of NATURAL, USING, ON clauses should be set for JOIN');
             }
         }
-        $this->props['natural'] = $natural;
+        $this->p_natural = $natural;
     }
 
     public function setUsing($using = null): void
     {
         if (null !== $using) {
-            if (self::CROSS === $this->props['type']) {
+            if (self::CROSS === $this->p_type) {
                 throw new InvalidArgumentException('No join conditions are allowed for CROSS JOIN');
-            } elseif (!empty($this->props['natural']) || !empty($this->props['on'])) {
+            } elseif (!empty($this->p_natural) || !empty($this->p_on)) {
                 throw new InvalidArgumentException('Only one of NATURAL, USING, ON clauses should be set for JOIN');
             }
             if (!$using instanceof IdentifierList) {
@@ -113,15 +122,15 @@ class JoinExpression extends FromElement
                 }
             }
         }
-        $this->setNamedProperty('using', $using);
+        $this->setProperty($this->p_using, $using);
     }
 
     public function setOn($on = null): void
     {
         if (null !== $on) {
-            if (self::CROSS === $this->props['type']) {
+            if (self::CROSS === $this->p_type) {
                 throw new InvalidArgumentException('No join conditions are allowed for CROSS JOIN');
-            } elseif (!empty($this->props['natural']) || !empty($this->props['using'])) {
+            } elseif (!empty($this->p_natural) || !empty($this->p_using)) {
                 throw new InvalidArgumentException('Only one of NATURAL, USING, ON clauses should be set for JOIN');
             }
             if (is_string($on)) {
@@ -135,7 +144,7 @@ class JoinExpression extends FromElement
                 ));
             }
         }
-        $this->setNamedProperty('on', $on);
+        $this->setProperty($this->p_on, $on);
     }
 
     public function dispatch(TreeWalker $walker)

@@ -41,10 +41,8 @@ class IndexParameters extends NonAssociativeList implements Parseable, ElementPa
 {
     use HasBothPropsAndOffsets;
 
-    /** @var array{'where': WhereOrHavingClause|null} */
-    protected $props = [
-        'where' => null
-    ];
+    /** @var WhereOrHavingClause */
+    protected $p_where;
 
     protected static function getAllowedElementClasses(): array
     {
@@ -53,9 +51,10 @@ class IndexParameters extends NonAssociativeList implements Parseable, ElementPa
 
     public function __construct($list = null)
     {
+        $this->generatePropertyNames();
         parent::__construct($list);
-        $this->props['where'] = new WhereOrHavingClause();
-        $this->props['where']->parentNode = $this;
+        $this->p_where = new WhereOrHavingClause();
+        $this->p_where->parentNode = $this;
     }
 
     public static function createFromString(Parser $parser, string $sql): Node

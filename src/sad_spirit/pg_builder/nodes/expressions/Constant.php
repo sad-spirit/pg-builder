@@ -39,8 +39,11 @@ abstract class Constant extends GenericNode implements ScalarExpression
     use NonRecursiveNode;
     use ExpressionAtom;
 
-    protected $props = [
-        'value' => ''
+    /** @var string */
+    protected $p_value;
+
+    protected $propertyNames = [
+        'value' => 'p_value'
     ];
 
     /**
@@ -122,8 +125,13 @@ abstract class Constant extends GenericNode implements ScalarExpression
         $this->parentNode = null;
     }
 
+    public function serialize(): string
+    {
+        return $this->p_value;
+    }
+
     public function unserialize($serialized)
     {
-        $this->props = unserialize($serialized);
+        $this->p_value = $serialized;
     }
 }

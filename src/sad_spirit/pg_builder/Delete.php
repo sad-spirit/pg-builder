@@ -37,14 +37,23 @@ use sad_spirit\pg_builder\nodes\{
  */
 class Delete extends Statement
 {
+    /** @var UpdateOrDeleteTarget */
+    protected $p_relation;
+    /** @var FromList */
+    protected $p_using;
+    /** @var WhereOrHavingClause */
+    protected $p_where;
+    /** @var TargetList */
+    protected $p_returning;
+
     public function __construct(UpdateOrDeleteTarget $relation)
     {
         parent::__construct();
 
-        $this->setNamedProperty('relation', $relation);
-        $this->setNamedProperty('using', new FromList());
-        $this->setNamedProperty('returning', new TargetList());
-        $this->setNamedProperty('where', new WhereOrHavingClause());
+        $this->setProperty($this->p_relation, $relation);
+        $this->setProperty($this->p_using, new FromList());
+        $this->setProperty($this->p_returning, new TargetList());
+        $this->setProperty($this->p_where, new WhereOrHavingClause());
     }
 
     public function dispatch(TreeWalker $walker)

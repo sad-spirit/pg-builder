@@ -31,20 +31,25 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class Subselect extends FromElement
 {
+    /** @var SelectCommon */
+    protected $p_query;
+    /** @var bool */
+    protected $p_lateral = false;
+
     public function __construct(SelectCommon $query)
     {
+        $this->generatePropertyNames();
         $this->setQuery($query);
-        $this->props['lateral'] = false;
     }
 
     public function setQuery(SelectCommon $query): void
     {
-        $this->setNamedProperty('query', $query);
+        $this->setProperty($this->p_query, $query);
     }
 
     public function setLateral(bool $lateral): void
     {
-        $this->props['lateral'] = $lateral;
+        $this->p_lateral = $lateral;
     }
 
     public function dispatch(TreeWalker $walker)

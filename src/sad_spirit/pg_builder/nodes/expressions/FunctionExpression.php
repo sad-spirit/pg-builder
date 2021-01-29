@@ -40,6 +40,13 @@ class FunctionExpression extends FunctionCall implements ScalarExpression
 {
     use ExpressionAtom;
 
+    /** @var bool */
+    protected $p_withinGroup;
+    /** @var ScalarExpression|null */
+    protected $p_filter;
+    /** @var WindowDefinition|null */
+    protected $p_over;
+
     public function __construct(
         $funcName,
         $arguments = null,
@@ -51,9 +58,9 @@ class FunctionExpression extends FunctionCall implements ScalarExpression
         WindowDefinition $over = null
     ) {
         parent::__construct($funcName, $arguments, $distinct, $variadic, $orderBy);
-        $this->setNamedProperty('withinGroup', $withinGroup);
-        $this->setNamedProperty('filter', $filter);
-        $this->setNamedProperty('over', $over);
+        $this->p_withinGroup = $withinGroup;
+        $this->setProperty($this->p_filter, $filter);
+        $this->setProperty($this->p_over, $over);
     }
 
     public function dispatch(TreeWalker $walker)

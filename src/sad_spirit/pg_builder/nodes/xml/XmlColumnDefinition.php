@@ -40,6 +40,19 @@ use sad_spirit\pg_builder\{
  */
 class XmlColumnDefinition extends GenericNode
 {
+    /** @var Identifier */
+    protected $p_name;
+    /** @var TypeName|null */
+    protected $p_type;
+    /** @var bool */
+    protected $p_forOrdinality;
+    /** @var ScalarExpression|null */
+    protected $p_path;
+    /** @var bool|null */
+    protected $p_nullable;
+    /** @var ScalarExpression|null */
+    protected $p_default;
+
     public function __construct(
         Identifier $name,
         bool $forOrdinality = false,
@@ -48,6 +61,7 @@ class XmlColumnDefinition extends GenericNode
         ?bool $nullable = null,
         ScalarExpression $default = null
     ) {
+        $this->generatePropertyNames();
         $this->setName($name);
         $this->setForOrdinality($forOrdinality);
         $this->setType($type);
@@ -58,32 +72,32 @@ class XmlColumnDefinition extends GenericNode
 
     public function setName(Identifier $name): void
     {
-        $this->setNamedProperty('name', $name);
+        $this->setProperty($this->p_name, $name);
     }
 
     public function setForOrdinality(bool $forOrdinality = false): void
     {
-        $this->props['forOrdinality'] = $forOrdinality;
+        $this->p_forOrdinality = $forOrdinality;
     }
 
     public function setType(TypeName $type = null): void
     {
-        $this->setNamedProperty('type', $type);
+        $this->setProperty($this->p_type, $type);
     }
 
     public function setPath(ScalarExpression $path = null): void
     {
-        $this->setNamedProperty('path', $path);
+        $this->setProperty($this->p_path, $path);
     }
 
     public function setNullable(?bool $nullable = null): void
     {
-        $this->props['nullable'] = $nullable;
+        $this->p_nullable = $nullable;
     }
 
     public function setDefault(ScalarExpression $default = null): void
     {
-        $this->setNamedProperty('default', $default);
+        $this->setProperty($this->p_default, $default);
     }
 
     public function dispatch(TreeWalker $walker)

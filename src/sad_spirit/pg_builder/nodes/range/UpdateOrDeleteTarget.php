@@ -33,10 +33,14 @@ use sad_spirit\pg_builder\{
  */
 class UpdateOrDeleteTarget extends InsertTarget
 {
+    /** @var bool|null */
+    protected $p_inherit;
+
     public function __construct(QualifiedName $relation, Identifier $alias = null, ?bool $inheritOption = null)
     {
+        $this->generatePropertyNames();
         parent::__construct($relation, $alias);
-        $this->props['inherit'] = $inheritOption;
+        $this->p_inherit = $inheritOption;
     }
 
     public function dispatch(TreeWalker $walker)

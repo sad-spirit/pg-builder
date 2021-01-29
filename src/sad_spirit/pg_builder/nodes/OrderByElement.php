@@ -50,6 +50,15 @@ class OrderByElement extends GenericNode
         self::NULLS_LAST  => true
     ];
 
+    /** @var ScalarExpression */
+    protected $p_expression;
+    /** @var string|null */
+    protected $p_direction;
+    /** @var string|null */
+    protected $p_nullsOrder;
+    /** @var string|QualifiedOperator|null */
+    protected $p_operator;
+
     public function __construct(
         ScalarExpression $expression,
         ?string $direction = null,
@@ -72,19 +81,20 @@ class OrderByElement extends GenericNode
             ));
         }
 
-        $this->setNamedProperty('expression', $expression);
-        $this->props['direction']  = $direction;
-        $this->props['nullsOrder'] = $nullsOrder;
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_expression, $expression);
+        $this->p_direction  = $direction;
+        $this->p_nullsOrder = $nullsOrder;
         if (!$operator instanceof QualifiedOperator) {
-            $this->props['operator'] = $operator;
+            $this->p_operator = $operator;
         } else {
-            $this->setNamedProperty('operator', $operator);
+            $this->setProperty($this->p_operator, $operator);
         }
     }
 
     public function setExpression(ScalarExpression $expression): void
     {
-        $this->setNamedProperty('expression', $expression);
+        $this->setProperty($this->p_expression, $expression);
     }
 
     public function dispatch(TreeWalker $walker)

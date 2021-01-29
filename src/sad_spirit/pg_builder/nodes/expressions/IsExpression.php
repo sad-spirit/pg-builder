@@ -61,9 +61,17 @@ class IsExpression extends GenericNode implements ScalarExpression
         self::NFKC_NORMALIZED => true,
         self::NFKD_NORMALIZED => true
     ];
+
+    /** @var ScalarExpression */
+    protected $p_argument;
+    /** @var string */
+    protected $p_what;
+    /** @var bool */
+    protected $p_negated;
     
     public function __construct(ScalarExpression $argument, string $what, bool $negated = false)
     {
+        $this->generatePropertyNames();
         $this->setArgument($argument);
         $this->setWhat($what);
         $this->setNegated($negated);
@@ -71,7 +79,7 @@ class IsExpression extends GenericNode implements ScalarExpression
 
     public function setArgument(ScalarExpression $argument)
     {
-        $this->setNamedProperty('argument', $argument);
+        $this->setProperty($this->p_argument, $argument);
     }
     
     public function setWhat(string $what)
@@ -79,12 +87,12 @@ class IsExpression extends GenericNode implements ScalarExpression
         if (!isset(self::ALLOWED_KEYWORDS[$what])) {
             throw new InvalidArgumentException("Unknown keyword '{$what}' for right side of IS expression");
         }
-        $this->setNamedProperty('what', $what);
+        $this->p_what = $what;
     }
     
     public function setNegated(bool $negated)
     {
-        $this->setNamedProperty('negated', $negated);
+        $this->p_negated = $negated;
     }
 
     public function dispatch(TreeWalker $walker)

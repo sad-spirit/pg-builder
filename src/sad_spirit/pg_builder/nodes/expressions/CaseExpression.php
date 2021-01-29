@@ -40,10 +40,10 @@ class CaseExpression extends NonAssociativeList implements ScalarExpression
     use ExpressionAtom;
     use HasBothPropsAndOffsets;
 
-    protected $props = [
-        'argument' => null,
-        'else'     => null
-    ];
+    /** @var ScalarExpression|null */
+    protected $p_argument;
+    /** @var ScalarExpression|null */
+    protected $p_else;
 
     protected static function getAllowedElementClasses(): array
     {
@@ -52,22 +52,23 @@ class CaseExpression extends NonAssociativeList implements ScalarExpression
 
     public function __construct($whenClauses, ScalarExpression $elseClause = null, ScalarExpression $argument = null)
     {
+        $this->generatePropertyNames();
         parent::__construct($whenClauses);
         if (1 > count($this->offsets)) {
             throw new InvalidArgumentException(__CLASS__ . ': at least one WHEN clause is required');
         }
-        $this->setNamedProperty('argument', $argument);
-        $this->setNamedProperty('else', $elseClause);
+        $this->setProperty($this->p_argument, $argument);
+        $this->setProperty($this->p_else, $elseClause);
     }
 
     public function setArgument(ScalarExpression $argument = null): void
     {
-        $this->setNamedProperty('argument', $argument);
+        $this->setProperty($this->p_argument, $argument);
     }
 
     public function setElse(ScalarExpression $elseClause = null): void
     {
-        $this->setNamedProperty('else', $elseClause);
+        $this->setProperty($this->p_else, $elseClause);
     }
 
     public function dispatch(TreeWalker $walker)

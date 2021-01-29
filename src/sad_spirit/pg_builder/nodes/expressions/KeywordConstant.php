@@ -37,7 +37,7 @@ class KeywordConstant extends Constant
         if (self::NULL !== $value && self::TRUE !== $value && self::FALSE !== $value) {
             throw new InvalidArgumentException("Unknown keyword '{$value}' for a constant");
         }
-        $this->props['value'] = $value;
+        $this->p_value = $value;
     }
 
     public function dispatch(TreeWalker $walker)

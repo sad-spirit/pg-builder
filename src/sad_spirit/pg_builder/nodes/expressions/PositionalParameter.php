@@ -30,16 +30,33 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class PositionalParameter extends Parameter
 {
+    /** @var int */
+    protected $p_position;
+
+    protected $propertyNames = [
+        'position' => 'p_position'
+    ];
+
     public function __construct(int $position)
     {
         if (0 >= $position) {
             throw new InvalidArgumentException("Position should be positive");
         }
-        $this->props['position'] = $position;
+        $this->p_position = $position;
     }
 
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkPositionalParameter($this);
+    }
+
+    public function serialize(): string
+    {
+        return (string)$this->p_position;
+    }
+
+    public function unserialize($serialized)
+    {
+        $this->p_position = (int)$serialized;
     }
 }

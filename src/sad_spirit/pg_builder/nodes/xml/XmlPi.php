@@ -38,15 +38,21 @@ class XmlPi extends GenericNode implements ScalarExpression
 {
     use ExpressionAtom;
 
+    /** @var Identifier */
+    protected $p_name;
+    /** @var ScalarExpression|null */
+    protected $p_content;
+
     public function __construct(Identifier $name, ScalarExpression $content = null)
     {
-        $this->setNamedProperty('name', $name);
-        $this->setNamedProperty('content', $content);
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_name, $name);
+        $this->setProperty($this->p_content, $content);
     }
 
     public function setContent(ScalarExpression $content): void
     {
-        $this->setNamedProperty('content', $content);
+        $this->setProperty($this->p_content, $content);
     }
 
     public function dispatch(TreeWalker $walker)

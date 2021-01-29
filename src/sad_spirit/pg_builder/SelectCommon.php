@@ -53,17 +53,23 @@ abstract class SelectCommon extends Statement
      */
     protected const PRECEDENCE_SETOP_SELECT    = 3;
 
+    /** @var OrderByList */
+    protected $p_order;
+    /** @var ScalarExpression|null */
+    protected $p_limit;
+    /** @var bool */
+    protected $p_limitWithTies = false;
+    /** @var ScalarExpression|null */
+    protected $p_offset;
+    /** @var LockList */
+    protected $p_locking;
+
     public function __construct()
     {
         parent::__construct();
 
-        $this->setNamedProperty('order', new OrderByList());
-        $this->setNamedProperty('locking', new LockList());
-        $this->props = array_merge($this->props, [
-            'limit'         => null,
-            'limitWithTies' => false,
-            'offset'        => null
-        ]);
+        $this->setProperty($this->p_order, new OrderByList());
+        $this->setProperty($this->p_locking, new LockList());
     }
 
     private function normalizeExpression(&$expression, string $method): void
@@ -83,18 +89,18 @@ abstract class SelectCommon extends Statement
     public function setLimit($limit = null): void
     {
         $this->normalizeExpression($limit, __METHOD__);
-        $this->setNamedProperty('limit', $limit);
+        $this->setProperty($this->p_limit, $limit);
     }
 
     public function setLimitWithTies(bool $withTies): void
     {
-        $this->setNamedProperty('limitWithTies', $withTies);
+        $this->p_limitWithTies = $withTies;
     }
 
     public function setOffset($offset = null): void
     {
         $this->normalizeExpression($offset, __METHOD__);
-        $this->setNamedProperty('offset', $offset);
+        $this->setProperty($this->p_offset, $offset);
     }
 
     /**

@@ -29,13 +29,31 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class NamedParameter extends Parameter
 {
+    /** @var string */
+    protected $p_name;
+
+    protected $propertyNames = [
+        'name' => 'p_name'
+    ];
+
     public function __construct(string $name)
     {
-        $this->props['name'] = $name;
+        $this->generatePropertyNames();
+        $this->p_name = $name;
     }
 
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkNamedParameter($this);
+    }
+
+    public function serialize(): string
+    {
+        return $this->p_name;
+    }
+
+    public function unserialize($serialized)
+    {
+        $this->p_name = $serialized;
     }
 }

@@ -35,20 +35,26 @@ use sad_spirit\pg_builder\{
  */
 class XmlNamespace extends GenericNode
 {
+    /** @var ScalarExpression */
+    protected $p_value;
+    /** @var Identifier|null */
+    protected $p_alias;
+
     public function __construct(ScalarExpression $value, Identifier $alias = null)
     {
+        $this->generatePropertyNames();
         $this->setValue($value);
         $this->setAlias($alias);
     }
 
     public function setValue(ScalarExpression $value): void
     {
-        $this->setNamedProperty('value', $value);
+        $this->setProperty($this->p_value, $value);
     }
 
     public function setAlias(Identifier $alias = null): void
     {
-        $this->setNamedProperty('alias', $alias);
+        $this->setProperty($this->p_alias, $alias);
     }
 
     public function dispatch(TreeWalker $walker)

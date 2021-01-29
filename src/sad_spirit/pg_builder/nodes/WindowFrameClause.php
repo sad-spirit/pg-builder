@@ -53,21 +53,32 @@ class WindowFrameClause extends GenericNode
         self::TIES        => true
     ];
 
+    /** @var string */
+    protected $p_type;
+    /** @var WindowFrameBound */
+    protected $p_start;
+    /** @var WindowFrameBound|null */
+    protected $p_end;
+    /** @var string|null */
+    protected $p_exclusion;
+
     public function __construct(
         string $type,
         WindowFrameBound $start,
         WindowFrameBound $end = null,
         ?string $exclusion = null
     ) {
+        $this->generatePropertyNames();
+
         if (!isset(self::ALLOWED_TYPES[$type])) {
             throw new InvalidArgumentException("Unknown window frame type '{$type}'");
         }
-        $this->props['type'] = $type;
+        $this->p_type = $type;
 
         if (null !== $exclusion && !isset(self::ALLOWED_EXCLUSIONS[$exclusion])) {
             throw new InvalidArgumentException("Unknown window frame exclusion '{$exclusion}'");
         }
-        $this->props['exclusion'] = $exclusion;
+        $this->p_exclusion = $exclusion;
 
         // like in frame_extent production in gram.y, reject invalid frame cases
         if (WindowFrameBound::FOLLOWING === $start->direction && !$start->value) {
@@ -96,8 +107,8 @@ class WindowFrameClause extends GenericNode
             }
         }
 
-        $this->setNamedProperty('start', $start);
-        $this->setNamedProperty('end', $end);
+        $this->setProperty($this->p_start, $start);
+        $this->setProperty($this->p_end, $end);
     }
 
     public function dispatch(TreeWalker $walker)

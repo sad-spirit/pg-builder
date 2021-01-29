@@ -38,6 +38,13 @@ class QualifiedOperator extends GenericNode
 {
     use NonRecursiveNode;
 
+    /** @var Identifier|null */
+    protected $p_catalog;
+    /** @var Identifier|null */
+    protected $p_schema;
+    /** @var string */
+    protected $p_operator;
+
     protected $props = [
         'catalog'  => null,
         'schema'   => null,
@@ -52,17 +59,19 @@ class QualifiedOperator extends GenericNode
      */
     public function __construct(...$nameParts)
     {
+        $this->generatePropertyNames();
+
         switch (count($nameParts)) {
             case 3:
-                $this->props['catalog'] = $this->expectIdentifier(array_shift($nameParts), 'catalog');
-                $this->props['catalog']->setParentNode($this);
+                $this->p_catalog = $this->expectIdentifier(array_shift($nameParts), 'catalog');
+                $this->p_catalog->setParentNode($this);
                 // fall-through is intentional
             case 2:
-                $this->props['schema'] = $this->expectIdentifier(array_shift($nameParts), 'schema');
-                $this->props['schema']->setParentNode($this);
+                $this->p_schema = $this->expectIdentifier(array_shift($nameParts), 'schema');
+                $this->p_schema->setParentNode($this);
                 // fall-through is intentional
             case 1:
-                $this->props['operator'] = $this->expectOperator(array_shift($nameParts));
+                $this->p_operator = $this->expectOperator(array_shift($nameParts));
                 break;
 
             case 0:
@@ -123,9 +132,9 @@ class QualifiedOperator extends GenericNode
     public function __toString()
     {
         return 'operator('
-            . (null === $this->props['catalog'] ? '' : (string)$this->props['catalog'] . '.')
-            . (null === $this->props['schema'] ? '' : (string)$this->props['schema'] . '.')
-            . (string)$this->props['operator'] . ')';
+            . (null === $this->p_catalog ? '' : (string)$this->p_catalog . '.')
+            . (null === $this->p_schema ? '' : (string)$this->p_schema . '.')
+            . (string)$this->p_operator . ')';
     }
 
     public function dispatch(TreeWalker $walker)

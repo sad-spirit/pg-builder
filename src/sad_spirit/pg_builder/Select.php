@@ -43,16 +43,31 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  */
 class Select extends SelectCommon
 {
+    /** @var TargetList */
+    protected $p_list;
+    /** @var bool|ExpressionList */
+    protected $p_distinct;
+    /** @var FromList */
+    protected $p_from;
+    /** @var WhereOrHavingClause */
+    protected $p_where;
+    /** @var GroupByList */
+    protected $p_group;
+    /** @var WhereOrHavingClause */
+    protected $p_having;
+    /** @var WindowList */
+    protected $p_window;
+
     public function __construct(TargetList $list, $distinct = null)
     {
         parent::__construct();
 
-        $this->setNamedProperty('list', $list);
-        $this->setNamedProperty('from', new FromList());
-        $this->setNamedProperty('where', new WhereOrHavingClause());
-        $this->setNamedProperty('group', new GroupByList());
-        $this->setNamedProperty('having', new WhereOrHavingClause());
-        $this->setNamedProperty('window', new WindowList());
+        $this->setProperty($this->p_list, $list);
+        $this->setProperty($this->p_from, new FromList());
+        $this->setProperty($this->p_where, new WhereOrHavingClause());
+        $this->setProperty($this->p_group, new GroupByList());
+        $this->setProperty($this->p_having, new WhereOrHavingClause());
+        $this->setProperty($this->p_window, new WindowList());
         $this->setDistinct($distinct);
     }
 
@@ -68,7 +83,7 @@ class Select extends SelectCommon
                 is_object($distinct) ? 'object(' . get_class($distinct) . ')' : gettype($distinct)
             ));
         }
-        $this->setNamedProperty('distinct', !$distinct ? null : $distinct);
+        $this->setProperty($this->p_distinct, !$distinct ? null : $distinct);
     }
 
     public function dispatch(TreeWalker $walker)

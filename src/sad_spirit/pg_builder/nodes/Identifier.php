@@ -36,18 +36,21 @@ class Identifier extends GenericNode
 {
     use NonRecursiveNode;
 
-    private static $needsQuoting = [];
+    /** @var string */
+    protected $p_value;
 
-    protected $props = [
-        'value' => ''
+    protected $propertyNames = [
+        'value' => 'p_value'
     ];
+
+    private static $needsQuoting = [];
 
     public function __construct(string $value)
     {
         if ('' === $value) {
             throw new InvalidArgumentException("Identifier cannot be an empty string");
         }
-        $this->props['value'] = $value;
+        $this->p_value = $value;
     }
 
     /**
@@ -83,7 +86,7 @@ class Identifier extends GenericNode
      */
     public function serialize(): string
     {
-        return $this->props['value'];
+        return $this->p_value;
     }
 
     /**
@@ -92,7 +95,7 @@ class Identifier extends GenericNode
      */
     public function unserialize($serialized)
     {
-        $this->props['value'] = $serialized;
+        $this->p_value = $serialized;
     }
 
     /**
@@ -102,7 +105,7 @@ class Identifier extends GenericNode
      */
     public function __toString()
     {
-        $value = $this->props['value'];
+        $value = $this->p_value;
         // We are likely to see the same identifier again, so cache the check results
         if (!isset(self::$needsQuoting[$value])) {
             self::$needsQuoting[$value] = !preg_match('/^[a-z_][a-z_0-9\$]*$/D', $value)

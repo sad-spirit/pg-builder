@@ -39,12 +39,14 @@ class ColumnReference extends GenericNode implements ScalarExpression
     use NonRecursiveNode;
     use ExpressionAtom;
 
-    protected $props = [
-        'catalog'  => null,
-        'schema'   => null,
-        'relation' => null,
-        'column'   => null
-    ];
+    /** @var Identifier|null */
+    protected $p_catalog;
+    /** @var Identifier|null */
+    protected $p_schema;
+    /** @var Identifier|null */
+    protected $p_relation;
+    /** @var Identifier|Star */
+    protected $p_column;
 
     /**
      * ColumnReference constructor, requires at least one name part, accepts up to four
@@ -54,22 +56,24 @@ class ColumnReference extends GenericNode implements ScalarExpression
      */
     public function __construct(...$parts)
     {
+        $this->generatePropertyNames();
+
         switch (count($parts)) {
             case 4:
-                $this->props['catalog'] = $this->expectIdentifier(array_shift($parts), 'catalog');
-                $this->props['catalog']->setParentNode($this);
+                $this->p_catalog = $this->expectIdentifier(array_shift($parts), 'catalog');
+                $this->p_catalog->setParentNode($this);
                 // fall-through is intentional
             case 3:
-                $this->props['schema'] = $this->expectIdentifier(array_shift($parts), 'schema');
-                $this->props['schema']->setParentNode($this);
+                $this->p_schema = $this->expectIdentifier(array_shift($parts), 'schema');
+                $this->p_schema->setParentNode($this);
                 // fall-through is intentional
             case 2:
-                $this->props['relation'] = $this->expectIdentifier(array_shift($parts), 'relation');
-                $this->props['relation']->setParentNode($this);
+                $this->p_relation = $this->expectIdentifier(array_shift($parts), 'relation');
+                $this->p_relation->setParentNode($this);
                 // fall-through is intentional
             case 1:
-                $this->props['column'] = $this->expectIdentifierOrStar(array_shift($parts));
-                $this->props['column']->setParentNode($this);
+                $this->p_column = $this->expectIdentifierOrStar(array_shift($parts));
+                $this->p_column->setParentNode($this);
                 break;
 
             case 0:
@@ -123,22 +127,23 @@ class ColumnReference extends GenericNode implements ScalarExpression
     public function serialize(): string
     {
         return serialize(array_map(function ($prop) {
-            if (null !== $prop) {
-                return $prop instanceof Identifier ? $prop->value : '';
+            if (null !== $this->$prop) {
+                return $this->$prop instanceof Identifier ? $this->$prop->value : '';
             }
             return null;
-        }, $this->props));
+        }, $this->propertyNames));
     }
 
-    public function unserialize($serialized)
+    protected function unserializeProperties(array $properties): void
     {
-        $this->props = array_map(function ($prop) {
-            if (null !== $prop) {
-                $prop = '' === $prop ? new Star() : new Identifier($prop);
-                $prop->parentNode = $this;
+        $this->generatePropertyNames();
+        array_walk($properties, function ($v, $k) {
+            if (null !== $v) {
+                $name        = $this->propertyNames[$k];
+                $this->$name = '' === $v ? new Star() : new Identifier($v);
+                $this->$name->parentNode = $this;
             }
-            return $prop;
-        }, unserialize($serialized));
+        });
     }
 
     /**
@@ -148,10 +153,10 @@ class ColumnReference extends GenericNode implements ScalarExpression
      */
     public function __toString()
     {
-        return (null === $this->props['catalog'] ? '' : (string)$this->props['catalog'] . '.')
-               . (null === $this->props['schema'] ? '' : (string)$this->props['schema'] . '.')
-               . (null === $this->props['relation'] ? '' : (string)$this->props['relation'] . '.')
-               . (string)$this->props['column'];
+        return (null === $this->p_catalog ? '' : (string)$this->p_catalog . '.')
+               . (null === $this->p_schema ? '' : (string)$this->p_schema . '.')
+               . (null === $this->p_relation ? '' : (string)$this->p_relation . '.')
+               . (string)$this->p_column;
     }
 
     public function dispatch(TreeWalker $walker)

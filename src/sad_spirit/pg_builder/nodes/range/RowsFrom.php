@@ -30,11 +30,15 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class RowsFrom extends FunctionCall
 {
+    /** @var RowsFromList */
+    protected $p_function;
+
     public function __construct(RowsFromList $function)
     {
-        $this->setNamedProperty('function', $function);
-        $this->props['lateral']        = false;
-        $this->props['withOrdinality'] = false;
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_function, $function);
+        $this->p_lateral        = false;
+        $this->p_withOrdinality = false;
     }
 
     public function dispatch(TreeWalker $walker)

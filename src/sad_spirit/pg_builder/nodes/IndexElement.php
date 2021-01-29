@@ -52,6 +52,17 @@ class IndexElement extends GenericNode
         self::NULLS_LAST  => true
     ];
 
+    /** @var ScalarExpression|Identifier */
+    protected $p_expression;
+    /** @var QualifiedName|null */
+    protected $p_collation;
+    /** @var QualifiedName|null */
+    protected $p_opClass;
+    /** @var string|null */
+    protected $p_direction;
+    /** @var string|null */
+    protected $p_nullsOrder;
+
     public function __construct(
         $expression,
         QualifiedName $collation = null,
@@ -65,12 +76,14 @@ class IndexElement extends GenericNode
         if (null !== $nullsOrder && !isset(self::ALLOWED_NULLS[$nullsOrder])) {
             throw new InvalidArgumentException("Unknown nulls order '{$nullsOrder}'");
         }
+
+        $this->generatePropertyNames();
         $this->setExpression($expression);
 
-        $this->setNamedProperty('collation', $collation);
-        $this->setNamedProperty('opClass', $opClass);
-        $this->props['direction']  = $direction;
-        $this->props['nullsOrder'] = $nullsOrder;
+        $this->setProperty($this->p_collation, $collation);
+        $this->setProperty($this->p_opClass, $opClass);
+        $this->p_direction  = $direction;
+        $this->p_nullsOrder = $nullsOrder;
     }
 
     public function setExpression($expression): void
@@ -81,7 +94,7 @@ class IndexElement extends GenericNode
                 is_object($expression) ? 'object(' . get_class($expression) . ')' : gettype($expression)
             ));
         }
-        $this->setNamedProperty('expression', $expression);
+        $this->setProperty($this->p_expression, $expression);
     }
 
     public function dispatch(TreeWalker $walker)

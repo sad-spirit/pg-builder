@@ -54,13 +54,15 @@ class IntervalTypeName extends TypeName
         'minute to second' => true
     ];
 
+    /** @var null */
+    protected $p_name = null;
+    /** @var string */
+    protected $p_mask = '';
+
     public function __construct(TypeModifierList $typeModifiers = null)
     {
-        $this->props['setOf']  = false;
-        $this->props['bounds'] = [];
-        $this->props['name']   = null;
-        $this->props['mask']   = '';
-        $this->setNamedProperty('modifiers', $typeModifiers ?? new TypeModifierList());
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_modifiers, $typeModifiers ?? new TypeModifierList());
     }
 
     public function setMask(string $mask = '')
@@ -68,6 +70,6 @@ class IntervalTypeName extends TypeName
         if ('' !== $mask && !isset(self::ALLOWED_MASKS[$mask])) {
             throw new InvalidArgumentException("Unknown mask '{$mask}' for interval type");
         }
-        $this->props['mask'] = $mask;
+        $this->p_mask = $mask;
     }
 }

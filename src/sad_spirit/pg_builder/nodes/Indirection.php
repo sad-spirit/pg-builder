@@ -32,9 +32,8 @@ class Indirection extends NonAssociativeList implements ScalarExpression
 {
     use HasBothPropsAndOffsets;
 
-    protected $props = [
-        'expression' => null
-    ];
+    /** @var ScalarExpression */
+    protected $p_expression;
 
     protected static function getAllowedElementClasses(): array
     {
@@ -47,13 +46,14 @@ class Indirection extends NonAssociativeList implements ScalarExpression
 
     public function __construct($indirection, ScalarExpression $expression)
     {
+        $this->generatePropertyNames();
         parent::__construct($indirection);
-        $this->setNamedProperty('expression', $expression);
+        $this->setProperty($this->p_expression, $expression);
     }
 
     public function setExpression(ScalarExpression $expression): void
     {
-        $this->setNamedProperty('expression', $expression);
+        $this->setProperty($this->p_expression, $expression);
     }
 
     public function dispatch(TreeWalker $walker)

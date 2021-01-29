@@ -68,6 +68,13 @@ class OperatorExpression extends GenericNode implements ScalarExpression
         '+' => self::PRECEDENCE_UNARY_MINUS,
         '-' => self::PRECEDENCE_UNARY_MINUS
     ];
+
+    /** @var ScalarExpression|null */
+    protected $p_left;
+    /** @var ScalarExpression|null */
+    protected $p_right;
+    /** @var string|QualifiedOperator */
+    protected $p_operator;
     
     public function __construct($operator, ScalarExpression $left = null, ScalarExpression $right = null)
     {
@@ -87,29 +94,30 @@ class OperatorExpression extends GenericNode implements ScalarExpression
         if (null === $left && null === $right) {
             throw new InvalidArgumentException('At least one operand is required for OperatorExpression');
         }
-        $this->setNamedProperty('left', $left);
-        $this->setNamedProperty('right', $right);
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_left, $left);
+        $this->setProperty($this->p_right, $right);
         if (!$operator instanceof QualifiedOperator) {
-            $this->props['operator'] = $operator;
+            $this->p_operator = $operator;
         } else {
-            $this->setNamedProperty('operator', $operator);
+            $this->setProperty($this->p_operator, $operator);
         }
     }
 
     public function setLeft(ScalarExpression $left = null): void
     {
-        if (null === $left && null === $this->props['right']) {
+        if (null === $left && null === $this->p_right) {
             throw new InvalidArgumentException('At least one operand is required for OperatorExpression');
         }
-        $this->setNamedProperty('left', $left);
+        $this->setProperty($this->p_left, $left);
     }
 
     public function setRight(ScalarExpression $right = null): void
     {
-        if (null === $right && null === $this->props['left']) {
+        if (null === $right && null === $this->p_left) {
             throw new InvalidArgumentException('At least one operand is required for OperatorExpression');
         }
-        $this->setNamedProperty('right', $right);
+        $this->setProperty($this->p_right, $right);
     }
 
     public function dispatch(TreeWalker $walker)
@@ -119,24 +127,24 @@ class OperatorExpression extends GenericNode implements ScalarExpression
 
     public function getPrecedence(): int
     {
-        if (!is_string($this->props['operator']) || !isset(self::PRECEDENCES[$this->props['operator']])) {
-            return null === $this->props['right'] ? self::PRECEDENCE_POSTFIX_OP : self::PRECEDENCE_GENERIC_OP;
-        } elseif (null === $this->props['left'] && isset(self::PRECEDENCES_UNARY[$this->props['operator']])) {
-            return self::PRECEDENCES_UNARY[$this->props['operator']];
+        if (!is_string($this->p_operator) || !isset(self::PRECEDENCES[$this->p_operator])) {
+            return null === $this->p_right ? self::PRECEDENCE_POSTFIX_OP : self::PRECEDENCE_GENERIC_OP;
+        } elseif (null === $this->p_left && isset(self::PRECEDENCES_UNARY[$this->p_operator])) {
+            return self::PRECEDENCES_UNARY[$this->p_operator];
         } else {
-            return self::PRECEDENCES[$this->props['operator']];
+            return self::PRECEDENCES[$this->p_operator];
         }
     }
 
     public function getAssociativity(): string
     {
-        if (!is_string($this->props['operator'])) {
+        if (!is_string($this->p_operator)) {
             return self::ASSOCIATIVE_LEFT;
-        } elseif (null === $this->props['left'] && isset(self::PRECEDENCES_UNARY[$this->props['operator']])) {
+        } elseif (null === $this->p_left && isset(self::PRECEDENCES_UNARY[$this->p_operator])) {
             return self::ASSOCIATIVE_RIGHT;
         } elseif (
-            !isset(self::PRECEDENCES[$this->props['operator']])
-            || self::PRECEDENCE_COMPARISON !== self::PRECEDENCES[$this->props['operator']]
+            !isset(self::PRECEDENCES[$this->p_operator])
+            || self::PRECEDENCE_COMPARISON !== self::PRECEDENCES[$this->p_operator]
         ) {
             return self::ASSOCIATIVE_LEFT;
         } else {

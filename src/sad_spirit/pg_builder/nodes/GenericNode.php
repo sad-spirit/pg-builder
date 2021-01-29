@@ -32,10 +32,16 @@ use sad_spirit\pg_builder\{
 abstract class GenericNode implements Node, \Serializable
 {
     /**
-     * Properties accessible through magic __get() and (sometimes) __set() methods
-     * @var array<string, null|string|bool|int|array|Node>
+     * Mapping ["class name" => ["magic property" => "actual protected property"]]
+     * @var array<string, array>
      */
-    protected $props = [];
+    private static $propertyNamesCache = [];
+
+    /**
+     * Mapping ["magic property" => "actual protected property"] for current object, {@see generatePropertyNames()}
+     * @var array<string, string>
+     */
+    protected $propertyNames = [];
 
     /**
      * Link to the Node containing current one
@@ -44,13 +50,13 @@ abstract class GenericNode implements Node, \Serializable
     protected $parentNode = null;
 
     /**
-     * Flag for preventing endless recursion in setParentNode()
+     * Flag for preventing endless recursion in {@see setParentNode()}
      * @var bool
      */
     protected $settingParentNode = false;
 
     /**
-     * Variable overloading, exposes values of $props array as properties of the object
+     * Variable overloading, exposes values of protected properties having 'p_' name prefix
      *
      * @param string $name
      * @return mixed
@@ -58,16 +64,15 @@ abstract class GenericNode implements Node, \Serializable
      */
     public function __get(string $name)
     {
-        if (array_key_exists($name, $this->props)) {
-            return $this->props[$name];
-
+        if (isset($this->propertyNames[$name])) {
+            return $this->{$this->propertyNames[$name]};
         } else {
             throw new InvalidArgumentException("Unknown property '{$name}'");
         }
     }
 
     /**
-     * Variable overloading, allows setting the $props value keyed by 'key' if setKey() method is defined
+     * Variable overloading, allows setting the $prop property if corresponding setProp() method is defined
      *
      * @param string $name
      * @param mixed  $value
@@ -75,26 +80,26 @@ abstract class GenericNode implements Node, \Serializable
      */
     public function __set(string $name, $value)
     {
-        if (!array_key_exists($name, $this->props)) {
-            throw new InvalidArgumentException("Unknown property '{$name}'");
-
-        } elseif (method_exists($this, 'set' . $name)) {
+        if (method_exists($this, 'set' . $name)) {
             $this->{'set' . $name}($value);
-
         } else {
-            throw new InvalidArgumentException("Property '{$name}' is read-only");
+            throw new InvalidArgumentException(
+                isset($this->propertyNames[$name])
+                    ? "Property '{$name}' is read-only"
+                    : "Unknown property '{$name}'"
+            );
         }
     }
 
     /**
-     * Variable overloading, checks the existence of $name key in $props array
+     * Variable overloading, checks the existence of protected property corresponding to magic one
      *
      * @param string $name
      * @return bool
      */
     public function __isset(string $name)
     {
-        return array_key_exists($name, $this->props);
+        return isset($this->propertyNames[$name]);
     }
 
     /**
@@ -102,13 +107,13 @@ abstract class GenericNode implements Node, \Serializable
      */
     public function __clone()
     {
-        foreach ($this->props as &$item) {
-            if ($item instanceof Node) {
-                $item = clone $item;
-                if ($item instanceof self) {
-                    $item->parentNode = $this;
+        foreach ($this->propertyNames as $name) {
+            if ($this->$name instanceof Node) {
+                $this->$name = clone $this->$name;
+                if ($this->$name instanceof self) {
+                    $this->$name->parentNode = $this;
                 } else {
-                    $item->setParentNode($this);
+                    $this->$name->setParentNode($this);
                 }
             }
         }
@@ -116,36 +121,73 @@ abstract class GenericNode implements Node, \Serializable
     }
 
     /**
-     * GenericNode only serializes its $props property by default
+     * GenericNode only serializes its magic properties by default
      * @return string
      */
     public function serialize(): string
     {
-        return serialize($this->props);
+        return serialize($this->collectProperties());
     }
 
     /**
-     * GenericNode only unserializes its $props property by default
+     * GenericNode only unserializes its magic properties by default
      * @param string $serialized
      */
     public function unserialize($serialized)
     {
-        $this->props = unserialize($serialized);
-        $this->updateParentNodeOnProps();
+        $this->unserializeProperties(unserialize($serialized));
     }
 
     /**
-     * Restores the parent node link for child nodes on unserializing the object
+     * Returns an array containing all magic properties, used when serializing
+     * @return array
      */
-    protected function updateParentNodeOnProps(): void
+    protected function collectProperties(): array
     {
-        foreach ($this->props as $item) {
-            if ($item instanceof self) {
-                $item->parentNode = $this;
-            } elseif ($item instanceof Node) {
-                $item->setParentNode($this);
+        $result = [];
+        foreach ($this->propertyNames as $name) {
+            $result[$name] = $this->$name;
+        }
+        return $result;
+    }
+
+    /**
+     * Unserializes properties, restoring parent node link for child nodes
+     *
+     * @param array $properties
+     */
+    protected function unserializeProperties(array $properties): void
+    {
+        $this->generatePropertyNames();
+        foreach ($properties as $k => $v) {
+            if ($v instanceof self) {
+                $v->parentNode = $this;
+            } elseif ($v instanceof Node) {
+                $v->setParentNode($this);
+            }
+            $this->$k = $v;
+        }
+    }
+
+    /**
+     * Generates mapping from magic property names to names of actual protected properties
+     *
+     * Magic property 'foo' corresponds to protected property 'p_foo'
+     *
+     * Should be called from both __construct() and unserialize() methods of GenericNode descendant that defines
+     * new magic properties
+     */
+    final protected function generatePropertyNames(): void
+    {
+        if (!isset(self::$propertyNamesCache[$className = get_class($this)])) {
+            self::$propertyNamesCache[$className] = [];
+            foreach (array_keys(get_class_vars($className)) as $name) {
+                if ('p_' === substr($name, 0, 2)) {
+                    self::$propertyNamesCache[$className][substr($name, 2)] = $name;
+                }
             }
         }
+        $this->propertyNames = self::$propertyNamesCache[$className];
     }
 
     /**
@@ -206,13 +248,14 @@ abstract class GenericNode implements Node, \Serializable
         if ($this === $newChild->getParentNode()) {
             $this->removeChild($newChild);
         }
-        if (false !== ($key = array_search($oldChild, $this->props, true))) {
-            if (method_exists($this, 'set' . $key)) {
-                $this->{'set' . $key}($newChild);
-            } else {
-                throw new InvalidArgumentException("Property '{$key}' is read-only");
+        foreach ($this->propertyNames as $name => $propertyName) {
+            if ($oldChild === $this->$propertyName) {
+                if (!method_exists($this, 'set' . $name)) {
+                    throw new InvalidArgumentException("Property '{$name}' is read-only");
+                }
+                $this->{'set' . $name}($newChild);
+                return $newChild;
             }
-            return $newChild;
         }
         return null;
     }
@@ -225,13 +268,14 @@ abstract class GenericNode implements Node, \Serializable
         if ($this !== $child->getParentNode()) {
             throw new InvalidArgumentException("Argument to removeChild() is not a child of current node");
         }
-        if (false !== ($key = array_search($child, $this->props, true))) {
-            if (method_exists($this, 'set' . $key)) {
-                $this->{'set' . $key}(null);
-            } else {
-                throw new InvalidArgumentException("Property '{$key}' is read-only");
+        foreach ($this->propertyNames as $name => $propertyName) {
+            if ($child === $this->$propertyName) {
+                if (!method_exists($this, 'set' . $name)) {
+                    throw new InvalidArgumentException("Property '{$name}' is read-only");
+                }
+                $this->{'set' . $name}(null);
+                return $child;
             }
-            return $child;
         }
         return null;
     }
@@ -263,37 +307,36 @@ abstract class GenericNode implements Node, \Serializable
     }
 
     /**
-     * Sets the property with the given name to the given value, takes care of updating parentNode info
+     * Sets the given property to the given value, takes care of updating parentNode info
      *
-     * A helper for __set() / replaceChild() / removeChild() / setWhatever() methods. It is assumed
-     * that the value is acceptable for the property, the method should only be called when value
-     * was already checked.
+     * A helper for __set() / replaceChild() / removeChild() / setWhatever() methods. As the method accepts any
+     * Node instance as $value, more stringent class / interface checks should be performed in calling methods.
      *
-     * @param string $propertyName
-     * @param mixed  $propertyValue
+     * @param Node|null $property
+     * @param Node|null $value
      */
-    protected function setNamedProperty(string $propertyName, $propertyValue): void
+    protected function setProperty(?Node &$property, ?Node $value): void
     {
-        if (!array_key_exists($propertyName, $this->props)) {
-            $this->props[$propertyName] = null;
-
-        } elseif ($propertyValue === $this->props[$propertyName]) {
+        if ($value === $property) {
             // no-op
             return;
         }
-        if ($propertyValue instanceof Node) {
+        if (null !== $value) {
             // we do not allow the same node in different places
-            if ($this === $propertyValue->getParentNode()) {
-                $this->removeChild($propertyValue);
+            if ($this === $value->getParentNode()) {
+                $this->removeChild($value);
             }
-            $propertyValue->setParentNode($this);
+            $value->setParentNode($this);
         }
 
-        $oldPropertyValue = $this->props[$propertyName];
-        $this->props[$propertyName] = $propertyValue;
+        [$oldValue, $property] = [$property, $value];
 
-        if ($oldPropertyValue instanceof Node) {
-            $oldPropertyValue->setParentNode(null);
+        if (null !== $oldValue) {
+            if ($oldValue instanceof self) {
+                $oldValue->parentNode = null;
+            } else {
+                $oldValue->setParentNode(null);
+            }
         }
     }
 }

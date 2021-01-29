@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
+    nodes\HasBothPropsAndOffsets,
     nodes\ScalarExpression,
     exceptions\InvalidArgumentException,
     TreeWalker
@@ -34,6 +35,8 @@ use sad_spirit\pg_builder\nodes\lists\ExpressionList;
  */
 class LogicalExpression extends ExpressionList implements ScalarExpression
 {
+    use HasBothPropsAndOffsets;
+
     public const AND = 'and';
     public const OR  = 'or';
 
@@ -42,37 +45,17 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
         self::OR  => self::PRECEDENCE_OR
     ];
 
-    protected $props = [
-        'operator' => self::AND
-    ];
+    /** @var string */
+    protected $p_operator = self::AND;
 
     public function __construct($terms = null, string $operator = self::AND)
     {
         if (!isset(self::PRECEDENCES[$operator])) {
             throw new InvalidArgumentException("Unknown logical operator '{$operator}'");
         }
+        $this->generatePropertyNames();
         parent::__construct($terms);
-        $this->props['operator'] = $operator;
-    }
-
-    /**
-     * Adds operator property to serialized string produced by GenericNodeList
-     * @return string
-     */
-    public function serialize(): string
-    {
-        return $this->props['operator'] . '|' . parent::serialize();
-    }
-
-    /**
-     * Unserializes both type property and offsets
-     * @param string $serialized
-     */
-    public function unserialize($serialized)
-    {
-        $pos = strpos($serialized, '|');
-        $this->props['operator'] = substr($serialized, 0, $pos);
-        parent::unserialize(substr($serialized, $pos + 1));
+        $this->p_operator = $operator;
     }
 
     public function dispatch(TreeWalker $walker)
@@ -82,7 +65,7 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
 
     public function getPrecedence(): int
     {
-        return self::PRECEDENCES[$this->props['operator']];
+        return self::PRECEDENCES[$this->p_operator];
     }
 
     public function getAssociativity(): string

@@ -34,6 +34,14 @@ class StringConstant extends Constant
     public const TYPE_BINARY      = 'b';
     public const TYPE_HEXADECIMAL = 'x';
 
+    /** @var string */
+    protected $p_type;
+
+    protected $propertyNames = [
+        'value' => 'p_value',
+        'type'  => 'p_type'
+    ];
+
     public function __construct(string $value, string $type = self::TYPE_CHARACTER)
     {
         if (self::TYPE_CHARACTER !== $type && self::TYPE_BINARY !== $type && self::TYPE_HEXADECIMAL !== $type) {
@@ -46,14 +54,22 @@ class StringConstant extends Constant
             throw new InvalidArgumentException("Invalid hexadecimal digit {$m[0]}");
         }
 
-        $this->props = [
-            'value' => $value,
-            'type'  => $type
-        ];
+        $this->p_value = $value;
+        $this->p_type  = $type;
     }
 
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkStringConstant($this);
+    }
+
+    public function serialize(): string
+    {
+        return serialize([$this->p_type, $this->p_value]);
+    }
+
+    public function unserialize($serialized)
+    {
+        [$this->p_type, $this->p_value] = unserialize($serialized);
     }
 }

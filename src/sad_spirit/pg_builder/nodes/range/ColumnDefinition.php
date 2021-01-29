@@ -40,11 +40,19 @@ class ColumnDefinition extends GenericNode
 {
     use NonRecursiveNode;
 
+    /** @var Identifier */
+    protected $p_name;
+    /** @var TypeName */
+    protected $p_type;
+    /** @var QualifiedName|null */
+    protected $p_collation;
+
     public function __construct(Identifier $colId, TypeName $type, QualifiedName $collation = null)
     {
-        $this->setNamedProperty('name', $colId);
-        $this->setNamedProperty('type', $type);
-        $this->setNamedProperty('collation', $collation);
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_name, $colId);
+        $this->setProperty($this->p_type, $type);
+        $this->setProperty($this->p_collation, $collation);
     }
 
     public function dispatch(TreeWalker $walker)

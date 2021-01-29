@@ -39,15 +39,26 @@ use sad_spirit\pg_builder\nodes\{
  */
 class Update extends Statement
 {
+    /** @var UpdateOrDeleteTarget */
+    protected $p_relation;
+    /** @var SetClauseList */
+    protected $p_set;
+    /** @var FromList */
+    protected $p_from;
+    /** @var WhereOrHavingClause */
+    protected $p_where;
+    /** @var TargetList */
+    protected $p_returning;
+
     public function __construct(UpdateOrDeleteTarget $relation, SetClauseList $set)
     {
         parent::__construct();
 
-        $this->setNamedProperty('relation', $relation);
-        $this->setNamedProperty('set', $set);
-        $this->setNamedProperty('from', new FromList());
-        $this->setNamedProperty('returning', new TargetList());
-        $this->setNamedProperty('where', new WhereOrHavingClause());
+        $this->setProperty($this->p_relation, $relation);
+        $this->setProperty($this->p_set, $set);
+        $this->setProperty($this->p_from, new FromList());
+        $this->setProperty($this->p_returning, new TargetList());
+        $this->setProperty($this->p_where, new WhereOrHavingClause());
     }
 
     public function dispatch(TreeWalker $walker)

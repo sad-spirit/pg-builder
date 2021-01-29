@@ -38,21 +38,29 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class IsOfExpression extends GenericNode implements ScalarExpression
 {
+    /** @var ScalarExpression */
+    protected $p_left;
+    /** @var TypeList */
+    protected $p_right;
+    /** @var bool */
+    protected $p_negated;
+
     public function __construct(ScalarExpression $left, TypeList $right, bool $negated = false)
     {
-        $this->setNamedProperty('left', $left);
-        $this->setNamedProperty('right', $right);
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_left, $left);
+        $this->setProperty($this->p_right, $right);
         $this->setNegated($negated);
     }
 
     public function setLeft(ScalarExpression $left): void
     {
-        $this->setNamedProperty('left', $left);
+        $this->setProperty($this->p_left, $left);
     }
 
     public function setNegated(bool $negated): void
     {
-        $this->setNamedProperty('negated', $negated);
+        $this->p_negated = $negated;
     }
 
     public function dispatch(TreeWalker $walker)

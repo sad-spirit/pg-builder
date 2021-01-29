@@ -41,11 +41,19 @@ class XmlElement extends GenericNode implements ScalarExpression
 {
     use ExpressionAtom;
 
+    /** @var Identifier */
+    protected $p_name;
+    /** @var TargetList */
+    protected $p_attributes;
+    /** @var ExpressionList */
+    protected $p_content;
+
     public function __construct(Identifier $name, TargetList $attributes = null, ExpressionList $content = null)
     {
-        $this->setNamedProperty('name', $name);
-        $this->setNamedProperty('attributes', $attributes ?? new TargetList());
-        $this->setNamedProperty('content', $content ?? new ExpressionList());
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_name, $name);
+        $this->setProperty($this->p_attributes, $attributes ?? new TargetList());
+        $this->setProperty($this->p_content, $content ?? new ExpressionList());
     }
 
     public function dispatch(TreeWalker $walker)

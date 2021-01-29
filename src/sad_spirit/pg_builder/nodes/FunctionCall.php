@@ -40,6 +40,17 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class FunctionCall extends GenericNode
 {
+    /** @var string|QualifiedName */
+    protected $p_name;
+    /** @var FunctionArgumentList|Star */
+    protected $p_arguments;
+    /** @var bool */
+    protected $p_distinct;
+    /** @var bool */
+    protected $p_variadic;
+    /** @var OrderByList */
+    protected $p_order;
+
     public function __construct(
         $funcName,
         $arguments = null,
@@ -62,11 +73,16 @@ class FunctionCall extends GenericNode
             ));
         }
 
-        $this->setNamedProperty('name', $funcName);
-        $this->setNamedProperty('arguments', $arguments ?? new FunctionArgumentList([]));
-        $this->props['distinct'] = $distinct;
-        $this->props['variadic'] = $variadic;
-        $this->setNamedProperty('order', $orderBy ?? new OrderByList());
+        $this->generatePropertyNames();
+        if ($funcName instanceof QualifiedName) {
+            $this->setProperty($this->p_name, $funcName);
+        } else {
+            $this->p_name = $funcName;
+        }
+        $this->setProperty($this->p_arguments, $arguments ?? new FunctionArgumentList([]));
+        $this->p_distinct = $distinct;
+        $this->p_variadic = $variadic;
+        $this->setProperty($this->p_order, $orderBy ?? new OrderByList());
     }
 
     public function dispatch(TreeWalker $walker)

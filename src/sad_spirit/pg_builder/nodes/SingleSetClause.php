@@ -31,9 +31,15 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class SingleSetClause extends GenericNode
 {
+    /** @var SetTargetElement */
+    protected $p_column;
+    /** @var ScalarExpression|SetToDefault */
+    protected $p_value;
+
     public function __construct(SetTargetElement $column, $value)
     {
-        $this->setNamedProperty('column', $column);
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_column, $column);
         $this->setValue($value);
     }
 
@@ -46,7 +52,7 @@ class SingleSetClause extends GenericNode
                 is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
             ));
         }
-        $this->setNamedProperty('value', $value);
+        $this->setProperty($this->p_value, $value);
     }
 
     public function dispatch(TreeWalker $walker)

@@ -48,11 +48,12 @@ class LockingElement extends NonAssociativeList
         self::KEY_SHARE     => true
     ];
 
-    protected $props = [
-        'strength'   => self::UPDATE,
-        'noWait'     => false,
-        'skipLocked' => false
-    ];
+    /** @var string */
+    protected $p_strength = self::UPDATE;
+    /** @var bool */
+    protected $p_noWait = false;
+    /** @var bool */
+    protected $p_skipLocked = false;
 
     protected static function getAllowedElementClasses(): array
     {
@@ -68,9 +69,10 @@ class LockingElement extends NonAssociativeList
             throw new InvalidArgumentException("Only one of NOWAIT or SKIP LOCKED is allowed in locking clause");
         }
 
-        $this->props['strength']   = $strength;
-        $this->props['noWait']     = $noWait;
-        $this->props['skipLocked'] = $skipLocked;
+        $this->generatePropertyNames();
+        $this->p_strength   = $strength;
+        $this->p_noWait     = $noWait;
+        $this->p_skipLocked = $skipLocked;
         parent::__construct($relations);
     }
 

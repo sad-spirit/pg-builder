@@ -27,17 +27,19 @@ trait HasBothPropsAndOffsets
 {
     public function serialize(): string
     {
-        return serialize([$this->props, $this->offsets]);
+        return serialize([$this->collectProperties(), $this->offsets]);
     }
 
     public function unserialize($serialized)
     {
-        [$this->props, $this->offsets] = unserialize($serialized);
-        $this->updateParentNodeOnProps();
+        [$props, $this->offsets] = unserialize($serialized);
+        $this->unserializeProperties($props);
         $this->updateParentNodeOnOffsets();
     }
 
-    abstract protected function updateParentNodeOnProps(): void;
+    abstract protected function collectProperties(): array;
+
+    abstract protected function unserializeProperties(array $properties): void;
 
     abstract protected function updateParentNodeOnOffsets(): void;
 }

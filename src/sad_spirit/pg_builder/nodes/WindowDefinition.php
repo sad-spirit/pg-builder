@@ -35,22 +35,34 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class WindowDefinition extends GenericNode
 {
+    /** @var Identifier|null */
+    protected $p_name;
+    /** @var Identifier|null */
+    protected $p_refName;
+    /** @var ExpressionList */
+    protected $p_partition;
+    /** @var OrderByList */
+    protected $p_order;
+    /** @var WindowFrameClause|null */
+    protected $p_frame;
+
     public function __construct(
         Identifier $refName = null,
         ExpressionList $partition = null,
         OrderByList $order = null,
         WindowFrameClause $frame = null
     ) {
-        $this->props['name'] = null;
-        $this->setNamedProperty('refName', $refName);
-        $this->setNamedProperty('partition', $partition ?? new ExpressionList());
-        $this->setNamedProperty('order', $order ?? new OrderByList());
-        $this->setNamedProperty('frame', $frame);
+        $this->generatePropertyNames();
+        $this->p_name = null;
+        $this->setProperty($this->p_refName, $refName);
+        $this->setProperty($this->p_partition, $partition ?? new ExpressionList());
+        $this->setProperty($this->p_order, $order ?? new OrderByList());
+        $this->setProperty($this->p_frame, $frame);
     }
 
     public function setName(Identifier $name = null): void
     {
-        $this->setNamedProperty('name', $name);
+        $this->setProperty($this->p_name, $name);
     }
 
     public function dispatch(TreeWalker $walker)

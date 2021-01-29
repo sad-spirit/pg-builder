@@ -40,8 +40,16 @@ use sad_spirit\pg_builder\nodes\lists\ExpressionList;
  */
 class InExpression extends GenericNode implements ScalarExpression
 {
+    /** @var ScalarExpression */
+    protected $p_left;
+    /** @var SelectCommon|ExpressionList */
+    protected $p_right;
+    /** @var bool */
+    protected $p_negated;
+
     public function __construct(ScalarExpression $left, $right, bool $negated = false)
     {
+        $this->generatePropertyNames();
         $this->setRight($right);
         $this->setLeft($left);
         $this->setNegated($negated);
@@ -49,7 +57,7 @@ class InExpression extends GenericNode implements ScalarExpression
 
     public function setLeft(ScalarExpression $left): void
     {
-        $this->setNamedProperty('left', $left);
+        $this->setProperty($this->p_left, $left);
     }
 
     public function setRight($right): void
@@ -61,12 +69,12 @@ class InExpression extends GenericNode implements ScalarExpression
                 is_object($right) ? 'object(' . get_class($right) . ')' : gettype($right)
             ));
         }
-        $this->setNamedProperty('right', $right);
+        $this->setProperty($this->p_right, $right);
     }
 
     public function setNegated(bool $negated)
     {
-        $this->props['negated'] = $negated;
+        $this->p_negated = $negated;
     }
 
     public function dispatch(TreeWalker $walker)

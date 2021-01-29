@@ -54,18 +54,25 @@ class SubselectExpression extends GenericNode implements ScalarExpression
         // "in" is served by InExpression
     ];
 
+    /** @var SelectCommon */
+    protected $p_query;
+    /** @var string|null */
+    protected $p_operator;
+
     public function __construct(SelectCommon $query, ?string $operator = null)
     {
         if (null !== $operator && !isset(self::ALLOWED_EXPRESSIONS[$operator])) {
             throw new InvalidArgumentException("Unknown subquery operator '{$operator}'");
         }
+
+        $this->generatePropertyNames();
         $this->setQuery($query);
-        $this->props['operator'] = $operator;
+        $this->p_operator = $operator;
     }
 
     public function setQuery(SelectCommon $query): void
     {
-        $this->setNamedProperty('query', $query);
+        $this->setProperty($this->p_query, $query);
     }
 
     public function dispatch(TreeWalker $walker)

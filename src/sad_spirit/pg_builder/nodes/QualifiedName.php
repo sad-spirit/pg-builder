@@ -37,11 +37,12 @@ class QualifiedName extends GenericNode
 {
     use NonRecursiveNode;
 
-    protected $props = [
-        'catalog'  => null,
-        'schema'   => null,
-        'relation' => null
-    ];
+    /** @var Identifier|null */
+    protected $p_catalog;
+    /** @var Identifier|null */
+    protected $p_schema;
+    /** @var Identifier */
+    protected $p_relation;
 
     /**
      * QualifiedName constructor, requires at least one name part, accepts up to three
@@ -51,18 +52,20 @@ class QualifiedName extends GenericNode
      */
     public function __construct(...$nameParts)
     {
+        $this->generatePropertyNames();
+
         switch (count($nameParts)) {
             case 3:
-                $this->props['catalog'] = $this->expectIdentifier(array_shift($nameParts), 'catalog');
-                $this->props['catalog']->setParentNode($this);
+                $this->p_catalog = $this->expectIdentifier(array_shift($nameParts), 'catalog');
+                $this->p_catalog->setParentNode($this);
                 // fall-through is intentional
             case 2:
-                $this->props['schema'] = $this->expectIdentifier(array_shift($nameParts), 'schema');
-                $this->props['schema']->setParentNode($this);
+                $this->p_schema = $this->expectIdentifier(array_shift($nameParts), 'schema');
+                $this->p_schema->setParentNode($this);
                 // fall-through is intentional
             case 1:
-                $this->props['relation'] = $this->expectIdentifier(array_shift($nameParts), 'relation');
-                $this->props['relation']->setParentNode($this);
+                $this->p_relation = $this->expectIdentifier(array_shift($nameParts), 'relation');
+                $this->p_relation->setParentNode($this);
                 break;
 
             case 0:
@@ -99,19 +102,20 @@ class QualifiedName extends GenericNode
     public function serialize(): string
     {
         return serialize(array_map(function ($prop) {
-            return $prop instanceof Identifier ? $prop->value : $prop;
-        }, $this->props));
+            return $this->$prop instanceof Identifier ? $this->$prop->value : $this->$prop;
+        }, $this->propertyNames));
     }
 
-    public function unserialize($serialized)
+    protected function unserializeProperties(array $properties): void
     {
-        $this->props = array_map(function ($prop) {
-            if (null !== $prop) {
-                $prop = new Identifier($prop);
-                $prop->parentNode = $this;
+        $this->generatePropertyNames();
+        array_walk($properties, function ($v, $k) {
+            if (null !== $v) {
+                $name = $this->propertyNames[$k];
+                $this->$name = new Identifier($v);
+                $this->$name->parentNode = $this;
             }
-            return $prop;
-        }, unserialize($serialized));
+        });
     }
 
     public function dispatch(TreeWalker $walker)
@@ -126,8 +130,8 @@ class QualifiedName extends GenericNode
      */
     public function __toString()
     {
-        return (null === $this->props['catalog'] ? '' : (string)$this->props['catalog'] . '.')
-            . (null === $this->props['schema'] ? '' : (string)$this->props['schema'] . '.')
-            . (string)$this->props['relation'];
+        return (null === $this->p_catalog ? '' : (string)$this->p_catalog . '.')
+            . (null === $this->p_schema ? '' : (string)$this->p_schema . '.')
+            . (string)$this->p_relation;
     }
 }

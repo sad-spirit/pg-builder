@@ -37,9 +37,8 @@ class SetTargetElement extends NonAssociativeList
     use NonRecursiveNode;
     use HasBothPropsAndOffsets;
 
-    protected $props = [
-        'name' => null
-    ];
+    /** @var Identifier */
+    protected $p_name;
 
     protected static function getAllowedElementClasses(): array
     {
@@ -51,6 +50,7 @@ class SetTargetElement extends NonAssociativeList
 
     public function __construct($name, array $indirection = [])
     {
+        $this->generatePropertyNames();
         parent::__construct($indirection);
         $this->setName($name);
     }
@@ -60,7 +60,7 @@ class SetTargetElement extends NonAssociativeList
         if (!($name instanceof Identifier)) {
             $name = new Identifier($name);
         }
-        $this->setNamedProperty('name', $name);
+        $this->setProperty($this->p_name, $name);
     }
 
     public function dispatch(TreeWalker $walker)

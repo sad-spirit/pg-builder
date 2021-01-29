@@ -35,15 +35,21 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class MultipleSetClause extends GenericNode
 {
+    /** @var SetTargetList */
+    protected $p_columns;
+    /** @var ScalarExpression */
+    protected $p_value;
+
     public function __construct(SetTargetList $columns, ScalarExpression $value)
     {
-        $this->setNamedProperty('columns', $columns);
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_columns, $columns);
         $this->setValue($value);
     }
 
     public function setValue(ScalarExpression $value): void
     {
-        $this->setNamedProperty('value', $value);
+        $this->setProperty($this->p_value, $value);
     }
 
     public function dispatch(TreeWalker $walker)

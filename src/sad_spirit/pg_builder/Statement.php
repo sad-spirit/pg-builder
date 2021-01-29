@@ -30,6 +30,9 @@ use sad_spirit\pg_builder\nodes\WithClause;
  */
 abstract class Statement extends GenericNode
 {
+    /** @var WithClause */
+    protected $p_with;
+
     /**
      * Parser instance, used when adding nodes to a statement as SQL strings
      * @var Parser|null
@@ -38,12 +41,13 @@ abstract class Statement extends GenericNode
 
     public function __construct()
     {
-        $this->setNamedProperty('with', new WithClause([]));
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_with, new WithClause([]));
     }
 
     public function setWith(WithClause $with = null)
     {
-        $this->setNamedProperty('with', $with);
+        $this->setProperty($this->p_with, $with);
     }
 
     /**

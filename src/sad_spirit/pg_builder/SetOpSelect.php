@@ -45,6 +45,13 @@ class SetOpSelect extends SelectCommon
         self::EXCEPT_ALL    => self::PRECEDENCE_SETOP_UNION
     ];
 
+    /** @var SelectCommon */
+    protected $p_left;
+    /** @var SelectCommon */
+    protected $p_right;
+    /** @var string */
+    protected $p_operator;
+
     public function __construct(SelectCommon $left, SelectCommon $right, string $operator = self::UNION)
     {
         parent::__construct();
@@ -55,17 +62,17 @@ class SetOpSelect extends SelectCommon
 
         $this->setLeft($left);
         $this->setRight($right);
-        $this->props['operator'] = $operator;
+        $this->p_operator = $operator;
     }
 
     public function setLeft(SelectCommon $left): void
     {
-        $this->setNamedProperty('left', $left);
+        $this->setProperty($this->p_left, $left);
     }
 
     public function setRight(SelectCommon $right): void
     {
-        $this->setNamedProperty('right', $right);
+        $this->setProperty($this->p_right, $right);
     }
 
     public function dispatch(TreeWalker $walker)
@@ -75,6 +82,6 @@ class SetOpSelect extends SelectCommon
 
     public function getPrecedence(): int
     {
-        return self::PRECEDENCES[$this->props['operator']];
+        return self::PRECEDENCES[$this->p_operator];
     }
 }

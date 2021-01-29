@@ -29,10 +29,13 @@ use sad_spirit\pg_builder\nodes\lists\RowList;
  */
 class Values extends SelectCommon
 {
+    /** @var RowList */
+    protected $p_rows;
+
     public function __construct(RowList $rows)
     {
         parent::__construct();
-        $this->setNamedProperty('rows', $rows);
+        $this->setProperty($this->p_rows, $rows);
     }
 
     public function dispatch(TreeWalker $walker)

@@ -36,9 +36,10 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  */
 class WithClause extends NonAssociativeList implements Parseable, ElementParseable
 {
-    protected $props = [
-        'recursive' => false
-    ];
+    use HasBothPropsAndOffsets;
+
+    /** @var bool */
+    protected $p_recursive = false;
 
     protected static function getAllowedElementClasses(): array
     {
@@ -47,19 +48,9 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
 
     public function __construct($commonTableExpressions, bool $recursive = false)
     {
+        $this->generatePropertyNames();
         parent::__construct($commonTableExpressions);
         $this->setRecursive($recursive);
-    }
-
-    public function serialize(): string
-    {
-        return ($this->props['recursive'] ? 't' : 'f') . '|' . parent::serialize();
-    }
-
-    public function unserialize($serialized)
-    {
-        $this->props['recursive'] = 't' === $serialized[0];
-        parent::unserialize(substr($serialized, 2));
     }
 
     public function dispatch(TreeWalker $walker)
@@ -87,7 +78,7 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
         parent::merge($lists);
 
         if ($addRecursive) {
-            $this->props['recursive'] = true;
+            $this->p_recursive = true;
         }
     }
 
@@ -98,12 +89,12 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
         parent::replace($list);
 
         if ($addRecursive) {
-            $this->props['recursive'] = true;
+            $this->p_recursive = true;
         }
     }
 
     public function setRecursive(bool $recursive)
     {
-        $this->props['recursive'] = $recursive;
+        $this->p_recursive = $recursive;
     }
 }

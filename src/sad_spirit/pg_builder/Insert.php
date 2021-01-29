@@ -48,23 +48,31 @@ class Insert extends Statement
         self::OVERRIDING_USER   => true
     ];
 
+    /** @var InsertTarget */
+    protected $p_relation;
+    /** @var SetTargetList */
+    protected $p_cols;
+    /** @var SelectCommon|null */
+    protected $p_values;
+    /** @var string|null */
+    protected $p_overriding;
+    /** @var OnConflictClause|null */
+    protected $p_onConflict;
+    /** @var TargetList */
+    protected $p_returning;
+
     public function __construct(InsertTarget $relation)
     {
         parent::__construct();
 
-        $this->setNamedProperty('relation', $relation);
-        $this->setNamedProperty('cols', new SetTargetList());
-        $this->setNamedProperty('returning', new TargetList());
-        $this->props = array_merge($this->props, [
-            'values'     => null,
-            'onConflict' => null,
-            'overriding' => null
-        ]);
+        $this->setProperty($this->p_relation, $relation);
+        $this->setProperty($this->p_cols, new SetTargetList());
+        $this->setProperty($this->p_returning, new TargetList());
     }
 
     public function setValues(SelectCommon $values = null): void
     {
-        $this->setNamedProperty('values', $values);
+        $this->setProperty($this->p_values, $values);
     }
 
     public function setOnConflict($onConflict = null): void
@@ -79,7 +87,7 @@ class Insert extends Statement
                 is_object($onConflict) ? 'object(' . get_class($onConflict) . ')' : gettype($onConflict)
             ));
         }
-        $this->setNamedProperty('onConflict', $onConflict);
+        $this->setProperty($this->p_onConflict, $onConflict);
     }
 
     public function setOverriding(?string $overriding = null): void
@@ -87,7 +95,7 @@ class Insert extends Statement
         if (null !== $overriding && !isset(self::ALLOWED_OVERRIDING[$overriding])) {
             throw new InvalidArgumentException("Unknown override kind '{$overriding}'");
         }
-        $this->props['overriding'] = $overriding;
+        $this->p_overriding = $overriding;
     }
 
     public function dispatch(TreeWalker $walker)

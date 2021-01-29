@@ -33,7 +33,7 @@ class NumericConstant extends Constant
         if (!is_numeric($value)) {
             throw new InvalidArgumentException(__CLASS__ . " expects a numeric string");
         }
-        $this->props['value'] = $value;
+        $this->p_value = $value;
     }
 
     public function dispatch(TreeWalker $walker)

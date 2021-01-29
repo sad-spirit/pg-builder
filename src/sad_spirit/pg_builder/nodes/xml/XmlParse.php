@@ -47,6 +47,13 @@ class XmlParse extends GenericNode implements ScalarExpression
         self::CONTENT  => true
     ];
 
+    /** @var string */
+    protected $p_documentOrContent;
+    /** @var ScalarExpression */
+    protected $p_argument;
+    /** @var bool */
+    protected $p_preserveWhitespace;
+
     public function __construct(string $documentOrContent, ScalarExpression $argument, bool $preserveWhitespace = false)
     {
         if (!isset(self::ALLOWED_TYPES[$documentOrContent])) {
@@ -54,14 +61,16 @@ class XmlParse extends GenericNode implements ScalarExpression
                 "Either 'document' or 'content' option required, '{$documentOrContent}' given"
             );
         }
-        $this->props['documentOrContent']  = $documentOrContent;
-        $this->props['preserveWhitespace'] = $preserveWhitespace;
-        $this->setNamedProperty('argument', $argument);
+
+        $this->generatePropertyNames();
+        $this->p_documentOrContent  = $documentOrContent;
+        $this->p_preserveWhitespace = $preserveWhitespace;
+        $this->setProperty($this->p_argument, $argument);
     }
 
     public function setArgument(ScalarExpression $argument): void
     {
-        $this->setNamedProperty('argument', $argument);
+        $this->setProperty($this->p_argument, $argument);
     }
 
     public function dispatch(TreeWalker $walker)

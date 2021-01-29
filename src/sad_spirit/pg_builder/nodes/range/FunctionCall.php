@@ -39,21 +39,29 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class FunctionCall extends FromElement
 {
+    /** @var IdentifierList|ColumnDefinitionList|null */
+    protected $p_columnAliases;
+    /** @var BaseFunctionCall */
+    protected $p_function;
+    /** @var bool */
+    protected $p_lateral = false;
+    /** @var bool */
+    protected $p_withOrdinality = false;
+
     public function __construct(BaseFunctionCall $function)
     {
-        $this->setNamedProperty('function', $function);
-        $this->props['lateral']        = false;
-        $this->props['withOrdinality'] = false;
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_function, $function);
     }
 
     public function setLateral(bool $lateral): void
     {
-        $this->props['lateral'] = $lateral;
+        $this->p_lateral = $lateral;
     }
 
     public function setWithOrdinality(bool $ordinality): void
     {
-        $this->props['withOrdinality'] = $ordinality;
+        $this->p_withOrdinality = $ordinality;
     }
 
     public function setAlias(Identifier $tableAlias = null, $columnAliases = null): void
@@ -63,7 +71,7 @@ class FunctionCall extends FromElement
 
         } elseif ($columnAliases instanceof ColumnDefinitionList) {
             parent::setAlias($tableAlias, null);
-            $this->setNamedProperty('columnAliases', $columnAliases);
+            $this->setProperty($this->p_columnAliases, $columnAliases);
 
         } else {
             throw new InvalidArgumentException(sprintf(

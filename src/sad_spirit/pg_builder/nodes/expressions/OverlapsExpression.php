@@ -38,8 +38,14 @@ use sad_spirit\pg_builder\{
  */
 class OverlapsExpression extends GenericNode implements ScalarExpression
 {
+    /** @var RowExpression */
+    protected $p_left;
+    /** @var RowExpression */
+    protected $p_right;
+
     public function __construct(RowExpression $left, RowExpression $right)
     {
+        $this->generatePropertyNames();
         $this->setLeft($left);
         $this->setRight($right);
     }
@@ -49,7 +55,7 @@ class OverlapsExpression extends GenericNode implements ScalarExpression
         if (2 !== count($left)) {
             throw new InvalidArgumentException("Wrong number of items in the left argument to OVERLAPS");
         }
-        $this->setNamedProperty('left', $left);
+        $this->setProperty($this->p_left, $left);
     }
 
     public function setRight(RowExpression $right): void
@@ -57,7 +63,7 @@ class OverlapsExpression extends GenericNode implements ScalarExpression
         if (2 !== count($right)) {
             throw new InvalidArgumentException("Wrong number of items in the right argument to OVERLAPS");
         }
-        $this->setNamedProperty('right', $right);
+        $this->setProperty($this->p_right, $right);
     }
 
     public function dispatch(TreeWalker $walker)

@@ -31,14 +31,18 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class NotExpression extends GenericNode implements ScalarExpression
 {
+    /** @var ScalarExpression */
+    protected $p_argument;
+
     public function __construct(ScalarExpression $argument)
     {
+        $this->generatePropertyNames();
         $this->setArgument($argument);
     }
 
     public function setArgument(ScalarExpression $argument): void
     {
-        $this->setNamedProperty('argument', $argument);
+        $this->setProperty($this->p_argument, $argument);
     }
 
     public function dispatch(TreeWalker $walker)

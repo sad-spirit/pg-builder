@@ -37,10 +37,16 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class RowsFromElement extends GenericNode
 {
+    /** @var BaseFunctionCall */
+    protected $p_function;
+    /** @var ColumnDefinitionList */
+    protected $p_columnAliases;
+
     public function __construct(BaseFunctionCall $function, ColumnDefinitionList $columnAliases = null)
     {
-        $this->setNamedProperty('function', $function);
-        $this->setNamedProperty('columnAliases', $columnAliases ?? new ColumnDefinitionList());
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_function, $function);
+        $this->setProperty($this->p_columnAliases, $columnAliases ?? new ColumnDefinitionList());
     }
 
     public function dispatch(TreeWalker $walker)

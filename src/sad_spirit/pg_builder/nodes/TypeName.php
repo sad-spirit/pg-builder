@@ -36,22 +36,30 @@ class TypeName extends GenericNode
 {
     use NonRecursiveNode;
 
+    /** @var bool */
+    protected $p_setOf = false;
+    /** @var array */
+    protected $p_bounds = [];
+    /** @var QualifiedName */
+    protected $p_name;
+    /** @var TypeModifierList */
+    protected $p_modifiers;
+
     public function __construct(QualifiedName $typeName, TypeModifierList $typeModifiers = null)
     {
-        $this->props['setOf']     = false;
-        $this->props['bounds']    = [];
-        $this->setNamedProperty('name', $typeName);
-        $this->setNamedProperty('modifiers', $typeModifiers ?? new TypeModifierList());
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_name, $typeName);
+        $this->setProperty($this->p_modifiers, $typeModifiers ?? new TypeModifierList());
     }
 
     public function setSetOf(bool $setOf = false): void
     {
-        $this->props['setOf'] = $setOf;
+        $this->p_setOf = $setOf;
     }
 
     public function setBounds(array $bounds): void
     {
-        $this->props['bounds'] = [];
+        $this->p_bounds = [];
         foreach ($bounds as $key => $value) {
             if (!is_int($value) && !ctype_digit($value)) {
                 throw new InvalidArgumentException(sprintf(
@@ -61,7 +69,7 @@ class TypeName extends GenericNode
                     $key
                 ));
             }
-            $this->props['bounds'][] = (int)$value;
+            $this->p_bounds[] = (int)$value;
         }
     }
 

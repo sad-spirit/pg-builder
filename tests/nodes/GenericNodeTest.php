@@ -140,23 +140,6 @@ class GenericNodeTest extends TestCase
         $this->node->replaceChild($nonChildOne, $nonChildTwo);
     }
 
-    public function testSetNamedPropertyCanDefineANewProperty()
-    {
-        $this->node->setNamedProperty('foo', 'foo value');
-
-        $this::assertTrue(isset($this->node->foo));
-        $this::assertEquals('foo value', $this->node->foo);
-    }
-
-    public function testSetNamedPropertySetsParentNode()
-    {
-        $foo = new GenericNodeImplementation();
-
-        $this->node->setNamedProperty('foo', $foo);
-        $this::assertSame($foo, $this->node->foo);
-        $this::assertSame($this->node, $foo->getParentNode());
-    }
-
     public function testCannotCreateCycles()
     {
         $father = new GenericNodeImplementation();
@@ -183,13 +166,13 @@ class GenericNodeTest extends TestCase
         $this::assertSame($node, $child->getParentNode());
     }
 
-    public function testSetNamedPropertyRemovesFromPreviousParent()
+    public function testSetPropertyRemovesFromPreviousParent()
     {
         $child = new GenericNodeImplementation();
         $node  = new GenericNodeImplementation();
 
         $this->node->child = $child;
-        $node->setNamedProperty('child', $child);
+        $node->setChild($child);
 
         $this::assertNull($this->node->child);
         $this::assertSame($node, $child->getParentNode());

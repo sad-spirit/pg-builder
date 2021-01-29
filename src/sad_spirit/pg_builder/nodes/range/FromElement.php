@@ -36,10 +36,10 @@ use sad_spirit\pg_builder\nodes\lists\IdentifierList;
  */
 abstract class FromElement extends GenericNode
 {
-    protected $props = [
-        'tableAlias'    => null,
-        'columnAliases' => null
-    ];
+    /** @var Identifier|null */
+    protected $p_tableAlias;
+    /** @var IdentifierList|null */
+    protected $p_columnAliases;
 
     public function setAlias(Identifier $tableAlias = null, $columnAliases = null): void
     {
@@ -50,8 +50,10 @@ abstract class FromElement extends GenericNode
                 is_object($columnAliases) ? 'object(' . get_class($columnAliases) . ')' : gettype($columnAliases)
             ));
         }
-        $this->setNamedProperty('tableAlias', $tableAlias);
-        $this->setNamedProperty('columnAliases', $columnAliases);
+
+        $this->generatePropertyNames();
+        $this->setProperty($this->p_tableAlias, $tableAlias);
+        $this->setProperty($this->p_columnAliases, $columnAliases);
     }
 
     /**
