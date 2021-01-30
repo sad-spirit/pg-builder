@@ -20,13 +20,16 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\WithClause;
+use sad_spirit\pg_builder\nodes\{
+    CommonTableExpression,
+    GenericNode,
+    WithClause
+};
 
 /**
  * Base class for Nodes representing complete SQL statements
  *
- * @property WithClause $with
+ * @property WithClause|CommonTableExpression[] $with
  */
 abstract class Statement extends GenericNode
 {
@@ -42,10 +45,12 @@ abstract class Statement extends GenericNode
     public function __construct()
     {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_with, new WithClause([]));
+
+        $this->p_with = new WithClause();
+        $this->p_with->parentNode = $this;
     }
 
-    public function setWith(WithClause $with = null)
+    public function setWith(WithClause $with): void
     {
         $this->setProperty($this->p_with, $with);
     }

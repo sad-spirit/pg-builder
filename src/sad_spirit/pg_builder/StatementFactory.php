@@ -219,8 +219,8 @@ class StatementFactory
     /**
      * Creates a SELECT statement object
      *
-     * @param string|array|nodes\lists\TargetList    $list
-     * @param string|array|nodes\lists\FromList|null $from
+     * @param string|iterable<nodes\TargetElement|string>          $list
+     * @param string|iterable<nodes\range\FromElement|string>|null $from
      * @return Select
      */
     public function select($list, $from = null): Select
@@ -251,8 +251,8 @@ class StatementFactory
     /**
      * Creates an UPDATE statement object
      *
-     * @param string|nodes\range\UpdateOrDeleteTarget $table
-     * @param string|array|nodes\lists\SetClauseList  $set
+     * @param string|nodes\range\UpdateOrDeleteTarget                               $table
+     * @param string|iterable<nodes\SingleSetClause|nodes\MultipleSetClause|string> $set
      * @return Update
      */
     public function update($table, $set): Update
@@ -286,7 +286,7 @@ class StatementFactory
     /**
      * Creates a VALUES statement object
      *
-     * @param string|array|nodes\lists\RowList $rows
+     * @param string|iterable<nodes\expressions\RowExpression|string|array> $rows
      * @return Values
      */
     public function values($rows): Values

@@ -23,17 +23,19 @@ namespace sad_spirit\pg_builder;
 use sad_spirit\pg_builder\nodes\{
     lists\FromList,
     lists\TargetList,
+    range\FromElement,
     range\UpdateOrDeleteTarget,
+    TargetElement,
     WhereOrHavingClause
 };
 
 /**
  * AST node representing DELETE statement
  *
- * @property-read UpdateOrDeleteTarget  $relation
- * @property      FromList              $using
- * @property-read WhereOrHavingClause   $where
- * @property      TargetList            $returning
+ * @property-read UpdateOrDeleteTarget       $relation
+ * @property      FromList|FromElement[]     $using
+ * @property-read WhereOrHavingClause        $where
+ * @property      TargetList|TargetElement[] $returning
  */
 class Delete extends Statement
 {

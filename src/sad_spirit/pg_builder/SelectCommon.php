@@ -23,6 +23,8 @@ namespace sad_spirit\pg_builder;
 use sad_spirit\pg_builder\nodes\{
     lists\LockList,
     lists\OrderByList,
+    LockingElement,
+    OrderByElement,
     ScalarExpression
 };
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
@@ -30,11 +32,11 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 /**
  * Base class for SELECT-type statements
  *
- * @property OrderByList           $order
- * @property ScalarExpression|null $limit
- * @property bool                  $limitWithTies
- * @property ScalarExpression|null $offset
- * @property LockList              $locking
+ * @property OrderByList|OrderByElement[] $order
+ * @property ScalarExpression|null        $limit
+ * @property bool                         $limitWithTies
+ * @property ScalarExpression|null        $offset
+ * @property LockList|LockingElement[]    $locking
  */
 abstract class SelectCommon extends Statement
 {
@@ -68,10 +70,19 @@ abstract class SelectCommon extends Statement
     {
         parent::__construct();
 
-        $this->setProperty($this->p_order, new OrderByList());
-        $this->setProperty($this->p_locking, new LockList());
+        $this->p_order = new OrderByList();
+        $this->p_order->parentNode = $this;
+
+        $this->p_locking = new LockList();
+        $this->p_locking->parentNode = $this;
     }
 
+    /**
+     * Ensures that expression is a ScalarExpression instance, tries to parse the string
+     *
+     * @param string|ScalarExpression|null $expression
+     * @param string                       $method
+     */
     private function normalizeExpression(&$expression, string $method): void
     {
         if (is_string($expression)) {
@@ -86,6 +97,11 @@ abstract class SelectCommon extends Statement
         }
     }
 
+    /**
+     * Sets the node representing LIMIT clause
+     *
+     * @param string|ScalarExpression|null $limit
+     */
     public function setLimit($limit = null): void
     {
         $this->normalizeExpression($limit, __METHOD__);
@@ -97,6 +113,11 @@ abstract class SelectCommon extends Statement
         $this->p_limitWithTies = $withTies;
     }
 
+    /**
+     * Sets the node representing OFFSET clause
+     *
+     * @param string|ScalarExpression|null $offset
+     */
     public function setOffset($offset = null): void
     {
         $this->normalizeExpression($offset, __METHOD__);
@@ -142,6 +163,13 @@ abstract class SelectCommon extends Statement
         return $this->combineUsingSetOperation($select, $distinct ? SetOpSelect::EXCEPT : SetOpSelect::EXCEPT_ALL);
     }
 
+    /**
+     * Combines this select statement with another one using the given operator
+     *
+     * @param string|SelectCommon $select
+     * @param string              $operator
+     * @return SetOpSelect
+     */
     private function combineUsingSetOperation($select, string $operator): SetOpSelect
     {
         if (is_string($select)) {

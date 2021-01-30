@@ -21,25 +21,30 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_builder\nodes\{
+    group\GroupByElement,
     lists\ExpressionList,
     lists\FromList,
     lists\GroupByList,
     lists\TargetList,
     lists\WindowList,
-    WhereOrHavingClause
+    range\FromElement,
+    ScalarExpression,
+    TargetElement,
+    WhereOrHavingClause,
+    WindowDefinition
 };
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * Represents a (simple) SELECT statement
  *
- * @property      TargetList          $list
- * @property      bool|ExpressionList $distinct
- * @property      FromList            $from
- * @property-read WhereOrHavingClause $where
- * @property      GroupByList         $group
- * @property-read WhereOrHavingClause $having
- * @property      WindowList          $window
+ * @property      TargetList|TargetElement[]             $list
+ * @property      bool|ExpressionList|ScalarExpression[] $distinct
+ * @property      FromList|FromElement[]                 $from
+ * @property-read WhereOrHavingClause                    $where
+ * @property      GroupByList|GroupByElement[]           $group
+ * @property-read WhereOrHavingClause                    $having
+ * @property      WindowList|WindowDefinition[]          $window
  */
 class Select extends SelectCommon
 {
@@ -58,32 +63,55 @@ class Select extends SelectCommon
     /** @var WindowList */
     protected $p_window;
 
+    /**
+     * Select constructor
+     *
+     * @param TargetList               $list
+     * @param null|bool|ExpressionList $distinct
+     */
     public function __construct(TargetList $list, $distinct = null)
     {
         parent::__construct();
 
         $this->setProperty($this->p_list, $list);
-        $this->setProperty($this->p_from, new FromList());
-        $this->setProperty($this->p_where, new WhereOrHavingClause());
-        $this->setProperty($this->p_group, new GroupByList());
-        $this->setProperty($this->p_having, new WhereOrHavingClause());
-        $this->setProperty($this->p_window, new WindowList());
         $this->setDistinct($distinct);
+
+        $this->p_from   = new FromList();
+        $this->p_where  = new WhereOrHavingClause();
+        $this->p_group  = new GroupByList();
+        $this->p_having = new WhereOrHavingClause();
+        $this->p_window = new WindowList();
+
+        $this->p_from->parentNode   = $this;
+        $this->p_where->parentNode  = $this;
+        $this->p_group->parentNode  = $this;
+        $this->p_having->parentNode = $this;
+        $this->p_window->parentNode = $this;
     }
 
+    /**
+     * Sets the property corresponding to DISTINCT / DISTINCT ON clause
+     *
+     * @param null|bool|ExpressionList $distinct
+     */
     public function setDistinct($distinct): void
     {
         if (is_string($distinct)) {
             $distinct = ExpressionList::createFromString($this->getParserOrFail('DISTINCT clause'), $distinct);
         }
-        if (!is_null($distinct) && !is_bool($distinct) && !($distinct instanceof ExpressionList)) {
+        if (is_null($distinct) || is_bool($distinct)) {
+            // This removes parentNode from existing distinct node if it is an instance of ExpressionList
+            $this->setProperty($this->p_distinct, null);
+            $this->p_distinct = (bool)$distinct;
+        } elseif ($distinct instanceof ExpressionList) {
+            $this->setProperty($this->p_distinct, $distinct);
+        } else {
             throw new InvalidArgumentException(sprintf(
                 '%s expects either a boolean or an instance of ExpressionList, %s given',
                 __METHOD__,
                 is_object($distinct) ? 'object(' . get_class($distinct) . ')' : gettype($distinct)
             ));
         }
-        $this->setProperty($this->p_distinct, !$distinct ? null : $distinct);
     }
 
     public function dispatch(TreeWalker $walker)

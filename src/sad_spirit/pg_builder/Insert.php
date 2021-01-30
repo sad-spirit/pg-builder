@@ -24,19 +24,21 @@ use sad_spirit\pg_builder\nodes\{
     lists\TargetList,
     lists\SetTargetList,
     range\InsertTarget,
-    OnConflictClause
+    OnConflictClause,
+    SetTargetElement,
+    TargetElement
 };
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * AST node representing INSERT statement
  *
- * @property-read InsertTarget          $relation
- * @property      SetTargetList         $cols
- * @property      SelectCommon|null     $values
- * @property      string|null           $overriding
- * @property      OnConflictClause|null $onConflict
- * @property      TargetList            $returning
+ * @property-read InsertTarget                     $relation
+ * @property      SetTargetList|SetTargetElement[] $cols
+ * @property      SelectCommon|null                $values
+ * @property      string|null                      $overriding
+ * @property      OnConflictClause|null            $onConflict
+ * @property      TargetList|TargetElement[]       $returning
  */
 class Insert extends Statement
 {
@@ -66,8 +68,12 @@ class Insert extends Statement
         parent::__construct();
 
         $this->setProperty($this->p_relation, $relation);
-        $this->setProperty($this->p_cols, new SetTargetList());
-        $this->setProperty($this->p_returning, new TargetList());
+
+        $this->p_cols      = new SetTargetList();
+        $this->p_returning = new TargetList();
+
+        $this->p_cols->parentNode      = $this;
+        $this->p_returning->parentNode = $this;
     }
 
     public function setValues(SelectCommon $values = null): void
@@ -75,6 +81,11 @@ class Insert extends Statement
         $this->setProperty($this->p_values, $values);
     }
 
+    /**
+     * Sets the Node representing 'ON CONFLICT' clause
+     *
+     * @param string|OnConflictClause|null $onConflict
+     */
     public function setOnConflict($onConflict = null): void
     {
         if (is_string($onConflict)) {
