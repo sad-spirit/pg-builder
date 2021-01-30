@@ -30,6 +30,9 @@ use sad_spirit\pg_builder\{
 
 /**
  * List of window definitions (WINDOW clause of SELECT)
+ *
+ * @extends NonAssociativeList<WindowDefinition>
+ * @implements ElementParseable<WindowDefinition>
  */
 class WindowList extends NonAssociativeList implements Parseable, ElementParseable
 {

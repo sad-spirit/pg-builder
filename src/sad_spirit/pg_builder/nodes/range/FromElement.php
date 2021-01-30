@@ -22,6 +22,7 @@ namespace sad_spirit\pg_builder\nodes\range;
 
 use sad_spirit\pg_builder\{
     exceptions\InvalidArgumentException,
+    NodeList,
     nodes\GenericNode,
     nodes\Identifier,
     nodes\QualifiedName
@@ -41,13 +42,19 @@ abstract class FromElement extends GenericNode
     /** @var IdentifierList|null */
     protected $p_columnAliases;
 
-    public function setAlias(Identifier $tableAlias = null, $columnAliases = null): void
+    /**
+     * Sets table and column aliases for a FROM clause item
+     *
+     * @param Identifier|null $tableAlias
+     * @param IdentifierList|null $columnAliases
+     */
+    public function setAlias(Identifier $tableAlias = null, NodeList $columnAliases = null): void
     {
         if (null !== $columnAliases && !($columnAliases instanceof IdentifierList)) {
             throw new InvalidArgumentException(sprintf(
                 '%s expects an instance of IdentifierList for $columnAliases, %s given',
                 __METHOD__,
-                is_object($columnAliases) ? 'object(' . get_class($columnAliases) . ')' : gettype($columnAliases)
+                get_class($columnAliases)
             ));
         }
 

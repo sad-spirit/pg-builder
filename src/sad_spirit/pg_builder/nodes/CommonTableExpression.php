@@ -59,12 +59,12 @@ class CommonTableExpression extends GenericNode
         $this->setMaterialized($materialized);
     }
 
-    public function setStatement(Statement $statement)
+    public function setStatement(Statement $statement): void
     {
         $this->setProperty($this->p_statement, $statement);
     }
 
-    public function setMaterialized(?bool $materialized)
+    public function setMaterialized(?bool $materialized): void
     {
         $this->p_materialized = $materialized;
     }

@@ -27,6 +27,7 @@ use sad_spirit\pg_builder\nodes\{
     lists\ColumnDefinitionList
 };
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\NodeList;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -64,20 +65,28 @@ class FunctionCall extends FromElement
         $this->p_withOrdinality = $ordinality;
     }
 
-    public function setAlias(Identifier $tableAlias = null, $columnAliases = null): void
+    /**
+     * Sets table and column aliases for a function call in FROM clause
+     *
+     * Unlike aliases for a table in FROM, column aliases here can specify types
+     *
+     * @param Identifier|null                          $tableAlias
+     * @param IdentifierList|ColumnDefinitionList|null $columnAliases
+     */
+    public function setAlias(Identifier $tableAlias = null, NodeList $columnAliases = null): void
     {
         if (null === $columnAliases || $columnAliases instanceof IdentifierList) {
             parent::setAlias($tableAlias, $columnAliases);
 
         } elseif ($columnAliases instanceof ColumnDefinitionList) {
-            parent::setAlias($tableAlias, null);
+            parent::setAlias($tableAlias);
             $this->setProperty($this->p_columnAliases, $columnAliases);
 
         } else {
             throw new InvalidArgumentException(sprintf(
                 '%s expects an instance of either IdentifierList or ColumnDefinitionList, %s given',
                 __METHOD__,
-                is_object($columnAliases) ? 'object(' . get_class($columnAliases) . ')' : gettype($columnAliases)
+                get_class($columnAliases)
             ));
         }
     }

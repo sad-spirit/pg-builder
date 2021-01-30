@@ -31,6 +31,9 @@ use sad_spirit\pg_builder\{
 
 /**
  * List of locking clauses attached to SELECT
+ *
+ * @extends NonAssociativeList<LockingElement>
+ * @implements ElementParseable<LockingElement>
  */
 class LockList extends NonAssociativeList implements Parseable, ElementParseable
 {

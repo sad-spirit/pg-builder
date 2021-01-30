@@ -20,10 +20,14 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\lists;
 
+use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * Only allows non-negative integer indexes in arrays
+ *
+ * @template T of Node
+ * @extends GenericNodeList<int, T>
  */
 abstract class NonAssociativeList extends GenericNodeList
 {

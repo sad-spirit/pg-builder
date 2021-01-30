@@ -59,6 +59,14 @@ class OrderByElement extends GenericNode
     /** @var string|QualifiedOperator|null */
     protected $p_operator;
 
+    /**
+     * OrderByElement constructor
+     *
+     * @param ScalarExpression              $expression
+     * @param string|null                   $direction
+     * @param string|null                   $nullsOrder
+     * @param string|QualifiedOperator|null $operator
+     */
     public function __construct(
         ScalarExpression $expression,
         ?string $direction = null,

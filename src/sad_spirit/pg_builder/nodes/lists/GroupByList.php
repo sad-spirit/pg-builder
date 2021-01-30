@@ -33,6 +33,9 @@ use sad_spirit\pg_builder\nodes\group\GroupByElement;
  * List of elements appearing in GROUP BY clause
  *
  * The list can contain either expressions or special constructs like CUBE(), ROLLUP() and GROUPING SETS()
+ *
+ * @extends NonAssociativeList<ScalarExpression|GroupByElement>
+ * @implements ElementParseable<ScalarExpression|GroupByElement>
  */
 class GroupByList extends NonAssociativeList implements Parseable, ElementParseable
 {

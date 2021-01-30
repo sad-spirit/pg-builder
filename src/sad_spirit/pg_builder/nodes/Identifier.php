@@ -43,6 +43,10 @@ class Identifier extends GenericNode
         'value' => 'p_value'
     ];
 
+    /**
+     * Cache of check results ["identifier value" => "needs double quotes?"]
+     * @var array<string, bool>
+     */
     private static $needsQuoting = [];
 
     public function __construct(string $value)

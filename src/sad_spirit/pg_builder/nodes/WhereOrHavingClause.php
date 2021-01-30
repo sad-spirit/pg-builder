@@ -124,6 +124,7 @@ class WhereOrHavingClause extends GenericNode
             if ($condition instanceof LogicalExpression && LogicalExpression::AND === $condition->operator) {
                 $recipient->merge($condition);
             } elseif ($condition instanceof self) { // we assume this should be "nested"
+                // TODO: this will probably fail if $condition->condition is null, need tests
                 $recipient[] = $condition->condition;
             } else {
                 $recipient[] = $condition;
@@ -157,6 +158,7 @@ class WhereOrHavingClause extends GenericNode
             if ($condition instanceof LogicalExpression && LogicalExpression::OR === $condition->operator) {
                 $this->p_condition->merge($condition);
             } elseif ($condition instanceof self) { // we assume this should be "nested"
+                // TODO: this will probably fail if $condition->condition is null, need tests
                 $this->p_condition[] = $condition->condition;
             } else {
                 $this->p_condition[] = $condition;

@@ -30,6 +30,9 @@ use sad_spirit\pg_builder\nodes\expressions\RowExpression;
 
 /**
  * A list of row expressions, base for VALUES statement
+ *
+ * @extends NonAssociativeList<RowExpression>
+ * @implements ElementParseable<RowExpression>
  */
 class RowList extends NonAssociativeList implements Parseable, ElementParseable
 {

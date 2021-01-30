@@ -76,6 +76,7 @@ abstract class GenericNode implements Node, \Serializable
      *
      * @param string $name
      * @param mixed  $value
+     * @return void
      * @throws InvalidArgumentException
      */
     public function __set(string $name, $value)
@@ -140,7 +141,7 @@ abstract class GenericNode implements Node, \Serializable
 
     /**
      * Returns an array containing all magic properties, used when serializing
-     * @return array
+     * @return array<string, mixed>
      */
     protected function collectProperties(): array
     {
@@ -154,7 +155,7 @@ abstract class GenericNode implements Node, \Serializable
     /**
      * Unserializes properties, restoring parent node link for child nodes
      *
-     * @param array $properties
+     * @param array<string, mixed> $properties
      */
     protected function unserializeProperties(array $properties): void
     {

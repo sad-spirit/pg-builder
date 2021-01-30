@@ -51,6 +51,15 @@ class FunctionCall extends GenericNode
     /** @var OrderByList */
     protected $p_order;
 
+    /**
+     * FunctionCall constructor
+     *
+     * @param string|QualifiedName           $funcName
+     * @param FunctionArgumentList|Star|null $arguments
+     * @param bool                           $distinct
+     * @param bool                           $variadic
+     * @param OrderByList|null               $orderBy
+     */
     public function __construct(
         $funcName,
         $arguments = null,

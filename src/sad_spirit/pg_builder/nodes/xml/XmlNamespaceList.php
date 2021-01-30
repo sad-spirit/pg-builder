@@ -30,6 +30,9 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 
 /**
  * List of XML namespaces appearing in XMLTABLE clause
+ *
+ * @extends NonAssociativeList<XmlNamespace>
+ * @implements ElementParseable<XmlNamespace>
  */
 class XmlNamespaceList extends NonAssociativeList implements Parseable, ElementParseable
 {

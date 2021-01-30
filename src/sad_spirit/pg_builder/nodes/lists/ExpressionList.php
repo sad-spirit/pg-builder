@@ -39,6 +39,9 @@ use sad_spirit\pg_builder\{
  * Therefore we don't make SetToDefault node an implementation of ScalarExpression and only allow
  * it on the top level of RowExpression. Since the latter extends ExpressionList, the knobs to
  * allow SetToDefault are defined here.
+ *
+ * @extends NonAssociativeList<ScalarExpression>
+ * @implements ElementParseable<ScalarExpression>
  */
 class ExpressionList extends NonAssociativeList implements Parseable, ElementParseable
 {
@@ -49,6 +52,7 @@ class ExpressionList extends NonAssociativeList implements Parseable, ElementPar
 
     public function createElementFromString(string $sql): Node
     {
+        // TODO: this should probably just be reimplemented in child class, need tests
         $parser = $this->getParserOrFail('a list element');
         return count(static::getAllowedElementClasses()) > 1
             ? $parser->parseExpressionWithDefault($sql)

@@ -33,6 +33,8 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  * WITH clause containing common table expressions
  *
  * @property bool $recursive
+ * @extends NonAssociativeList<CommonTableExpression>
+ * @implements ElementParseable<CommonTableExpression>
  */
 class WithClause extends NonAssociativeList implements Parseable, ElementParseable
 {
@@ -46,6 +48,12 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
         return [CommonTableExpression::class];
     }
 
+    /**
+     * WithClause constructor
+     *
+     * @param string|null|iterable<CommonTableExpression> $commonTableExpressions
+     * @param bool                                        $recursive
+     */
     public function __construct($commonTableExpressions, bool $recursive = false)
     {
         $this->generatePropertyNames();
@@ -93,7 +101,7 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
         }
     }
 
-    public function setRecursive(bool $recursive)
+    public function setRecursive(bool $recursive): void
     {
         $this->p_recursive = $recursive;
     }

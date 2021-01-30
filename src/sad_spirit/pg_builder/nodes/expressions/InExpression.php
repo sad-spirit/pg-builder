@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
+    Node,
     nodes\GenericNode,
     SelectCommon,
     nodes\ScalarExpression,
@@ -47,7 +48,14 @@ class InExpression extends GenericNode implements ScalarExpression
     /** @var bool */
     protected $p_negated;
 
-    public function __construct(ScalarExpression $left, $right, bool $negated = false)
+    /**
+     * InExpression constructor
+     *
+     * @param ScalarExpression            $left
+     * @param SelectCommon|ExpressionList $right
+     * @param bool                        $negated
+     */
+    public function __construct(ScalarExpression $left, Node $right, bool $negated = false)
     {
         $this->generatePropertyNames();
         $this->setRight($right);
@@ -60,19 +68,24 @@ class InExpression extends GenericNode implements ScalarExpression
         $this->setProperty($this->p_left, $left);
     }
 
-    public function setRight($right): void
+    /**
+     * Sets the subselect or a list of expressions appearing in parentheses: foo IN (...)
+     *
+     * @param SelectCommon|ExpressionList $right
+     */
+    public function setRight(Node $right): void
     {
         if (!($right instanceof SelectCommon) && !($right instanceof ExpressionList)) {
             throw new InvalidArgumentException(sprintf(
                 '%s requires an instance of either SelectCommon or ExpressionList as right operand, %s given',
                 __CLASS__,
-                is_object($right) ? 'object(' . get_class($right) . ')' : gettype($right)
+                get_class($right)
             ));
         }
         $this->setProperty($this->p_right, $right);
     }
 
-    public function setNegated(bool $negated)
+    public function setNegated(bool $negated): void
     {
         $this->p_negated = $negated;
     }

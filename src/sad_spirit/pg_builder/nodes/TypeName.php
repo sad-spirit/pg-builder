@@ -38,7 +38,7 @@ class TypeName extends GenericNode
 
     /** @var bool */
     protected $p_setOf = false;
-    /** @var array */
+    /** @var array<int,int> */
     protected $p_bounds = [];
     /** @var QualifiedName */
     protected $p_name;
@@ -57,6 +57,11 @@ class TypeName extends GenericNode
         $this->p_setOf = $setOf;
     }
 
+    /**
+     * Sets the bounds for an array type
+     *
+     * @param array<int, int|string> $bounds
+     */
     public function setBounds(array $bounds): void
     {
         $this->p_bounds = [];

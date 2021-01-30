@@ -89,7 +89,7 @@ class BetweenExpression extends GenericNode implements ScalarExpression
         $this->setProperty($this->p_right, $right);
     }
 
-    public function setOperator(string $operator)
+    public function setOperator(string $operator): void
     {
         if (!isset(self::ALLOWED_OPERATORS[$operator])) {
             throw new InvalidArgumentException("Unknown operator '{$operator}' for BETWEEN-style expression");
@@ -97,7 +97,7 @@ class BetweenExpression extends GenericNode implements ScalarExpression
         $this->p_operator = $operator;
     }
 
-    public function setNegated(bool $negated)
+    public function setNegated(bool $negated): void
     {
         $this->p_negated = $negated;
     }

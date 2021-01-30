@@ -22,6 +22,7 @@ namespace sad_spirit\pg_builder;
 
 /**
  * Interface for NodeLists that know how to parse SQL for their elements
+ * @template T of Node
  */
 interface ElementParseable
 {
@@ -29,7 +30,7 @@ interface ElementParseable
      * Parses the SQL for a list element, returning the AST for it
      *
      * @param string $sql
-     * @return Node
+     * @return T
      * @throws exceptions\SyntaxException
      */
     public function createElementFromString(string $sql): Node;

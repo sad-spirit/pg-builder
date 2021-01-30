@@ -31,6 +31,9 @@ use sad_spirit\pg_builder\{
 
 /**
  * Represents a list of SetTargetElements, used by INSERT and UPDATE statements
+ *
+ * @extends NonAssociativeList<SetTargetElement>
+ * @implements ElementParseable<SetTargetElement>
  */
 class SetTargetList extends NonAssociativeList implements Parseable, ElementParseable
 {

@@ -75,7 +75,14 @@ class OperatorExpression extends GenericNode implements ScalarExpression
     protected $p_right;
     /** @var string|QualifiedOperator */
     protected $p_operator;
-    
+
+    /**
+     * OperatorExpression constructor
+     *
+     * @param string|QualifiedOperator $operator
+     * @param ScalarExpression|null    $left
+     * @param ScalarExpression|null    $right
+     */
     public function __construct($operator, ScalarExpression $left = null, ScalarExpression $right = null)
     {
         if (!is_string($operator) && !$operator instanceof QualifiedOperator) {

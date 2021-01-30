@@ -22,6 +22,7 @@ namespace sad_spirit\pg_builder\nodes\range;
 
 use sad_spirit\pg_builder\{
     exceptions\InvalidArgumentException,
+    nodes\Identifier,
     nodes\ScalarExpression,
     TreeWalker
 };
@@ -100,6 +101,11 @@ class JoinExpression extends FromElement
         $this->p_natural = $natural;
     }
 
+    /**
+     * Sets USING clause for JOIN expression
+     *
+     * @param null|string|iterable<Identifier> $using
+     */
     public function setUsing($using = null): void
     {
         if (null !== $using) {
@@ -125,6 +131,11 @@ class JoinExpression extends FromElement
         $this->setProperty($this->p_using, $using);
     }
 
+    /**
+     * Sets ON clause for JOIN expression
+     *
+     * @param null|string|ScalarExpression $on
+     */
     public function setOn($on = null): void
     {
         if (null !== $on) {

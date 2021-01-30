@@ -30,6 +30,8 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 
 /**
  * Represents an array constructed from a list of values ARRAY[...]
+ *
+ * @extends NonAssociativeList<ScalarExpression>
  */
 class ArrayExpression extends NonAssociativeList implements ScalarExpression
 {
@@ -37,14 +39,12 @@ class ArrayExpression extends NonAssociativeList implements ScalarExpression
 
     protected static function getAllowedElementClasses(): array
     {
-        return [
-            ScalarExpression::class,
-            self::class
-        ];
+        return [ScalarExpression::class];
     }
 
     protected function prepareListElement($value): Node
     {
+        // TODO: ArrayExpression is not the only iterable implementing ScalarExpression, need tests
         if (is_iterable($value) && !$value instanceof self) {
             $value = new self($value);
         }

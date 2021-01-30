@@ -34,6 +34,7 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  *
  * @property ScalarExpression|null $argument
  * @property ScalarExpression|null $else
+ * @extends NonAssociativeList<WhenExpression>
  */
 class CaseExpression extends NonAssociativeList implements ScalarExpression
 {
@@ -50,6 +51,13 @@ class CaseExpression extends NonAssociativeList implements ScalarExpression
         return [WhenExpression::class];
     }
 
+    /**
+     * CaseExpression constructor
+     *
+     * @param null|string|iterable<WhenExpression> $whenClauses
+     * @param ScalarExpression|null                $elseClause
+     * @param ScalarExpression|null                $argument
+     */
     public function __construct($whenClauses, ScalarExpression $elseClause = null, ScalarExpression $argument = null)
     {
         $this->generatePropertyNames();

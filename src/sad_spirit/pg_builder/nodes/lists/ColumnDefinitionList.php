@@ -25,6 +25,8 @@ use sad_spirit\pg_builder\nodes\range\ColumnDefinition;
 
 /**
  * Column definition list, may appear in aliases for functions in FROM
+ *
+ * @extends NonAssociativeList<ColumnDefinition>
  */
 class ColumnDefinitionList extends NonAssociativeList
 {

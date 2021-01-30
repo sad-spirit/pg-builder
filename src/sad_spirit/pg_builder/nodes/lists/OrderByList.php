@@ -30,6 +30,9 @@ use sad_spirit\pg_builder\{
 
 /**
  * List of elements appearing in ORDER BY clause
+ *
+ * @extends NonAssociativeList<OrderByElement>
+ * @implements ElementParseable<OrderByElement>
  */
 class OrderByList extends NonAssociativeList implements Parseable, ElementParseable
 {

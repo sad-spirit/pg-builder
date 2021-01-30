@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -36,20 +37,31 @@ class SingleSetClause extends GenericNode
     /** @var ScalarExpression|SetToDefault */
     protected $p_value;
 
-    public function __construct(SetTargetElement $column, $value)
+    /**
+     * SingleSetClause constructor
+     *
+     * @param SetTargetElement              $column
+     * @param ScalarExpression|SetToDefault $value
+     */
+    public function __construct(SetTargetElement $column, Node $value)
     {
         $this->generatePropertyNames();
         $this->setProperty($this->p_column, $column);
         $this->setValue($value);
     }
 
-    public function setValue($value = null): void
+    /**
+     * Sets the Node representing a new value for the column
+     *
+     * @param ScalarExpression|SetToDefault $value
+     */
+    public function setValue(Node $value): void
     {
         if (!($value instanceof ScalarExpression) && !($value instanceof SetToDefault)) {
             throw new InvalidArgumentException(sprintf(
                 '%s expects either a ScalarExpression or SetToDefault instance as value, %s given',
                 __CLASS__,
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
+                get_class($value)
             ));
         }
         $this->setProperty($this->p_value, $value);

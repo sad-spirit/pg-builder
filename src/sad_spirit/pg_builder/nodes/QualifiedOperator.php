@@ -45,12 +45,6 @@ class QualifiedOperator extends GenericNode
     /** @var string */
     protected $p_operator;
 
-    protected $props = [
-        'catalog'  => null,
-        'schema'   => null,
-        'operator' => null
-    ];
-
     /**
      * QualifiedOperator constructor, requires at least the operator, accepts up to three name parts
      *

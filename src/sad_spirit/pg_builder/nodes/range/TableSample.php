@@ -26,6 +26,7 @@ use sad_spirit\pg_builder\nodes\{
     ScalarExpression,
     lists\ExpressionList
 };
+use sad_spirit\pg_builder\NodeList;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -70,7 +71,7 @@ class TableSample extends FromElement
         $this->setProperty($this->p_repeatable, $repeatable);
     }
 
-    public function setAlias(Identifier $tableAlias = null, $columnAliases = null): void
+    public function setAlias(Identifier $tableAlias = null, NodeList $columnAliases = null): void
     {
         $this->p_relation->setAlias($tableAlias, $columnAliases);
     }

@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -63,8 +64,17 @@ class IndexElement extends GenericNode
     /** @var string|null */
     protected $p_nullsOrder;
 
+    /**
+     * IndexElement constructor
+     *
+     * @param ScalarExpression|Identifier $expression
+     * @param QualifiedName|null          $collation
+     * @param QualifiedName|null          $opClass
+     * @param string|null                 $direction
+     * @param string|null                 $nullsOrder
+     */
     public function __construct(
-        $expression,
+        Node $expression,
         QualifiedName $collation = null,
         QualifiedName $opClass = null,
         ?string $direction = null,
@@ -86,12 +96,17 @@ class IndexElement extends GenericNode
         $this->p_nullsOrder = $nullsOrder;
     }
 
-    public function setExpression($expression): void
+    /**
+     * Sets the node identifying the indexed column / function call / expression
+     *
+     * @param ScalarExpression|Identifier $expression
+     */
+    public function setExpression(Node $expression): void
     {
         if (!($expression instanceof ScalarExpression) && !($expression instanceof Identifier)) {
             throw new InvalidArgumentException(sprintf(
                 'IndexElement needs either a ScalarExpression or column Identifier as its expression, %s given',
-                is_object($expression) ? 'object(' . get_class($expression) . ')' : gettype($expression)
+                get_class($expression)
             ));
         }
         $this->setProperty($this->p_expression, $expression);

@@ -24,6 +24,8 @@ use sad_spirit\pg_builder\nodes\range\RowsFromElement;
 
 /**
  * List of elements appearing in ROWS FROM(...) construct
+ *
+ * @extends NonAssociativeList<RowsFromElement>
  */
 class RowsFromList extends NonAssociativeList
 {

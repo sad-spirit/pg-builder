@@ -34,12 +34,16 @@ use sad_spirit\pg_builder\{
  * An array that enforces the type of its elements
  *
  * Inspired by PEAR's PHP_ArrayOf class
+ * @psalm-template TKey of array-key
+ * @phpstan-template TKey
+ * @template T of Node
+ * @implements NodeList<TKey, T>
  */
 abstract class GenericNodeList extends GenericNode implements NodeList
 {
     /**
      * Child nodes available through ArrayAccess
-     * @var Node[]
+     * @var T[]
      */
     protected $offsets = [];
 
@@ -60,7 +64,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      *  - an iterable containing "compatible" values
      *  - a string if Parser is available
      *
-     * @param iterable|string|null $list
+     * @param iterable<T>|string|null $list
      */
     public function __construct($list = null)
     {
@@ -120,6 +124,8 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * Method required by ArrayAccess interface
      *
      * {@inheritDoc}
+     *
+     * @param TKey $offset
      */
     public function offsetExists($offset)
     {
@@ -130,6 +136,9 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * Method required by ArrayAccess interface
      *
      * {@inheritDoc}
+     *
+     * @param TKey $offset
+     * @return T
      */
     public function offsetGet($offset)
     {
@@ -144,6 +153,8 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * Method required by ArrayAccess interface
      *
      * {@inheritDoc}
+     * @param TKey|null $offset
+     * @param string|T $value
      */
     public function offsetSet($offset, $value)
     {
@@ -268,9 +279,9 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     /**
      * Ensures that "array-like" argument of merge() / replace() is either an iterable or a parseable string
      *
-     * @param iterable|string $array
-     * @param string          $method calling method, used only for Exception messages
-     * @return iterable
+     * @param iterable<T>|string $array
+     * @param string             $method calling method, used only for Exception messages
+     * @return iterable<T>
      * @throws InvalidArgumentException
      */
     protected function prepareList($array, string $method): iterable
@@ -295,9 +306,9 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * The returned array should contain only instances of Node passed through prepareListElement(),
      * it is not checked further in merge() / replace()
      *
-     * @param iterable|string $list
+     * @param iterable<T>|string $list
      * @param string $method
-     * @return array
+     * @return array<TKey, T>
      */
     abstract protected function convertToArray($list, string $method): array;
 
@@ -310,8 +321,9 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * Finally, the list is set as a parent of Node. This is done here so that merge() / replace() methods
      * may work on an all or nothing principle, without possibility of merging only a part of array.
      *
+     * @phpstan-param T|string $value
      * @param mixed $value
-     * @return Node
+     * @return T
      */
     protected function prepareListElement($value): Node
     {

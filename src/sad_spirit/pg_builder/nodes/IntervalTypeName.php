@@ -65,7 +65,7 @@ class IntervalTypeName extends TypeName
         $this->setProperty($this->p_modifiers, $typeModifiers ?? new TypeModifierList());
     }
 
-    public function setMask(string $mask = '')
+    public function setMask(string $mask = ''): void
     {
         if ('' !== $mask && !isset(self::ALLOWED_MASKS[$mask])) {
             throw new InvalidArgumentException("Unknown mask '{$mask}' for interval type");

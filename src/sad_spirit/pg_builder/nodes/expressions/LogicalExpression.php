@@ -48,6 +48,12 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
     /** @var string */
     protected $p_operator = self::AND;
 
+    /**
+     * LogicalExpression constructor
+     *
+     * @param null|string|iterable<ScalarExpression> $terms
+     * @param string                                 $operator
+     */
     public function __construct($terms = null, string $operator = self::AND)
     {
         if (!isset(self::PRECEDENCES[$operator])) {

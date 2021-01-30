@@ -31,6 +31,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * 'ERROR:  row expansion via "*" is not supported here'
  *
  * @property Identifier $name
+ * @extends NonAssociativeList<Identifier|ArrayIndexes>
  */
 class SetTargetElement extends NonAssociativeList
 {
@@ -48,6 +49,12 @@ class SetTargetElement extends NonAssociativeList
         ];
     }
 
+    /**
+     * SetTargetElement constructor
+     *
+     * @param string|Identifier                  $name
+     * @param array<int,Identifier|ArrayIndexes> $indirection
+     */
     public function __construct($name, array $indirection = [])
     {
         $this->generatePropertyNames();
@@ -55,6 +62,11 @@ class SetTargetElement extends NonAssociativeList
         $this->setName($name);
     }
 
+    /**
+     * Sets the target column name
+     *
+     * @param string|Identifier $name
+     */
     public function setName($name): void
     {
         if (!($name instanceof Identifier)) {

@@ -31,6 +31,9 @@ use sad_spirit\pg_builder\{
 
 /**
  * Represents SET clause of UPDATE statement
+ *
+ * @extends NonAssociativeList<SingleSetClause|MultipleSetClause>
+ * @implements ElementParseable<SingleSetClause|MultipleSetClause>
  */
 class SetClauseList extends NonAssociativeList implements Parseable, ElementParseable
 {

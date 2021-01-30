@@ -77,12 +77,12 @@ class IsExpression extends GenericNode implements ScalarExpression
         $this->setNegated($negated);
     }
 
-    public function setArgument(ScalarExpression $argument)
+    public function setArgument(ScalarExpression $argument): void
     {
         $this->setProperty($this->p_argument, $argument);
     }
     
-    public function setWhat(string $what)
+    public function setWhat(string $what): void
     {
         if (!isset(self::ALLOWED_KEYWORDS[$what])) {
             throw new InvalidArgumentException("Unknown keyword '{$what}' for right side of IS expression");
@@ -90,7 +90,7 @@ class IsExpression extends GenericNode implements ScalarExpression
         $this->p_what = $what;
     }
     
-    public function setNegated(bool $negated)
+    public function setNegated(bool $negated): void
     {
         $this->p_negated = $negated;
     }
