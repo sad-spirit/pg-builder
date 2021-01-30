@@ -37,7 +37,7 @@ class Lexer
 
     /**
      * Replacements for simple backslash escapes in e'...' strings
-     * @var array
+     * @var array<string, string>
      * @link https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS-ESCAPE
      */
     private static $replacements = [
@@ -48,19 +48,39 @@ class Lexer
         't'  => "\t"
     ];
 
+    /** @var string */
     private $source;
+    /** @var int */
     private $position;
+    /** @var int */
     private $length;
     /** @var Token[] */
     private $tokens;
+    /** @var array<string,mixed> */
     private $options;
+    /**
+     * Set to true if Unicode escapes were seen during main lexer run, triggers processing these
+     * @var bool
+     */
     private $unescape;
+    /**
+     * First codepoint of Unicode surrogate pair
+     * @var int|null
+     */
     private $pairFirst;
+    /**
+     * Position of last Unicode escape in string
+     * @var int
+     */
     private $lastUnicodeEscape;
 
+    /** @var array<string, int> */
     private $operatorCharHash;
+    /** @var array<string, int> */
     private $specialCharHash;
+    /** @var array<string, int> */
     private $nonStandardCharHash;
+    /** @var string */
     private $baseRegexp;
 
     /**
@@ -71,7 +91,7 @@ class Lexer
      *      then backslashes in '...' strings are treated literally, when false they are treated as escape
      *      characters.
      *
-     * @param array $options
+     * @param array<string, mixed> $options
      */
     public function __construct(array $options = [])
     {

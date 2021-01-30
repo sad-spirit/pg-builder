@@ -25,11 +25,11 @@ namespace sad_spirit\pg_builder;
  */
 class TokenStream
 {
-    /**
-     * @var Token[]
-     */
+    /** @var Token[] */
     private $tokens;
+    /** @var int */
     private $current;
+    /** @var string */
     private $source;
 
     /**
@@ -41,9 +41,8 @@ class TokenStream
     /**
      * Constructor
      *
-     * @param array  $tokens Array of tokens extracted by Lexer
-     * @param string $source Source of SQL statement, mostly for exceptions
-     * @throws exceptions\SyntaxException
+     * @param Token[] $tokens Array of tokens extracted by Lexer
+     * @param string  $source Source of SQL statement, mostly for exceptions
      */
     public function __construct(array $tokens, string $source)
     {

@@ -79,13 +79,21 @@ class Token
         self::TYPE_IDENTIFIER   => true
     ];
 
+    /**
+     * Token type, one of TYPE_* constants
+     * @var int
+     * @phpstan-var self::TYPE_*
+     */
     private $type;
+    /** @var string */
     private $value;
+    /** @var int */
     private $position;
 
     /**
      * Constructor.
      *
+     * @phpstan-param self::TYPE_* $type
      * @param int    $type     Token type, one of TYPE_* constants
      * @param string $value    Token value
      * @param int    $position Position of token in the source
