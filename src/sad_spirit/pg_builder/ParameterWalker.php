@@ -28,13 +28,13 @@ class ParameterWalker extends BlankWalker
 {
     /**
      * Mapping parameter name => parameter number
-     * @var array
+     * @var array<string, int>
      */
     private $namedParameterMap = [];
 
     /**
      * Parameter types extracted from typecasts
-     * @var array
+     * @var array<int, nodes\TypeName|null>
      */
     private $parameterTypes    = [];
 
@@ -57,7 +57,7 @@ class ParameterWalker extends BlankWalker
     /**
      * Returns mapping from parameter names to parameter numbers
      *
-     * @return array
+     * @return array<string, int>
      */
     public function getNamedParameterMap(): array
     {
@@ -67,7 +67,7 @@ class ParameterWalker extends BlankWalker
     /**
      * Returns information about parameter types extracted from SQL typecasts
      *
-     * @return array
+     * @return array<int, nodes\TypeName|null>
      */
     public function getParameterTypes(): array
     {
@@ -95,6 +95,7 @@ class ParameterWalker extends BlankWalker
         if (!$this->keepNamedParameters) {
             $node->getParentNode()->replaceChild($node, new nodes\expressions\PositionalParameter($paramIdx + 1));
         }
+        return null;
     }
 
     public function walkPositionalParameter(nodes\expressions\PositionalParameter $node)
@@ -108,9 +109,10 @@ class ParameterWalker extends BlankWalker
         $paramIdx = $node->position - 1;
 
         $this->extractParameterType($node, $paramIdx);
+        return null;
     }
 
-    private function extractParameterType(nodes\expressions\Parameter $node, $idx)
+    private function extractParameterType(nodes\expressions\Parameter $node, int $idx): void
     {
         if (!($parent = $node->getParentNode())) {
             throw new exceptions\InvalidArgumentException("Parameter node doesn't contain a link to a parent node");
@@ -126,51 +128,60 @@ class ParameterWalker extends BlankWalker
 
     public function walkColumnReference(nodes\ColumnReference $node)
     {
- /* No Parameters here */
+         /* No Parameters here */
+        return null;
     }
 
     public function walkLockingElement(nodes\LockingElement $node)
     {
- /* No Parameters here */
+        /* No Parameters here */
+       return null;
     }
 
     public function walkQualifiedName(nodes\QualifiedName $node)
     {
- /* No Parameters here */
+        /* No Parameters here */
+       return null;
     }
 
     public function walkQualifiedOperator(nodes\QualifiedOperator $node)
     {
- /* No Parameters here */
+        /* No Parameters here */
+       return null;
     }
 
     public function walkTypeName(nodes\TypeName $node)
     {
- /* No Parameters here */
+        /* No Parameters here */
+       return null;
     }
 
     public function walkColumnDefinition(nodes\range\ColumnDefinition $node)
     {
- /* No Parameters here */
+        /* No Parameters here */
+       return null;
     }
 
-    protected function walkRangeItemAliases(nodes\range\FromElement $rangeItem)
+    protected function walkRangeItemAliases(nodes\range\FromElement $rangeItem): void
     {
- /* No Parameters here */
+        /* No Parameters here */
     }
 
     public function walkRelationReference(nodes\range\RelationReference $rangeItem)
     {
- /* No Parameters here */
+        /* No Parameters here */
+        return null;
     }
 
     public function walkInsertTarget(nodes\range\InsertTarget $target)
     {
- /* No Parameters here */
+        /* No Parameters here */
+        return null;
     }
 
     public function walkUpdateOrDeleteTarget(nodes\range\UpdateOrDeleteTarget $target)
     {
- /* No Parameters here */
+        /* No Parameters here */
+        return null;
     }
 }
