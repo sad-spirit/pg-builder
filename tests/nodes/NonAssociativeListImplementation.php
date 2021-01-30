@@ -32,6 +32,8 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 
 /**
  * An implementation of NonAssociativeList, behaves similar to ExpressionList
+ * @extends NonAssociativeList<ScalarExpression|SetToDefault>
+ * @implements ElementParseable<ScalarExpression|SetToDefault>
  */
 class NonAssociativeListImplementation extends NonAssociativeList implements Parseable, ElementParseable
 {

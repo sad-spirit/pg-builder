@@ -20,10 +20,12 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests\nodes;
 
+use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\nodes\lists\GenericNodeList;
 
 /**
  * A non-abstract subclass of GenericNodeList
+ * @extends GenericNodeList<int|string, Node>
  */
 class GenericNodeListImplementation extends GenericNodeList
 {

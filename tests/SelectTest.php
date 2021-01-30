@@ -88,7 +88,8 @@ class SelectTest extends TestCase
         /** @var Select $select */
         $select = $this->parser->parseSelectStatement('select foo.* from (select * from foosource) as foo');
         $select->setParser($this->parser);
-        
+
+        // @phpstan-ignore-next-line
         $select->from[0]->query->intersect('select * from barsource');
         $this->assertEquals(
             'select foo.* from (select * from foosource intersect select * from barsource) as foo',

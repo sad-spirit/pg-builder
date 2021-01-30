@@ -32,6 +32,7 @@ use PHPUnit\Framework\TestCase;
  */
 class BlankWalkerTest extends TestCase
 {
+    /** @var string */
     private $sql = <<<'QRY'
 with recursive w1 (w2, w3) as (
     select s1, s2, array[s3], false
@@ -126,6 +127,8 @@ QRY;
 
     /**
      * Iterates over src/ directory and finds all non-abstract implementations of Node
+     *
+     * @phpstan-return class-string[]
      */
     private function createListOfAllConcreteNodeSubclasses(): array
     {

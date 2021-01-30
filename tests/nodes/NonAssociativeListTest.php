@@ -46,7 +46,7 @@ class NonAssociativeListTest extends TestCase
         $this::expectException(InvalidArgumentException::class);
         $this::expectExceptionMessage('Non-negative integer offsets expected');
         $nodeList = new NonAssociativeListImplementation();
-        $nodeList[$offset] = new GenericNodeImplementation();
+        $nodeList[$offset] = new SetToDefault();
     }
 
     public function invalidOffsetsProvider(): array
@@ -64,6 +64,7 @@ class NonAssociativeListTest extends TestCase
         $this::expectExceptionMessage('ScalarExpression or SetToDefault');
 
         $nodeList   = new NonAssociativeListImplementation();
+        // @phpstan-ignore-next-line
         $nodeList[] = new GenericNodeImplementation();
     }
 
@@ -72,6 +73,7 @@ class NonAssociativeListTest extends TestCase
         $this::expectException(InvalidArgumentException::class);
         $this::expectExceptionMessage('ScalarExpression or SetToDefault');
 
+        // @phpstan-ignore-next-line
         new NonAssociativeListImplementation([new GenericNodeImplementation()]);
     }
 
@@ -81,6 +83,7 @@ class NonAssociativeListTest extends TestCase
         $this::expectExceptionMessage('ScalarExpression or SetToDefault');
 
         $nodeList = new NonAssociativeListImplementation();
+        // @phpstan-ignore-next-line
         $nodeList->merge([new GenericNodeImplementation()]);
     }
 

@@ -432,10 +432,10 @@ QRY
     /**
      * @dataProvider getInvalidQualifiedOperators
      *
-     * @param string|array $expression
-     * @param string       $message
+     * @param string|string[] $expression
+     * @param string          $message
      */
-    public function testInvalidQualifiedOperators($expression, string $message)
+    public function testInvalidQualifiedOperators($expression, string $message): void
     {
         $this::expectException(SyntaxException::class);
         $this::expectExceptionMessage($message);

@@ -58,8 +58,11 @@ class SqlBuilderParenthesesTest extends TestCase
         return implode(' ', preg_split('/\s+/', trim($string)));
     }
 
-    protected function assertStringsEqualIgnoringWhitespace($expected, $actual, $message = ''): void
-    {
+    protected function assertStringsEqualIgnoringWhitespace(
+        string $expected,
+        string $actual,
+        string $message = ''
+    ): void {
         $this->assertEquals($this->normalizeWhitespace($expected), $this->normalizeWhitespace($actual), $message);
     }
 

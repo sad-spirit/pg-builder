@@ -31,6 +31,7 @@ class GenericNodeListTest extends TestCase
 {
     /** @var GenericNodeListImplementation */
     private $nodeList;
+    /** @var mixed */
     private $error;
 
     protected function setUp(): void
@@ -61,6 +62,7 @@ class GenericNodeListTest extends TestCase
 
     /**
      * @dataProvider invalidValuesProvider
+     * @param mixed $invalidValue
      */
     public function testAcceptsOnlyNodeInstances($invalidValue): void
     {
@@ -69,7 +71,7 @@ class GenericNodeListTest extends TestCase
         $this->nodeList[] = $invalidValue;
     }
 
-    public function invalidValuesProvider()
+    public function invalidValuesProvider(): array
     {
         return [
             [null],

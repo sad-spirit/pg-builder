@@ -60,7 +60,7 @@ use Psr\Cache\CacheItemPoolInterface;
  */
 class StatementFactoryTest extends TestCase
 {
-    public function testCreatesDefaultParser()
+    public function testCreatesDefaultParser(): void
     {
         $factory = new StatementFactory();
         $this->assertEquals(

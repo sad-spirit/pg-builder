@@ -31,6 +31,7 @@ class GenericNodeTest extends TestCase
 {
     /** @var GenericNodeImplementation */
     private $node;
+    /** @var mixed */
     private $error;
 
     protected function setUp(): void
