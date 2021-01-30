@@ -23,7 +23,7 @@ namespace sad_spirit\pg_builder;
 /**
  * A tree walker that generates SQL from abstract syntax tree
  */
-class SqlBuilderWalker implements TreeWalker
+class SqlBuilderWalker implements StatementToStringWalker
 {
     /**
      * Current indentation level
@@ -33,13 +33,7 @@ class SqlBuilderWalker implements TreeWalker
 
     /**
      * Options, mostly deal with prettifying output
-     *  - 'indent': string used to indent statements
-     *  - 'linebreak': string used as a line break
-     *  - 'wrap': builder will try to wrap long lists of items before lines get that long
-     *  - 'escape_unicode': non-ASCII characters in string constants and identifiers will be represented
-     *    by Unicode escape sequences
-     *
-     * @var array
+     * @var array<string, mixed>
      */
     protected $options = [
         'indent'         => "    ",
@@ -60,6 +54,18 @@ class SqlBuilderWalker implements TreeWalker
      */
     private $escapedUnicodeIdentifiers = [];
 
+    /**
+     * Constructor, accepts options that tune output generation
+     *
+     * Known options:
+     *  - 'indent':         string used to indent statements
+     *  - 'linebreak':      string used as a line break
+     *  - 'wrap':           builder will try to wrap long lists of items before lines get that long
+     *  - 'escape_unicode': if set to true, non-ASCII characters in string constants and identifiers
+     *                      will be represented by Unicode escape sequences
+     *
+     * @param array<string, mixed> $options
+     */
     public function __construct(array $options = [])
     {
         $this->options = array_merge($this->options, $options);
@@ -170,9 +176,9 @@ class SqlBuilderWalker implements TreeWalker
      * The parts are checked for existing linebreaks so that strings containing them (e.g. subselects)
      * will be added properly.
      *
-     * @param string $lead      Leading keywords for expression list, e.g. 'select ' or 'order by '
-     * @param array  $parts     Array of expressions
-     * @param string $separator String to use for separating expressions
+     * @param string   $lead      Leading keywords for expression list, e.g. 'select ' or 'order by '
+     * @param string[] $parts     Array of expressions
+     * @param string   $separator String to use for separating expressions
      * @return string
      */
     protected function implode(string $lead, array $parts, string $separator = ','): string
@@ -216,7 +222,7 @@ class SqlBuilderWalker implements TreeWalker
     /**
      * Adds string representations of clauses defined in SelectCommon to an array
      *
-     * @param array        $clauses
+     * @param string[]     $clauses
      * @param SelectCommon $statement
      * @return void
      */
@@ -993,10 +999,8 @@ class SqlBuilderWalker implements TreeWalker
 
 
     /**
-     * Most of the lists do not have any additional features and may be handled by a generic method
-     *
-     * @param NodeList $list
-     * @return array
+     * {@inheritDoc}
+     * @return string[]
      */
     public function walkGenericNodeList(NodeList $list): array
     {
@@ -1008,6 +1012,10 @@ class SqlBuilderWalker implements TreeWalker
         return $items;
     }
 
+    /**
+     * {@inheritDoc}
+     * @return string[]
+     */
     public function walkFunctionArgumentList(nodes\lists\FunctionArgumentList $list): array
     {
         $items = [];

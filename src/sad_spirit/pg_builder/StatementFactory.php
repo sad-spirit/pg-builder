@@ -35,7 +35,7 @@ class StatementFactory
 
     /**
      * Query builder
-     * @var TreeWalker
+     * @var StatementToStringWalker
      */
     private $builder;
 
@@ -48,14 +48,20 @@ class StatementFactory
     /**
      * Constructor, sets objects to parse and build SQL
      *
-     * @param Parser|null     $parser        A Parser instance with default settings will be used if not given
-     * @param TreeWalker|null $builder       Usually an instance of SqlBuilderWalker. An instance of SqlBuilderWalker
-     *                                       with default settings will be used if not given.
-     * @param bool            $PDOCompatible Whether to generate SQL suitable for PDO rather than for native
-     *                                       pgsql extension: named parameters will not be replaced by positional ones
+     * @param Parser|null                  $parser        A Parser instance with default settings will be used
+     *                                                    if not given
+     * @param StatementToStringWalker|null $builder       Usually an instance of SqlBuilderWalker.
+     *                                                    An instance of SqlBuilderWalker with default settings
+     *                                                    will be used if not given.
+     * @param bool                         $PDOCompatible Whether to generate SQL suitable for PDO rather than
+     *                                                    for native pgsql extension: named parameters
+     *                                                    will not be replaced by positional ones
      */
-    public function __construct(Parser $parser = null, TreeWalker $builder = null, bool $PDOCompatible = false)
-    {
+    public function __construct(
+        Parser $parser = null,
+        StatementToStringWalker $builder = null,
+        bool $PDOCompatible = false
+    ) {
         $this->parser        = $parser ?? new Parser(new Lexer());
         $this->builder       = $builder ?? new SqlBuilderWalker();
         $this->PDOCompatible = $PDOCompatible;
@@ -133,9 +139,9 @@ class StatementFactory
     /**
      * Returns the SQL builder object
      *
-     * @return TreeWalker
+     * @return StatementToStringWalker
      */
-    public function getBuilder(): TreeWalker
+    public function getBuilder(): StatementToStringWalker
     {
         return $this->builder;
     }
