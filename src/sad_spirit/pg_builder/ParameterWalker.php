@@ -135,31 +135,31 @@ class ParameterWalker extends BlankWalker
     public function walkLockingElement(nodes\LockingElement $node)
     {
         /* No Parameters here */
-       return null;
+        return null;
     }
 
     public function walkQualifiedName(nodes\QualifiedName $node)
     {
         /* No Parameters here */
-       return null;
+        return null;
     }
 
     public function walkQualifiedOperator(nodes\QualifiedOperator $node)
     {
         /* No Parameters here */
-       return null;
+        return null;
     }
 
     public function walkTypeName(nodes\TypeName $node)
     {
         /* No Parameters here */
-       return null;
+        return null;
     }
 
     public function walkColumnDefinition(nodes\range\ColumnDefinition $node)
     {
         /* No Parameters here */
-       return null;
+        return null;
     }
 
     protected function walkRangeItemAliases(nodes\range\FromElement $rangeItem): void
