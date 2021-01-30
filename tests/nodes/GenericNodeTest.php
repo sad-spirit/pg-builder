@@ -53,6 +53,7 @@ class GenericNodeTest extends TestCase
         $this::expectException(InvalidArgumentException::class);
         $this::expectExceptionMessage('Unknown property');
 
+        // @phpstan-ignore-next-line
         $this->error = $this->node->foo;
     }
 
@@ -61,6 +62,7 @@ class GenericNodeTest extends TestCase
         $this::expectException(InvalidArgumentException::class);
         $this::expectExceptionMessage('Unknown property');
 
+        // @phpstan-ignore-next-line
         $this->node->foo = 'bar';
     }
 
@@ -221,6 +223,7 @@ class GenericNodeTest extends TestCase
         $unserialized = unserialize(serialize($father));
 
         $this::assertSame($unserialized, $unserialized->child->getParentNode());
+        // @phpstan-ignore-next-line
         $this::assertSame($unserialized->child, $unserialized->child->child->getParentNode());
     }
 

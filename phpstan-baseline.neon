@@ -1,22 +1,86 @@
 parameters:
 	ignoreErrors:
+		# Looks like a bug in phpstan, protected $parentNode is defined in common base class
+		-
+			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\SetTargetList\\:\\:\\$parentNode\\.$#"
+			count: 1
+			path: src/sad_spirit/pg_builder/Insert.php
+
+		# Looks like a bug in phpstan, protected $parentNode is defined in common base class
+		-
+			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\LockList\\:\\:\\$parentNode\\.$#"
+			count: 1
+			path: src/sad_spirit/pg_builder/SelectCommon.php
+
+		# Looks like a bug in phpstan, protected $parentNode is defined in common base class and accessed from closure
 		-
 			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\Identifier\\|sad_spirit\\\\pg_builder\\\\nodes\\\\Star\\:\\:\\$parentNode\\.$#"
 			count: 1
 			path: src/sad_spirit/pg_builder/nodes/ColumnReference.php
 
+		# Looks like a bug in phpstan, protected $parentNode is defined in common base class and accessed from closure
 		-
 			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\Identifier\\:\\:\\$parentNode\\.$#"
 			count: 1
 			path: src/sad_spirit/pg_builder/nodes/QualifiedName.php
 
+		# Looks like a bug in phpstan, it fucks up with guessing return value of GenericNodeList::prepareListElement()
 		-
-			message: "#^Access to an undefined property sad_spirit\\\\pg_builder\\\\tests\\\\nodes\\\\GenericNodeImplementation\\:\\:\\$foo\\.$#"
-			count: 2
-			path: tests/nodes/GenericNodeTest.php
-
-		-
-			message: "#^Access to an undefined property sad_spirit\\\\pg_builder\\\\Node\\:\\:\\$child\\.$#"
+			message: "#^Method sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\ArrayExpression\\:\\:prepareListElement\\(\\) should return sad_spirit\\\\pg_builder\\\\nodes\\\\ScalarExpression but returns sad_spirit\\\\pg_builder\\\\Node\\.$#"
 			count: 1
-			path: tests/nodes/GenericNodeTest.php
+			path: src/sad_spirit/pg_builder/nodes/expressions/ArrayExpression.php
+
+		# Looks like a bug in phpstan, it does not like scalar values for template type TKey
+		-
+			message: "#^Parameter \\#1 \\$offset of method sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\GenericNodeList\\<TKey,T of sad_spirit\\\\pg_builder\\\\Node\\>\\:\\:offsetSet\\(\\) expects TKey\\|null, int\\|string given\\.$#"
+			count: 1
+			path: src/sad_spirit/pg_builder/nodes/lists/GenericNodeList.php
+
+		# Looks like a bug in phpstan with Node-based template type
+		-
+			message: "#^Parameter \\#2 \\$value of method sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\GenericNodeList\\<TKey,T of sad_spirit\\\\pg_builder\\\\Node\\>\\:\\:offsetSet\\(\\) expects string\\|T of sad_spirit\\\\pg_builder\\\\Node, sad_spirit\\\\pg_builder\\\\Node given\\.$#"
+			count: 1
+			path: src/sad_spirit/pg_builder/nodes/lists/GenericNodeList.php
+
+		# Looks like a bug in phpstan, it does not like scalar values for template type TKey
+		-
+			message: "#^Parameter \\#1 \\$offset of method sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\GenericNodeList\\<TKey,T of sad_spirit\\\\pg_builder\\\\Node\\>\\:\\:offsetUnset\\(\\) expects TKey, int\\|string given\\.$#"
+			count: 1
+			path: src/sad_spirit/pg_builder/nodes/lists/GenericNodeList.php
+
+		# should return T of Node but returns Node? WTF is wrong?
+		-
+			message: "#^Method sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\GenericNodeList\\:\\:prepareListElement\\(\\) should return T of sad_spirit\\\\pg_builder\\\\Node but returns sad_spirit\\\\pg_builder\\\\Node\\.$#"
+			count: 1
+			path: src/sad_spirit/pg_builder/nodes/lists/GenericNodeList.php
+
+		# Looks like a bug in phpstan, it fucks up with guessing return value of GenericNodeList::prepareListElement()
+		-
+			message: "#^Method sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\IdentifierList\\:\\:prepareListElement\\(\\) should return sad_spirit\\\\pg_builder\\\\nodes\\\\Identifier but returns sad_spirit\\\\pg_builder\\\\Node\\.$#"
+			count: 1
+			path: src/sad_spirit/pg_builder/nodes/lists/IdentifierList.php
+
+		# Looks like a bug in phpstan, it fucks up with guessing return value of GenericNodeList::prepareListElement()
+		-
+			message: "#^Method sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\RowList\\:\\:prepareListElement\\(\\) should return sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\RowExpression but returns sad_spirit\\\\pg_builder\\\\Node\\.$#"
+			count: 1
+			path: src/sad_spirit/pg_builder/nodes/lists/RowList.php
+
+		# Leave this for the time being, need to redefine constructor of ArrayExpression
+		-
+			message: "#^Parameter \\#1 \\$list of class sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\ArrayExpression constructor expects iterable\\<sad_spirit\\\\pg_builder\\\\nodes\\\\ScalarExpression\\|string\\>\\|string\\|null, array\\<int, array\\<int, sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\NumericConstant\\>\\> given\\.$#"
+			count: 1
+			path: tests/ParseExpressionTest.php
+
+		# Leave this for the time being, need to redefine constructor of RowList
+		-
+			message: "#^Parameter \\#1 \\$list of class sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\RowList constructor expects iterable\\<sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\RowExpression\\|string\\>\\|string\\|null, array\\<int, array\\<int, sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\NumericConstant\\|sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\StringConstant\\|sad_spirit\\\\pg_builder\\\\nodes\\\\SetToDefault\\>\\> given\\.$#"
+			count: 1
+			path: tests/StatementFactoryTest.php
+
+		# Leave this for the time being, need to redefine constructor of RowList
+		-
+			message: "#^Parameter \\#1 \\$list of class sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\RowList constructor expects iterable\\<sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\RowExpression\\|string\\>\\|string\\|null, array\\<int, array\\<int, sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\NumericConstant\\>\\> given\\.$#"
+			count: 2
+			path: tests/nodes/SetParentNodeTest.php
 
