@@ -37,15 +37,15 @@ interface NodeList extends Node, \ArrayAccess, \Countable, \IteratorAggregate
      * The arguments can be arrays, Traversables or even strings if current class
      * implements Parseable and a Parser is available.
      *
-     * @param iterable<T>|string ...$lists
+     * @param iterable<T|string>|string ...$lists
      */
     public function merge(...$lists): void;
 
     /**
      * Replaces the elements of the list with the given ones
      *
-     * @param iterable<T>|string $list strings are allowed if current class
-     *                                 implements Parseable and a Parser is available
+     * @param iterable<T|string>|string $list strings are allowed if current class
+     *                                        implements Parseable and a Parser is available
      */
     public function replace($list): void;
 }

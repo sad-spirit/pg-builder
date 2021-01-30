@@ -643,7 +643,7 @@ class Parser
      *
      * @param CacheItemPoolInterface $cache
      */
-    public function setCache(CacheItemPoolInterface $cache)
+    public function setCache(CacheItemPoolInterface $cache): void
     {
         $this->cache = $cache;
     }

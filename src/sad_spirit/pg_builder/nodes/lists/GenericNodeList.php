@@ -64,7 +64,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      *  - an iterable containing "compatible" values
      *  - a string if Parser is available
      *
-     * @param iterable<T>|string|null $list
+     * @param iterable<T|string>|string|null $list
      */
     public function __construct($list = null)
     {
