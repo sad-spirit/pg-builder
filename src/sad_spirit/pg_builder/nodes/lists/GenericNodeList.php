@@ -43,7 +43,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
 {
     /**
      * Child nodes available through ArrayAccess
-     * @var T[]
+     * @var array<TKey,T>
      */
     protected $offsets = [];
 
@@ -54,7 +54,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      */
     protected static function getAllowedElementClasses(): array
     {
-        return [];
+        return [Node::class];
     }
 
     /**
@@ -306,7 +306,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * The returned array should contain only instances of Node passed through prepareListElement(),
      * it is not checked further in merge() / replace()
      *
-     * @param iterable<T>|string $list
+     * @param iterable<T|string>|string $list
      * @param string $method
      * @return array<TKey, T>
      */
@@ -321,7 +321,6 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * Finally, the list is set as a parent of Node. This is done here so that merge() / replace() methods
      * may work on an all or nothing principle, without possibility of merging only a part of array.
      *
-     * @phpstan-param T|string $value
      * @param mixed $value
      * @return T
      */
@@ -331,33 +330,37 @@ abstract class GenericNodeList extends GenericNode implements NodeList
             $value = $this->createElementFromString($value);
         }
 
-        if (!$value instanceof Node) {
-            throw new InvalidArgumentException(sprintf(
-                "GenericNodeList can contain only instances of Node, %s given",
-                is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-            ));
-        }
-
-        if ([] !== ($classes = static::getAllowedElementClasses())) {
-            $found = false;
-            foreach ($classes as $class) {
-                if ($value instanceof $class) {
-                    $found = true;
-                    break;
-                }
+        $found = false;
+        foreach (static::getAllowedElementClasses() as $class) {
+            if ($value instanceof $class) {
+                $found = true;
+                break;
             }
-            if (!$found) {
-                $shortClasses = array_map(function ($className) {
-                    return substr($className, strrpos($className, '\\') + 1);
-                }, array_merge([get_class($this), get_class($value)], $classes));
+        }
+        if (!$found) {
+            $shortClasses = array_map(function ($className) {
+                return substr($className, strrpos($className, '\\') + 1);
+            }, array_merge(
+                [get_class($this)],
+                is_object($value) ? [get_class($value)] : [],
+                static::getAllowedElementClasses()
+            ));
 
-                throw new InvalidArgumentException(sprintf(
+            throw new InvalidArgumentException(
+                is_object($value)
+                ? sprintf(
                     '%1$s can contain only instances of %3$s, instance of %2$s given',
                     array_shift($shortClasses),
                     array_shift($shortClasses),
                     implode(" or ", $shortClasses)
-                ));
-            }
+                )
+                : sprintf(
+                    '%s can contain only instances of %s, %s given',
+                    array_shift($shortClasses),
+                    implode(" or ", $shortClasses),
+                    gettype($value)
+                )
+            );
         }
 
         if ($this === $value->getParentNode()) {

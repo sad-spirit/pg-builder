@@ -30,27 +30,16 @@ parameters:
 			count: 1
 			path: src/sad_spirit/pg_builder/nodes/expressions/ArrayExpression.php
 
-		# Looks like a bug in phpstan, it does not like scalar values for template type TKey
+		# triggered by $this->offsets[] = ...
 		-
-			message: "#^Parameter \\#1 \\$offset of method sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\GenericNodeList\\<TKey,T of sad_spirit\\\\pg_builder\\\\Node\\>\\:\\:offsetSet\\(\\) expects TKey\\|null, int\\|string given\\.$#"
+			message: "#^Array \\(array<TKey, T of sad_spirit\\\\pg_builder\\\\Node>\\) does not accept key int\\.$#"
 			count: 1
 			path: src/sad_spirit/pg_builder/nodes/lists/GenericNodeList.php
 
-		# Looks like a bug in phpstan with Node-based template type
+		# Technically we can typehint second argument of offsetSet() as mixed, but this will prevent catching actual problems
+		# We cannot typehint replaceChild() argument as T as it may be a replacement for a property rather than offset
 		-
 			message: "#^Parameter \\#2 \\$value of method sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\GenericNodeList\\<TKey,T of sad_spirit\\\\pg_builder\\\\Node\\>\\:\\:offsetSet\\(\\) expects string\\|T of sad_spirit\\\\pg_builder\\\\Node, sad_spirit\\\\pg_builder\\\\Node given\\.$#"
-			count: 1
-			path: src/sad_spirit/pg_builder/nodes/lists/GenericNodeList.php
-
-		# Looks like a bug in phpstan, it does not like scalar values for template type TKey
-		-
-			message: "#^Parameter \\#1 \\$offset of method sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\GenericNodeList\\<TKey,T of sad_spirit\\\\pg_builder\\\\Node\\>\\:\\:offsetUnset\\(\\) expects TKey, int\\|string given\\.$#"
-			count: 1
-			path: src/sad_spirit/pg_builder/nodes/lists/GenericNodeList.php
-
-		# should return T of Node but returns Node? WTF is wrong?
-		-
-			message: "#^Method sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\GenericNodeList\\:\\:prepareListElement\\(\\) should return T of sad_spirit\\\\pg_builder\\\\Node but returns sad_spirit\\\\pg_builder\\\\Node\\.$#"
 			count: 1
 			path: src/sad_spirit/pg_builder/nodes/lists/GenericNodeList.php
 
