@@ -92,8 +92,8 @@ class ParameterWalker extends BlankWalker
 
         $this->extractParameterType($node, $paramIdx);
 
-        if (!$this->keepNamedParameters) {
-            $node->getParentNode()->replaceChild($node, new nodes\expressions\PositionalParameter($paramIdx + 1));
+        if (!$this->keepNamedParameters && null !== ($parent = $node->getParentNode())) {
+            $parent->replaceChild($node, new nodes\expressions\PositionalParameter($paramIdx + 1));
         }
         return null;
     }

@@ -102,11 +102,19 @@ class QualifiedOperator extends GenericNode
     /**
      * Ensures that the last part of the qualified name looks like an operator
      *
-     * @param string $namePart
+     * @param mixed $namePart
      * @return string
      */
-    private function expectOperator(string $namePart): string
+    private function expectOperator($namePart): string
     {
+        if (!is_string($namePart)) {
+            throw new InvalidArgumentException(sprintf(
+                '%s requires a string for an operator, %s given',
+                __CLASS__,
+                is_object($namePart) ? 'object(' . get_class($namePart) . ')' : gettype($namePart)
+            ));
+        }
+
         if (strlen($namePart) !== strspn($namePart, Lexer::CHARS_OPERATOR)) {
             throw new SyntaxException(sprintf(
                 "%s: '%s' does not look like a valid operator string",

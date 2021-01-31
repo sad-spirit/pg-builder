@@ -142,7 +142,7 @@ REGEXP;
      */
     public function tokenize(string $sql): TokenStream
     {
-        if (extension_loaded('mbstring') && (2 & ini_get('mbstring.func_overload'))) {
+        if (extension_loaded('mbstring') && (2 & (int)ini_get('mbstring.func_overload'))) {
             throw new exceptions\RuntimeException(
                 'Multibyte function overloading must be disabled for correct parser operation'
             );
@@ -443,7 +443,7 @@ REGEXP;
         $unescaped  = '';
 
         foreach (
-            preg_split(
+            (array)preg_split(
                 "!(\\\\(?:x[0-9a-fA-F]{1,2}|[0-7]{1,3}|u[0-9a-fA-F]{0,4}|U[0-9a-fA-F]{0,8}|[^0-7]))!",
                 $escaped,
                 -1,
@@ -667,7 +667,7 @@ REGEXP;
         $quoted    = preg_quote($escapeChar);
 
         foreach (
-            preg_split(
+            (array)preg_split(
                 "/({$quoted}(?:{$quoted}|[0-9a-fA-F]{4}|\\+[0-9a-fA-F]{6}))/",
                 $token->getValue(),
                 -1,

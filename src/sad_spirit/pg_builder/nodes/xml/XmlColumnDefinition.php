@@ -31,6 +31,9 @@ use sad_spirit\pg_builder\{
 /**
  * AST node for column definition in XMLTABLE clause
  *
+ * TODO: can either have a type and maybe everything else, or have forOrdinality flag set. Probably makes sense
+ *       to split this to two separate classes
+ *
  * @property Identifier            $name
  * @property TypeName|null         $type
  * @property bool                  $forOrdinality

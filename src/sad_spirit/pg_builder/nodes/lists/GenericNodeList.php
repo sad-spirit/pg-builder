@@ -279,9 +279,9 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     /**
      * Ensures that "array-like" argument of merge() / replace() is either an iterable or a parseable string
      *
-     * @param iterable<T>|string $array
-     * @param string             $method calling method, used only for Exception messages
-     * @return iterable<T>
+     * @param iterable<T|string>|string $array
+     * @param string                    $method calling method, used only for Exception messages
+     * @return iterable<T|string>
      * @throws InvalidArgumentException
      */
     protected function prepareList($array, string $method): iterable

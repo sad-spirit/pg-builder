@@ -634,7 +634,9 @@ abstract class BlankWalker implements TreeWalker
     public function walkXmlRoot(nodes\xml\XmlRoot $xml)
     {
         $xml->xml->dispatch($this);
-        $xml->version->dispatch($this);
+        if (null !== $xml->version) {
+            $xml->version->dispatch($this);
+        }
         return null;
     }
 

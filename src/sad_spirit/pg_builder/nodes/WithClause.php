@@ -51,8 +51,8 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
     /**
      * WithClause constructor
      *
-     * @param string|null|iterable<CommonTableExpression> $commonTableExpressions
-     * @param bool                                        $recursive
+     * @param string|null|iterable<CommonTableExpression|string> $commonTableExpressions
+     * @param bool                                               $recursive
      */
     public function __construct($commonTableExpressions = null, bool $recursive = false)
     {
@@ -83,7 +83,7 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
             $addRecursive = $addRecursive || $list instanceof self && $list->recursive;
         }
 
-        parent::merge($lists);
+        parent::merge(...$lists);
 
         if ($addRecursive) {
             $this->p_recursive = true;
