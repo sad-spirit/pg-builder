@@ -41,24 +41,26 @@ class WhereOrHavingClause extends GenericNode
     }
 
     /**
-     * Sanity checks for $expression argument to various methods
+     * Sanity checks for $condition argument to various methods
      *
-     * @param string|ScalarExpression|WhereOrHavingClause $condition
-     * @param string                                      $method
+     * @param string|null|ScalarExpression|WhereOrHavingClause $condition
+     * @param string                                           $method    for Exception message
+     * @return ScalarExpression|null
      * @throws InvalidArgumentException
      */
-    private function normalizeCondition(&$condition, string $method): void
+    private function normalizeCondition($condition, string $method): ?ScalarExpression
     {
         if (is_string($condition)) {
             $condition = $this->getParserOrFail('an expression')->parseExpression($condition);
         }
-        if (!($condition instanceof ScalarExpression) && !($condition instanceof self)) {
+        if (null !== $condition && !$condition instanceof ScalarExpression && !$condition instanceof self) {
             throw new InvalidArgumentException(sprintf(
                 '%s requires an SQL string or an instance of ScalarExpression or WhereOrHavingClause, %s given',
                 $method,
                 is_object($condition) ? 'object(' . get_class($condition) . ')' : gettype($condition)
             ));
         }
+        return $condition instanceof self ? $condition->condition : $condition;
     }
 
     /**
@@ -69,11 +71,7 @@ class WhereOrHavingClause extends GenericNode
      */
     public function setCondition($condition = null): self
     {
-        if (null !== $condition) {
-            $this->normalizeCondition($condition, __METHOD__);
-        }
-        $this->setProperty($this->p_condition, $condition instanceof self ? $condition->condition : $condition);
-
+        $this->setProperty($this->p_condition, $this->normalizeCondition($condition, __METHOD__));
         return $this;
     }
 
@@ -85,36 +83,37 @@ class WhereOrHavingClause extends GenericNode
      */
     public function and($condition): self
     {
-        $this->normalizeCondition($condition, __METHOD__);
+        $nested = $condition instanceof self;
+        if (null === ($condition = $this->normalizeCondition($condition, __METHOD__))) {
+            return $this;
+        }
+
         if (!$this->p_condition) {
             if (
-                $condition instanceof self
+                $nested
                 || ($condition instanceof LogicalExpression && LogicalExpression::AND !== $condition->operator)
             ) {
                 // nested condition, should always wrap in LogicalExpression
-                $this->p_condition = new LogicalExpression(
-                    [$condition instanceof self ? $condition->condition : $condition],
-                    LogicalExpression::AND
-                );
+                $this->p_condition = new LogicalExpression([$condition], LogicalExpression::AND);
                 $this->p_condition->parentNode = $this;
-
             } else {
-                $this->setProperty($this->p_condition, $condition);
+                $this->p_condition = $condition;
+                $this->p_condition->setParentNode($this);
             }
 
         } else {
-            if (!($this->p_condition instanceof LogicalExpression)) {
+            if (!$this->p_condition instanceof LogicalExpression) {
                 $this->p_condition = new LogicalExpression([$this->p_condition], LogicalExpression::AND);
                 $this->p_condition->parentNode = $this;
             }
-            if (LogicalExpression::AND === $this->p_condition->operator) {
+            if (
+                LogicalExpression::AND === $this->p_condition->operator
+                || null === ($key = $this->p_condition->lastKey())
+            ) {
                 $recipient = $this->p_condition;
             } else {
-                $key = $recipient = null;
-                // empty loop is intentional, we just need last key and element in list
-                foreach ($this->p_condition as $key => $recipient) {
-                }
-                if (!($recipient instanceof LogicalExpression) || LogicalExpression::AND !== $recipient->operator) {
+                $recipient = $this->p_condition[$key];
+                if (!$recipient instanceof LogicalExpression || LogicalExpression::AND !== $recipient->operator) {
                     $this->p_condition[$key] = $recipient = new LogicalExpression(
                         [$recipient],
                         LogicalExpression::AND
@@ -123,9 +122,6 @@ class WhereOrHavingClause extends GenericNode
             }
             if ($condition instanceof LogicalExpression && LogicalExpression::AND === $condition->operator) {
                 $recipient->merge($condition);
-            } elseif ($condition instanceof self) { // we assume this should be "nested"
-                // TODO: this will probably fail if $condition->condition is null, need tests
-                $recipient[] = $condition->condition;
             } else {
                 $recipient[] = $condition;
             }
@@ -142,13 +138,17 @@ class WhereOrHavingClause extends GenericNode
      */
     public function or($condition): self
     {
+        if (null === ($condition = $this->normalizeCondition($condition, __METHOD__))) {
+            return $this;
+        }
+
         if (!$this->p_condition) {
-            $this->setCondition($condition);
+            $this->p_condition = $condition;
+            $this->p_condition->setParentNode($this);
 
         } else {
-            $this->normalizeCondition($condition, __METHOD__);
             if (
-                !($this->p_condition instanceof LogicalExpression)
+                !$this->p_condition instanceof LogicalExpression
                 || LogicalExpression::OR !== $this->p_condition->operator
             ) {
                 $this->p_condition = new LogicalExpression([$this->p_condition], LogicalExpression::OR);
@@ -157,9 +157,6 @@ class WhereOrHavingClause extends GenericNode
 
             if ($condition instanceof LogicalExpression && LogicalExpression::OR === $condition->operator) {
                 $this->p_condition->merge($condition);
-            } elseif ($condition instanceof self) { // we assume this should be "nested"
-                // TODO: this will probably fail if $condition->condition is null, need tests
-                $this->p_condition[] = $condition->condition;
             } else {
                 $this->p_condition[] = $condition;
             }
@@ -172,11 +169,11 @@ class WhereOrHavingClause extends GenericNode
      * Helper method for creating nested conditions
      *
      * <code>
-     * $select->where->and_('foo')->and_('bar')->or_('baz');
+     * $select->where->and('foo')->and('bar')->or('baz');
      * </code>
      * will yield 'foo and bar or baz' in SQL output, while
      * <code>
-     * $select->where->and_('foo')->and_($select->where->nested('bar')->or_('baz'));
+     * $select->where->and('foo')->and($select->where->nested('bar')->or('baz'));
      * </code>
      * will yield 'foo and (bar or baz)'.
      *
@@ -185,12 +182,10 @@ class WhereOrHavingClause extends GenericNode
      */
     public function nested($condition): self
     {
-        $this->normalizeCondition($condition, __METHOD__);
-        if (!($condition instanceof self)) {
-            $condition = new self($condition);
-        }
+        $condition = new self($this->normalizeCondition($condition, __METHOD__));
         // $condition should have access to a Parser instance
-        $condition->setParentNode($this);
+        $condition->parentNode = $this;
+
         return $condition;
     }
 

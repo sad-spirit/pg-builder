@@ -277,6 +277,22 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     }
 
     /**
+     * Returns last key in $offsets, like array_key_last()
+     *
+     * @return TKey|null
+     */
+    public function lastKey()
+    {
+        if (function_exists('array_key_last')) {
+            return array_key_last($this->offsets);
+        } elseif ([] === $this->offsets) {
+            return null;
+        } else {
+            return key(array_slice($this->offsets, -1, 1, true));
+        }
+    }
+
+    /**
      * Ensures that "array-like" argument of merge() / replace() is either an iterable or a parseable string
      *
      * @param iterable<T|string>|string $array

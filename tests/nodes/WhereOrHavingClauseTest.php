@@ -29,6 +29,7 @@ use sad_spirit\pg_builder\{
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
     WhereOrHavingClause,
+    expressions\KeywordConstant,
     expressions\LogicalExpression
 };
 
@@ -37,6 +38,11 @@ use sad_spirit\pg_builder\nodes\{
  */
 class WhereOrHavingClauseTest extends TestCase
 {
+    public function testConditionIsNullByDefault(): void
+    {
+        $this::assertNull((new WhereOrHavingClause())->condition);
+    }
+
     public function testAddConditionsWithAnd(): void
     {
         $where = new WhereOrHavingClause(new ColumnReference('foo'));
@@ -222,6 +228,30 @@ class WhereOrHavingClauseTest extends TestCase
                 ],
                 'and'
             ),
+            clone $where->condition
+        );
+    }
+
+    public function testAddEmptyWhereClauseWithAndAndOrBug(): void
+    {
+        $true  = new KeywordConstant(KeywordConstant::TRUE);
+        $whereEmpty = new WhereOrHavingClause();
+        $whereTrue  = new WhereOrHavingClause($true);
+
+        $whereEmpty->and(new WhereOrHavingClause())->or(new WhereOrHavingClause());
+        $whereTrue->and(new WhereOrHavingClause())->or(new WhereOrHavingClause());
+
+        $this::assertEquals(new WhereOrHavingClause(), $whereEmpty);
+        $this::assertEquals(new WhereOrHavingClause(clone $true), $whereTrue);
+    }
+
+    public function testEmptyLogicalExpressionBug(): void
+    {
+        $where = new WhereOrHavingClause(new LogicalExpression([], LogicalExpression::OR));
+        $where->and(new KeywordConstant(KeywordConstant::TRUE));
+
+        $this::assertEquals(
+            new LogicalExpression([new KeywordConstant(KeywordConstant::TRUE)], LogicalExpression::OR),
             clone $where->condition
         );
     }
