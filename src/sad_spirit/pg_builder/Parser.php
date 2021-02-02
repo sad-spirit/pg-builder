@@ -148,17 +148,12 @@ class Parser
     private const PARENTHESES_EXPRESSION = 'expression';
 
     /**
-     * Passed to {@link RelationExpression()} to set expected format, this one allows column aliases and TABLESAMPLE
-     */
-    private const RELATION_FORMAT_SELECT = 'select';
-
-    /**
-     * Passed to {@link RelationExpression()} to set expected format, allows only relation alias
+     * Passed to {@link UpdateOrDeleteTarget()} to set expected format, allows only relation alias
      */
     private const RELATION_FORMAT_UPDATE = 'update';
 
     /**
-     * Passed to {@link RelationExpression()} to set expected format, allows only relation alias (which can be SET)
+     * Passed to {@link UpdateOrDeleteTarget()} to set expected format, allows only relation alias (which can be SET)
      */
     private const RELATION_FORMAT_DELETE = 'delete';
 
@@ -860,7 +855,7 @@ class Parser
         }
 
         $this->stream->expect(Token::TYPE_KEYWORD, 'update');
-        $relation = $this->RelationExpression(self::RELATION_FORMAT_UPDATE);
+        $relation = $this->UpdateOrDeleteTarget();
         $this->stream->expect(Token::TYPE_KEYWORD, 'set');
 
         $stmt = new Update($relation, $this->SetClauseList());
@@ -896,7 +891,7 @@ class Parser
         $this->stream->expect(Token::TYPE_KEYWORD, 'delete');
         $this->stream->expect(Token::TYPE_KEYWORD, 'from');
 
-        $stmt = new Delete($this->RelationExpression(self::RELATION_FORMAT_DELETE));
+        $stmt = new Delete($this->UpdateOrDeleteTarget(self::RELATION_FORMAT_DELETE));
 
         if (!empty($withClause)) {
             $stmt->with = $withClause;
@@ -2072,33 +2067,37 @@ class Parser
         return new nodes\TypeName(new nodes\QualifiedName('pg_catalog', $typeName), $modifiers);
     }
 
-    /**
-     * @param bool $leading Whether we are parsing "INTERVAL 'string constant'" construct,
-     *                      this method will return a TypecastExpression instance in that case
-     * @return nodes\TypeName|nodes\expressions\TypecastExpression|null
-     */
-    protected function IntervalTypeName(bool $leading = false): ?Node
+    protected function IntervalTypeName(): ?nodes\IntervalTypeName
     {
         if (!$this->stream->matchesKeyword('interval')) {
             return null;
         }
         $this->stream->next();
 
-        $modifiers = null;
-        $operand   = null;
-        if ($this->stream->matchesSpecialChar('(')) {
-            $this->stream->next();
-            $modifiers = new nodes\lists\TypeModifierList([
-                nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_INTEGER))
-            ]);
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-        }
-        if ($leading) {
-            $operand = nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_STRING));
-        }
+        $modifiers = $this->IntervalTypeModifiers();
 
+        return $this->IntervalWithPossibleTrailingTypeModifiers($modifiers);
+    }
+
+    protected function IntervalLeadingTypecast(): ?nodes\expressions\TypecastExpression
+    {
+        if (!$this->stream->matchesKeyword('interval')) {
+            return null;
+        }
+        $this->stream->next();
+
+        $modifiers = $this->IntervalTypeModifiers();
+        $operand   = nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_STRING));
+        $typeNode  = $this->IntervalWithPossibleTrailingTypeModifiers($modifiers);
+
+        return new nodes\expressions\TypecastExpression($operand, $typeNode);
+    }
+
+    protected function IntervalWithPossibleTrailingTypeModifiers(
+        nodes\lists\TypeModifierList $modifiers = null
+    ): nodes\IntervalTypeName {
         if (
-            !$modifiers
+            null === $modifiers
             && $this->stream->matchesKeyword(['year', 'month', 'day', 'hour', 'minute', 'second'])
         ) {
             $trailing  = [$this->stream->next()->getValue()];
@@ -2121,12 +2120,8 @@ class Parser
                 $trailing[] = $end->getValue();
             }
 
-            if ($second && $this->stream->matchesSpecialChar('(')) {
-                $this->stream->next();
-                $modifiers = new nodes\lists\TypeModifierList([
-                    nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_INTEGER))
-                ]);
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            if ($second) {
+                $modifiers = $this->IntervalTypeModifiers();
             }
         }
         $typeNode = new nodes\IntervalTypeName($modifiers);
@@ -2134,7 +2129,21 @@ class Parser
             $typeNode->setMask(implode(' ', $trailing));
         }
 
-        return null !== $operand ? new nodes\expressions\TypecastExpression($operand, $typeNode) : $typeNode;
+        return $typeNode;
+    }
+
+    protected function IntervalTypeModifiers(): ?nodes\lists\TypeModifierList
+    {
+        if (!$this->stream->matchesSpecialChar('(')) {
+            $modifiers = null;
+        } else {
+            $this->stream->next();
+            $modifiers = new nodes\lists\TypeModifierList([
+                nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_INTEGER))
+            ]);
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        }
+        return $modifiers;
     }
 
     protected function GenericTypeName(array $typeName = []): ?nodes\TypeName
@@ -2565,7 +2574,7 @@ class Parser
 
     protected function ConstLeadingTypecast(): nodes\expressions\TypecastExpression
     {
-        if (null !== ($typeCast = $this->IntervalTypeName(true))) {
+        if (null !== ($typeCast = $this->IntervalLeadingTypecast())) {
             // interval is a special case since its options may come *after* string constant
             return $typeCast;
         }
@@ -3465,7 +3474,7 @@ class Parser
      */
     protected function RelationExpressionOptAlias(): nodes\range\UpdateOrDeleteTarget
     {
-        return $this->RelationExpression(self::RELATION_FORMAT_DELETE);
+        return $this->UpdateOrDeleteTarget(self::RELATION_FORMAT_DELETE);
     }
 
     protected function InsertTarget(): nodes\range\InsertTarget
@@ -3483,10 +3492,54 @@ class Parser
     }
 
     /**
-     * @param string $statementType
-     * @return nodes\range\UpdateOrDeleteTarget|nodes\range\RelationReference|nodes\range\TableSample
+     * @return nodes\range\RelationReference|nodes\range\TableSample
      */
-    protected function RelationExpression(string $statementType = self::RELATION_FORMAT_SELECT): Node
+    protected function RelationExpression(): nodes\range\FromElement
+    {
+        $expression = new nodes\range\RelationReference(...$this->QualifiedNameWithInheritOption());
+
+        if ($alias = $this->OptionalAliasClause()) {
+            $expression->setAlias($alias[0], $alias[1]);
+        }
+
+        if ($this->stream->matchesKeyword('tablesample')) {
+            $this->stream->next();
+            $method     = $this->GenericFunctionName();
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+            $arguments  = $this->ExpressionList();
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+            $repeatable = null;
+            if ($this->stream->matchesKeyword('repeatable')) {
+                $this->stream->next();
+                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+                $repeatable = $this->Expression();
+                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            }
+
+            $expression = new nodes\range\TableSample($expression, $method, $arguments, $repeatable);
+        }
+
+        return $expression;
+    }
+
+    protected function UpdateOrDeleteTarget(
+        string $statementType = self::RELATION_FORMAT_UPDATE
+    ): nodes\range\UpdateOrDeleteTarget {
+        [$name, $inherit] = $this->QualifiedNameWithInheritOption();
+        return new nodes\range\UpdateOrDeleteTarget(
+            $name,
+            $this->DMLAliasClause($statementType),
+            $inherit
+        );
+    }
+
+    /**
+     * Common part of relation reference for SELECT / UPDATE / DELETE statements
+     *
+     * @return array{nodes\QualifiedName, bool|null}
+     */
+    protected function QualifiedNameWithInheritOption(): array
     {
         $inherit           = null;
         $expectParenthesis = false;
@@ -3509,37 +3562,7 @@ class Parser
             $inherit = true;
         }
 
-        if (self::RELATION_FORMAT_SELECT !== $statementType) {
-            $expression = new nodes\range\UpdateOrDeleteTarget(
-                $name,
-                $this->DMLAliasClause($statementType),
-                $inherit
-            );
-        } else {
-            $expression = new nodes\range\RelationReference($name, $inherit);
-            if ($alias = $this->OptionalAliasClause()) {
-                $expression->setAlias($alias[0], $alias[1]);
-            }
-            if ($this->stream->matchesKeyword('tablesample')) {
-                $this->stream->next();
-                $method     = $this->GenericFunctionName();
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-                $arguments  = $this->ExpressionList();
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-
-                $repeatable = null;
-                if ($this->stream->matchesKeyword('repeatable')) {
-                    $this->stream->next();
-                    $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-                    $repeatable = $this->Expression();
-                    $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-                }
-
-                $expression = new nodes\range\TableSample($expression, $method, $arguments, $repeatable);
-            }
-        }
-
-        return $expression;
+        return [$name, $inherit];
     }
 
     /**
