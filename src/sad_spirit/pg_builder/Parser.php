@@ -3590,7 +3590,7 @@ class Parser
         return null;
     }
 
-    protected function OptionalAliasClause(bool $functionAlias = false): ?array
+    protected function OptionalAliasClause(bool $allowFunctionAlias = false): ?array
     {
         if (
             $this->stream->matchesKeyword('as')
@@ -3607,23 +3607,28 @@ class Parser
             if ($this->stream->matchesKeyword('as')) {
                 $this->stream->next();
             }
-            if (!$functionAlias || !$this->stream->matchesSpecialChar('(')) {
+            if (!$allowFunctionAlias || !$this->stream->matchesSpecialChar('(')) {
                 $tableAlias = $this->ColId();
             }
             if (!$tableAlias || $this->stream->matchesSpecialChar('(')) {
                 $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
 
-                $tableFuncElement = $functionAlias
-                                    // for TableFuncElement this position will contain typename
-                                    && (!$this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, [')', ','])
-                                        || !$tableAlias);
-
-                $columnAliases = $tableFuncElement
-                                 ? new nodes\lists\ColumnDefinitionList([$this->TableFuncElement()])
-                                 : new nodes\lists\IdentifierList([$this->ColId()]);
-                while ($this->stream->matchesSpecialChar(',')) {
-                    $this->stream->next();
-                    $columnAliases[] = $tableFuncElement ? $this->TableFuncElement() : $this->ColId();
+                if (
+                    $allowFunctionAlias
+                    // for TableFuncElement the next position will contain typename
+                    && (!$tableAlias || !$this->stream->look()->matches(Token::TYPE_SPECIAL_CHAR, [')', ',']))
+                ) {
+                    $columnAliases = new nodes\lists\ColumnDefinitionList([$this->TableFuncElement()]);
+                    while ($this->stream->matchesSpecialChar(',')) {
+                        $this->stream->next();
+                        $columnAliases[] = $this->TableFuncElement();
+                    }
+                } else {
+                    $columnAliases = new nodes\lists\IdentifierList([$this->ColId()]);
+                    while ($this->stream->matchesSpecialChar(',')) {
+                        $this->stream->next();
+                        $columnAliases[] = $this->ColId();
+                    }
                 }
 
                 $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
