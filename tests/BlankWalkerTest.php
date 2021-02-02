@@ -111,7 +111,8 @@ from s34, s35 left join (s36 as s37 left join s38 as s39 using (s40))
          ),
          x25 PASSING by value (SELECT x26 FROM x27)
          COLUMNS x28 int PATH '@foo' not null default 'foo default',
-                 x29 int PATH '@B:bar'
+                 x29 int PATH '@B:bar',
+                 x30 FOR ORDINALITY
      ) AS s72
 where s73.s74 <= any(select s75 from s76) or
       not ((not e49) is false and e50)

@@ -20,27 +20,15 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\xml;
 
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\Identifier;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
- * Base class for column definitions in XMLTABLE clause
- *
- * @property Identifier $name
+ * AST node for column definitions in XMLTABLE clause defined with FOR ORDINALITY
  */
-abstract class XmlColumnDefinition extends GenericNode
+class XmlOrdinalityColumnDefinition extends XmlColumnDefinition
 {
-    /** @var Identifier */
-    protected $p_name;
-
-    public function __construct(Identifier $name)
+    public function dispatch(TreeWalker $walker)
     {
-        $this->generatePropertyNames();
-        $this->setName($name);
-    }
-
-    public function setName(Identifier $name): void
-    {
-        $this->setProperty($this->p_name, $name);
+        return $walker->walkXmlOrdinalityColumnDefinition($this);
     }
 }

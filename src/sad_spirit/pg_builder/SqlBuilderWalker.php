@@ -1228,14 +1228,9 @@ class SqlBuilderWalker implements StatementToStringWalker
         return $sql;
     }
 
-    public function walkXmlColumnDefinition(nodes\xml\XmlColumnDefinition $column): string
+    public function walkXmlTypedColumnDefinition(nodes\xml\XmlTypedColumnDefinition $column): string
     {
-        $sql = $column->name->dispatch($this);
-
-        if ($column->forOrdinality) {
-            return $sql . ' for ordinality';
-        }
-        $sql .= ' ' . $column->type->dispatch($this);
+        $sql = $column->name->dispatch($this) . ' ' . $column->type->dispatch($this);
         if (null !== $column->path) {
             $sql .= ' path ' . $this->optionalParentheses($column->path, $this->dummyTypecast, true);
         }
@@ -1246,6 +1241,11 @@ class SqlBuilderWalker implements StatementToStringWalker
             $sql .= $column->nullable ? ' null' : ' not null';
         }
         return $sql;
+    }
+
+    public function walkXmlOrdinalityColumnDefinition(nodes\xml\XmlOrdinalityColumnDefinition $column): string
+    {
+        return $column->name->dispatch($this) . ' for ordinality';
     }
 
     public function walkXmlNamespace(nodes\xml\XmlNamespace $ns): string

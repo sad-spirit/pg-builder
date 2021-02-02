@@ -64,10 +64,11 @@ use sad_spirit\pg_builder\nodes\lists\{
     TypeModifierList
 };
 use sad_spirit\pg_builder\nodes\xml\{
-    XmlColumnDefinition,
     XmlColumnList,
     XmlNamespace,
-    XmlNamespaceList
+    XmlNamespaceList,
+    XmlOrdinalityColumnDefinition,
+    XmlTypedColumnDefinition
 };
 
 /**
@@ -386,42 +387,33 @@ QRY
             new StringConstant('//ROWS/ROW'),
             new ColumnReference('data'),
             new XmlColumnList([
-                new XmlColumnDefinition(
+                new XmlTypedColumnDefinition(
                     new Identifier('id'),
-                    false,
                     new TypeName(new QualifiedName('pg_catalog', 'int4')),
                     new StringConstant('@id')
                 ),
-                new XmlColumnDefinition(
-                    new Identifier('ordinality'),
-                    true
-                ),
-                new XmlColumnDefinition(
+                new XmlOrdinalityColumnDefinition(new Identifier('ordinality')),
+                new XmlTypedColumnDefinition(
                     new Identifier('COUNTRY_NAME'),
-                    false,
                     new TypeName(new QualifiedName('text'))
                 ),
-                new XmlColumnDefinition(
+                new XmlTypedColumnDefinition(
                     new Identifier('country_id'),
-                    false,
                     new TypeName(new QualifiedName('text')),
                     new StringConstant('COUNTRY_ID')
                 ),
-                new XmlColumnDefinition(
+                new XmlTypedColumnDefinition(
                     new Identifier('size_sq_km'),
-                    false,
                     new TypeName(new QualifiedName('pg_catalog', 'float8')),
                     new StringConstant('SIZE[@unit = "sq_km"]')
                 ),
-                new XmlColumnDefinition(
+                new XmlTypedColumnDefinition(
                     new Identifier('size_other'),
-                    false,
                     new TypeName(new QualifiedName('text')),
                     new StringConstant('concat(SIZE[@unit!="sq_km"], " ", SIZE[@unit!="sq_km"]/@unit)')
                 ),
-                new XmlColumnDefinition(
+                new XmlTypedColumnDefinition(
                     new Identifier('premier_name'),
-                    false,
                     new TypeName(new QualifiedName('text')),
                     new StringConstant('PREMIER_NAME'),
                     null,
@@ -436,15 +428,13 @@ QRY
             new StringConstant('/x:example/x:item'),
             new SubselectExpression($subselect),
             new XmlColumnList([
-                new XmlColumnDefinition(
+                new XmlTypedColumnDefinition(
                     new Identifier('foo'),
-                    false,
                     new TypeName(new QualifiedName('pg_catalog', 'int4')),
                     new StringConstant('@foo')
                 ),
-                new XmlColumnDefinition(
+                new XmlTypedColumnDefinition(
                     new Identifier('bar'),
-                    false,
                     new TypeName(new QualifiedName('pg_catalog', 'int4')),
                     new StringConstant('@B:bar')
                 )

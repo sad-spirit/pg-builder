@@ -673,11 +673,20 @@ interface TreeWalker
     /**
      * Visits the node representing a column definition in XMLTABLE clause
      *
-     * @param nodes\xml\XmlColumnDefinition $column
+     * @param nodes\xml\XmlTypedColumnDefinition $column
      * @return mixed
-     * @since 0.2.0
+     * @since 1.0.0 replaces old walkXmlColumnDefinition() method
      */
-    public function walkXmlColumnDefinition(nodes\xml\XmlColumnDefinition $column);
+    public function walkXmlTypedColumnDefinition(nodes\xml\XmlTypedColumnDefinition $column);
+
+    /**
+     * Visits the node representing a column definition in XMLTABLE clause
+     *
+     * @param nodes\xml\XmlOrdinalityColumnDefinition $column
+     * @return mixed
+     * @since 1.0.0 replaces old walkXmlColumnDefinition() method
+     */
+    public function walkXmlOrdinalityColumnDefinition(nodes\xml\XmlOrdinalityColumnDefinition $column);
 
     /**
      * Visits the node representing an XML namespace in XMLTABLE clause

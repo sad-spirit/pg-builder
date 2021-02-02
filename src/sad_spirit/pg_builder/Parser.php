@@ -3952,71 +3952,71 @@ class Parser
     protected function XmlColumnDefinition(): nodes\xml\XmlColumnDefinition
     {
         $name = $this->ColId();
-        $forOrdinality = false;
-        $type = $nullable = $default = $path = null;
+
         if ($this->stream->matchesKeywordSequence('for', 'ordinality')) {
             $this->stream->skip(2);
-            $forOrdinality = true;
-        } else {
-            $type = $this->TypeName();
-            // 'path' is for some reason not a keyword in Postgres, so production for xmltable_column_option_el
-            // accepts any identifier and then xmltable_column_el basically rejects anything that is not 'path'.
-            // We explicitly check for 'path' here instead.
-            do {
-                if ($this->stream->matches(Token::TYPE_IDENTIFIER, 'path')) {
-                    if (null !== $path) {
-                        throw exceptions\SyntaxException::atPosition(
-                            "only one PATH value per column is allowed",
-                            $this->stream->getSource(),
-                            $this->stream->getCurrent()->getPosition()
-                        );
-                    }
-                    $this->stream->next();
-                    $path = $this->RestrictedExpression();
-
-                } elseif ($this->stream->matchesKeyword('default')) {
-                    if (null !== $default) {
-                        throw exceptions\SyntaxException::atPosition(
-                            "only one DEFAULT value is allowed",
-                            $this->stream->getSource(),
-                            $this->stream->getCurrent()->getPosition()
-                        );
-                    }
-                    $this->stream->next();
-                    $default = $this->RestrictedExpression();
-
-                } elseif ($this->stream->matchesKeyword('null')) {
-                    if (null !== $nullable) {
-                        throw exceptions\SyntaxException::atPosition(
-                            "conflicting or redundant NULL / NOT NULL declarations",
-                            $this->stream->getSource(),
-                            $this->stream->getCurrent()->getPosition()
-                        );
-                    }
-                    $this->stream->next();
-                    $nullable = true;
-
-                } elseif (
-                    $this->stream->matchesKeyword('not')
-                          && $this->stream->look(1)->matches(Token::TYPE_KEYWORD, 'null')
-                ) {
-                    if (null !== $nullable) {
-                        throw exceptions\SyntaxException::atPosition(
-                            "conflicting or redundant NULL / NOT NULL declarations",
-                            $this->stream->getSource(),
-                            $this->stream->getCurrent()->getPosition()
-                        );
-                    }
-                    $this->stream->skip(2);
-                    $nullable = false;
-
-                } else {
-                    break;
-                }
-
-            } while (true);
+            return new nodes\xml\XmlOrdinalityColumnDefinition($name);
         }
 
-        return new nodes\xml\XmlColumnDefinition($name, $forOrdinality, $type, $path, $nullable, $default);
+        $type = $this->TypeName();
+        $nullable = $default = $path = null;
+        // 'path' is for some reason not a keyword in Postgres, so production for xmltable_column_option_el
+        // accepts any identifier and then xmltable_column_el basically rejects anything that is not 'path'.
+        // We explicitly check for 'path' here instead.
+        do {
+            if ($this->stream->matches(Token::TYPE_IDENTIFIER, 'path')) {
+                if (null !== $path) {
+                    throw exceptions\SyntaxException::atPosition(
+                        "only one PATH value per column is allowed",
+                        $this->stream->getSource(),
+                        $this->stream->getCurrent()->getPosition()
+                    );
+                }
+                $this->stream->next();
+                $path = $this->RestrictedExpression();
+
+            } elseif ($this->stream->matchesKeyword('default')) {
+                if (null !== $default) {
+                    throw exceptions\SyntaxException::atPosition(
+                        "only one DEFAULT value is allowed",
+                        $this->stream->getSource(),
+                        $this->stream->getCurrent()->getPosition()
+                    );
+                }
+                $this->stream->next();
+                $default = $this->RestrictedExpression();
+
+            } elseif ($this->stream->matchesKeyword('null')) {
+                if (null !== $nullable) {
+                    throw exceptions\SyntaxException::atPosition(
+                        "conflicting or redundant NULL / NOT NULL declarations",
+                        $this->stream->getSource(),
+                        $this->stream->getCurrent()->getPosition()
+                    );
+                }
+                $this->stream->next();
+                $nullable = true;
+
+            } elseif (
+                $this->stream->matchesKeyword('not')
+                      && $this->stream->look(1)->matches(Token::TYPE_KEYWORD, 'null')
+            ) {
+                if (null !== $nullable) {
+                    throw exceptions\SyntaxException::atPosition(
+                        "conflicting or redundant NULL / NOT NULL declarations",
+                        $this->stream->getSource(),
+                        $this->stream->getCurrent()->getPosition()
+                    );
+                }
+                $this->stream->skip(2);
+                $nullable = false;
+
+            } else {
+                break;
+            }
+
+        } while (true);
+
+        return new nodes\xml\XmlTypedColumnDefinition($name, $type, $path, $nullable, $default);
     }
 }

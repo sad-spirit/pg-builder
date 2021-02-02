@@ -657,12 +657,16 @@ abstract class BlankWalker implements TreeWalker
         return null;
     }
 
-    public function walkXmlColumnDefinition(nodes\xml\XmlColumnDefinition $column)
+    public function walkXmlOrdinalityColumnDefinition(nodes\xml\XmlOrdinalityColumnDefinition $column)
     {
         $column->name->dispatch($this);
-        if (null !== $column->type) {
-            $column->type->dispatch($this);
-        }
+        return null;
+    }
+
+    public function walkXmlTypedColumnDefinition(nodes\xml\XmlTypedColumnDefinition $column)
+    {
+        $column->name->dispatch($this);
+        $column->type->dispatch($this);
         if (null !== $column->path) {
             $column->path->dispatch($this);
         }
