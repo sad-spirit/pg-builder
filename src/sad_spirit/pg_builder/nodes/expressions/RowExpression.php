@@ -21,18 +21,32 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
+    ElementParseable,
+    Node,
+    Parseable,
     TreeWalker,
     Parser,
     nodes\ExpressionAtom,
     nodes\ScalarExpression,
-    nodes\SetToDefault,
+    nodes\SetToDefault
 };
-use sad_spirit\pg_builder\nodes\lists\ExpressionList;
+use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 
 /**
  * Represents a ROW(...) constructor expression
+ *
+ * In Postgres 10+ DEFAULT keyword is allowed by grammar in any expression (a_expr production),
+ * however it will later cause an error except when appearing as a top-level expression
+ *  - in row of VALUES clause *if* that clause is attached to INSERT
+ *  - in row expression being assigned to multiple columns in UPDATE
+ *
+ * Therefore we don't make SetToDefault node an implementation of ScalarExpression and only allow
+ * it on the top level of RowExpression.
+ *
+ * @extends NonAssociativeList<ScalarExpression|SetToDefault>
+ * @implements ElementParseable<ScalarExpression|SetToDefault>
  */
-class RowExpression extends ExpressionList implements ScalarExpression
+class RowExpression extends NonAssociativeList implements Parseable, ElementParseable, ScalarExpression
 {
     use ExpressionAtom;
 
@@ -44,13 +58,18 @@ class RowExpression extends ExpressionList implements ScalarExpression
         ];
     }
 
+    public function createElementFromString(string $sql): Node
+    {
+        return $this->getParserOrFail('a list element')->parseExpressionWithDefault($sql);
+    }
+
+    public static function createFromString(Parser $parser, string $sql): self
+    {
+        return $parser->parseRowConstructor($sql);
+    }
+
     public function dispatch(TreeWalker $walker)
     {
         return $walker->walkRowExpression($this);
-    }
-
-    public static function createFromString(Parser $parser, string $sql): ExpressionList
-    {
-        return $parser->parseRowConstructor($sql);
     }
 }

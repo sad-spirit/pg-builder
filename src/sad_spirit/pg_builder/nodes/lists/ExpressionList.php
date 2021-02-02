@@ -29,16 +29,7 @@ use sad_spirit\pg_builder\{
 };
 
 /**
- * List of scalar expressions, may appear e.g. in row constructors
- *
- * In Postgres 10+ DEFAULT keyword is allowed by grammar in any expression (a_expr production),
- * however it will later raise an error except when appearing as a top-level expression
- *  - in row of VALUES clause *if* that clause is attached to INSERT
- *  - in row expression being assigned to multiple columns in UPDATE
- *
- * Therefore we don't make SetToDefault node an implementation of ScalarExpression and only allow
- * it on the top level of RowExpression. Since the latter extends ExpressionList, the knobs to
- * allow SetToDefault are defined here.
+ * List of scalar expressions, may appear e.g. in "foo IN (...)" constructs
  *
  * @extends NonAssociativeList<ScalarExpression>
  * @implements ElementParseable<ScalarExpression>
@@ -52,11 +43,7 @@ class ExpressionList extends NonAssociativeList implements Parseable, ElementPar
 
     public function createElementFromString(string $sql): Node
     {
-        // TODO: this should probably just be reimplemented in child class, need tests
-        $parser = $this->getParserOrFail('a list element');
-        return count(static::getAllowedElementClasses()) > 1
-            ? $parser->parseExpressionWithDefault($sql)
-            : $parser->parseExpression($sql);
+        return $this->getParserOrFail('a list element')->parseExpression($sql);
     }
 
     public static function createFromString(Parser $parser, string $sql): self
