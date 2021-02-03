@@ -26,13 +26,17 @@ use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Lexer,
     Parser,
-    SetOpSelect,
     Select,
+    SetOpSelect,
     SqlBuilderWalker
 };
-use sad_spirit\pg_builder\nodes\expressions\{
-    InExpression,
-    SubselectExpression
+use sad_spirit\pg_builder\nodes\{
+    ColumnReference,
+    Star,
+    expressions\InExpression,
+    expressions\SubselectExpression,
+    lists\ExpressionList,
+    lists\TargetList
 };
 
 /**
@@ -116,5 +120,22 @@ class SelectTest extends TestCase
             . ' or foo_name > any(select baz_name from baz except select xyzzy_name from xyzzy)',
             $select->dispatch($this->builder)
         );
+    }
+
+    public function testSetDistinct(): void
+    {
+        $select = new Select(new TargetList([new Star()]), true);
+        $this::assertTrue($select->distinct);
+
+        $select->setDistinct($list = new ExpressionList([new ColumnReference('foo')]));
+        $this::assertEquals(['foo'], $select->distinct->dispatch($this->builder));
+        $this::assertSame($select, $list->getParentNode());
+
+        $select->setDistinct(false);
+        $this::assertFalse($select->distinct);
+        $this::assertNull($list->getParentNode());
+
+        $select->distinct = true;
+        $this::assertTrue($select->distinct);
     }
 }

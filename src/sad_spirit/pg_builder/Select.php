@@ -51,7 +51,7 @@ class Select extends SelectCommon
     /** @var TargetList */
     protected $p_list;
     /** @var bool|ExpressionList */
-    protected $p_distinct;
+    protected $p_distinct = false;
     /** @var FromList */
     protected $p_from;
     /** @var WhereOrHavingClause */
@@ -66,14 +66,16 @@ class Select extends SelectCommon
     /**
      * Select constructor
      *
-     * @param TargetList               $list
-     * @param null|bool|ExpressionList $distinct
+     * @param TargetList          $list
+     * @param bool|ExpressionList $distinct
      */
-    public function __construct(TargetList $list, $distinct = null)
+    public function __construct(TargetList $list, $distinct = false)
     {
         parent::__construct();
 
-        $this->setProperty($this->p_list, $list);
+        $list->setParentNode($this);
+        $this->p_list = $list;
+
         $this->setDistinct($distinct);
 
         $this->p_from   = new FromList();
@@ -92,25 +94,32 @@ class Select extends SelectCommon
     /**
      * Sets the property corresponding to DISTINCT / DISTINCT ON clause
      *
-     * @param null|bool|ExpressionList $distinct
+     * @param string|bool|ExpressionList|null $distinct
      */
     public function setDistinct($distinct): void
     {
+        $distinct = $distinct ?? false;
         if (is_string($distinct)) {
             $distinct = ExpressionList::createFromString($this->getParserOrFail('DISTINCT clause'), $distinct);
         }
-        if (is_null($distinct) || is_bool($distinct)) {
-            // This removes parentNode from existing distinct node if it is an instance of ExpressionList
-            $this->setProperty($this->p_distinct, null);
-            $this->p_distinct = (bool)$distinct;
-        } elseif ($distinct instanceof ExpressionList) {
-            $this->setProperty($this->p_distinct, $distinct);
-        } else {
+        if (!is_bool($distinct) && !$distinct instanceof ExpressionList) {
             throw new InvalidArgumentException(sprintf(
                 '%s expects either a boolean or an instance of ExpressionList, %s given',
                 __METHOD__,
                 is_object($distinct) ? 'object(' . get_class($distinct) . ')' : gettype($distinct)
             ));
+        }
+
+        if (is_bool($this->p_distinct)) {
+            if ($distinct instanceof ExpressionList) {
+                $distinct->setParentNode($this);
+            }
+            $this->p_distinct = $distinct;
+        } elseif ($distinct instanceof ExpressionList) {
+            $this->setProperty($this->p_distinct, $distinct);
+        } else {
+            $this->p_distinct->setParentNode(null);
+            $this->p_distinct = $distinct;
         }
     }
 
