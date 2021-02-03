@@ -126,6 +126,12 @@ class ParameterWalker extends BlankWalker
 
     /* Optimization: these may have child nodes but will not have parameters. No sense in visiting. */
 
+    public function walkSQLValueFunction(nodes\expressions\SQLValueFunction $node)
+    {
+        /* No Parameters here */
+        return null;
+    }
+
     public function walkColumnReference(nodes\ColumnReference $node)
     {
          /* No Parameters here */

@@ -20,13 +20,14 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\xml;
 
-use sad_spirit\pg_builder\{
-    TreeWalker,
-    exceptions\InvalidArgumentException,
-    nodes\ExpressionAtom,
-    nodes\GenericNode,
-    nodes\ScalarExpression
+use sad_spirit\pg_builder\nodes\{
+    ExpressionAtom,
+    FunctionLike,
+    GenericNode,
+    ScalarExpression
 };
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents xmlroot() expression (cannot be a FunctionCall due to special arguments format)
@@ -35,7 +36,7 @@ use sad_spirit\pg_builder\{
  * @property      ScalarExpression|null $version
  * @property-read string|null           $standalone
  */
-class XmlRoot extends GenericNode implements ScalarExpression
+class XmlRoot extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 

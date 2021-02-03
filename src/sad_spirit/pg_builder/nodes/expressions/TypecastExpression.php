@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
+    nodes\FunctionLike,
     nodes\GenericNode,
     nodes\TypeName,
     nodes\ScalarExpression,
@@ -38,7 +39,7 @@ use sad_spirit\pg_builder\{
  * @property      ScalarExpression $argument
  * @property-read TypeName         $type
  */
-class TypecastExpression extends GenericNode implements ScalarExpression
+class TypecastExpression extends GenericNode implements ScalarExpression, FunctionLike
 {
     /** @var ScalarExpression */
     protected $p_argument;

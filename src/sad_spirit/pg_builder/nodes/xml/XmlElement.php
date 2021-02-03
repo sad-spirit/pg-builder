@@ -22,6 +22,7 @@ namespace sad_spirit\pg_builder\nodes\xml;
 
 use sad_spirit\pg_builder\nodes\{
     ExpressionAtom,
+    FunctionLike,
     ScalarExpression,
     GenericNode,
     Identifier,
@@ -37,7 +38,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read TargetList     $attributes
  * @property-read ExpressionList $content
  */
-class XmlElement extends GenericNode implements ScalarExpression
+class XmlElement extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 

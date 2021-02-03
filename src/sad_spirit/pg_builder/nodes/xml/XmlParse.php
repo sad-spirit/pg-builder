@@ -20,13 +20,14 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\xml;
 
-use sad_spirit\pg_builder\{
-    exceptions\InvalidArgumentException,
-    nodes\ExpressionAtom,
-    nodes\GenericNode,
-    nodes\ScalarExpression,
-    TreeWalker
+use sad_spirit\pg_builder\nodes\{
+    ExpressionAtom,
+    FunctionLike,
+    GenericNode,
+    ScalarExpression
 };
+use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * Represents xmlparse() expression (cannot be a FunctionCall due to special arguments format)
@@ -35,7 +36,7 @@ use sad_spirit\pg_builder\{
  * @property      ScalarExpression $argument
  * @property-read bool             $preserveWhitespace
  */
-class XmlParse extends GenericNode implements ScalarExpression
+class XmlParse extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 

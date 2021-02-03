@@ -21,7 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\range;
 
 use sad_spirit\pg_builder\nodes\{
-    FunctionCall as BaseFunctionCall,
+    FunctionLike,
     GenericNode,
     lists\ColumnDefinitionList
 };
@@ -32,17 +32,17 @@ use sad_spirit\pg_builder\TreeWalker;
  *
  * Cannot use range\FunctionCall instead as it has a lot more properties
  *
- * @property-read BaseFunctionCall     $function
+ * @property-read FunctionLike        $function
  * @property      ColumnDefinitionList $columnAliases
  */
 class RowsFromElement extends GenericNode
 {
-    /** @var BaseFunctionCall */
+    /** @var FunctionLike */
     protected $p_function;
     /** @var ColumnDefinitionList */
     protected $p_columnAliases;
 
-    public function __construct(BaseFunctionCall $function, ColumnDefinitionList $columnAliases = null)
+    public function __construct(FunctionLike $function, ColumnDefinitionList $columnAliases = null)
     {
         $this->generatePropertyNames();
         $this->setProperty($this->p_function, $function);

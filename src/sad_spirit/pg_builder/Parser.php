@@ -89,47 +89,15 @@ class Parser
     private const SUBQUERY_EXPRESSIONS = ['any', 'all', 'some'];
 
     /**
-     * Known system function-like constructs that must appear WITHOUT parentheses
-     *
-     * From func_expr_common_subexpr production in gram.y
-     */
-    private const SYSTEM_FUNCTIONS_NO_PARENS = [
-        'current_date', 'current_role', 'current_user', 'session_user',
-        'user', 'current_catalog', 'current_schema'
-    ];
-
-    /**
-     * Known system function-like constructs that may appear with or without parentheses
-     *
-     * From func_expr_common_subexpr production in gram.y
-     */
-    private const SYSTEM_FUNCTIONS_OPTIONAL_PARENS = [
-        'current_time', 'current_timestamp', 'localtime', 'localtimestamp'
-    ];
-
-    /**
      * Known system functions that must appear with parentheses
      *
      * From func_expr_common_subexpr production in gram.y
      */
-    private const SYSTEM_FUNCTIONS_REQUIRED_PARENS = [
+    private const SYSTEM_FUNCTIONS = [
         'cast', 'extract', 'overlay', 'position', 'substring', 'treat', 'trim',
         'nullif', 'coalesce', 'greatest', 'least', 'xmlconcat', 'xmlelement',
         'xmlexists', 'xmlforest', 'xmlparse', 'xmlpi', 'xmlroot', 'xmlserialize',
         'normalize'
-    ];
-
-    /**
-     * Mapping of function-like constructs to Postgres functions / types
-     */
-    private const SYSTEM_FUNCTIONS_MAPPING = [
-        'current_role'      => 'current_user',
-        'user'              => 'current_user',
-        'current_catalog'   => 'current_database',
-        'current_time'      => 'timetz',
-        'current_timestamp' => 'timestamptz',
-        'localtime'         => 'time',
-        'localtimestamp'    => 'timestamp'
     ];
 
     /**
@@ -520,11 +488,14 @@ class Parser
         static $dontCheckParens = null;
 
         if (null === $dontCheckParens) {
-            $dontCheckParens = array_merge(self::SYSTEM_FUNCTIONS_NO_PARENS, self::SYSTEM_FUNCTIONS_OPTIONAL_PARENS);
+            $dontCheckParens = array_merge(
+                nodes\expressions\SQLValueFunction::NO_MODIFIERS,
+                nodes\expressions\SQLValueFunction::OPTIONAL_MODIFIERS
+            );
         }
         return $this->stream->matchesKeyword($dontCheckParens) // function-like stuff that doesn't need parentheses
                // known system functions that require parentheses
-               || ($this->stream->matchesKeyword(self::SYSTEM_FUNCTIONS_REQUIRED_PARENS)
+               || ($this->stream->matchesKeyword(self::SYSTEM_FUNCTIONS)
                    && $this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, '('))
                || ($this->stream->matchesKeywordSequence('collation', 'for') // COLLATION FOR (...)
                    && $this->stream->look(2)->matches(Token::TYPE_SPECIAL_CHAR, '('));
@@ -2377,8 +2348,8 @@ class Parser
             if ($this->matchesConstTypecast()) {
                 return $this->ConstLeadingTypecast();
 
-            } elseif ($this->matchesSpecialFunctionCall()) {
-                return $this->convertSpecialFunctionCallToFunctionExpression($this->SpecialFunctionCall());
+            } elseif ($this->matchesSpecialFunctionCall() && null !== ($function = $this->SpecialFunctionCall())) {
+                return $this->convertSpecialFunctionCallToFunctionExpression($function);
 
             } else {
                 // By the time we got here everything that can still legitimately be matched should
@@ -2602,60 +2573,37 @@ class Parser
         );
     }
 
-    /**
-     * @return nodes\expressions\TypecastExpression|nodes\FunctionCall
-     */
-    protected function SystemFunctionCallNoParens(): ?Node
+    protected function SystemFunctionCallNoParens(): ?nodes\expressions\SQLValueFunction
     {
-        if (!$this->stream->matchesKeyword(self::SYSTEM_FUNCTIONS_NO_PARENS)) {
+        if (!$this->stream->matchesKeyword(nodes\expressions\SQLValueFunction::NO_MODIFIERS)) {
             return null;
         }
 
-        $funcName = $this->stream->next()->getValue();
-        if ('current_date' === $funcName) {
-            // we convert to 'now'::date instead of 'now'::text::date, since the latter is only
-            // needed for rules, default values and such. we don't do these
-            return new nodes\expressions\TypecastExpression(
-                new nodes\expressions\StringConstant('now'),
-                new nodes\TypeName(new nodes\QualifiedName('pg_catalog', 'date'))
-            );
-
-        } elseif (isset(self::SYSTEM_FUNCTIONS_MAPPING[$funcName])) {
-            return new nodes\FunctionCall(
-                new nodes\QualifiedName('pg_catalog', self::SYSTEM_FUNCTIONS_MAPPING[$funcName])
-            );
-
-        } else {
-            return new nodes\FunctionCall(new nodes\QualifiedName('pg_catalog', $funcName));
-        }
+        return new nodes\expressions\SQLValueFunction($this->stream->next()->getValue());
     }
 
-    protected function SystemFunctionCallOptionalParens(): ?nodes\expressions\TypecastExpression
+    protected function SystemFunctionCallOptionalParens(): ?nodes\expressions\SQLValueFunction
     {
-        if (!$this->stream->matchesKeyword(self::SYSTEM_FUNCTIONS_OPTIONAL_PARENS)) {
+        if (!$this->stream->matchesKeyword(nodes\expressions\SQLValueFunction::OPTIONAL_MODIFIERS)) {
             return null;
         }
 
         $funcName = $this->stream->next()->getValue();
-        if (!$this->stream->matchesSpecialChar('(')) {
-            $modifiers = null;
-        } else {
+        $modifier = null;
+        if ($this->stream->matchesSpecialChar('(')) {
             $this->stream->next();
-            $modifiers = new nodes\lists\TypeModifierList([
-                nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_INTEGER))
-            ]);
+            $modifier = new nodes\expressions\NumericConstant(
+                $this->stream->expect(Token::TYPE_INTEGER)->getValue()
+            );
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
         }
-        $typeName = new nodes\TypeName(
-            new nodes\QualifiedName('pg_catalog', self::SYSTEM_FUNCTIONS_MAPPING[$funcName]),
-            $modifiers
-        );
-        return new nodes\expressions\TypecastExpression(new nodes\expressions\StringConstant('now'), $typeName);
+
+        return new nodes\expressions\SQLValueFunction($funcName, $modifier);
     }
 
-    protected function SystemFunctionCallRequiredParens(): ?Node
+    protected function SystemFunctionCallRequiredParens(): ?nodes\FunctionLike
     {
-        if (!$this->stream->matchesKeyword(self::SYSTEM_FUNCTIONS_REQUIRED_PARENS)) {
+        if (!$this->stream->matchesKeyword(self::SYSTEM_FUNCTIONS)) {
             return null;
         }
         $funcName  = $this->stream->next()->getValue();
@@ -2967,8 +2915,9 @@ class Parser
         return new nodes\TargetElement($value, $attName);
     }
 
-    protected function convertSpecialFunctionCallToFunctionExpression(Node $function): nodes\ScalarExpression
-    {
+    protected function convertSpecialFunctionCallToFunctionExpression(
+        nodes\FunctionLike $function
+    ): nodes\ScalarExpression {
         if ($function instanceof nodes\FunctionCall) {
             return new nodes\expressions\FunctionExpression(
                 is_object($function->name) ? clone $function->name : $function->name,
@@ -3046,7 +2995,7 @@ class Parser
         );
     }
 
-    protected function SpecialFunctionCall(): ?Node
+    protected function SpecialFunctionCall(): ?nodes\FunctionLike
     {
         $funcNode = $this->SystemFunctionCallNoParens()
                     ?? $this->SystemFunctionCallOptionalParens()

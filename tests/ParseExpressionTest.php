@@ -66,6 +66,7 @@ use sad_spirit\pg_builder\nodes\expressions\{
     CaseExpression,
     CollateExpression,
     FunctionExpression,
+    SQLValueFunction,
     StringConstant,
     SubselectExpression,
     TypecastExpression,
@@ -610,10 +611,7 @@ QRY
             new OperatorExpression(
                 '>=',
                 new ColumnReference('news_expire'),
-                new TypecastExpression(
-                    new StringConstant('now'),
-                    new TypeName(new QualifiedName('pg_catalog', 'date'))
-                )
+                new SQLValueFunction(SQLValueFunction::CURRENT_DATE)
             ),
             $this->parser->parseExpression('news_expire >= current_date')
         );

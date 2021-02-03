@@ -38,7 +38,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read bool                      $variadic
  * @property      OrderByList               $order
  */
-class FunctionCall extends GenericNode
+class FunctionCall extends GenericNode implements FunctionLike
 {
     /** @var string|QualifiedName */
     protected $p_name;

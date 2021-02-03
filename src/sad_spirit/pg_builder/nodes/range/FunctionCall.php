@@ -21,7 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\range;
 
 use sad_spirit\pg_builder\nodes\{
-    FunctionCall as BaseFunctionCall,
+    FunctionLike,
     Identifier,
     lists\IdentifierList,
     lists\ColumnDefinitionList
@@ -34,7 +34,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * AST node representing a function call in FROM clause
  *
  * @property-read IdentifierList|ColumnDefinitionList|null $columnAliases
- * @property-read BaseFunctionCall                         $function
+ * @property-read FunctionLike                             $function
  * @property      bool                                     $lateral
  * @property      bool                                     $withOrdinality
  */
@@ -42,14 +42,14 @@ class FunctionCall extends FromElement
 {
     /** @var IdentifierList|ColumnDefinitionList|null */
     protected $p_columnAliases;
-    /** @var BaseFunctionCall */
+    /** @var FunctionLike */
     protected $p_function;
     /** @var bool */
     protected $p_lateral = false;
     /** @var bool */
     protected $p_withOrdinality = false;
 
-    public function __construct(BaseFunctionCall $function)
+    public function __construct(FunctionLike $function)
     {
         $this->generatePropertyNames();
         $this->setProperty($this->p_function, $function);

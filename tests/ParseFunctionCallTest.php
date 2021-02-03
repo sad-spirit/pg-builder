@@ -38,17 +38,16 @@ use sad_spirit\pg_builder\nodes\{
 };
 use sad_spirit\pg_builder\nodes\expressions\{
     FunctionExpression,
+    SQLValueFunction,
     NumericConstant,
     OperatorExpression,
-    StringConstant,
-    TypecastExpression
+    StringConstant
 };
 use sad_spirit\pg_builder\nodes\lists\{
     ExpressionList,
     FunctionArgumentList,
     OrderByList,
-    TargetList,
-    TypeModifierList
+    TargetList
 };
 use sad_spirit\pg_builder\nodes\xml\{
     XmlElement,
@@ -76,24 +75,16 @@ class ParseFunctionCallTest extends TestCase
 
     public function testNoParenthesesFunctions(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList($input = <<<QRY
     current_date, current_role, current_user, session_user, user, current_catalog, current_schema
 QRY
         );
-        $expected = [
-            new TypecastExpression(
-                new StringConstant('now'),
-                new TypeName(new QualifiedName('pg_catalog', 'date'))
-            )
-        ];
-        foreach (
-            ['current_user', 'current_user', 'session_user', 'current_user',
-                       'current_database', 'current_schema'] as $fn
-        ) {
-            $expected[] = new FunctionExpression(new QualifiedName('pg_catalog', $fn));
+        $expected = [];
+        foreach (array_map('trim', explode(',', $input)) as $item) {
+            $expected[] = new SQLValueFunction($item);
         }
 
-        $this->assertEquals(new ExpressionList($expected), $list);
+        $this::assertEquals(new ExpressionList($expected), $list);
     }
 
     public function testOptionalParenthesesFunctions(): void
@@ -103,36 +94,18 @@ QRY
 QRY
         );
 
-        $this->assertEquals(
+        $this::assertEquals(
             new ExpressionList([
-                new TypecastExpression(
-                    new StringConstant('now'),
-                    new TypeName(new QualifiedName('pg_catalog', 'timetz'))
-                ),
-                new TypecastExpression(
-                    new StringConstant('now'),
-                    new TypeName(
-                        new QualifiedName('pg_catalog', 'timestamptz'),
-                        new TypeModifierList([new NumericConstant('1')])
-                    )
-                ),
-                new TypecastExpression(
-                    new StringConstant('now'),
-                    new TypeName(
-                        new QualifiedName('pg_catalog', 'time'),
-                        new TypeModifierList([new NumericConstant('2')])
-                    )
-                ),
-                new TypecastExpression(
-                    new StringConstant('now'),
-                    new TypeName(new QualifiedName('pg_catalog', 'timestamp'))
-                )
+                new SQLValueFunction(SQLValueFunction::CURRENT_TIME),
+                new SQLValueFunction(SQLValueFunction::CURRENT_TIMESTAMP, new NumericConstant('1')),
+                new SQLValueFunction(SQLValueFunction::LOCALTIME, new NumericConstant('2')),
+                new SQLValueFunction(SQLValueFunction::LOCALTIMESTAMP)
             ]),
             $list
         );
 
-        $this->expectException(SyntaxException::class);
-        $this->expectExceptionMessage('expecting integer literal');
+        $this::expectException(SyntaxException::class);
+        $this::expectExceptionMessage('expecting integer literal');
         $this->parser->parseExpressionList('current_time(foo)');
     }
 

@@ -145,6 +145,15 @@ interface TreeWalker
     public function walkFunctionCall(nodes\FunctionCall $node);
 
     /**
+     * Visits the node representing a special parameterless function
+     *
+     * @param \sad_spirit\pg_builder\nodes\expressions\SQLValueFunction $node
+     * @return mixed
+     * @since 1.0.0
+     */
+    public function walkSQLValueFunction(nodes\expressions\SQLValueFunction $node);
+
+    /**
      * Visits the node representing an identifier (e.g. column name or field name)
      *
      * @param nodes\Identifier $node

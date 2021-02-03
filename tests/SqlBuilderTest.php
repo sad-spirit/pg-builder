@@ -272,4 +272,46 @@ QRY
         $this::assertNotRegExp('/[\\x80-\\xff]/', $built, 'Built SQL should not contain non-ASCII symbols');
         $this::assertEquals($ast, $this->parser->parseStatement($built));
     }
+
+    /**
+     * Tests that everything from func_expr_common_subexpr production is handled correctly in FROM clause
+     *
+     * Postgres allows e.g. "select * from cast('now' as date), xmlpi(name php, 'echo ''Hello world!'';')", we parse
+     * those expressions to Nodes that are not FunctionCall and need to ensure that
+     *   - parsing succeeds
+     *   - whatever is output with SqlBuilderWalker looks legit again
+     *
+     * @noinspection SqlNoDataSourceInspection
+     * @noinspection SqlResolve
+     */
+    public function testFunctionLikeConstructsInFromClauseBug(): void
+    {
+        $ast = $this->parser->parseStatement(<<<QRY
+select *
+from current_user,
+     localtimestamp(1),
+     cast('PT1M2S' as interval day to minute),
+     nullif(foo, bar),
+     coalesce(one, two, three),
+     greatest(1, 2, 3, 4),
+     least(4, 3, 2, 1),
+     xmlconcat(x, m, l),
+     xmlelement(name blah, xmlattributes(baz, quux as xyzzy), 'content'),
+     xmlexists('//foo[text() = ''bar'']' passing by ref '<blah><foo>bar</foo></blah>'),
+     xmlforest(foo, 'bar' as baz),
+     xmlparse(document xml.doc preserve whitespace),
+     xmlpi(name php, 'echo ''Hello world!'';'),
+     xmlroot(doc, version '1.2', standalone yes),
+     xmlserialize(document foo as pg_catalog.text),
+     rows from (current_schema, cast('now' as date))
+QRY
+        );
+
+        $built = $ast->dispatch($this->builder);
+        $this->assertEquals(
+            $ast,
+            $this->parser->parseStatement($built),
+            'AST of the built statement should be equal to that of the original statement'
+        );
+    }
 }

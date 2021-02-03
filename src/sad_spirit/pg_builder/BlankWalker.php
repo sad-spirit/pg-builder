@@ -176,6 +176,14 @@ abstract class BlankWalker implements TreeWalker
         return null;
     }
 
+    public function walkSQLValueFunction(nodes\expressions\SQLValueFunction $node)
+    {
+        if (null !== $node->modifier) {
+            $node->modifier->dispatch($this);
+        }
+        return null;
+    }
+
     public function walkIdentifier(nodes\Identifier $node)
     {
         return null;

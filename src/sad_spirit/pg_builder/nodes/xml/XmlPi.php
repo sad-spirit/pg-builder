@@ -20,13 +20,14 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\xml;
 
-use sad_spirit\pg_builder\{
-    nodes\ExpressionAtom,
-    nodes\GenericNode,
-    nodes\Identifier,
-    nodes\ScalarExpression,
-    TreeWalker
+use sad_spirit\pg_builder\nodes\{
+    ExpressionAtom,
+    FunctionLike,
+    GenericNode,
+    Identifier,
+    ScalarExpression
 };
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents xmlpi() expression (cannot be a FunctionCall due to special arguments format)
@@ -34,7 +35,7 @@ use sad_spirit\pg_builder\{
  * @property-read Identifier            $name
  * @property      ScalarExpression|null $content
  */
-class XmlPi extends GenericNode implements ScalarExpression
+class XmlPi extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 

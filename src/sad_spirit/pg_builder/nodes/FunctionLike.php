@@ -18,25 +18,16 @@
 
 declare(strict_types=1);
 
-namespace sad_spirit\pg_builder\nodes\xml;
+namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\nodes\{
-    ExpressionAtom,
-    FunctionLike,
-    ScalarExpression,
-    lists\TargetList
-};
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\Node;
 
 /**
- * Represents xmlforest() expression (cannot be a FunctionCall due to special arguments format)
+ * Interface for nodes that are considered functions in Postgres' grammar
+ *
+ * Generally everything that is returned by Parser::SpecialFunctionCall() should implement this interface, as
+ * these Nodes may be used instead of "normal" FunctionCall nodes in e.g. range\FunctionCall and range\RowsFromElement
  */
-class XmlForest extends TargetList implements ScalarExpression, FunctionLike
+interface FunctionLike extends Node
 {
-    use ExpressionAtom;
-
-    public function dispatch(TreeWalker $walker)
-    {
-        return $walker->walkXmlForest($this);
-    }
 }

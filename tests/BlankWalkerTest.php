@@ -97,7 +97,8 @@ select distinct on (e1) e2.e3, e4.e5[e6], (e7.e8).e9, $1.e10, array[[e11,2],[3,e
        grouping(g1, g2),
        e37.e38[:], e39.e40[e41:], e42.e43[: e44],
        e45 at time zone e46,
-       (e47, 2) overlaps (e48, 3)
+       (e47, 2) overlaps (e48, 3),
+       current_user
 from s34, s35 left join (s36 as s37 left join s38 as s39 using (s40))
                 as s41 on s42.s43 = s44.s45,
      s46(s47, 'two', array[3, s48]) with ordinality as s49 (s50 integer, s51 s52 collate s53),

@@ -542,6 +542,11 @@ class SqlBuilderWalker implements StatementToStringWalker
                . ')';
     }
 
+    public function walkSQLValueFunction(nodes\expressions\SQLValueFunction $node): string
+    {
+        return $node->name . (null === $node->modifier ? '' : '(' . $node->modifier->dispatch($this) . ')');
+    }
+
     public function walkIdentifier(nodes\Identifier $node): string
     {
         if (!$this->options['escape_unicode'] || !preg_match('/[\\x80-\\xff]/', $node->value)) {
@@ -988,8 +993,17 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkTypecastExpression(nodes\expressions\TypecastExpression $expression): string
     {
-        return $this->optionalParentheses($expression->argument, $expression, false)
-               . '::' . $expression->type->dispatch($this);
+        $parent = $expression->getParentNode();
+
+        if ($parent instanceof nodes\range\FunctionCall || $parent instanceof nodes\range\RowsFromElement) {
+            // used in FROM, output longer "CAST(... AS ...)" form
+            return 'cast(' . $expression->argument->dispatch($this) . ' as '
+                   . $expression->type->dispatch($this) . ')';
+        } else {
+            // used somewhere else, output shorter form
+            return $this->optionalParentheses($expression->argument, $expression)
+                   . '::' . $expression->type->dispatch($this);
+        }
     }
 
     public function walkGroupingExpression(nodes\expressions\GroupingExpression $expression): string
