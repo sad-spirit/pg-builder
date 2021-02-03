@@ -168,9 +168,7 @@ abstract class BlankWalker implements TreeWalker
 
     public function walkFunctionCall(nodes\FunctionCall $node)
     {
-        if ($node->name instanceof Node) {
-            $node->name->dispatch($this);
-        }
+        $node->name->dispatch($this);
         $node->arguments->dispatch($this);
         $node->order->dispatch($this);
         return null;
@@ -181,6 +179,12 @@ abstract class BlankWalker implements TreeWalker
         if (null !== $node->modifier) {
             $node->modifier->dispatch($this);
         }
+        return null;
+    }
+
+    public function walkSystemFunctionCall(nodes\expressions\SystemFunctionCall $node)
+    {
+        $node->arguments->dispatch($this);
         return null;
     }
 
@@ -350,6 +354,12 @@ abstract class BlankWalker implements TreeWalker
         return null;
     }
 
+    public function walkArrayComparisonExpression(nodes\expressions\ArrayComparisonExpression $expression)
+    {
+        $expression->array->dispatch($this);
+        return null;
+    }
+
     public function walkAtTimeZoneExpression(nodes\expressions\AtTimeZoneExpression $expression)
     {
         $expression->left->dispatch($this);
@@ -436,6 +446,13 @@ abstract class BlankWalker implements TreeWalker
     public function walkNotExpression(nodes\expressions\NotExpression $expression)
     {
         $expression->argument->dispatch($this);
+        return null;
+    }
+
+    public function walkNullIfExpression(nodes\expressions\NullIfExpression $expression)
+    {
+        $expression->first->dispatch($this);
+        $expression->second->dispatch($this);
         return null;
     }
 

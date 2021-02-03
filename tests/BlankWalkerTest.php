@@ -62,7 +62,7 @@ w5 as (
         set i13 = i14.i15,
             i16 = i17.i18 || ' (formerly ' || i19.i20 || ')'
         where i21 is distinct from i22 + i23
-    returning i24, i25 + i26 as i27
+    returning i24, nullif(i25, i26) as i27
 ), 
 w6 (w7, w8) as (
     update u1 u2 
@@ -102,7 +102,7 @@ select distinct on (e1) e2.e3, e4.e5[e6], (e7.e8).e9, $1.e10, array[[e11,2],[3,e
 from s34, s35 left join (s36 as s37 left join s38 as s39 using (s40))
                 as s41 on s42.s43 = s44.s45,
      s46(s47, 'two', array[3, s48]) with ordinality as s49 (s50 integer, s51 s52 collate s53),
-     (select s54, s55, s56 from s57 where s58 = $2) as s59,
+     (select s54, coalesce(s55, s56) from s57 where s58 = $2) as s59,
      rows from (s60(s61,5), s62(1,s63) as (s64 s65)) with ordinality,
      s66 as s67 (s68, s69) tablesample s70 (50) repeatable (s71),
      LATERAL XMLTABLE(
@@ -115,7 +115,7 @@ from s34, s35 left join (s36 as s37 left join s38 as s39 using (s40))
                  x29 int PATH '@B:bar',
                  x30 FOR ORDINALITY
      ) AS s72
-where s73.s74 <= any(select s75 from s76) or
+where s73.s74 <= any(array[s75, s76]) or
       not ((not e49) is false and e50)
 group by g3.g4, g5, grouping sets(cube((g6, g7), g8), rollup(g9, (g10, g11)), g12, ())
 having count(e51.e52) > e53

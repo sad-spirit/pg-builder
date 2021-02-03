@@ -1529,10 +1529,7 @@ class Parser
         if (self::PARENTHESES_SELECT === $check) {
             $result = new nodes\expressions\SubselectExpression($this->SelectStatement(), $type);
         } else {
-            $result = new nodes\expressions\FunctionExpression(
-                $type,
-                new nodes\lists\FunctionArgumentList([$this->Expression()])
-            );
+            $result = new nodes\expressions\ArrayComparisonExpression($type, $this->Expression());
         }
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
@@ -2668,10 +2665,10 @@ class Parser
                 break;
 
             case 'nullif': // only two arguments, so don't use ExpressionList()
-                $arguments = new nodes\lists\FunctionArgumentList([$this->Expression()]);
+                $first    = $this->Expression();
                 $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
-                $arguments[] = $this->Expression();
-                $funcNode    = new nodes\FunctionCall('nullif', $arguments);
+                $second   = $this->Expression();
+                $funcNode = new nodes\expressions\NullIfExpression($first, $second);
                 break;
 
             case 'xmlelement':
@@ -2739,9 +2736,9 @@ class Parser
                 break;
 
             default: // 'coalesce', 'greatest', 'least', 'xmlconcat'
-                $funcNode = new nodes\FunctionCall(
+                $funcNode = new nodes\expressions\SystemFunctionCall(
                     $funcName,
-                    new nodes\lists\FunctionArgumentList($this->ExpressionList())
+                    $this->ExpressionList()
                 );
         }
 
@@ -2921,7 +2918,7 @@ class Parser
     ): nodes\ScalarExpression {
         if ($function instanceof nodes\FunctionCall) {
             return new nodes\expressions\FunctionExpression(
-                is_object($function->name) ? clone $function->name : $function->name,
+                clone $function->name,
                 clone $function->arguments,
                 $function->distinct,
                 $function->variadic,
@@ -2985,7 +2982,7 @@ class Parser
             $over = $this->WindowSpecification();
         }
         return new nodes\expressions\FunctionExpression(
-            is_object($function->name) ? clone $function->name : $function->name,
+            clone $function->name,
             clone $function->arguments,
             $function->distinct,
             $function->variadic,
@@ -3725,7 +3722,7 @@ class Parser
             /** @var nodes\FunctionCall $function */
             $function = $this->SpecialFunctionCall() ?? $this->GenericFunctionCall();
             $expression = new nodes\expressions\FunctionExpression(
-                is_object($function->name) ? clone $function->name : $function->name,
+                clone $function->name,
                 clone $function->arguments,
                 $function->distinct,
                 $function->variadic,

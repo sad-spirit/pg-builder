@@ -38,10 +38,12 @@ use sad_spirit\pg_builder\nodes\{
 };
 use sad_spirit\pg_builder\nodes\expressions\{
     FunctionExpression,
+    NullIfExpression,
     SQLValueFunction,
     NumericConstant,
     OperatorExpression,
-    StringConstant
+    StringConstant,
+    SystemFunctionCall
 };
 use sad_spirit\pg_builder\nodes\lists\{
     ExpressionList,
@@ -241,10 +243,7 @@ QRY
     public function testNullif(): void
     {
         $this->assertEquals(
-            new FunctionExpression(
-                'nullif',
-                new FunctionArgumentList([new ColumnReference('a'), new StringConstant('b')])
-            ),
+            new NullIfExpression(new ColumnReference('a'), new StringConstant('b')),
             $this->parser->parseExpression("nullif(a, 'b') ")
         );
 
@@ -363,7 +362,7 @@ QRY
         $this->parser->parseExpression("normalize(baz, nfc, nfd)");
     }
 
-    public function testExplicitlyKnownFunctionNames(): void
+    public function testFunctionsWithKeywordNames(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     coalesce(a, 'b'), greatest('c', d), least(e, f), xmlconcat(x, m, l)
@@ -372,23 +371,21 @@ QRY
 
         $this->assertEquals(
             new ExpressionList([
-                new FunctionExpression(
+                new SystemFunctionCall(
                     'coalesce',
-                    new FunctionArgumentList([new ColumnReference('a'), new StringConstant('b')])
+                    new ExpressionList([new ColumnReference('a'), new StringConstant('b')])
                 ),
-                new FunctionExpression(
+                new SystemFunctionCall(
                     'greatest',
-                    new FunctionArgumentList([new StringConstant('c'), new ColumnReference('d')])
+                    new ExpressionList([new StringConstant('c'), new ColumnReference('d')])
                 ),
-                new FunctionExpression(
+                new SystemFunctionCall(
                     'least',
-                    new FunctionArgumentList([
-                        new ColumnReference('e'), new ColumnReference('f')
-                    ])
+                    new ExpressionList([new ColumnReference('e'), new ColumnReference('f')])
                 ),
-                new FunctionExpression(
+                new SystemFunctionCall(
                     'xmlconcat',
-                    new FunctionArgumentList([
+                    new ExpressionList([
                         new ColumnReference('x'), new ColumnReference('m'), new ColumnReference('l')
                     ])
                 )

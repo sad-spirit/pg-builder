@@ -535,7 +535,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         if ($node->variadic) {
             $arguments[] = 'variadic ' . array_pop($arguments);
         }
-        return ($node->name instanceof Node ? $node->name->dispatch($this) : (string)$node->name)  . '('
+        return $node->name->dispatch($this) . '('
                . ($node->distinct ? 'distinct ' : '')
                . implode(', ', $arguments)
                . (0 < count($node->order) ? ' order by ' . implode(',', $node->order->dispatch($this)) : '')
@@ -545,6 +545,11 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkSQLValueFunction(nodes\expressions\SQLValueFunction $node): string
     {
         return $node->name . (null === $node->modifier ? '' : '(' . $node->modifier->dispatch($this) . ')');
+    }
+
+    public function walkSystemFunctionCall(nodes\expressions\SystemFunctionCall $node): string
+    {
+        return $node->name . '(' . implode(', ', (array)$node->arguments->dispatch($this)) . ')';
     }
 
     public function walkIdentifier(nodes\Identifier $node): string
@@ -793,6 +798,11 @@ class SqlBuilderWalker implements StatementToStringWalker
         return $this->recursiveArrayExpression($expression, true);
     }
 
+    public function walkArrayComparisonExpression(nodes\expressions\ArrayComparisonExpression $expression): string
+    {
+        return $expression->keyword . '(' . $expression->array->dispatch($this) . ')';
+    }
+
     public function walkAtTimeZoneExpression(nodes\expressions\AtTimeZoneExpression $expression): string
     {
         return $this->optionalParentheses($expression->left, $expression, false)
@@ -844,14 +854,11 @@ class SqlBuilderWalker implements StatementToStringWalker
             if ($expression->variadic) {
                 $arguments[] = 'variadic ' . array_pop($arguments);
             }
-            $sql = (
-                        $expression->name instanceof Node
-                        ? $expression->name->dispatch($this)
-                        : (string)$expression->name
-                   )
+            $sql = $expression->name->dispatch($this)
                    . '('
                    . ($expression->distinct ? 'distinct ' : '')
-                   . implode(', ', $arguments) . ')'
+                   . implode(', ', $arguments)
+                   . ')'
                    . ' within group (order by '
                    . implode(', ', $expression->order->dispatch($this)) . ')';
         }
@@ -931,6 +938,11 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkNotExpression(nodes\expressions\NotExpression $expression): string
     {
         return 'not ' . $this->optionalParentheses($expression->argument, $expression);
+    }
+
+    public function walkNullIfExpression(nodes\expressions\NullIfExpression $expression): string
+    {
+        return 'nullif(' . $expression->first->dispatch($this) . ', ' . $expression->second->dispatch($this) . ')';
     }
 
     public function walkOperatorExpression(nodes\expressions\OperatorExpression $expression): string

@@ -46,6 +46,7 @@ use sad_spirit\pg_builder\nodes\lists\{
     TargetList
 };
 use sad_spirit\pg_builder\nodes\expressions\{
+    ArrayComparisonExpression,
     AtTimeZoneExpression,
     IsDistinctFromExpression,
     IsExpression,
@@ -69,7 +70,6 @@ use sad_spirit\pg_builder\nodes\expressions\{
     SQLValueFunction,
     StringConstant,
     SubselectExpression,
-    TypecastExpression,
     WhenExpression,
     GroupingExpression
 };
@@ -363,23 +363,22 @@ QRY
                 new OperatorExpression(
                     '=',
                     new ColumnReference('baz'),
-                    new FunctionExpression('some', new FunctionArgumentList([
+                    new ArrayComparisonExpression(
+                        'some',
                         new ArrayExpression([new ColumnReference('one'), new ColumnReference('two')])
-                    ]))
+                    )
                 ),
                 new OperatorExpression(
                     '=',
                     new OperatorExpression(
                         '=',
                         new ColumnReference(new Identifier('foo')),
-                        new FunctionExpression(
+                        new ArrayComparisonExpression(
                             'any',
-                            new FunctionArgumentList([
-                                new ArrayExpression(new ExpressionList([
-                                    new ColumnReference(new Identifier('bar')),
-                                    new ColumnReference(new Identifier('baz'))
-                                ]))
-                            ])
+                            new ArrayExpression(new ExpressionList([
+                                new ColumnReference(new Identifier('bar')),
+                                new ColumnReference(new Identifier('baz'))
+                            ]))
                         )
                     ),
                     new ColumnReference(new Identifier('quux'))

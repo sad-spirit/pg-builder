@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\Keywords;
 use sad_spirit\pg_builder\nodes\lists\OrderByList;
 use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
 use sad_spirit\pg_builder\TreeWalker;
@@ -32,7 +33,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * contexts where window functions are possible, or by range\FunctionCall
  * for functions in FROM
  *
- * @property-read string|QualifiedName      $name
+ * @property-read QualifiedName             $name
  * @property      FunctionArgumentList|Star $arguments
  * @property-read bool                      $distinct
  * @property-read bool                      $variadic
@@ -40,7 +41,7 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class FunctionCall extends GenericNode implements FunctionLike
 {
-    /** @var string|QualifiedName */
+    /** @var QualifiedName */
     protected $p_name;
     /** @var FunctionArgumentList|Star */
     protected $p_arguments;
@@ -67,9 +68,19 @@ class FunctionCall extends GenericNode implements FunctionLike
         bool $variadic = false,
         OrderByList $orderBy = null
     ) {
-        if (!is_string($funcName) && !($funcName instanceof QualifiedName)) {
+        if (is_string($funcName)) {
+            // If we just create QualifiedName from $funcName the result will not be what user expects:
+            // the keyword will appear double-quoted in output
+            if (Keywords::isKeyword($funcName)) {
+                throw new InvalidArgumentException(
+                    __CLASS__ . " no longer accepts SQL keywords for function names ('{$funcName}' given)"
+                );
+            }
+            $funcName = new QualifiedName($funcName);
+        }
+        if (!$funcName instanceof QualifiedName) {
             throw new InvalidArgumentException(sprintf(
-                '%s expects either a string or a QualifiedName as function name, %s given',
+                "%s expects either a string or a QualifiedName as function name, %s given",
                 __CLASS__,
                 is_object($funcName) ? 'object(' . get_class($funcName) . ')' : gettype($funcName)
             ));
@@ -83,11 +94,7 @@ class FunctionCall extends GenericNode implements FunctionLike
         }
 
         $this->generatePropertyNames();
-        if ($funcName instanceof QualifiedName) {
-            $this->setProperty($this->p_name, $funcName);
-        } else {
-            $this->p_name = $funcName;
-        }
+        $this->setProperty($this->p_name, $funcName);
         $this->setProperty($this->p_arguments, $arguments ?? new FunctionArgumentList([]));
         $this->p_distinct = $distinct;
         $this->p_variadic = $variadic;

@@ -147,11 +147,20 @@ interface TreeWalker
     /**
      * Visits the node representing a special parameterless function
      *
-     * @param \sad_spirit\pg_builder\nodes\expressions\SQLValueFunction $node
+     * @param nodes\expressions\SQLValueFunction $node
      * @return mixed
      * @since 1.0.0
      */
     public function walkSQLValueFunction(nodes\expressions\SQLValueFunction $node);
+
+    /**
+     * Visits the node representing a system function
+     *
+     * @param nodes\expressions\SystemFunctionCall $node
+     * @return mixed
+     * @since 1.0.0 Previously represented by FunctionCall / FunctionExpression nodes
+     */
+    public function walkSystemFunctionCall(nodes\expressions\SystemFunctionCall $node);
 
     /**
      * Visits the node representing an identifier (e.g. column name or field name)
@@ -344,6 +353,15 @@ interface TreeWalker
     public function walkArrayExpression(nodes\expressions\ArrayExpression $expression);
 
     /**
+     * Visits the node representing a keyword ANY / ALL / SOME applied to an array-type expression
+     *
+     * @param nodes\expressions\ArrayComparisonExpression $expression
+     * @return mixed
+     * since 1.0.0 Previously represented by FunctionCall / FunctionExpression nodes
+     */
+    public function walkArrayComparisonExpression(nodes\expressions\ArrayComparisonExpression $expression);
+
+    /**
      * Visits the node representing "... AT TIME ZONE ..." expression
      *
      * @param nodes\expressions\AtTimeZoneExpression $expression
@@ -441,6 +459,15 @@ interface TreeWalker
      * @since 1.0.0 "NOT ..." was previously represented by OperatorExpression
      */
     public function walkNotExpression(nodes\expressions\NotExpression $expression);
+
+    /**
+     * Visits the node representing a NULLIF(first, second) construct
+     *
+     * @param nodes\expressions\NullIfExpression $expression
+     * @return mixed
+     * @since 1.0.0 Previously represented by FunctionCall / FunctionExpression nodes
+     */
+    public function walkNullIfExpression(nodes\expressions\NullIfExpression $expression);
 
     /**
      * Visits the node representing a generic operator-like expression
