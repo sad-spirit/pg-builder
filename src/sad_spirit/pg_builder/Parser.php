@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder;
 
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\InvalidArgumentException;
 
 // phpcs:disable PSR1.Methods.CamelCapsMethodName
 /**
@@ -635,14 +636,14 @@ class Parser
             throw new exceptions\BadMethodCallException("The method '{$name}' is not available");
         }
 
-        if (null === $this->cache) {
-            $cacheItem = null;
-
-        } else {
-            $source    = $arguments[0] instanceof TokenStream ? $arguments[0]->getSource() : (string)$arguments[0];
-            $cacheItem = $this->cache->getItem('parsetree-' . md5('{' . $name . '}' . $source));
-            if ($cacheItem->isHit()) {
-                return clone $cacheItem->get();
+        if (null !== $this->cache) {
+            $source = $arguments[0] instanceof TokenStream ? $arguments[0]->getSource() : (string)$arguments[0];
+            try {
+                $cacheItem = $this->cache->getItem('parsetree-' . md5('{' . $name . '}' . $source));
+                if ($cacheItem->isHit()) {
+                    return clone $cacheItem->get();
+                }
+            } catch (InvalidArgumentException $e) {
             }
         }
 
@@ -653,7 +654,7 @@ class Parser
             $this->stream = $this->lexer->tokenize($arguments[0]);
         }
 
-        $parsed = call_user_func([$this, $matches[1]]);
+        $parsed = $this->{$matches[1]}();
 
         if (!$this->stream->isEOF()) {
             throw exceptions\SyntaxException::expectationFailed(
@@ -664,7 +665,7 @@ class Parser
             );
         }
 
-        if (null !== $cacheItem) {
+        if (null !== $this->cache && isset($cacheItem)) {
             $this->cache->save($cacheItem->set(clone $parsed));
         }
 
