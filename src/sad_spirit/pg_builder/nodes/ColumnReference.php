@@ -65,14 +65,29 @@ class ColumnReference extends GenericNode implements ScalarExpression
                 // fall-through is intentional
             case 3:
                 $this->p_schema = $this->expectIdentifier(array_shift($parts), 'schema');
+                if ($this === $this->p_schema->parentNode) {
+                    throw new InvalidArgumentException(
+                        "Cannot use the same Node for different parts of ColumnReference"
+                    );
+                }
                 $this->p_schema->setParentNode($this);
                 // fall-through is intentional
             case 2:
                 $this->p_relation = $this->expectIdentifier(array_shift($parts), 'relation');
+                if ($this === $this->p_relation->parentNode) {
+                    throw new InvalidArgumentException(
+                        "Cannot use the same Node for different parts of ColumnReference"
+                    );
+                }
                 $this->p_relation->setParentNode($this);
                 // fall-through is intentional
             case 1:
                 $this->p_column = $this->expectIdentifierOrStar(array_shift($parts));
+                if ($this === $this->p_column->parentNode) {
+                    throw new InvalidArgumentException(
+                        "Cannot use the same Node for different parts of ColumnReference"
+                    );
+                }
                 $this->p_column->setParentNode($this);
                 break;
 
@@ -93,7 +108,7 @@ class ColumnReference extends GenericNode implements ScalarExpression
     {
         if ($namePart instanceof Star) {
             return $namePart;
-        } elseif ('*' === (string)$namePart) {
+        } elseif ('*' === $namePart) {
             return new Star();
         } else {
             return $this->expectIdentifier($namePart, 'column');
