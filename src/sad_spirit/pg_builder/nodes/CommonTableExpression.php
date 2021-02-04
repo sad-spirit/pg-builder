@@ -30,10 +30,12 @@ use sad_spirit\pg_builder\TreeWalker;
  * Quite similar to range\Subselect, but any statement is allowed here, not only
  * SELECT
  *
- * @property      Statement      $statement
- * @property-read Identifier     $alias
- * @property-read IdentifierList $columnAliases
- * @property      bool|null      $materialized
+ * @psalm-property-read IdentifierList $columnAliases
+ *
+ * @property      Statement                   $statement
+ * @property-read Identifier                  $alias
+ * @property-read IdentifierList|Identifier[] $columnAliases
+ * @property      bool|null                   $materialized
  */
 class CommonTableExpression extends GenericNode
 {
@@ -53,15 +55,21 @@ class CommonTableExpression extends GenericNode
         ?bool $materialized = null
     ) {
         $this->generatePropertyNames();
-        $this->setStatement($statement);
-        $this->setProperty($this->p_alias, $alias);
-        $this->setProperty($this->p_columnAliases, $columnAliases ?? new IdentifierList());
-        $this->setMaterialized($materialized);
+        $this->p_statement = $statement;
+        $this->p_statement->setParentNode($this);
+
+        $this->p_alias = $alias;
+        $this->p_alias->setParentNode($this);
+
+        $this->p_columnAliases = $columnAliases ?? new IdentifierList();
+        $this->p_columnAliases->setParentNode($this);
+
+        $this->p_materialized = $materialized;
     }
 
     public function setStatement(Statement $statement): void
     {
-        $this->setProperty($this->p_statement, $statement);
+        $this->setRequiredProperty($this->p_statement, $statement);
     }
 
     public function setMaterialized(?bool $materialized): void

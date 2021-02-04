@@ -38,13 +38,16 @@ class TargetElement extends GenericNode
     public function __construct(ScalarExpression $expression, Identifier $alias = null)
     {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_expression, $expression);
+
+        $this->p_expression = $expression;
+        $this->p_expression->setParentNode($this);
+
         $this->setProperty($this->p_alias, $alias);
     }
 
     public function setExpression(ScalarExpression $expression): void
     {
-        $this->setProperty($this->p_expression, $expression);
+        $this->setRequiredProperty($this->p_expression, $expression);
     }
 
     public function dispatch(TreeWalker $walker)

@@ -55,12 +55,14 @@ class Indirection extends NonAssociativeList implements ScalarExpression
     {
         $this->generatePropertyNames();
         parent::__construct($indirection);
-        $this->setProperty($this->p_expression, $expression);
+
+        $this->p_expression = $expression;
+        $this->p_expression->setParentNode($this);
     }
 
     public function setExpression(ScalarExpression $expression): void
     {
-        $this->setProperty($this->p_expression, $expression);
+        $this->setRequiredProperty($this->p_expression, $expression);
     }
 
     public function dispatch(TreeWalker $walker)

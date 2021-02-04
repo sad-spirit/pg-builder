@@ -45,9 +45,20 @@ class SingleSetClause extends GenericNode
      */
     public function __construct(SetTargetElement $column, Node $value)
     {
+        if (!($value instanceof ScalarExpression) && !($value instanceof SetToDefault)) {
+            throw new InvalidArgumentException(sprintf(
+                '%s expects either a ScalarExpression or SetToDefault instance as value, %s given',
+                __CLASS__,
+                get_class($value)
+            ));
+        }
+
         $this->generatePropertyNames();
-        $this->setProperty($this->p_column, $column);
-        $this->setValue($value);
+        $this->p_column = $column;
+        $this->p_column->setParentNode($this);
+
+        $this->p_value = $value;
+        $this->p_value->setParentNode($this);
     }
 
     /**
@@ -64,7 +75,7 @@ class SingleSetClause extends GenericNode
                 get_class($value)
             ));
         }
-        $this->setProperty($this->p_value, $value);
+        $this->setRequiredProperty($this->p_value, $value);
     }
 
     public function dispatch(TreeWalker $walker)

@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes;
 
+use sad_spirit\pg_builder\nodes\expressions\Constant;
 use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
@@ -27,10 +28,12 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * Represents a type name with all bells and whistles
  *
- * @property      bool             $setOf
- * @property      array            $bounds
- * @property-read QualifiedName    $name
- * @property-read TypeModifierList $modifiers
+ * @psalm-property-read TypeModifierList $modifiers
+ *
+ * @property      bool                                     $setOf
+ * @property      array                                    $bounds
+ * @property-read QualifiedName                            $name
+ * @property-read TypeModifierList|Constant[]|Identifier[] $modifiers
  */
 class TypeName extends GenericNode
 {
@@ -48,8 +51,12 @@ class TypeName extends GenericNode
     public function __construct(QualifiedName $typeName, TypeModifierList $typeModifiers = null)
     {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_name, $typeName);
-        $this->setProperty($this->p_modifiers, $typeModifiers ?? new TypeModifierList());
+
+        $this->p_name = $typeName;
+        $this->p_name->setParentNode($this);
+
+        $this->p_modifiers = $typeModifiers ?? new TypeModifierList();
+        $this->p_modifiers->setParentNode($this);
     }
 
     public function setSetOf(bool $setOf = false): void

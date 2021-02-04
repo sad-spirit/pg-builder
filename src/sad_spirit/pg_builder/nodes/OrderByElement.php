@@ -90,19 +90,21 @@ class OrderByElement extends GenericNode
         }
 
         $this->generatePropertyNames();
-        $this->setProperty($this->p_expression, $expression);
+        $this->p_expression = $expression;
+        $this->p_expression->setParentNode($this);
+
         $this->p_direction  = $direction;
         $this->p_nullsOrder = $nullsOrder;
-        if (!$operator instanceof QualifiedOperator) {
-            $this->p_operator = $operator;
-        } else {
-            $this->setProperty($this->p_operator, $operator);
+
+        $this->p_operator   = $operator;
+        if ($operator instanceof QualifiedOperator) {
+            $this->p_operator->setParentNode($this);
         }
     }
 
     public function setExpression(ScalarExpression $expression): void
     {
-        $this->setProperty($this->p_expression, $expression);
+        $this->setRequiredProperty($this->p_expression, $expression);
     }
 
     public function dispatch(TreeWalker $walker)

@@ -33,11 +33,14 @@ use sad_spirit\pg_builder\TreeWalker;
  * contexts where window functions are possible, or by range\FunctionCall
  * for functions in FROM
  *
- * @property-read QualifiedName             $name
- * @property      FunctionArgumentList|Star $arguments
- * @property-read bool                      $distinct
- * @property-read bool                      $variadic
- * @property      OrderByList               $order
+ * @psalm-property FunctionArgumentList|Star $arguments
+ * @psalm-property OrderByList               $order
+ *
+ * @property-read QualifiedName                                $name
+ * @property      FunctionArgumentList|Star|ScalarExpression[] $arguments
+ * @property-read bool                                         $distinct
+ * @property-read bool                                         $variadic
+ * @property      OrderByList|OrderByElement[]                 $order
  */
 class FunctionCall extends GenericNode implements FunctionLike
 {
@@ -94,11 +97,18 @@ class FunctionCall extends GenericNode implements FunctionLike
         }
 
         $this->generatePropertyNames();
-        $this->setProperty($this->p_name, $funcName);
-        $this->setProperty($this->p_arguments, $arguments ?? new FunctionArgumentList([]));
+
+        $this->p_name = $funcName;
+        $this->p_name->setParentNode($this);
+
+        $this->p_arguments = $arguments ?? new FunctionArgumentList();
+        $this->p_arguments->setParentNode($this);
+
+        $this->p_order = $orderBy ?? new OrderByList();
+        $this->p_order->setParentNode($this);
+
         $this->p_distinct = $distinct;
         $this->p_variadic = $variadic;
-        $this->setProperty($this->p_order, $orderBy ?? new OrderByList());
     }
 
     public function dispatch(TreeWalker $walker)

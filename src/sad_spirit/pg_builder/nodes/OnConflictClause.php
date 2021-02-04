@@ -28,10 +28,12 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing ON CONFLICT clause of INSERT statement
  *
- * @property      string                          $action
- * @property      IndexParameters|Identifier|null $target
- * @property      SetClauseList                   $set
- * @property-read WhereOrHavingClause             $where
+ * @psalm-property SetClauseList $set
+ *
+ * @property      string                                              $action
+ * @property      IndexParameters|Identifier|null                     $target
+ * @property      SetClauseList|SingleSetClause[]|MultipleSetClause[] $set
+ * @property-read WhereOrHavingClause                                 $where
  */
 class OnConflictClause extends GenericNode
 {
@@ -69,8 +71,12 @@ class OnConflictClause extends GenericNode
         $this->generatePropertyNames();
         $this->setAction($action);
         $this->setTarget($target);
-        $this->setProperty($this->p_set, $set ?? new SetClauseList());
-        $this->setProperty($this->p_where, new WhereOrHavingClause($condition));
+
+        $this->p_set = $set ?? new SetClauseList();
+        $this->p_set->setParentNode($this);
+
+        $this->p_where = new WhereOrHavingClause($condition);
+        $this->p_where->setParentNode($this);
     }
 
     public function setAction(string $action): void

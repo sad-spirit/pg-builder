@@ -61,10 +61,20 @@ class QualifiedName extends GenericNode
                 // fall-through is intentional
             case 2:
                 $this->p_schema = $this->expectIdentifier(array_shift($nameParts), 'schema');
+                if ($this === $this->p_schema->parentNode) {
+                    throw new InvalidArgumentException(
+                        "Cannot use the same Node for different parts of QualifiedName"
+                    );
+                }
                 $this->p_schema->setParentNode($this);
                 // fall-through is intentional
             case 1:
                 $this->p_relation = $this->expectIdentifier(array_shift($nameParts), 'relation');
+                if ($this === $this->p_relation->parentNode) {
+                    throw new InvalidArgumentException(
+                        "Cannot use the same Node for different parts of QualifiedName"
+                    );
+                }
                 $this->p_relation->setParentNode($this);
                 break;
 

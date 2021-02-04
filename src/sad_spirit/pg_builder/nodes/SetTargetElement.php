@@ -59,7 +59,9 @@ class SetTargetElement extends NonAssociativeList
     {
         $this->generatePropertyNames();
         parent::__construct($indirection);
-        $this->setName($name);
+
+        $this->p_name = $name instanceof Identifier ? $name : new Identifier($name);
+        $this->p_name->setParentNode($this);
     }
 
     /**
@@ -69,10 +71,7 @@ class SetTargetElement extends NonAssociativeList
      */
     public function setName($name): void
     {
-        if (!($name instanceof Identifier)) {
-            $name = new Identifier($name);
-        }
-        $this->setProperty($this->p_name, $name);
+        $this->setRequiredProperty($this->p_name, $name instanceof Identifier ? $name : new Identifier($name));
     }
 
     public function dispatch(TreeWalker $walker)

@@ -86,9 +86,19 @@ class IndexElement extends GenericNode
         if (null !== $nullsOrder && !isset(self::ALLOWED_NULLS[$nullsOrder])) {
             throw new InvalidArgumentException("Unknown nulls order '{$nullsOrder}'");
         }
+        if (!($expression instanceof ScalarExpression) && !($expression instanceof Identifier)) {
+            throw new InvalidArgumentException(sprintf(
+                'IndexElement needs either a ScalarExpression or column Identifier as its expression, %s given',
+                get_class($expression)
+            ));
+        }
+        if (null !== $collation && $collation === $opClass) {
+            throw new InvalidArgumentException("Cannot use the same Node for collation and opClass");
+        }
 
         $this->generatePropertyNames();
-        $this->setExpression($expression);
+        $this->p_expression = $expression;
+        $this->p_expression->setParentNode($this);
 
         $this->setProperty($this->p_collation, $collation);
         $this->setProperty($this->p_opClass, $opClass);
@@ -109,7 +119,7 @@ class IndexElement extends GenericNode
                 get_class($expression)
             ));
         }
-        $this->setProperty($this->p_expression, $expression);
+        $this->setRequiredProperty($this->p_expression, $expression);
     }
 
     public function dispatch(TreeWalker $walker)

@@ -44,7 +44,7 @@ class WindowFrameBound extends GenericNode
     /** @var string */
     protected $p_direction;
     /** @var ScalarExpression|null */
-    protected $p_value;
+    protected $p_value = null;
 
     public function __construct(string $direction, ScalarExpression $value = null)
     {

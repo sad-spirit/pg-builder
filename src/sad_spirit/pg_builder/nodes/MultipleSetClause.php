@@ -30,8 +30,10 @@ use sad_spirit\pg_builder\TreeWalker;
  * however Parser will raise an error for anything that is not either a subselect or a row expression,
  * just like Postgres itself does.
  *
- * @property SetTargetList    $columns
- * @property ScalarExpression $value
+ * @psalm-property SetTargetList $columns
+ *
+ * @property SetTargetList|SetTargetElement[] $columns
+ * @property ScalarExpression                 $value
  */
 class MultipleSetClause extends GenericNode
 {
@@ -43,13 +45,17 @@ class MultipleSetClause extends GenericNode
     public function __construct(SetTargetList $columns, ScalarExpression $value)
     {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_columns, $columns);
-        $this->setValue($value);
+
+        $this->p_columns = $columns;
+        $this->p_columns->setParentNode($this);
+
+        $this->p_value = $value;
+        $this->p_value->setParentNode($this);
     }
 
     public function setValue(ScalarExpression $value): void
     {
-        $this->setProperty($this->p_value, $value);
+        $this->setRequiredProperty($this->p_value, $value);
     }
 
     public function dispatch(TreeWalker $walker)

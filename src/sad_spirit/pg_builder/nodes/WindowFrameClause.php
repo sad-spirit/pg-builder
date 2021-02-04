@@ -58,7 +58,7 @@ class WindowFrameClause extends GenericNode
     /** @var WindowFrameBound */
     protected $p_start;
     /** @var WindowFrameBound|null */
-    protected $p_end;
+    protected $p_end = null;
     /** @var string|null */
     protected $p_exclusion;
 
@@ -107,8 +107,13 @@ class WindowFrameClause extends GenericNode
             }
         }
 
-        $this->setProperty($this->p_start, $start);
-        $this->setProperty($this->p_end, $end);
+        $this->p_start = $start;
+        $this->p_start->setParentNode($this);
+
+        if (null !== $end) {
+            $this->p_end = $end;
+            $this->p_end->setParentNode($this);
+        }
     }
 
     public function dispatch(TreeWalker $walker)

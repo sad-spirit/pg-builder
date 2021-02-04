@@ -27,16 +27,19 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing a window definition (for function calls with OVER and for WINDOW clause)
  *
- * @property      Identifier|null        $name
- * @property-read Identifier|null        $refName
- * @property      ExpressionList         $partition
- * @property      OrderByList            $order
- * @property-read WindowFrameClause|null $frame
+ * @psalm-property ExpressionList $partition
+ * @psalm-property OrderByList    $order
+ * 
+ * @property      Identifier|null                   $name
+ * @property-read Identifier|null                   $refName
+ * @property      ExpressionList|ScalarExpression[] $partition
+ * @property      OrderByList|OrderByElement[]      $order
+ * @property-read WindowFrameClause|null            $frame
  */
 class WindowDefinition extends GenericNode
 {
     /** @var Identifier|null */
-    protected $p_name;
+    protected $p_name = null;
     /** @var Identifier|null */
     protected $p_refName;
     /** @var ExpressionList */
@@ -44,7 +47,7 @@ class WindowDefinition extends GenericNode
     /** @var OrderByList */
     protected $p_order;
     /** @var WindowFrameClause|null */
-    protected $p_frame;
+    protected $p_frame = null;
 
     public function __construct(
         Identifier $refName = null,
@@ -53,11 +56,20 @@ class WindowDefinition extends GenericNode
         WindowFrameClause $frame = null
     ) {
         $this->generatePropertyNames();
-        $this->p_name = null;
-        $this->setProperty($this->p_refName, $refName);
-        $this->setProperty($this->p_partition, $partition ?? new ExpressionList());
-        $this->setProperty($this->p_order, $order ?? new OrderByList());
-        $this->setProperty($this->p_frame, $frame);
+
+        $this->p_refName = $refName;
+        $this->p_refName->setParentNode($this);
+
+        $this->p_partition = $partition ?? new ExpressionList();
+        $this->p_partition->setParentNode($this);
+
+        $this->p_order = $order ?? new OrderByList();
+        $this->p_order->setParentNode($this);
+
+        if (null !== $frame) {
+            $this->p_frame = $frame;
+            $this->p_frame->setParentNode($this);
+        }
     }
 
     public function setName(Identifier $name = null): void
