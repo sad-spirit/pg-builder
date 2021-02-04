@@ -355,7 +355,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
         }
         if (!$found) {
             $shortClasses = array_map(function ($className) {
-                return substr($className, strrpos($className, '\\') + 1);
+                return ($pos = strrpos($className, '\\')) ? substr($className, $pos + 1) : $className;
             }, array_merge(
                 [get_class($this)],
                 is_object($value) ? [get_class($value)] : [],
