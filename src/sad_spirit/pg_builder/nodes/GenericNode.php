@@ -313,8 +313,9 @@ abstract class GenericNode implements Node, \Serializable
      * A helper for __set() / replaceChild() / removeChild() / setWhatever() methods. As the method accepts any
      * Node instance as $value, more stringent class / interface checks should be performed in calling methods.
      *
-     * @param Node|null $property
-     * @param Node|null $value
+     * @template Prop of Node
+     * @param Prop|null $property
+     * @param Prop|null $value
      */
     protected function setProperty(?Node &$property, ?Node $value): void
     {
@@ -338,6 +339,20 @@ abstract class GenericNode implements Node, \Serializable
             } else {
                 $oldValue->setParentNode(null);
             }
+        }
+    }
+
+    /**
+     * Sets the given property to the given value, takes care of updating parentNode info, does not allow nulls
+     *
+     * @template Prop of Node
+     * @param Prop $property
+     * @param Prop $value
+     */
+    protected function setRequiredProperty(Node &$property, Node $value): void
+    {
+        if ($value !== $property) {
+            $this->setProperty($property, $value);
         }
     }
 }
