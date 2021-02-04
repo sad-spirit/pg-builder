@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\TreeWalker;
@@ -27,31 +28,39 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing "foo AT TIME ZONE bar" expression
  *
- * @property ScalarExpression $left
- * @property ScalarExpression $right
+ * @property ScalarExpression $argument
+ * @property ScalarExpression $timeZone
  */
 class AtTimeZoneExpression extends GenericNode implements ScalarExpression
 {
     /** @var ScalarExpression */
-    protected $p_left;
+    protected $p_argument;
     /** @var ScalarExpression */
-    protected $p_right;
+    protected $p_timeZone;
 
-    public function __construct(ScalarExpression $left, ScalarExpression $right)
+    public function __construct(ScalarExpression $argument, ScalarExpression $timeZone)
     {
+        if ($argument === $timeZone) {
+            throw new InvalidArgumentException("Cannot use the same Node for argument and time zone");
+        }
+
         $this->generatePropertyNames();
-        $this->setLeft($left);
-        $this->setRight($right);
+
+        $this->p_argument = $argument;
+        $this->p_argument->setParentNode($this);
+
+        $this->p_timeZone = $timeZone;
+        $this->p_timeZone->setParentNode($this);
     }
 
-    public function setLeft(ScalarExpression $left): void
+    public function setArgument(ScalarExpression $argument): void
     {
-        $this->setProperty($this->p_left, $left);
+        $this->setRequiredProperty($this->p_argument, $argument);
     }
 
-    public function setRight(ScalarExpression $right): void
+    public function setTimeZone(ScalarExpression $timeZone): void
     {
-        $this->setProperty($this->p_right, $right);
+        $this->setRequiredProperty($this->p_timeZone, $timeZone);
     }
 
     public function dispatch(TreeWalker $walker)

@@ -362,8 +362,8 @@ abstract class BlankWalker implements TreeWalker
 
     public function walkAtTimeZoneExpression(nodes\expressions\AtTimeZoneExpression $expression)
     {
-        $expression->left->dispatch($this);
-        $expression->right->dispatch($this);
+        $expression->argument->dispatch($this);
+        $expression->timeZone->dispatch($this);
         return null;
     }
 

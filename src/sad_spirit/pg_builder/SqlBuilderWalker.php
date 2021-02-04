@@ -805,9 +805,9 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkAtTimeZoneExpression(nodes\expressions\AtTimeZoneExpression $expression): string
     {
-        return $this->optionalParentheses($expression->left, $expression, false)
+        return $this->optionalParentheses($expression->argument, $expression, false)
                . ' at time zone '
-               . $this->optionalParentheses($expression->right, $expression, true);
+               . $this->optionalParentheses($expression->timeZone, $expression, true);
     }
 
     public function walkBetweenExpression(nodes\expressions\BetweenExpression $expression): string
