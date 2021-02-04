@@ -41,7 +41,7 @@ class WindowDefinition extends GenericNode
     /** @var Identifier|null */
     protected $p_name = null;
     /** @var Identifier|null */
-    protected $p_refName;
+    protected $p_refName = null;
     /** @var ExpressionList */
     protected $p_partition;
     /** @var OrderByList */
@@ -57,14 +57,16 @@ class WindowDefinition extends GenericNode
     ) {
         $this->generatePropertyNames();
 
-        $this->p_refName = $refName;
-        $this->p_refName->setParentNode($this);
-
         $this->p_partition = $partition ?? new ExpressionList();
         $this->p_partition->setParentNode($this);
 
         $this->p_order = $order ?? new OrderByList();
         $this->p_order->setParentNode($this);
+
+        if (null !== $refName) {
+            $this->p_refName = $refName;
+            $this->p_refName->setParentNode($this);
+        }
 
         if (null !== $frame) {
             $this->p_frame = $frame;
