@@ -23,8 +23,11 @@ namespace sad_spirit\pg_builder\nodes\expressions;
 use sad_spirit\pg_builder\nodes\{
     ExpressionAtom,
     FunctionCall,
+    QualifiedName,
     ScalarExpression,
+    Star,
     WindowDefinition,
+    lists\FunctionArgumentList,
     lists\OrderByList
 };
 use sad_spirit\pg_builder\TreeWalker;
@@ -41,12 +44,24 @@ class FunctionExpression extends FunctionCall implements ScalarExpression
     use ExpressionAtom;
 
     /** @var bool */
-    protected $p_withinGroup;
+    protected $p_withinGroup = false;
     /** @var ScalarExpression|null */
-    protected $p_filter;
+    protected $p_filter = null;
     /** @var WindowDefinition|null */
-    protected $p_over;
+    protected $p_over = null;
 
+    /**
+     * Constructor, delegates most stuff to FunctionCall
+     *
+     * @param string|QualifiedName           $funcName
+     * @param FunctionArgumentList|Star|null $arguments
+     * @param bool                           $distinct
+     * @param bool                           $variadic
+     * @param OrderByList|null               $orderBy
+     * @param bool                           $withinGroup
+     * @param ScalarExpression|null          $filter
+     * @param WindowDefinition|null          $over
+     */
     public function __construct(
         $funcName,
         $arguments = null,
@@ -59,8 +74,16 @@ class FunctionExpression extends FunctionCall implements ScalarExpression
     ) {
         parent::__construct($funcName, $arguments, $distinct, $variadic, $orderBy);
         $this->p_withinGroup = $withinGroup;
-        $this->setProperty($this->p_filter, $filter);
-        $this->setProperty($this->p_over, $over);
+
+        if (null !== $filter) {
+            $this->p_filter = $filter;
+            $this->p_filter->setParentNode($this);
+        }
+
+        if (null !== $over) {
+            $this->p_over = $over;
+            $this->p_over->setParentNode($this);
+        }
     }
 
     public function dispatch(TreeWalker $walker)

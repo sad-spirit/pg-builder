@@ -43,13 +43,17 @@ class CollateExpression extends GenericNode implements ScalarExpression
     public function __construct(ScalarExpression $argument, QualifiedName $collation)
     {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_argument, $argument);
-        $this->setProperty($this->p_collation, $collation);
+
+        $this->p_argument = $argument;
+        $this->p_argument->setParentNode($this);
+
+        $this->p_collation = $collation;
+        $this->p_collation->setParentNode($this);
     }
 
     public function setArgument(ScalarExpression $argument): void
     {
-        $this->setProperty($this->p_argument, $argument);
+        $this->setRequiredProperty($this->p_argument, $argument);
     }
 
     public function dispatch(TreeWalker $walker)

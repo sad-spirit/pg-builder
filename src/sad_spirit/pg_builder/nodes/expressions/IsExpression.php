@@ -72,14 +72,18 @@ class IsExpression extends GenericNode implements ScalarExpression
     public function __construct(ScalarExpression $argument, string $what, bool $negated = false)
     {
         $this->generatePropertyNames();
-        $this->setArgument($argument);
+
+        $this->p_argument = $argument;
+        $this->p_argument->setParentNode($this);
+
+        $this->p_negated = $negated;
+
         $this->setWhat($what);
-        $this->setNegated($negated);
     }
 
     public function setArgument(ScalarExpression $argument): void
     {
-        $this->setProperty($this->p_argument, $argument);
+        $this->setRequiredProperty($this->p_argument, $argument);
     }
     
     public function setWhat(string $what): void

@@ -44,8 +44,7 @@ class ArrayExpression extends NonAssociativeList implements ScalarExpression
 
     protected function prepareListElement($value): Node
     {
-        // TODO: ArrayExpression is not the only iterable implementing ScalarExpression, need tests
-        if (is_iterable($value) && !$value instanceof self) {
+        if (is_iterable($value) && !$value instanceof ScalarExpression) {
             $value = new self($value);
         }
         return parent::prepareListElement($value);

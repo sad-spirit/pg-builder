@@ -23,6 +23,7 @@ namespace sad_spirit\pg_builder\nodes\expressions;
 use sad_spirit\pg_builder\nodes\{
     GenericNode,
     ScalarExpression,
+    TypeName,
     lists\TypeList
 };
 use sad_spirit\pg_builder\TreeWalker;
@@ -32,9 +33,11 @@ use sad_spirit\pg_builder\TreeWalker;
  *
  * Cannot be an OperatorExpression due to specific right operand
  *
- * @property ScalarExpression $left
- * @property TypeList         $right
- * @property bool             $negated set to true for IS NOT OF expressions
+ * @psalm-property TypeList $right
+ *
+ * @property ScalarExpression    $left
+ * @property TypeList|TypeName[] $right
+ * @property bool                $negated set to true for IS NOT OF expressions
  */
 class IsOfExpression extends GenericNode implements ScalarExpression
 {
@@ -43,19 +46,24 @@ class IsOfExpression extends GenericNode implements ScalarExpression
     /** @var TypeList */
     protected $p_right;
     /** @var bool */
-    protected $p_negated;
+    protected $p_negated = false;
 
     public function __construct(ScalarExpression $left, TypeList $right, bool $negated = false)
     {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_left, $left);
-        $this->setProperty($this->p_right, $right);
-        $this->setNegated($negated);
+
+        $this->p_left = $left;
+        $this->p_left->setParentNode($this);
+
+        $this->p_right = $right;
+        $this->p_right->setParentNode($this);
+
+        $this->p_negated = $negated;
     }
 
     public function setLeft(ScalarExpression $left): void
     {
-        $this->setProperty($this->p_left, $left);
+        $this->setRequiredProperty($this->p_left, $left);
     }
 
     public function setNegated(bool $negated): void

@@ -48,6 +48,10 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
     /** @var string */
     protected $p_operator = self::AND;
 
+    protected $propertyNames = [
+        'operator' => 'p_operator'
+    ];
+
     /**
      * LogicalExpression constructor
      *
@@ -59,7 +63,6 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
         if (!isset(self::PRECEDENCES[$operator])) {
             throw new InvalidArgumentException("Unknown logical operator '{$operator}'");
         }
-        $this->generatePropertyNames();
         parent::__construct($terms);
         $this->p_operator = $operator;
     }

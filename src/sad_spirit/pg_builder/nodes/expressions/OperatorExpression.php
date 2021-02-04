@@ -70,9 +70,9 @@ class OperatorExpression extends GenericNode implements ScalarExpression
     ];
 
     /** @var ScalarExpression|null */
-    protected $p_left;
+    protected $p_left = null;
     /** @var ScalarExpression|null */
-    protected $p_right;
+    protected $p_right = null;
     /** @var string|QualifiedOperator */
     protected $p_operator;
 
@@ -101,13 +101,24 @@ class OperatorExpression extends GenericNode implements ScalarExpression
         if (null === $left && null === $right) {
             throw new InvalidArgumentException('At least one operand is required for OperatorExpression');
         }
+        if ($left === $right) {
+            throw new InvalidArgumentException("Cannot use the same Node for left and right operands");
+        }
+
         $this->generatePropertyNames();
-        $this->setProperty($this->p_left, $left);
-        $this->setProperty($this->p_right, $right);
-        if (!$operator instanceof QualifiedOperator) {
-            $this->p_operator = $operator;
-        } else {
-            $this->setProperty($this->p_operator, $operator);
+
+        if (null !== $left) {
+            $this->p_left = $left;
+            $this->p_left->setParentNode($this);
+        }
+        if (null !== $right) {
+            $this->p_right = $right;
+            $this->p_right->setParentNode($this);
+        }
+
+        $this->p_operator = $operator;
+        if ($this->p_operator instanceof QualifiedOperator) {
+            $this->p_operator->setParentNode($this);
         }
     }
 

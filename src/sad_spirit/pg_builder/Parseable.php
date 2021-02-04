@@ -30,7 +30,7 @@ interface Parseable
      *
      * @param Parser $parser
      * @param string $sql
-     * @return static
+     * @return self
      * @throws exceptions\SyntaxException
      */
     public static function createFromString(Parser $parser, string $sql);

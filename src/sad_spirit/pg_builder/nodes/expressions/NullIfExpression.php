@@ -26,6 +26,7 @@ use sad_spirit\pg_builder\nodes\{
     GenericNode,
     ScalarExpression
 };
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -45,19 +46,27 @@ class NullIfExpression extends GenericNode implements FunctionLike, ScalarExpres
 
     public function __construct(ScalarExpression $first, ScalarExpression $second)
     {
+        if ($first === $second) {
+            throw new InvalidArgumentException("Cannot use the same Node for both arguments");
+        }
+
         $this->generatePropertyNames();
-        $this->setFirst($first);
-        $this->setSecond($second);
+
+        $this->p_first = $first;
+        $this->p_first->setParentNode($this);
+
+        $this->p_second = $second;
+        $this->p_second->setParentNode($this);
     }
 
     public function setFirst(ScalarExpression $first): void
     {
-        $this->setProperty($this->p_first, $first);
+        $this->setRequiredProperty($this->p_first, $first);
     }
 
     public function setSecond(ScalarExpression $second): void
     {
-        $this->setProperty($this->p_second, $second);
+        $this->setRequiredProperty($this->p_second, $second);
     }
 
     public function dispatch(TreeWalker $walker)

@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\TreeWalker;
@@ -38,24 +39,33 @@ class IsDistinctFromExpression extends GenericNode implements ScalarExpression
     /** @var ScalarExpression */
     protected $p_right;
     /** @var bool */
-    protected $p_negated;
+    protected $p_negated = false;
 
     public function __construct(ScalarExpression $left, ScalarExpression $right, bool $negated = false)
     {
+        if ($left === $right) {
+            throw new InvalidArgumentException("Cannot use the same Node for left and right operands");
+        }
+
         $this->generatePropertyNames();
-        $this->setLeft($left);
-        $this->setRight($right);
-        $this->setNegated($negated);
+
+        $this->p_left = $left;
+        $this->p_left->setParentNode($this);
+
+        $this->p_right = $right;
+        $this->p_right->setParentNode($this);
+
+        $this->p_negated = $negated;
     }
 
     public function setLeft(ScalarExpression $left): void
     {
-        $this->setProperty($this->p_left, $left);
+        $this->setRequiredProperty($this->p_left, $left);
     }
 
     public function setRight(ScalarExpression $right): void
     {
-        $this->setProperty($this->p_right, $right);
+        $this->setRequiredProperty($this->p_right, $right);
     }
 
     public function setNegated(bool $negated): void

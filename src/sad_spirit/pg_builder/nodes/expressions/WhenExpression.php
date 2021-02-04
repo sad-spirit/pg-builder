@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
+    exceptions\InvalidArgumentException,
     exceptions\NotImplementedException,
     nodes\GenericNode,
     nodes\ScalarExpression,
@@ -43,18 +44,26 @@ class WhenExpression extends GenericNode
     public function __construct(ScalarExpression $when, ScalarExpression $then)
     {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_when, $when);
-        $this->setProperty($this->p_then, $then);
+
+        if ($when === $then) {
+            throw new InvalidArgumentException("Cannot use the same Node for WHEN and THEN clauses");
+        }
+
+        $this->p_when = $when;
+        $this->p_when->setParentNode($this);
+
+        $this->p_then = $then;
+        $this->p_then->setParentNode($this);
     }
 
     public function setWhen(ScalarExpression $when): void
     {
-        $this->setProperty($this->p_when, $when);
+        $this->setRequiredProperty($this->p_when, $when);
     }
 
     public function setThen(ScalarExpression $then): void
     {
-        $this->setProperty($this->p_then, $then);
+        $this->setRequiredProperty($this->p_then, $then);
     }
 
     public function dispatch(TreeWalker $walker)

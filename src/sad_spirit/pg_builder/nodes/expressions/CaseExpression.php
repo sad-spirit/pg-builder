@@ -60,13 +60,24 @@ class CaseExpression extends NonAssociativeList implements ScalarExpression
      */
     public function __construct($whenClauses, ScalarExpression $elseClause = null, ScalarExpression $argument = null)
     {
+        if (null !== $elseClause && $elseClause === $argument) {
+            throw new InvalidArgumentException("Cannot use the same Node for CASE argument and ELSE clause");
+        }
+
         $this->generatePropertyNames();
         parent::__construct($whenClauses);
         if (1 > count($this->offsets)) {
             throw new InvalidArgumentException(__CLASS__ . ': at least one WHEN clause is required');
         }
-        $this->setProperty($this->p_argument, $argument);
-        $this->setProperty($this->p_else, $elseClause);
+
+        if (null !== $argument) {
+            $this->p_argument = $argument;
+            $this->p_argument->setParentNode($this);
+        }
+        if (null !== $elseClause) {
+            $this->p_else = $elseClause;
+            $this->p_else->setParentNode($this);
+        }
     }
 
     public function setArgument(ScalarExpression $argument = null): void

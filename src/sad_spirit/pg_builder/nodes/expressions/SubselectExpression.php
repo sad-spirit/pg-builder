@@ -66,13 +66,14 @@ class SubselectExpression extends GenericNode implements ScalarExpression
         }
 
         $this->generatePropertyNames();
-        $this->setQuery($query);
+        $this->p_query = $query;
+        $this->p_query->setParentNode($this);
         $this->p_operator = $operator;
     }
 
     public function setQuery(SelectCommon $query): void
     {
-        $this->setProperty($this->p_query, $query);
+        $this->setRequiredProperty($this->p_query, $query);
     }
 
     public function dispatch(TreeWalker $walker)

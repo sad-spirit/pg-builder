@@ -38,7 +38,6 @@ class NamedParameter extends Parameter
 
     public function __construct(string $name)
     {
-        $this->generatePropertyNames();
         $this->p_name = $name;
     }
 

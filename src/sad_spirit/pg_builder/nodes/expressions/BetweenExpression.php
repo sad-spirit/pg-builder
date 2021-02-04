@@ -57,7 +57,7 @@ class BetweenExpression extends GenericNode implements ScalarExpression
     /** @var string */
     protected $p_operator;
     /** @var bool */
-    protected $p_negated;
+    protected $p_negated = false;
 
     public function __construct(
         ScalarExpression $argument,
@@ -66,27 +66,38 @@ class BetweenExpression extends GenericNode implements ScalarExpression
         string $operator = self::BETWEEN,
         bool $negated = false
     ) {
+        if ($argument === $left || $argument === $right || $left === $right) {
+            throw new InvalidArgumentException("Cannot use the same Node for argument / left bound / right bound");
+        }
+
         $this->generatePropertyNames();
-        $this->setProperty($this->p_argument, $argument);
-        $this->setProperty($this->p_left, $left);
-        $this->setProperty($this->p_right, $right);
         $this->setOperator($operator);
-        $this->setNegated($negated);
+
+        $this->p_argument = $argument;
+        $this->p_argument->setParentNode($this);
+
+        $this->p_left = $left;
+        $this->p_left->setParentNode($this);
+
+        $this->p_right = $right;
+        $this->p_right->setParentNode($this);
+
+        $this->p_negated = $negated;
     }
 
     public function setArgument(ScalarExpression $argument): void
     {
-        $this->setProperty($this->p_argument, $argument);
+        $this->setRequiredProperty($this->p_argument, $argument);
     }
 
     public function setLeft(ScalarExpression $left): void
     {
-        $this->setProperty($this->p_left, $left);
+        $this->setRequiredProperty($this->p_left, $left);
     }
 
     public function setRight(ScalarExpression $right): void
     {
-        $this->setProperty($this->p_right, $right);
+        $this->setRequiredProperty($this->p_right, $right);
     }
 
     public function setOperator(string $operator): void

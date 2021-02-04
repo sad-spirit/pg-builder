@@ -72,22 +72,35 @@ class PatternMatchingExpression extends GenericNode implements ScalarExpression
         if (!isset(self::ALLOWED_OPERATORS[$operator])) {
             throw new InvalidArgumentException("Unknown operator '{$operator}' for pattern matching expression");
         }
+        if ($argument === $pattern || $argument === $escape || $pattern === $escape) {
+            throw new InvalidArgumentException("Cannot use the same Node for argument / pattern / escape");
+        }
+
         $this->generatePropertyNames();
-        $this->setProperty($this->p_argument, $argument);
-        $this->setProperty($this->p_pattern, $pattern);
-        $this->setProperty($this->p_escape, $escape);
+
+        $this->p_argument = $argument;
+        $this->p_argument->setParentNode($this);
+
+        $this->p_pattern = $pattern;
+        $this->p_pattern->setParentNode($this);
+
+        if (null !== $escape) {
+            $this->p_escape = $escape;
+            $this->p_escape->setParentNode($this);
+        }
+
         $this->p_operator = $operator;
-        $this->setNegated($negated);
+        $this->p_negated  = $negated;
     }
 
     public function setArgument(ScalarExpression $argument): void
     {
-        $this->setProperty($this->p_argument, $argument);
+        $this->setRequiredProperty($this->p_argument, $argument);
     }
 
     public function setPattern(ScalarExpression $pattern): void
     {
-        $this->setProperty($this->p_pattern, $pattern);
+        $this->setRequiredProperty($this->p_pattern, $pattern);
     }
 
     public function setEscape(ScalarExpression $escape = null): void

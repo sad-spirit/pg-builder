@@ -35,9 +35,11 @@ use sad_spirit\pg_builder\nodes\lists\ExpressionList;
  *
  * Cannot be an OperatorExpression due to specific right operands
  *
- * @property ScalarExpression            $left
- * @property SelectCommon|ExpressionList $right
- * @property bool                        $negated set to true for NOT IN expressions
+ * @psalm-property SelectCommon|ExpressionList $right
+ *
+ * @property ScalarExpression                               $left
+ * @property SelectCommon|ExpressionList|ScalarExpression[] $right
+ * @property bool                                           $negated set to true for NOT IN expressions
  */
 class InExpression extends GenericNode implements ScalarExpression
 {
@@ -46,7 +48,7 @@ class InExpression extends GenericNode implements ScalarExpression
     /** @var SelectCommon|ExpressionList */
     protected $p_right;
     /** @var bool */
-    protected $p_negated;
+    protected $p_negated = false;
 
     /**
      * InExpression constructor
@@ -57,15 +59,28 @@ class InExpression extends GenericNode implements ScalarExpression
      */
     public function __construct(ScalarExpression $left, Node $right, bool $negated = false)
     {
+        if (!($right instanceof SelectCommon) && !($right instanceof ExpressionList)) {
+            throw new InvalidArgumentException(sprintf(
+                '%s requires an instance of either SelectCommon or ExpressionList as right operand, %s given',
+                __CLASS__,
+                get_class($right)
+            ));
+        }
+
         $this->generatePropertyNames();
-        $this->setRight($right);
-        $this->setLeft($left);
-        $this->setNegated($negated);
+
+        $this->p_right = $right;
+        $this->p_right->setParentNode($this);
+
+        $this->p_left = $left;
+        $this->p_left->setParentNode($this);
+
+        $this->p_negated = $negated;
     }
 
     public function setLeft(ScalarExpression $left): void
     {
-        $this->setProperty($this->p_left, $left);
+        $this->setRequiredProperty($this->p_left, $left);
     }
 
     /**
@@ -82,7 +97,7 @@ class InExpression extends GenericNode implements ScalarExpression
                 get_class($right)
             ));
         }
-        $this->setProperty($this->p_right, $right);
+        $this->setRequiredProperty($this->p_right, $right);
     }
 
     public function setNegated(bool $negated): void

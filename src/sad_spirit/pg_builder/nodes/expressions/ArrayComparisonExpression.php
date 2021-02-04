@@ -60,13 +60,16 @@ class ArrayComparisonExpression extends GenericNode implements ScalarExpression
         }
 
         $this->generatePropertyNames();
+
         $this->p_keyword = $keyword;
-        $this->setArray($array);
+
+        $this->p_array = $array;
+        $this->p_array->setParentNode($this);
     }
 
     public function setArray(ScalarExpression $array): void
     {
-        $this->setProperty($this->p_array, $array);
+        $this->setRequiredProperty($this->p_array, $array);
     }
 
     public function dispatch(TreeWalker $walker)

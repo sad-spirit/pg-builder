@@ -42,6 +42,8 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  *   - checks whether $name is string or QualifiedName had to be added everywhere
  *   - FunctionCall has several other properties that are invalid for system functions
  *
+ * @psalm-property ExpressionList $arguments
+ *
  * @property-read string                            $name
  * @property      ExpressionList|ScalarExpression[] $arguments
  */
@@ -74,7 +76,9 @@ class SystemFunctionCall extends GenericNode implements FunctionLike, ScalarExpr
 
         $this->generatePropertyNames();
         $this->p_name = $name;
-        $this->setProperty($this->p_arguments, $arguments);
+
+        $this->p_arguments = $arguments;
+        $this->p_arguments->setParentNode($this);
     }
 
     public function dispatch(TreeWalker $walker)

@@ -22,6 +22,8 @@ namespace sad_spirit\pg_builder\nodes;
  * Trait for descendants of GenericNodeList that expose properties alongside array offsets
  *
  * Serializes / unserializes both array instead of just $offsets
+ *
+ * @psalm-require-extends GenericNode
  */
 trait HasBothPropsAndOffsets
 {
@@ -30,6 +32,9 @@ trait HasBothPropsAndOffsets
         return serialize([$this->collectProperties(), $this->offsets]);
     }
 
+    /**
+     * @param string $serialized
+     */
     public function unserialize($serialized)
     {
         [$props, $this->offsets] = unserialize($serialized);
@@ -39,6 +44,9 @@ trait HasBothPropsAndOffsets
 
     abstract protected function collectProperties(): array;
 
+    /**
+     * @param array<string, mixed> $properties
+     */
     abstract protected function unserializeProperties(array $properties): void;
 
     abstract protected function updateParentNodeOnOffsets(): void;

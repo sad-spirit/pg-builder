@@ -30,11 +30,14 @@ use sad_spirit\pg_builder\{
 /**
  * AST node representing (...) OVERLAPS (...) construct
  *
- * Both of the arguments can be only instances RowExpression with two elements so we implement
+ * Both arguments can only be instances of RowExpression containing two elements, so we implement
  * this as a special subclass rather than use generic OperatorExpression
  *
- * @property RowExpression $left
- * @property RowExpression $right
+ * @psalm-property RowExpression $left
+ * @psalm-property RowExpression $right
+ *
+ * @property RowExpression|ScalarExpression[] $left
+ * @property RowExpression|ScalarExpression[] $right
  */
 class OverlapsExpression extends GenericNode implements ScalarExpression
 {
@@ -45,9 +48,23 @@ class OverlapsExpression extends GenericNode implements ScalarExpression
 
     public function __construct(RowExpression $left, RowExpression $right)
     {
+        if ($left === $right) {
+            throw new InvalidArgumentException("Cannot use the same Node for left and right arguments");
+        }
+        if (2 !== count($left)) {
+            throw new InvalidArgumentException("Wrong number of items in the left argument to OVERLAPS");
+        }
+        if (2 !== count($right)) {
+            throw new InvalidArgumentException("Wrong number of items in the right argument to OVERLAPS");
+        }
+
         $this->generatePropertyNames();
-        $this->setLeft($left);
-        $this->setRight($right);
+
+        $this->p_left = $left;
+        $this->p_left->setParentNode($this);
+
+        $this->p_right = $right;
+        $this->p_right->setParentNode($this);
     }
 
     public function setLeft(RowExpression $left): void
@@ -55,7 +72,7 @@ class OverlapsExpression extends GenericNode implements ScalarExpression
         if (2 !== count($left)) {
             throw new InvalidArgumentException("Wrong number of items in the left argument to OVERLAPS");
         }
-        $this->setProperty($this->p_left, $left);
+        $this->setRequiredProperty($this->p_left, $left);
     }
 
     public function setRight(RowExpression $right): void
@@ -63,7 +80,7 @@ class OverlapsExpression extends GenericNode implements ScalarExpression
         if (2 !== count($right)) {
             throw new InvalidArgumentException("Wrong number of items in the right argument to OVERLAPS");
         }
-        $this->setProperty($this->p_right, $right);
+        $this->setRequiredProperty($this->p_right, $right);
     }
 
     public function dispatch(TreeWalker $walker)

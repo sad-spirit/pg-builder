@@ -37,12 +37,14 @@ class NotExpression extends GenericNode implements ScalarExpression
     public function __construct(ScalarExpression $argument)
     {
         $this->generatePropertyNames();
-        $this->setArgument($argument);
+
+        $this->p_argument = $argument;
+        $this->p_argument->setParentNode($this);
     }
 
     public function setArgument(ScalarExpression $argument): void
     {
-        $this->setProperty($this->p_argument, $argument);
+        $this->setRequiredProperty($this->p_argument, $argument);
     }
 
     public function dispatch(TreeWalker $walker)
