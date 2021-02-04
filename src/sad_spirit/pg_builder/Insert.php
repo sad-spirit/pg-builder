@@ -33,6 +33,9 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 /**
  * AST node representing INSERT statement
  *
+ * @psalm-property SetTargetList $cols
+ * @psalm-property TargetList    $returning
+ *
  * @property-read InsertTarget                     $relation
  * @property      SetTargetList|SetTargetElement[] $cols
  * @property      SelectCommon|null                $values

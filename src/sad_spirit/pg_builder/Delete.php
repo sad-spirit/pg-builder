@@ -32,6 +32,9 @@ use sad_spirit\pg_builder\nodes\{
 /**
  * AST node representing DELETE statement
  *
+ * @psalm-property FromList   $using
+ * @psalm-property TargetList $returning
+ *
  * @property-read UpdateOrDeleteTarget       $relation
  * @property      FromList|FromElement[]     $using
  * @property-read WhereOrHavingClause        $where

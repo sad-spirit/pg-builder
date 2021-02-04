@@ -38,6 +38,12 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 /**
  * Represents a (simple) SELECT statement
  *
+ * @psalm-property TargetList          $list
+ * @psalm-property bool|ExpressionList $distinct
+ * @psalm-property FromList            $from
+ * @psalm-property GroupByList         $group
+ * @psalm-property WindowList          $window
+ *
  * @property      TargetList|TargetElement[]             $list
  * @property      bool|ExpressionList|ScalarExpression[] $distinct
  * @property      FromList|FromElement[]                 $from

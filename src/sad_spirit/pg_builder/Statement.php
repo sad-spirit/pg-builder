@@ -29,6 +29,8 @@ use sad_spirit\pg_builder\nodes\{
 /**
  * Base class for Nodes representing complete SQL statements
  *
+ * @psalm-property WithClause $with
+ *
  * @property WithClause|CommonTableExpression[] $with
  */
 abstract class Statement extends GenericNode

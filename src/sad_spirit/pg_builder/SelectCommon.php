@@ -32,6 +32,9 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 /**
  * Base class for SELECT-type statements
  *
+ * @psalm-property OrderByList $order
+ * @psalm-property LockList    $locking
+ *
  * @property OrderByList|OrderByElement[] $order
  * @property ScalarExpression|null        $limit
  * @property bool                         $limitWithTies

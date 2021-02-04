@@ -26,6 +26,8 @@ use sad_spirit\pg_builder\nodes\lists\RowList;
 /**
  * AST node representing VALUES statement
  *
+ * @psalm-property RowList $rows
+ *
  * @property RowList|RowExpression[] $rows
  */
 class Values extends SelectCommon

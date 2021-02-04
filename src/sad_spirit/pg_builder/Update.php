@@ -35,9 +35,13 @@ use sad_spirit\pg_builder\nodes\{
 /**
  * AST node representing UPDATE statement
  *
+ * @psalm-property SetClauseList $set
+ * @psalm-property FromList      $from
+ * @psalm-property TargetList    $returning
+ *
  * @property-read UpdateOrDeleteTarget                                $relation
  * @property      SetClauseList|SingleSetClause[]|MultipleSetClause[] $set
- * @property      FromList|FromElement                                $from
+ * @property      FromList|FromElement[]                              $from
  * @property-read WhereOrHavingClause                                 $where
  * @property      TargetList|TargetElement[]                          $returning
  */
