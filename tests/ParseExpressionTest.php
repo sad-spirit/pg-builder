@@ -118,7 +118,7 @@ QRY
                     new ColumnReference(new Identifier('ary'))
                 ),
                 new Indirection(
-                    [new ArrayIndexes(new NumericConstant('1'), null, false)],
+                    [new ArrayIndexes(null, new NumericConstant('1'), false)],
                     new ColumnReference(new Identifier('ary'))
                 )
             ]),
@@ -149,7 +149,7 @@ QRY
                     )
                 ),
                 new Indirection(
-                    [new ArrayIndexes(new NumericConstant('1'))],
+                    [new ArrayIndexes(null, new NumericConstant('1'))],
                     new ArrayExpression(new ExpressionList([new NumericConstant('6'), new NumericConstant('7')]))
                 ),
                 new RowExpression([new SubselectExpression($select), new NumericConstant('2')]),

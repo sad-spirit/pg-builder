@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes;
 
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -44,23 +45,41 @@ class ArrayIndexes extends GenericNode
         bool $isSlice = false
     ) {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_lower, $lower);
-        $this->setProperty($this->p_upper, $upper);
-        $this->setIsSlice($isSlice);
+
+        if (null !== $lower && $upper === $lower) {
+            throw new InvalidArgumentException("Cannot use the same Node for upper and lower bounds");
+        }
+        $this->p_isSlice = $isSlice;
+        $this->setUpper($upper);
+        $this->setLower($lower);
     }
 
     public function setLower(ScalarExpression $lower = null): void
     {
+        if (!$this->p_isSlice && null !== $lower) {
+            throw new InvalidArgumentException("Lower bound should be omitted for non-slice ArrayIndexes");
+        }
         $this->setProperty($this->p_lower, $lower);
     }
 
     public function setUpper(ScalarExpression $upper = null): void
     {
+        if (!$this->p_isSlice && null === $upper) {
+            throw new InvalidArgumentException("Upper bound is required for non-slice ArrayIndexes");
+        }
         $this->setProperty($this->p_upper, $upper);
     }
 
     public function setIsSlice(bool $isSlice): void
     {
+        if (!$isSlice) {
+            if (null === $this->p_upper) {
+                throw new InvalidArgumentException("Upper bound is required for non-slice ArrayIndexes");
+            }
+            if (null !== $this->p_lower) {
+                throw new InvalidArgumentException("Lower bound should be omitted for non-slice ArrayIndexes");
+            }
+        }
         $this->p_isSlice = $isSlice;
     }
 

@@ -202,7 +202,7 @@ class SetParentNodeTest extends TestCase
 
     public function testArrayIndexes(): void
     {
-        $indexes = new ArrayIndexes(new NumericConstant('1'), new NumericConstant('10'));
+        $indexes = new ArrayIndexes(new NumericConstant('1'), new NumericConstant('10'), true);
 
         $this->assertSame($indexes, $indexes->lower->getParentNode());
         $this->assertSame($indexes, $indexes->upper->getParentNode());

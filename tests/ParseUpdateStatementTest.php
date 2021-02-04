@@ -97,7 +97,10 @@ QRY
                 ),
                 new MultipleSetClause(
                     new SetTargetList([
-                        new SetTargetElement(new Identifier('baz'), [new ArrayIndexes(new NumericConstant('1'))]),
+                        new SetTargetElement(
+                            new Identifier('baz'),
+                            [new ArrayIndexes(null, new NumericConstant('1'))]
+                        ),
                         new SetTargetElement(new Identifier('quux'))
                     ]),
                     new RowExpression([

@@ -3187,7 +3187,9 @@ class Parser
                 }
                 $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ']');
 
-                $indirection[] = new nodes\ArrayIndexes($lower, $upper, $isSlice);
+                $indirection[] = $isSlice
+                                 ? new nodes\ArrayIndexes($lower, $upper, true)
+                                 : new nodes\ArrayIndexes(null, $lower);
             }
         }
         return $indirection;
