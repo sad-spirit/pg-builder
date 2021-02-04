@@ -21,21 +21,25 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_builder\nodes\{
+    MultipleSetClause,
+    SingleSetClause,
+    TargetElement,
+    WhereOrHavingClause,
     lists\FromList,
     lists\TargetList,
     lists\SetClauseList,
-    range\UpdateOrDeleteTarget,
-    WhereOrHavingClause
+    range\FromElement,
+    range\UpdateOrDeleteTarget
 };
 
 /**
  * AST node representing UPDATE statement
  *
- * @property-read UpdateOrDeleteTarget  $relation
- * @property      SetClauseList         $set
- * @property      FromList              $from
- * @property-read WhereOrHavingClause   $where
- * @property      TargetList            $returning
+ * @property-read UpdateOrDeleteTarget                                $relation
+ * @property      SetClauseList|SingleSetClause[]|MultipleSetClause[] $set
+ * @property      FromList|FromElement                                $from
+ * @property-read WhereOrHavingClause                                 $where
+ * @property      TargetList|TargetElement[]                          $returning
  */
 class Update extends Statement
 {
@@ -54,11 +58,19 @@ class Update extends Statement
     {
         parent::__construct();
 
-        $this->setProperty($this->p_relation, $relation);
-        $this->setProperty($this->p_set, $set);
-        $this->setProperty($this->p_from, new FromList());
-        $this->setProperty($this->p_returning, new TargetList());
-        $this->setProperty($this->p_where, new WhereOrHavingClause());
+        $relation->setParentNode($this);
+        $this->p_relation = $relation;
+
+        $set->setParentNode($this);
+        $this->p_set = $set;
+
+        $this->p_from      = new FromList();
+        $this->p_returning = new TargetList();
+        $this->p_where     = new WhereOrHavingClause();
+
+        $this->p_from->parentNode      = $this;
+        $this->p_returning->parentNode = $this;
+        $this->p_where->parentNode     = $this;
     }
 
     public function dispatch(TreeWalker $walker)

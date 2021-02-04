@@ -116,7 +116,7 @@ class Select extends SelectCommon
             }
             $this->p_distinct = $distinct;
         } elseif ($distinct instanceof ExpressionList) {
-            $this->setProperty($this->p_distinct, $distinct);
+            $this->setRequiredProperty($this->p_distinct, $distinct);
         } else {
             $this->p_distinct->setParentNode(null);
             $this->p_distinct = $distinct;

@@ -82,8 +82,9 @@ abstract class SelectCommon extends Statement
      *
      * @param string|ScalarExpression|null $expression
      * @param string                       $method
+     * @return ScalarExpression|null
      */
-    private function normalizeExpression(&$expression, string $method): void
+    private function normalizeExpression($expression, string $method): ?ScalarExpression
     {
         if (is_string($expression)) {
             $expression = $this->getParserOrFail('an expression')->parseExpression($expression);
@@ -95,6 +96,7 @@ abstract class SelectCommon extends Statement
                 is_object($expression) ? 'object(' . get_class($expression) . ')' : gettype($expression)
             ));
         }
+        return $expression;
     }
 
     /**
@@ -104,8 +106,7 @@ abstract class SelectCommon extends Statement
      */
     public function setLimit($limit = null): void
     {
-        $this->normalizeExpression($limit, __METHOD__);
-        $this->setProperty($this->p_limit, $limit);
+        $this->setProperty($this->p_limit, $this->normalizeExpression($limit, __METHOD__));
     }
 
     public function setLimitWithTies(bool $withTies): void
@@ -120,8 +121,7 @@ abstract class SelectCommon extends Statement
      */
     public function setOffset($offset = null): void
     {
-        $this->normalizeExpression($offset, __METHOD__);
-        $this->setProperty($this->p_offset, $offset);
+        $this->setProperty($this->p_offset, $this->normalizeExpression($offset, __METHOD__));
     }
 
     /**
@@ -182,7 +182,7 @@ abstract class SelectCommon extends Statement
                 is_object($select) ? 'object(' . get_class($select) . ')' : gettype($select)
             ));
         }
-        if (null === $this->getParentNode()) {
+        if (null === $this->parentNode) {
             $setOpSelect = new SetOpSelect($this, $select, $operator);
 
         } else {
@@ -190,7 +190,7 @@ abstract class SelectCommon extends Statement
             // control reaches replaceChild() $this will not be a child of parentNode anymore.
             $dummy       = new Select(new nodes\lists\TargetList());
             /** @var SetOpSelect $setOpSelect  */
-            $setOpSelect = $this->getParentNode()->replaceChild($this, new SetOpSelect($dummy, $select, $operator));
+            $setOpSelect = $this->parentNode->replaceChild($this, new SetOpSelect($dummy, $select, $operator));
             $setOpSelect->replaceChild($dummy, $this);
         }
         if (null !== ($parser = $this->getParser())) {

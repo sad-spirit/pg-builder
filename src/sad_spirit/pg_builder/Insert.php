@@ -67,7 +67,8 @@ class Insert extends Statement
     {
         parent::__construct();
 
-        $this->setProperty($this->p_relation, $relation);
+        $relation->setParentNode($this);
+        $this->p_relation = $relation;
 
         $this->p_cols      = new SetTargetList();
         $this->p_returning = new TargetList();

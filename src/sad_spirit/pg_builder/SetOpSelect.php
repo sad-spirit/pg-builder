@@ -60,19 +60,27 @@ class SetOpSelect extends SelectCommon
             throw new exceptions\InvalidArgumentException("Unknown set operator '{$operator}'");
         }
 
-        $this->setLeft($left);
-        $this->setRight($right);
+        if ($left === $right) {
+            throw new exceptions\InvalidArgumentException("Cannot combine a SELECT statement with itself");
+        }
+
+        $left->setParentNode($this);
+        $this->p_left = $left;
+
+        $right->setParentNode($this);
+        $this->p_right = $right;
+
         $this->p_operator = $operator;
     }
 
     public function setLeft(SelectCommon $left): void
     {
-        $this->setProperty($this->p_left, $left);
+        $this->setRequiredProperty($this->p_left, $left);
     }
 
     public function setRight(SelectCommon $right): void
     {
-        $this->setProperty($this->p_right, $right);
+        $this->setRequiredProperty($this->p_right, $right);
     }
 
     public function dispatch(TreeWalker $walker)

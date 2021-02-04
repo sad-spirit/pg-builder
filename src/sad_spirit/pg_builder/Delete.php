@@ -52,10 +52,16 @@ class Delete extends Statement
     {
         parent::__construct();
 
-        $this->setProperty($this->p_relation, $relation);
-        $this->setProperty($this->p_using, new FromList());
-        $this->setProperty($this->p_returning, new TargetList());
-        $this->setProperty($this->p_where, new WhereOrHavingClause());
+        $relation->setParentNode($this);
+        $this->p_relation = $relation;
+
+        $this->p_using     = new FromList();
+        $this->p_returning = new TargetList();
+        $this->p_where     = new WhereOrHavingClause();
+
+        $this->p_using->parentNode     = $this;
+        $this->p_returning->parentNode = $this;
+        $this->p_where->parentNode     = $this;
     }
 
     public function dispatch(TreeWalker $walker)

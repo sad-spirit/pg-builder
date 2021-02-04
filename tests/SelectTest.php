@@ -38,6 +38,7 @@ use sad_spirit\pg_builder\nodes\{
     lists\ExpressionList,
     lists\TargetList
 };
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * Tests helper methods of Select node
@@ -61,6 +62,24 @@ class SelectTest extends TestCase
             'linebreak' => '',
             'wrap'      => null
         ]);
+    }
+
+    public function testCannotCombineWithItself(): void
+    {
+        $select = new Select(new TargetList([new Star()]));
+
+        $this::expectException(InvalidArgumentException::class);
+        $this::expectExceptionMessage('Cannot combine a SELECT statement with itself');
+        new SetOpSelect($select, $select);
+    }
+
+    public function testCannotCombineWithItselfUsingHelperMethod(): void
+    {
+        $select = new Select(new TargetList([new Star()]));
+
+        $this::expectException(InvalidArgumentException::class);
+        $this::expectExceptionMessage('Cannot combine a SELECT statement with itself');
+        $select->union($select);
     }
 
     public function testSimpleUnion(): void
