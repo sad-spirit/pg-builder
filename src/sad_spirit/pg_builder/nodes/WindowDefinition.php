@@ -29,7 +29,7 @@ use sad_spirit\pg_builder\TreeWalker;
  *
  * @psalm-property ExpressionList $partition
  * @psalm-property OrderByList    $order
- * 
+ *
  * @property      Identifier|null                   $name
  * @property-read Identifier|null                   $refName
  * @property      ExpressionList|ScalarExpression[] $partition
