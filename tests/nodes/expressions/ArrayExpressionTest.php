@@ -36,7 +36,7 @@ use sad_spirit\pg_builder\nodes\{
  */
 class ArrayExpressionTest extends TestCase
 {
-    public function testConvertsIterableToArrayExpression()
+    public function testConvertsIterableToArrayExpression(): void
     {
         $array = new ArrayExpression();
         $array[0] = [new StringConstant('foo'), new ColumnReference('bar')];
@@ -49,7 +49,7 @@ class ArrayExpressionTest extends TestCase
         $this::assertEquals(new ColumnReference('quux'), clone $array[1][1]);
     }
 
-    public function testLeavesScalarExpressionsAlone()
+    public function testLeavesScalarExpressionsAlone(): void
     {
         $array = new ArrayExpression();
         $row   = new RowExpression([new StringConstant('foo'), new ColumnReference('bar')]);

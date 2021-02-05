@@ -6,23 +6,47 @@ parameters:
 			count: 1
 			path: src/sad_spirit/pg_builder/Insert.php
 
-		# Looks like a bug in phpstan, protected $parentNode is defined in common base class
+		# For some reason "treatPhpDocTypesAsCertain: false" did not help here
+		-
+			message: "#^Result of && is always false\\.$#"
+			count: 1
+			path: src/sad_spirit/pg_builder/Select.php
+
+		# For some reason "treatPhpDocTypesAsCertain: false" did not help here
+		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			count: 1
+			path: src/sad_spirit/pg_builder/Select.php
+
+		# https://github.com/phpstan/phpstan/issues/4492
 		-
 			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\LockList\\:\\:\\$parentNode\\.$#"
 			count: 1
 			path: src/sad_spirit/pg_builder/SelectCommon.php
 
-		# Looks like a bug in phpstan, protected $parentNode is defined in common base class and accessed from closure
+		# https://github.com/phpstan/phpstan/issues/4492
 		-
 			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\Identifier\\|sad_spirit\\\\pg_builder\\\\nodes\\\\Star\\:\\:\\$parentNode\\.$#"
-			count: 1
+			count: 2
 			path: src/sad_spirit/pg_builder/nodes/ColumnReference.php
 
-		# Looks like a bug in phpstan, protected $parentNode is defined in common base class and accessed from closure
+		# https://github.com/phpstan/phpstan/issues/4492
+		-
+			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\Identifier\\:\\:\\$parentNode\\.$#"
+			count: 2
+			path: src/sad_spirit/pg_builder/nodes/ColumnReference.php
+
+		# https://github.com/phpstan/phpstan/issues/4492
+		-
+			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\Identifier\\:\\:\\$parentNode\\.$#"
+			count: 3
+			path: src/sad_spirit/pg_builder/nodes/QualifiedName.php
+
+		# https://github.com/phpstan/phpstan/issues/4492
 		-
 			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\Identifier\\:\\:\\$parentNode\\.$#"
 			count: 1
-			path: src/sad_spirit/pg_builder/nodes/QualifiedName.php
+			path: src/sad_spirit/pg_builder/nodes/QualifiedOperator.php
 
 		# Looks like a bug in phpstan, it fucks up with guessing return value of GenericNodeList::prepareListElement()
 		-
@@ -73,3 +97,14 @@ parameters:
 			count: 2
 			path: tests/nodes/SetParentNodeTest.php
 
+		# Probably need to redefine ArrayExpression constructor
+		-
+			message: "#^sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\ArrayExpression does not accept array<int, sad_spirit\\\\pg_builder\\\\nodes\\\\ColumnReference|sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\StringConstant>\\.$#"
+			count: 1
+			path: tests\nodes\expressions\ArrayExpressionTest.php
+
+		# Probably need to redefine ArrayExpression constructor
+		-
+			message: "#^sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\ArrayExpression does not accept sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\ExpressionList.$#"
+			count: 1
+			path: tests\nodes\expressions\ArrayExpressionTest.php
