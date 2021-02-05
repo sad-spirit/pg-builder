@@ -34,9 +34,11 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * Represents xmlelement() expression (cannot be a FunctionCall due to special arguments format)
  *
- * @property-read Identifier     $name
- * @property-read TargetList     $attributes
- * @property-read ExpressionList $content
+ * @psalm-property ExpressionList $content
+ *
+ * @property-read Identifier                        $name
+ * @property-read TargetList                        $attributes
+ * @property      ExpressionList|ScalarExpression[] $content
  */
 class XmlElement extends GenericNode implements ScalarExpression, FunctionLike
 {
@@ -52,9 +54,15 @@ class XmlElement extends GenericNode implements ScalarExpression, FunctionLike
     public function __construct(Identifier $name, TargetList $attributes = null, ExpressionList $content = null)
     {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_name, $name);
-        $this->setProperty($this->p_attributes, $attributes ?? new TargetList());
-        $this->setProperty($this->p_content, $content ?? new ExpressionList());
+
+        $this->p_name = $name;
+        $this->p_name->setParentNode($this);
+
+        $this->p_attributes = $attributes ?? new TargetList();
+        $this->p_attributes->setParentNode($this);
+
+        $this->p_content = $content ?? new ExpressionList();
+        $this->p_content->setParentNode($this);
     }
 
     public function dispatch(TreeWalker $walker)

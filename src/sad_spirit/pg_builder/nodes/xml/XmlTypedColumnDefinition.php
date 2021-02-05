@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\xml;
 
 use sad_spirit\pg_builder\{
+    exceptions\InvalidArgumentException,
     nodes\Identifier,
     nodes\ScalarExpression,
     nodes\TypeName,
@@ -40,11 +41,11 @@ class XmlTypedColumnDefinition extends XmlColumnDefinition
     /** @var TypeName */
     protected $p_type;
     /** @var ScalarExpression|null */
-    protected $p_path;
+    protected $p_path = null;
     /** @var bool|null */
-    protected $p_nullable;
+    protected $p_nullable = null;
     /** @var ScalarExpression|null */
-    protected $p_default;
+    protected $p_default = null;
 
     public function __construct(
         Identifier $name,
@@ -53,16 +54,31 @@ class XmlTypedColumnDefinition extends XmlColumnDefinition
         ?bool $nullable = null,
         ScalarExpression $default = null
     ) {
+        if (null !== $path && $path === $default) {
+            throw new InvalidArgumentException("Cannot use the same Node for path and default arguments");
+        }
+
         parent::__construct($name);
-        $this->setType($type);
-        $this->setPath($path);
-        $this->setNullable($nullable);
-        $this->setDefault($default);
+
+        $this->p_type = $type;
+        $this->p_type->setParentNode($this);
+
+        if (null !== $path) {
+            $this->p_path = $path;
+            $this->p_path->setParentNode($this);
+        }
+
+        if (null !== $default) {
+            $this->p_default = $default;
+            $this->p_default->setParentNode($this);
+        }
+
+        $this->p_nullable = $nullable;
     }
 
     public function setType(TypeName $type): void
     {
-        $this->setProperty($this->p_type, $type);
+        $this->setRequiredProperty($this->p_type, $type);
     }
 
     public function setPath(ScalarExpression $path = null): void

@@ -36,11 +36,13 @@ abstract class XmlColumnDefinition extends GenericNode
     public function __construct(Identifier $name)
     {
         $this->generatePropertyNames();
-        $this->setName($name);
+
+        $this->p_name = $name;
+        $this->p_name->setParentNode($this);
     }
 
     public function setName(Identifier $name): void
     {
-        $this->setProperty($this->p_name, $name);
+        $this->setRequiredProperty($this->p_name, $name);
     }
 }

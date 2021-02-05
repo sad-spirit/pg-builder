@@ -38,18 +38,24 @@ class XmlNamespace extends GenericNode
     /** @var ScalarExpression */
     protected $p_value;
     /** @var Identifier|null */
-    protected $p_alias;
+    protected $p_alias = null;
 
     public function __construct(ScalarExpression $value, Identifier $alias = null)
     {
         $this->generatePropertyNames();
-        $this->setValue($value);
-        $this->setAlias($alias);
+
+        $this->p_value = $value;
+        $this->p_value->setParentNode($this);
+
+        if (null !== $alias) {
+            $this->p_alias = $alias;
+            $this->p_alias->setParentNode($this);
+        }
     }
 
     public function setValue(ScalarExpression $value): void
     {
-        $this->setProperty($this->p_value, $value);
+        $this->setRequiredProperty($this->p_value, $value);
     }
 
     public function setAlias(Identifier $alias = null): void

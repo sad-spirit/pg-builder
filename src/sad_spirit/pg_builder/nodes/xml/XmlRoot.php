@@ -59,19 +59,29 @@ class XmlRoot extends GenericNode implements ScalarExpression, FunctionLike
 
     public function __construct(ScalarExpression $xml, ScalarExpression $version = null, ?string $standalone = null)
     {
+        if ($version === $xml) {
+            throw new InvalidArgumentException("Cannot use the same Node for xml and version arguments");
+        }
         if (null !== $standalone && !isset(self::STANDALONE_OPTIONS[$standalone])) {
             throw new InvalidArgumentException("Unknown standalone option '{$standalone}'");
         }
 
         $this->generatePropertyNames();
-        $this->setProperty($this->p_xml, $xml);
-        $this->setProperty($this->p_version, $version);
+
+        $this->p_xml = $xml;
+        $this->p_xml->setParentNode($this);
+
+        if (null !== $version) {
+            $this->p_version = $version;
+            $this->p_version->setParentNode($this);
+        }
+
         $this->p_standalone = $standalone;
     }
 
     public function setXml(ScalarExpression $xml): void
     {
-        $this->setProperty($this->p_xml, $xml);
+        $this->setRequiredProperty($this->p_xml, $xml);
     }
 
     public function setVersion(ScalarExpression $version = null): void

@@ -64,14 +64,17 @@ class XmlParse extends GenericNode implements ScalarExpression, FunctionLike
         }
 
         $this->generatePropertyNames();
+
         $this->p_documentOrContent  = $documentOrContent;
         $this->p_preserveWhitespace = $preserveWhitespace;
-        $this->setProperty($this->p_argument, $argument);
+
+        $this->p_argument = $argument;
+        $this->p_argument->setParentNode($this);
     }
 
     public function setArgument(ScalarExpression $argument): void
     {
-        $this->setProperty($this->p_argument, $argument);
+        $this->setRequiredProperty($this->p_argument, $argument);
     }
 
     public function dispatch(TreeWalker $walker)
