@@ -62,7 +62,9 @@ class IntervalTypeName extends TypeName
     public function __construct(TypeModifierList $typeModifiers = null)
     {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_modifiers, $typeModifiers ?? new TypeModifierList());
+
+        $this->p_modifiers = $typeModifiers ?? new TypeModifierList();
+        $this->p_modifiers->setParentNode($this);
     }
 
     public function setMask(string $mask = ''): void

@@ -54,7 +54,7 @@ abstract class Statement extends GenericNode
 
     public function setWith(WithClause $with): void
     {
-        $this->setProperty($this->p_with, $with);
+        $this->setRequiredProperty($this->p_with, $with);
     }
 
     /**

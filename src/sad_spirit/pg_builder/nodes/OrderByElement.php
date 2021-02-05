@@ -97,7 +97,7 @@ class OrderByElement extends GenericNode
         $this->p_nullsOrder = $nullsOrder;
 
         $this->p_operator   = $operator;
-        if ($operator instanceof QualifiedOperator) {
+        if ($this->p_operator instanceof QualifiedOperator) {
             $this->p_operator->setParentNode($this);
         }
     }

@@ -1691,6 +1691,7 @@ class Parser
 
     protected function GenericOperatorTerm(bool $restricted = false): nodes\ScalarExpression
     {
+        $operators = [];
         // prefix operator(s)
         while ($this->matchesOperator()) {
             $operators[] = $this->Operator();
