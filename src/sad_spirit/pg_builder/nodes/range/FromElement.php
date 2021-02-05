@@ -30,10 +30,12 @@ use sad_spirit\pg_builder\{
 use sad_spirit\pg_builder\nodes\lists\IdentifierList;
 
 /**
- * Base class for alias-able items in FROM clause
+ * Base class for alias-able and join-able items in FROM clause
  *
- * @property-read Identifier|null     $tableAlias
- * @property      IdentifierList|null $columnAliases
+ * @psalm-property IdentifierList|null $columnAliases
+ *
+ * @property-read Identifier|null                  $tableAlias
+ * @property      IdentifierList|Identifier[]|null $columnAliases
  */
 abstract class FromElement extends GenericNode
 {
@@ -58,7 +60,6 @@ abstract class FromElement extends GenericNode
             ));
         }
 
-        $this->generatePropertyNames();
         $this->setProperty($this->p_tableAlias, $tableAlias);
         $this->setProperty($this->p_columnAliases, $columnAliases);
     }
@@ -83,7 +84,7 @@ abstract class FromElement extends GenericNode
                 is_object($fromElement) ? 'object(' . get_class($fromElement) . ')' : gettype($fromElement)
             ));
         }
-        if (null === $this->getParentNode()) {
+        if (null === $this->parentNode) {
             return new JoinExpression($this, $fromElement, strtolower($joinType));
 
         } else {
@@ -91,7 +92,7 @@ abstract class FromElement extends GenericNode
             // control reaches replaceChild() $this will not be a child of parentNode anymore.
             $dummy = new RelationReference(new QualifiedName('dummy'));
             /** @var JoinExpression $join */
-            $join  = $this->getParentNode()->replaceChild(
+            $join  = $this->parentNode->replaceChild(
                 $this,
                 new JoinExpression($dummy, $fromElement, strtolower($joinType))
             );

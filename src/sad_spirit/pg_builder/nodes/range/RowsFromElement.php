@@ -32,8 +32,10 @@ use sad_spirit\pg_builder\TreeWalker;
  *
  * Cannot use range\FunctionCall instead as it has a lot more properties
  *
- * @property-read FunctionLike        $function
- * @property      ColumnDefinitionList $columnAliases
+ * @psalm-property ColumnDefinitionList $columnAliases
+ *
+ * @property-read FunctionLike                            $function
+ * @property      ColumnDefinitionList|ColumnDefinition[] $columnAliases
  */
 class RowsFromElement extends GenericNode
 {
@@ -45,8 +47,12 @@ class RowsFromElement extends GenericNode
     public function __construct(FunctionLike $function, ColumnDefinitionList $columnAliases = null)
     {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_function, $function);
-        $this->setProperty($this->p_columnAliases, $columnAliases ?? new ColumnDefinitionList());
+
+        $this->p_function = $function;
+        $this->p_function->setParentNode($this);
+
+        $this->p_columnAliases = $columnAliases ?? new ColumnDefinitionList();
+        $this->p_columnAliases->setParentNode($this);
     }
 
     public function dispatch(TreeWalker $walker)

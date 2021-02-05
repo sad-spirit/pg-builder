@@ -31,12 +31,14 @@ use sad_spirit\pg_builder\nodes\lists\IdentifierList;
 /**
  * AST node for JOIN expression in FROM clause
  *
- * @property      FromElement           $left
- * @property      FromElement           $right
- * @property-read string                $type
- * @property      bool                  $natural
- * @property      IdentifierList|null   $using
- * @property      ScalarExpression|null $on
+ * @psalm-property IdentifierList|null $using
+ *
+ * @property      FromElement                      $left
+ * @property      FromElement                      $right
+ * @property-read string                           $type
+ * @property      bool                             $natural
+ * @property      IdentifierList|Identifier[]|null $using
+ * @property      ScalarExpression|null            $on
  */
 class JoinExpression extends FromElement
 {
@@ -61,32 +63,40 @@ class JoinExpression extends FromElement
     /** @var string */
     protected $p_type;
     /** @var bool */
-    protected $p_natural;
+    protected $p_natural = false;
     /** @var IdentifierList|null */
-    protected $p_using;
+    protected $p_using = null;
     /** @var ScalarExpression|null */
-    protected $p_on;
+    protected $p_on = null;
 
     public function __construct(FromElement $left, FromElement $right, string $joinType = self::INNER)
     {
+        if ($left === $right) {
+            throw new InvalidArgumentException("Cannot use the same Node for both sides of JOIN");
+        }
         if (!isset(self::ALLOWED_TYPES[$joinType])) {
             throw new InvalidArgumentException("Unknown join type '{$joinType}'");
         }
 
         $this->generatePropertyNames();
-        $this->setLeft($left);
-        $this->setRight($right);
+
+        $this->p_left = $left;
+        $this->p_left->setParentNode($this);
+
+        $this->p_right = $right;
+        $this->p_right->setParentNode($this);
+
         $this->p_type = $joinType;
     }
 
     public function setLeft(FromElement $left): void
     {
-        $this->setProperty($this->p_left, $left);
+        $this->setRequiredProperty($this->p_left, $left);
     }
 
     public function setRight(FromElement $right): void
     {
-        $this->setProperty($this->p_right, $right);
+        $this->setRequiredProperty($this->p_right, $right);
     }
 
     public function setNatural(bool $natural): void

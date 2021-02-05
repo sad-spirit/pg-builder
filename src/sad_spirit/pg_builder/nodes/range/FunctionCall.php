@@ -33,10 +33,12 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing a function call in FROM clause
  *
- * @property-read IdentifierList|ColumnDefinitionList|null $columnAliases
- * @property-read FunctionLike                             $function
- * @property      bool                                     $lateral
- * @property      bool                                     $withOrdinality
+ * @psalm-property IdentifierList|ColumnDefinitionList|null $columnAliases
+ *
+ * @property      IdentifierList|Identifier[]|ColumnDefinitionList|ColumnDefinition[]|null $columnAliases
+ * @property-read FunctionLike                                                             $function
+ * @property      bool                                                                     $lateral
+ * @property      bool                                                                     $withOrdinality
  */
 class FunctionCall extends FromElement
 {
@@ -52,7 +54,9 @@ class FunctionCall extends FromElement
     public function __construct(FunctionLike $function)
     {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_function, $function);
+
+        $this->p_function = $function;
+        $this->p_function->setParentNode($this);
     }
 
     public function setLateral(bool $lateral): void

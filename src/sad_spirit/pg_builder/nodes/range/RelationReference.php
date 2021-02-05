@@ -44,7 +44,10 @@ class RelationReference extends FromElement
     public function __construct(QualifiedName $qualifiedName, ?bool $inheritOption = null)
     {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_name, $qualifiedName);
+
+        $this->p_name = $qualifiedName;
+        $this->p_name->setParentNode($this);
+
         $this->p_inherit = $inheritOption;
     }
 

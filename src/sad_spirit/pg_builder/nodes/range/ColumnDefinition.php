@@ -45,14 +45,22 @@ class ColumnDefinition extends GenericNode
     /** @var TypeName */
     protected $p_type;
     /** @var QualifiedName|null */
-    protected $p_collation;
+    protected $p_collation = null;
 
     public function __construct(Identifier $colId, TypeName $type, QualifiedName $collation = null)
     {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_name, $colId);
-        $this->setProperty($this->p_type, $type);
-        $this->setProperty($this->p_collation, $collation);
+
+        $this->p_name = $colId;
+        $this->p_name->setParentNode($this);
+
+        $this->p_type = $type;
+        $this->p_type->setParentNode($this);
+
+        if (null !== $collation) {
+            $this->p_collation = $collation;
+            $this->p_collation->setParentNode($this);
+        }
     }
 
     public function dispatch(TreeWalker $walker)

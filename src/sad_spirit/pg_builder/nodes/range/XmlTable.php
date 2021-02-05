@@ -20,9 +20,12 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\range;
 
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\nodes\{
     ScalarExpression,
+    xml\XmlColumnDefinition,
     xml\XmlColumnList,
+    xml\XmlNamespace,
     xml\XmlNamespaceList
 };
 use sad_spirit\pg_builder\TreeWalker;
@@ -30,16 +33,19 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing an XMLTABLE clause in FROM
  *
- * @property bool             $lateral
- * @property ScalarExpression $rowExpression
- * @property ScalarExpression $documentExpression
- * @property XmlColumnList    $columns
- * @property XmlNamespaceList $namespaces
+ * @psalm-property XmlColumnList    $columns
+ * @psalm-property XmlNamespaceList $namespaces
+ *
+ * @property bool                                $lateral
+ * @property ScalarExpression                    $rowExpression
+ * @property ScalarExpression                    $documentExpression
+ * @property XmlColumnList|XmlColumnDefinition[] $columns
+ * @property XmlNamespaceList|XmlNamespace[]     $namespaces
  */
 class XmlTable extends FromElement
 {
     /** @var bool */
-    protected $p_lateral;
+    protected $p_lateral = false;
     /** @var ScalarExpression */
     protected $p_rowExpression;
     /** @var ScalarExpression */
@@ -55,24 +61,33 @@ class XmlTable extends FromElement
         XmlColumnList $columns,
         XmlNamespaceList $namespaces = null
     ) {
+        if ($rowExpression === $documentExpression) {
+            throw new InvalidArgumentException("Cannot use the same Node for row and document expressions");
+        }
+
         $this->generatePropertyNames();
 
-        $this->p_lateral = false;
+        $this->p_rowExpression = $rowExpression;
+        $this->p_rowExpression->setParentNode($this);
 
-        $this->setRowExpression($rowExpression);
-        $this->setDocumentExpression($documentExpression);
-        $this->setProperty($this->p_columns, $columns);
-        $this->setProperty($this->p_namespaces, $namespaces ?? new XmlNamespaceList([]));
+        $this->p_documentExpression = $documentExpression;
+        $this->p_documentExpression->setParentNode($this);
+
+        $this->p_columns = $columns;
+        $this->p_columns->setParentNode($this);
+
+        $this->p_namespaces = $namespaces ?? new XmlNamespaceList();
+        $this->p_namespaces->setParentNode($this);
     }
 
     public function setRowExpression(ScalarExpression $rowExpression): void
     {
-        $this->setProperty($this->p_rowExpression, $rowExpression);
+        $this->setRequiredProperty($this->p_rowExpression, $rowExpression);
     }
 
     public function setDocumentExpression(ScalarExpression $documentExpression): void
     {
-        $this->setProperty($this->p_documentExpression, $documentExpression);
+        $this->setRequiredProperty($this->p_documentExpression, $documentExpression);
     }
 
     public function setLateral(bool $lateral): void

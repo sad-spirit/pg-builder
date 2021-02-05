@@ -32,10 +32,12 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node for TABLESAMPLE clause in FROM list
  *
- * @property-read RelationReference     $relation
- * @property      QualifiedName         $method
- * @property      ExpressionList        $arguments
- * @property      ScalarExpression|null $repeatable
+ * @psalm-property ExpressionList $arguments
+ *
+ * @property-read RelationReference                 $relation
+ * @property      QualifiedName                     $method
+ * @property      ExpressionList|ScalarExpression[] $arguments
+ * @property      ScalarExpression|null             $repeatable
  */
 class TableSample extends FromElement
 {
@@ -46,7 +48,7 @@ class TableSample extends FromElement
     /** @var ExpressionList */
     protected $p_arguments;
     /** @var ScalarExpression|null */
-    protected $p_repeatable;
+    protected $p_repeatable = null;
 
     public function __construct(
         RelationReference $relation,
@@ -55,15 +57,25 @@ class TableSample extends FromElement
         ScalarExpression $repeatable = null
     ) {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_relation, $relation);
-        $this->setMethod($method);
-        $this->setProperty($this->p_arguments, $arguments);
-        $this->setRepeatable($repeatable);
+
+        $this->p_relation = $relation;
+        $this->p_relation->setParentNode($this);
+
+        $this->p_method = $method;
+        $this->p_method->setParentNode($this);
+
+        $this->p_arguments = $arguments;
+        $this->p_arguments->setParentNode($this);
+
+        if (null !== $repeatable) {
+            $this->p_repeatable = $repeatable;
+            $this->p_repeatable->setParentNode($this);
+        }
     }
 
     public function setMethod(QualifiedName $method): void
     {
-        $this->setProperty($this->p_method, $method);
+        $this->setRequiredProperty($this->p_method, $method);
     }
 
     public function setRepeatable(ScalarExpression $repeatable = null): void

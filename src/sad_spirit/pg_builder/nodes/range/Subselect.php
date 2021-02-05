@@ -39,12 +39,14 @@ class Subselect extends FromElement
     public function __construct(SelectCommon $query)
     {
         $this->generatePropertyNames();
-        $this->setQuery($query);
+
+        $this->p_query = $query;
+        $this->p_query->setParentNode($this);
     }
 
     public function setQuery(SelectCommon $query): void
     {
-        $this->setProperty($this->p_query, $query);
+        $this->setRequiredProperty($this->p_query, $query);
     }
 
     public function setLateral(bool $lateral): void

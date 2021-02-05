@@ -44,13 +44,19 @@ class InsertTarget extends GenericNode
     /** @var QualifiedName */
     protected $p_relation;
     /** @var Identifier|null */
-    protected $p_alias;
+    protected $p_alias = null;
 
     public function __construct(QualifiedName $relation, Identifier $alias = null)
     {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_relation, $relation);
-        $this->setProperty($this->p_alias, $alias);
+
+        $this->p_relation = $relation;
+        $this->p_relation->setParentNode($this);
+
+        if (null !== $alias) {
+            $this->p_alias = $alias;
+            $this->p_alias->setParentNode($this);
+        }
     }
 
     public function dispatch(TreeWalker $walker)

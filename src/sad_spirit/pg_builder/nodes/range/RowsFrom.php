@@ -36,9 +36,9 @@ class RowsFrom extends FunctionCall
     public function __construct(RowsFromList $function)
     {
         $this->generatePropertyNames();
-        $this->setProperty($this->p_function, $function);
-        $this->p_lateral        = false;
-        $this->p_withOrdinality = false;
+
+        $this->p_function = $function;
+        $this->p_function->setParentNode($this);
     }
 
     public function dispatch(TreeWalker $walker)
