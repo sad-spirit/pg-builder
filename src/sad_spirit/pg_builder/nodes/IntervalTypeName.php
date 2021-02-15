@@ -54,17 +54,12 @@ class IntervalTypeName extends TypeName
         'minute to second' => true
     ];
 
-    /** @var null */
-    protected $p_name = null;
     /** @var string */
     protected $p_mask = '';
 
     public function __construct(TypeModifierList $typeModifiers = null)
     {
-        $this->generatePropertyNames();
-
-        $this->p_modifiers = $typeModifiers ?? new TypeModifierList();
-        $this->p_modifiers->setParentNode($this);
+        parent::__construct(new QualifiedName('pg_catalog', 'interval'), $typeModifiers);
     }
 
     public function setMask(string $mask = ''): void

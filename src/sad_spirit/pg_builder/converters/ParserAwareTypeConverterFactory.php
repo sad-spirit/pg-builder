@@ -103,8 +103,7 @@ class ParserAwareTypeConverterFactory extends DefaultTypeConverterFactory
      * If Parser was not provided, falls back to DefaultTypeConverterFactory implementation,
      * so consider its shortcomings.
      *
-     * @param string $name
-     * @return array
+     * {@inheritDoc}
      */
     protected function parseTypeName(string $name): array
     {
@@ -113,15 +112,11 @@ class ParserAwareTypeConverterFactory extends DefaultTypeConverterFactory
         } else {
             $node = $this->parser->parseTypeName($name);
 
-            if ($node instanceof IntervalTypeName) {
-                return ['pg_catalog', 'interval', count($node->bounds) > 0];
-            } else {
-                return [
-                    null !== $node->name->schema ? $node->name->schema->value : null,
-                    $node->name->relation->value,
-                    count($node->bounds) > 0
-                ];
-            }
+            return [
+                null !== $node->name->schema ? $node->name->schema->value : null,
+                $node->name->relation->value,
+                count($node->bounds) > 0
+            ];
         }
     }
 
