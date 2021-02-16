@@ -199,7 +199,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         foreach ($parts as $part) {
             $partLen = strlen($part);
             if (false !== ($lastBreak = strrpos($part, $this->options['linebreak']))) {
-                $firstBreak = strpos($part, $this->options['linebreak']);
+                $firstBreak = strpos($part, $this->options['linebreak']) ?: $lastBreak;
                 if ($lineLen + $firstBreak < $this->options['wrap']) {
                     $string .= $separator . ' ' . $part;
                 } else {
@@ -911,11 +911,10 @@ class SqlBuilderWalker implements StatementToStringWalker
             $parent = $parent->getParentNode();
         } while ($parent instanceof nodes\expressions\LogicalExpression);
 
-        if (!($verbose = $parent instanceof nodes\WhereOrHavingClause)) {
-            $delimiter = ' ' . $expression->operator . ' ';
-        } else {
-            $delimiter = ($this->options['linebreak'] ?: ' ') . $this->getIndent() . $expression->operator . ' ';
-        }
+        $verbose   = $parent instanceof nodes\WhereOrHavingClause;
+        $delimiter = $verbose
+                     ? ($this->options['linebreak'] ?: ' ') . $this->getIndent() . $expression->operator . ' '
+                     : ' ' . $expression->operator . ' ';
 
         $items = [];
         /* @var nodes\ScalarExpression $item */
