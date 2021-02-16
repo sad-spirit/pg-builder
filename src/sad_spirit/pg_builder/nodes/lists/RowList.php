@@ -26,12 +26,20 @@ use sad_spirit\pg_builder\{
     ElementParseable,
     Parser
 };
+use sad_spirit\pg_builder\nodes\{
+    ScalarExpression,
+    SetToDefault
+};
 use sad_spirit\pg_builder\nodes\expressions\RowExpression;
 
 /**
  * A list of row expressions, base for VALUES statement
  *
- * @extends NonAssociativeList<RowExpression>
+ * @extends NonAssociativeList<
+ *     RowExpression,
+ *     iterable<RowExpression|string|iterable<ScalarExpression|SetToDefault|string>>|string,
+ *     RowExpression|string|iterable<ScalarExpression|SetToDefault|string>
+ * >
  * @implements ElementParseable<RowExpression>
  */
 class RowList extends NonAssociativeList implements Parseable, ElementParseable
@@ -43,7 +51,7 @@ class RowList extends NonAssociativeList implements Parseable, ElementParseable
 
     protected function prepareListElement($value): Node
     {
-        if (is_array($value)) {
+        if (is_iterable($value) && !$value instanceof RowExpression) {
             $value = new RowExpression($value);
         }
         return parent::prepareListElement($value);

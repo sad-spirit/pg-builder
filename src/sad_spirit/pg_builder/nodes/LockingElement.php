@@ -30,7 +30,7 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  * @property-read string $strength
  * @property-read bool   $noWait
  * @property-read bool   $skipLocked
- * @extends NonAssociativeList<QualifiedName>
+ * @extends NonAssociativeList<QualifiedName, iterable<QualifiedName>, QualifiedName>
  */
 class LockingElement extends NonAssociativeList
 {

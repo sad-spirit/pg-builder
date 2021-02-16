@@ -32,7 +32,11 @@ use sad_spirit\pg_builder\{
 /**
  * List of elements in SELECT's target list
  *
- * @extends NonAssociativeList<TargetElement|Star>
+ * @extends NonAssociativeList<
+ *     TargetElement|Star,
+ *     iterable<TargetElement|Star|string>|string,
+ *     TargetElement|Star|string
+ * >
  * @implements ElementParseable<TargetElement|Star>
  */
 class TargetList extends NonAssociativeList implements Parseable, ElementParseable

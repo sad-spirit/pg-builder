@@ -27,7 +27,7 @@ use sad_spirit\pg_builder\nodes\NonRecursiveNode;
 /**
  * List of type modifiers
  *
- * @extends NonAssociativeList<Constant|Identifier>
+ * @extends NonAssociativeList<Constant|Identifier, iterable<Constant|Identifier>, Constant|Identifier>
  */
 class TypeModifierList extends NonAssociativeList
 {

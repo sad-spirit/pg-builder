@@ -292,7 +292,7 @@ class StatementFactory
     /**
      * Creates a VALUES statement object
      *
-     * @param string|iterable<nodes\expressions\RowExpression|string|array> $rows
+     * @param string|iterable<nodes\expressions\RowExpression|string|iterable<nodes\ScalarExpression|nodes\SetToDefault|string>> $rows
      * @return Values
      */
     public function values($rows): Values

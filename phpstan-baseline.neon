@@ -71,33 +71,3 @@ parameters:
 			message: "#^Method sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\RowList\\:\\:prepareListElement\\(\\) should return sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\RowExpression but returns sad_spirit\\\\pg_builder\\\\Node\\.$#"
 			count: 1
 			path: src/sad_spirit/pg_builder/nodes/lists/RowList.php
-
-		# Leave this for the time being, need to redefine constructor of ArrayExpression
-		-
-			message: "#^Parameter \\#1 \\$list of class sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\ArrayExpression constructor expects iterable\\<sad_spirit\\\\pg_builder\\\\nodes\\\\ScalarExpression\\|string\\>\\|string\\|null, array\\<int, array\\<int, sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\NumericConstant\\>\\> given\\.$#"
-			count: 1
-			path: tests/ParseExpressionTest.php
-
-		# Leave this for the time being, need to redefine constructor of RowList
-		-
-			message: "#^Parameter \\#1 \\$list of class sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\RowList constructor expects iterable\\<sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\RowExpression\\|string\\>\\|string\\|null, array\\<int, array\\<int, sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\NumericConstant\\|sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\StringConstant\\|sad_spirit\\\\pg_builder\\\\nodes\\\\SetToDefault\\>\\> given\\.$#"
-			count: 1
-			path: tests/StatementFactoryTest.php
-
-		# Leave this for the time being, need to redefine constructor of RowList
-		-
-			message: "#^Parameter \\#1 \\$list of class sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\RowList constructor expects iterable\\<sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\RowExpression\\|string\\>\\|string\\|null, array\\<int, array\\<int, sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\NumericConstant\\>\\> given\\.$#"
-			count: 2
-			path: tests/nodes/SetParentNodeTest.php
-
-		# Probably need to redefine ArrayExpression constructor
-		-
-			message: "#^sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\ArrayExpression does not accept array<int, sad_spirit\\\\pg_builder\\\\nodes\\\\ColumnReference|sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\StringConstant>\\.$#"
-			count: 1
-			path: tests\nodes\expressions\ArrayExpressionTest.php
-
-		# Probably need to redefine ArrayExpression constructor
-		-
-			message: "#^sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\ArrayExpression does not accept sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\ExpressionList.$#"
-			count: 1
-			path: tests\nodes\expressions\ArrayExpressionTest.php

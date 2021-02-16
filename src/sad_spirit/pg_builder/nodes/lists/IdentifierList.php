@@ -29,7 +29,7 @@ use sad_spirit\pg_builder\{
 /**
  * List of identifiers, may appear in alias for FROM element
  *
- * @extends NonAssociativeList<Identifier>
+ * @extends NonAssociativeList<Identifier, iterable<Identifier|string>, Identifier|string>
  */
 class IdentifierList extends NonAssociativeList
 {

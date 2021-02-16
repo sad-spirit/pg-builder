@@ -36,7 +36,11 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  * naming the constraint explicitly.
  *
  * @property-read WhereOrHavingClause $where
- * @extends NonAssociativeList<IndexElement>
+ * @extends NonAssociativeList<
+ *     IndexElement,
+ *     iterable<IndexElement|string>|string,
+ *     IndexElement|string
+ * >
  * @implements ElementParseable<IndexElement>
  */
 class IndexParameters extends NonAssociativeList implements Parseable, ElementParseable

@@ -43,7 +43,11 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  * Therefore we don't make SetToDefault node an implementation of ScalarExpression and only allow
  * it on the top level of RowExpression.
  *
- * @extends NonAssociativeList<ScalarExpression|SetToDefault>
+ * @extends NonAssociativeList<
+ *      ScalarExpression|SetToDefault,
+ *      iterable<ScalarExpression|SetToDefault|string>|string,
+ *      ScalarExpression|SetToDefault|string
+ * >
  * @implements ElementParseable<ScalarExpression|SetToDefault>
  */
 class RowExpression extends NonAssociativeList implements Parseable, ElementParseable, ScalarExpression

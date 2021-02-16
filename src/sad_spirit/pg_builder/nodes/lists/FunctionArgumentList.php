@@ -26,7 +26,7 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * List of function arguments, unlike most other lists can contain associative keys
  *
- * @extends GenericNodeList<int|string, ScalarExpression>
+ * @extends GenericNodeList<int|string, ScalarExpression, iterable<ScalarExpression>, ScalarExpression>
  */
 class FunctionArgumentList extends GenericNodeList
 {

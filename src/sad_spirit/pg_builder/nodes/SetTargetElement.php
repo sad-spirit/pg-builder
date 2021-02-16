@@ -31,7 +31,11 @@ use sad_spirit\pg_builder\TreeWalker;
  * 'ERROR:  row expansion via "*" is not supported here'
  *
  * @property Identifier $name
- * @extends NonAssociativeList<Identifier|ArrayIndexes>
+ * @extends NonAssociativeList<
+ *     Identifier|ArrayIndexes,
+ *     iterable<Identifier|ArrayIndexes>,
+ *     Identifier|ArrayIndexes
+ * >
  */
 class SetTargetElement extends NonAssociativeList
 {

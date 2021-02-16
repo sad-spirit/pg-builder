@@ -27,7 +27,9 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  * Only allows non-negative integer indexes in arrays
  *
  * @template T of Node
- * @extends GenericNodeList<int, T>
+ * @template TListInput
+ * @template TInput
+ * @extends GenericNodeList<int, T, TListInput, TInput>
  */
 abstract class NonAssociativeList extends GenericNodeList
 {

@@ -34,7 +34,11 @@ use sad_spirit\pg_builder\nodes\group\GroupByElement;
  *
  * The list can contain either expressions or special constructs like CUBE(), ROLLUP() and GROUPING SETS()
  *
- * @extends NonAssociativeList<ScalarExpression|GroupByElement>
+ * @extends NonAssociativeList<
+ *      ScalarExpression|GroupByElement,
+ *      iterable<ScalarExpression|GroupByElement|string>|string,
+ *      ScalarExpression|GroupByElement|string
+ * >
  * @implements ElementParseable<ScalarExpression|GroupByElement>
  */
 class GroupByList extends NonAssociativeList implements Parseable, ElementParseable

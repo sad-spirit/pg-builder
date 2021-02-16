@@ -31,7 +31,11 @@ use sad_spirit\pg_builder\nodes\range\FromElement;
 /**
  * List of elements appearing in FROM clause
  *
- * @extends NonAssociativeList<FromElement>
+ * @extends NonAssociativeList<
+ *      FromElement,
+ *      iterable<FromElement|string>|string,
+ *      FromElement|string
+ * >
  * @implements ElementParseable<FromElement>
  */
 class FromList extends NonAssociativeList implements Parseable, ElementParseable

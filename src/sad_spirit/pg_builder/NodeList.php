@@ -26,6 +26,7 @@ namespace sad_spirit\pg_builder;
  * @psalm-template TKey of array-key
  * @phpstan-template TKey
  * @template T
+ * @template TListInput
  * @extends \IteratorAggregate<TKey, T>
  * @extends \ArrayAccess<TKey, T>
  */
@@ -37,15 +38,15 @@ interface NodeList extends Node, \ArrayAccess, \Countable, \IteratorAggregate
      * The arguments can be arrays, Traversables or even strings if current class
      * implements Parseable and a Parser is available.
      *
-     * @param iterable<T|string>|string ...$lists
+     * @param TListInput ...$lists
      */
     public function merge(...$lists): void;
 
     /**
      * Replaces the elements of the list with the given ones
      *
-     * @param iterable<T|string>|string $list strings are allowed if current class
-     *                                        implements Parseable and a Parser is available
+     * @param TListInput $list strings are allowed if current class
+     *                         implements Parseable and a Parser is available
      */
     public function replace($list): void;
 }

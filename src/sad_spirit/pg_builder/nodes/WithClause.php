@@ -33,7 +33,11 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  * WITH clause containing common table expressions
  *
  * @property bool $recursive
- * @extends NonAssociativeList<CommonTableExpression>
+ * @extends NonAssociativeList<
+ *     CommonTableExpression,
+ *     iterable<CommonTableExpression|string>|string,
+ *     CommonTableExpression|string
+ * >
  * @implements ElementParseable<CommonTableExpression>
  */
 class WithClause extends NonAssociativeList implements Parseable, ElementParseable

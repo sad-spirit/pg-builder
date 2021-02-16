@@ -31,7 +31,11 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 /**
  * List of column definitions appearing in XMLTABLE clause
  *
- * @extends NonAssociativeList<XmlColumnDefinition>
+ * @extends NonAssociativeList<
+ *     XmlColumnDefinition,
+ *     iterable<XmlColumnDefinition|string>|string,
+ *     XmlColumnDefinition|string
+ * >
  * @implements ElementParseable<XmlColumnDefinition>
  */
 class XmlColumnList extends NonAssociativeList implements Parseable, ElementParseable

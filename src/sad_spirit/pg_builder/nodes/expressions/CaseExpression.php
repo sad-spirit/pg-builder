@@ -34,7 +34,7 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  *
  * @property ScalarExpression|null $argument
  * @property ScalarExpression|null $else
- * @extends NonAssociativeList<WhenExpression>
+ * @extends NonAssociativeList<WhenExpression, iterable<WhenExpression>, WhenExpression>
  */
 class CaseExpression extends NonAssociativeList implements ScalarExpression
 {
@@ -54,12 +54,15 @@ class CaseExpression extends NonAssociativeList implements ScalarExpression
     /**
      * CaseExpression constructor
      *
-     * @param null|string|iterable<WhenExpression> $whenClauses
-     * @param ScalarExpression|null                $elseClause
-     * @param ScalarExpression|null                $argument
+     * @param iterable<WhenExpression> $whenClauses
+     * @param ScalarExpression|null    $elseClause
+     * @param ScalarExpression|null    $argument
      */
-    public function __construct($whenClauses, ScalarExpression $elseClause = null, ScalarExpression $argument = null)
-    {
+    public function __construct(
+        iterable $whenClauses,
+        ScalarExpression $elseClause = null,
+        ScalarExpression $argument = null
+    ) {
         if (null !== $elseClause && $elseClause === $argument) {
             throw new InvalidArgumentException("Cannot use the same Node for CASE argument and ELSE clause");
         }

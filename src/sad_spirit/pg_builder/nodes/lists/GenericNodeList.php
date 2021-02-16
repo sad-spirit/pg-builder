@@ -37,7 +37,9 @@ use sad_spirit\pg_builder\{
  * @psalm-template TKey of array-key
  * @phpstan-template TKey
  * @template T of Node
- * @implements NodeList<TKey, T>
+ * @template TListInput
+ * @template TInput
+ * @implements NodeList<TKey, T, TListInput>
  */
 abstract class GenericNodeList extends GenericNode implements NodeList
 {
@@ -64,11 +66,13 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      *  - an iterable containing "compatible" values
      *  - a string if Parser is available
      *
-     * @param iterable<T|string>|string|null $list
+     * @param TListInput|null $list
      */
     public function __construct($list = null)
     {
-        $this->replace($list ?? []);
+        if (null !== $list) {
+            $this->replace($list);
+        }
     }
 
     /**
@@ -154,7 +158,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      *
      * {@inheritDoc}
      * @param TKey|null $offset
-     * @param string|T $value
+     * @param T|TInput  $value
      */
     public function offsetSet($offset, $value)
     {
@@ -297,9 +301,9 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     /**
      * Ensures that "array-like" argument of merge() / replace() is either an iterable or a parseable string
      *
-     * @param iterable<T|string>|string $array
-     * @param string                    $method calling method, used only for Exception messages
-     * @return iterable<T|string>
+     * @param TListInput $array
+     * @param string     $method calling method, used only for Exception messages
+     * @return iterable<TInput>
      * @throws InvalidArgumentException
      */
     protected function prepareList($array, string $method): iterable
@@ -315,6 +319,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
             ));
         }
 
+        /** @var iterable<TInput> $array */
         return $array;
     }
 
@@ -324,8 +329,8 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * The returned array should contain only instances of Node passed through prepareListElement(),
      * it is not checked further in merge() / replace()
      *
-     * @param iterable<T|string>|string $list
-     * @param string $method
+     * @param TListInput $list
+     * @param string     $method
      * @return array<TKey, T>
      */
     abstract protected function convertToArray($list, string $method): array;
@@ -339,7 +344,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * Finally, the list is set as a parent of Node. This is done here so that merge() / replace() methods
      * may work on an all or nothing principle, without possibility of merging only a part of array.
      *
-     * @param mixed $value
+     * @param T|TInput $value
      * @return T
      */
     protected function prepareListElement($value): Node
@@ -386,6 +391,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
         }
         $value->setParentNode($this);
 
+        /** @var T $value */
         return $value;
     }
 }

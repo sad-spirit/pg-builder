@@ -29,9 +29,13 @@ use sad_spirit\pg_builder\{
 use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 
 /**
- * Represents an array constructed from a list of values ARRAY[...]
+ * Represents an array constructed from a list of values: ARRAY[...]
  *
- * @extends NonAssociativeList<ScalarExpression>
+ * @extends NonAssociativeList<
+ *      ScalarExpression,
+ *      iterable<ScalarExpression|iterable<ScalarExpression>>,
+ *      ScalarExpression|iterable<ScalarExpression>
+ * >
  */
 class ArrayExpression extends NonAssociativeList implements ScalarExpression
 {

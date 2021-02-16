@@ -27,7 +27,11 @@ use sad_spirit\pg_builder\TreeWalker;
  * Represents an indirection (field selections or array subscripts) applied to an expression
  *
  * @property ScalarExpression $expression
- * @extends NonAssociativeList<Identifier|ArrayIndexes|Star>
+ * @extends NonAssociativeList<
+ *     Identifier|ArrayIndexes|Star,
+ *     iterable<Identifier|ArrayIndexes|Star>,
+ *     Identifier|ArrayIndexes|Star
+ * >
  */
 class Indirection extends NonAssociativeList implements ScalarExpression
 {
@@ -48,8 +52,8 @@ class Indirection extends NonAssociativeList implements ScalarExpression
     /**
      * Indirection constructor
      *
-     * @param string|null|iterable<Identifier|ArrayIndexes|Star> $indirection
-     * @param ScalarExpression                                   $expression
+     * @param iterable<Identifier|ArrayIndexes|Star> $indirection
+     * @param ScalarExpression                       $expression
      */
     public function __construct($indirection, ScalarExpression $expression)
     {

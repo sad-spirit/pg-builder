@@ -26,7 +26,7 @@ use sad_spirit\pg_builder\nodes\TypeName;
 /**
  * List of type names (only appears in IS OF?)
  *
- * @extends NonAssociativeList<TypeName>
+ * @extends NonAssociativeList<TypeName, iterable<TypeName>, TypeName>
  */
 class TypeList extends NonAssociativeList
 {

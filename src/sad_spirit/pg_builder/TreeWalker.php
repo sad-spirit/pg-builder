@@ -536,7 +536,8 @@ interface TreeWalker
      * Most of the lists do not have any additional features and may be handled by a generic method
      *
      * @template T of Node
-     * @param NodeList<int, T> $list
+     * @template TListInput
+     * @param NodeList<int, T, TListInput> $list
      * @return mixed
      * @since 0.1.0
      */

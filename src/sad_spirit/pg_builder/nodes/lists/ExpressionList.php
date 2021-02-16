@@ -31,7 +31,11 @@ use sad_spirit\pg_builder\{
 /**
  * List of scalar expressions, may appear e.g. in "foo IN (...)" constructs
  *
- * @extends NonAssociativeList<ScalarExpression>
+ * @extends NonAssociativeList<
+ *      ScalarExpression,
+ *      iterable<ScalarExpression|string>|string,
+ *      ScalarExpression|string
+ * >
  * @implements ElementParseable<ScalarExpression>
  */
 class ExpressionList extends NonAssociativeList implements Parseable, ElementParseable

@@ -31,7 +31,11 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 /**
  * List of XML namespaces appearing in XMLTABLE clause
  *
- * @extends NonAssociativeList<XmlNamespace>
+ * @extends NonAssociativeList<
+ *     XmlNamespace,
+ *     iterable<XmlNamespace|string>|string,
+ *     XmlNamespace|string
+ * >
  * @implements ElementParseable<XmlNamespace>
  */
 class XmlNamespaceList extends NonAssociativeList implements Parseable, ElementParseable
