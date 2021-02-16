@@ -117,8 +117,8 @@ class StatementFactory
             );
         }
 
-        $column       = $pdo->query('show standard_conforming_strings')->fetchColumn(0);
-        $lexerOptions = ['standard_conforming_strings' => 'on' === $column[0]];
+        $standard     = $pdo->query('show standard_conforming_strings')->fetchColumn(0);
+        $lexerOptions = ['standard_conforming_strings' => 'on' === $standard];
 
         $serverInfo     = $pdo->getAttribute(\PDO::ATTR_SERVER_INFO);
         $builderOptions = ['escape_unicode' => false === strpos($serverInfo, 'Client Encoding: UTF8')];
@@ -302,7 +302,7 @@ class StatementFactory
         } elseif (is_string($rows)) {
             $rowList = nodes\lists\RowList::createFromString($this->getParser(), $rows);
         } else {
-            // we don't pass $rows as it may contain strings/arrays instead of RowExpression's,
+            // we don't pass $rows as it may contain strings/arrays instead of RowExpressions,
             // Parser may be needed for that
             $rowList = new nodes\lists\RowList();
         }
