@@ -443,12 +443,12 @@ REGEXP;
         $unescaped  = '';
 
         foreach (
-            (array)preg_split(
+            preg_split(
                 "!(\\\\(?:x[0-9a-fA-F]{1,2}|[0-7]{1,3}|u[0-9a-fA-F]{0,4}|U[0-9a-fA-F]{0,8}|[^0-7]))!",
                 $escaped,
                 -1,
                 PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_OFFSET_CAPTURE
-            ) as [$part, $partPosition]
+            ) ?: [] as [$part, $partPosition]
         ) {
             if ('\\' !== $part[0]) {
                 if (null !== $this->pairFirst) {
@@ -465,10 +465,10 @@ REGEXP;
                     $unescaped .= self::$replacements[$part[1]];
 
                 } elseif ('x' === $part[1]) {
-                    $unescaped .= chr(hexdec(substr($part, 2)));
+                    $unescaped .= chr((int)hexdec(substr($part, 2)));
 
                 } elseif (strspn($part, '01234567', 1)) {
-                    $unescaped .= chr(octdec(substr($part, 1)));
+                    $unescaped .= chr((int)octdec(substr($part, 1)));
 
                 } else {
                     // Just strip the escape and return the following char, as Postgres does
@@ -486,7 +486,7 @@ REGEXP;
                 }
 
                 $unescaped .= $this->handlePossibleSurrogatePairs(
-                    hexdec(substr($part, 2)),
+                    (int)hexdec(substr($part, 2)),
                     $partPosition,
                     $position
                 );
@@ -657,6 +657,8 @@ REGEXP;
      * @param Token  $token      The whole Token is needed to be able to use its position in exception messages
      * @param string $escapeChar Value of escape character provided by UESCAPE 'X' clause, if present
      * @return string value of Token with Unicode escapes replaced by their UTF-8 equivalents
+     *
+     * @psalm-suppress TypeDoesNotContainType
      */
     private function unescapeUnicode(Token $token, string $escapeChar = '\\'): string
     {
@@ -667,16 +669,16 @@ REGEXP;
         $quoted    = preg_quote($escapeChar);
 
         foreach (
-            (array)preg_split(
+            preg_split(
                 "/({$quoted}(?:{$quoted}|[0-9a-fA-F]{4}|\\+[0-9a-fA-F]{6}))/",
                 $token->getValue(),
                 -1,
                 PREG_SPLIT_NO_EMPTY | PREG_SPLIT_OFFSET_CAPTURE | PREG_SPLIT_DELIM_CAPTURE
-            ) as [$part, $position]
+            ) ?: [] as [$part, $position]
         ) {
             if ($escapeChar === $part[0] && $escapeChar !== $part[1]) {
                 $unescaped .= $this->handlePossibleSurrogatePairs(
-                    hexdec(ltrim($part, $escapeChar . '+')),
+                    (int)hexdec(ltrim($part, $escapeChar . '+')),
                     $position,
                     $token->getPosition() + 3
                 );
