@@ -1162,7 +1162,11 @@ class Parser
 
     protected function SetTargetElement(): nodes\SetTargetElement
     {
-        return new nodes\SetTargetElement($this->ColId(), $this->Indirection(false));
+        $colId       = $this->ColId();
+        // The whole point of parameter to Indirection() is to prevent Star nodes from appearing in array
+        /** @var array<nodes\Identifier|nodes\ArrayIndexes> $indirection */
+        $indirection = $this->Indirection(false);
+        return new nodes\SetTargetElement($colId, $indirection);
     }
 
     /**
