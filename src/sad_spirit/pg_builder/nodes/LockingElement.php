@@ -61,6 +61,14 @@ class LockingElement extends NonAssociativeList
         return [QualifiedName::class];
     }
 
+    /**
+     * Constructor for LockingElement
+     *
+     * @param string               $strength
+     * @param array<QualifiedName> $relations
+     * @param bool                 $noWait
+     * @param bool                 $skipLocked
+     */
     public function __construct(string $strength, array $relations = [], bool $noWait = false, bool $skipLocked = false)
     {
         if (!isset(self::ALLOWED_STRENGTHS[$strength])) {
