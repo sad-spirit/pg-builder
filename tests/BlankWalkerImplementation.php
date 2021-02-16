@@ -33,7 +33,7 @@ class BlankWalkerImplementation extends BlankWalker
     /** @var array<string, true> */
     public $identifiers = [];
 
-    public function walkIdentifier(Identifier $node)
+    public function walkIdentifier(Identifier $node): void
     {
         if (preg_match('{^' . self::IDENTIFIER_MASK . '$}', $node->value)) {
             if (isset($this->identifiers[$node->value])) {

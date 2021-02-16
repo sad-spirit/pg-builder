@@ -52,9 +52,9 @@ class ColumnReferenceTest extends TestCase
 
     /**
      * @dataProvider invalidColumnReferencesProvider
-     * @param array $arguments
-     * @param string $class
-     * @param string $message
+     * @param array                    $arguments
+     * @param class-string<\Throwable> $class
+     * @param string                   $message
      */
     public function testCreateInvalidColumnReferences(array $arguments, string $class, string $message): void
     {

@@ -58,6 +58,9 @@ class NonAssociativeListTest extends TestCase
         ];
     }
 
+    /**
+     * @psalm-suppress InvalidArgument
+     */
     public function testAllowsOnlyClassesReturnedByGetAllowedElementClasses(): void
     {
         $this::expectException(InvalidArgumentException::class);
@@ -68,6 +71,9 @@ class NonAssociativeListTest extends TestCase
         $nodeList[] = new GenericNodeImplementation();
     }
 
+    /**
+     * @psalm-suppress InvalidArgument
+     */
     public function testReplaceAllowsOnlyClassesReturnedByGetAllowedElementClasses(): void
     {
         $this::expectException(InvalidArgumentException::class);
@@ -77,6 +83,9 @@ class NonAssociativeListTest extends TestCase
         new NonAssociativeListImplementation([new GenericNodeImplementation()]);
     }
 
+    /**
+     * @psalm-suppress InvalidArgument
+     */
     public function testMergeAllowsOnlyClassesReturnedByGetAllowedElementClasses(): void
     {
         $this::expectException(InvalidArgumentException::class);

@@ -130,6 +130,9 @@ class SetParentNodeTest extends TestCase
         $this->assertNull($values->getParentNode());
     }
 
+    /**
+     * @psalm-suppress PossiblyInvalidMethodCall
+     */
     public function testSelectStatement(): void
     {
         $select = new Select(

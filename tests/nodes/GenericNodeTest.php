@@ -57,6 +57,9 @@ class GenericNodeTest extends TestCase
         $this->error = $this->node->foo;
     }
 
+    /**
+     * @psalm-suppress UndefinedMagicPropertyAssignment
+     */
     public function testCannotWriteUndefinedProperty(): void
     {
         $this::expectException(InvalidArgumentException::class);
@@ -107,6 +110,9 @@ class GenericNodeTest extends TestCase
         $this->node->readonly = new GenericNodeImplementation();
     }
 
+    /**
+     * @psalm-suppress PossiblyNullArgument
+     */
     public function testCannotReplaceChildWithoutExplicitSetter(): void
     {
         $readonly = $this->node->readonly;
@@ -118,6 +124,9 @@ class GenericNodeTest extends TestCase
         $this->node->replaceChild($readonly, $replace);
     }
 
+    /**
+     * @psalm-suppress PossiblyNullArgument
+     */
     public function testCannotRemoveChildWithoutExplicitSetter(): void
     {
         $this::expectException(InvalidArgumentException::class);
@@ -211,6 +220,9 @@ class GenericNodeTest extends TestCase
         $this::assertNotSame($this->node->child, $cloned->child);
     }
 
+    /**
+     * @psalm-suppress NoInterfaceProperties
+     */
     public function testUnserializeRestoresParentChildRelationships(): void
     {
         $father = new GenericNodeImplementation();

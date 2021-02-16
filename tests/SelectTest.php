@@ -106,6 +106,9 @@ class SelectTest extends TestCase
         );
     }
 
+    /**
+     * @psalm-suppress UndefinedMagicPropertyFetch
+     */
     public function testRangeSubselectSetOp(): void
     {
         /** @var Select $select */
@@ -120,6 +123,9 @@ class SelectTest extends TestCase
         );
     }
 
+    /**
+     * @psalm-suppress UndefinedInterfaceMethod, PossiblyUndefinedMethod, PossiblyNullPropertyFetch
+     */
     public function testScalarSubselectSetOp(): void
     {
         /** @var Select $select */
@@ -141,6 +147,9 @@ class SelectTest extends TestCase
         );
     }
 
+    /**
+     * @psalm-suppress InvalidMethodCall, RedundantCondition
+     */
     public function testSetDistinct(): void
     {
         $select = new Select(new TargetList([new Star()]), true);
