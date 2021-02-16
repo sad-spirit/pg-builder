@@ -165,7 +165,7 @@ class NativeStatement
      * @param array      $inputTypes  Parameter types (keys can be either names or positions), types from this
      *                                array take precedence over types from parameterTypes
      * @param array      $outputTypes Result types to pass to ResultSet (keys can be either names or positions)
-     * @return bool|ResultSet|int
+     * @return ResultSet
      * @throws ServerException
      * @throws exceptions\InvalidArgumentException
      */
@@ -174,7 +174,7 @@ class NativeStatement
         array $params,
         array $inputTypes = [],
         array $outputTypes = []
-    ) {
+    ): ResultSet {
         if (empty($this->namedParameterMap)) {
             return $connection->executeParams(
                 $this->sql,
@@ -211,11 +211,11 @@ class NativeStatement
      *
      * @param array $params
      * @param array $resultTypes
-     * @return bool|ResultSet|int
+     * @return ResultSet
      * @throws exceptions\RuntimeException
      * @throws ServerException
      */
-    public function executePrepared(array $params = [], array $resultTypes = [])
+    public function executePrepared(array $params = [], array $resultTypes = []): ResultSet
     {
         if (null === $this->preparedStatement) {
             throw new exceptions\RuntimeException(__METHOD__ . '(): prepare() should be called first');
