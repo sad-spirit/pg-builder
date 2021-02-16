@@ -298,7 +298,8 @@ QRY
         $list = $this->parser->parseExpressionList(<<<QRY
     double precision 'a value', national char varying 'a value', varchar(10) 'a value',
     char 'a value', bit 'a value', bit varying (10) 'a value', time (10) with time zone 'a value',
-    timestamp without time zone 'a value', interval 'a value' minute to second (10), quux.xyzzy 'a value'
+    timestamp without time zone 'a value', interval 'a value' minute to second (10), quux.xyzzy 'a value',
+    blah.blah (10) 'a value'
 QRY
         );
         $val      = new StringConstant('a value');
@@ -346,6 +347,10 @@ QRY
                 new TypecastExpression(
                     clone $val,
                     new TypeName(new QualifiedName('quux', 'xyzzy'))
+                ),
+                new TypecastExpression(
+                    clone $val,
+                    new TypeName(new QualifiedName('blah', 'blah'), clone $mod10)
                 )
             ]),
             $list

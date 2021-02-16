@@ -2116,11 +2116,10 @@ class Parser
         return $modifiers;
     }
 
-    protected function GenericTypeName(array $typeName = []): ?nodes\TypeName
+    protected function GenericTypeName(): ?nodes\TypeName
     {
         if (
-            empty($typeName)
-            && !$this->stream->matchesAnyType(
+            !$this->stream->matchesAnyType(
                 Token::TYPE_IDENTIFIER,
                 Token::TYPE_UNRESERVED_KEYWORD,
                 Token::TYPE_TYPE_FUNC_NAME_KEYWORD
@@ -2129,31 +2128,34 @@ class Parser
             return null;
         }
 
-        $modifiers = null;
-        if (empty($typeName)) {
-            $typeName = [nodes\Identifier::createFromToken($this->stream->next())];
-            while ($this->stream->matchesSpecialChar('.')) {
-                $this->stream->next();
-                if ($this->stream->matches(Token::TYPE_IDENTIFIER)) {
-                    $typeName[] = nodes\Identifier::createFromToken($this->stream->next());
-                } else {
-                    // any keyword goes, see ColLabel
-                    $typeName[] = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_KEYWORD));
-                }
-            }
-        }
-
-        if ($this->stream->matchesSpecialChar('(')) {
+        $typeName = [nodes\Identifier::createFromToken($this->stream->next())];
+        while ($this->stream->matchesSpecialChar('.')) {
             $this->stream->next();
-            $modifiers = new nodes\lists\TypeModifierList([$this->GenericTypeModifier()]);
-            while ($this->stream->matchesSpecialChar(',')) {
-                $this->stream->next();
-                $modifiers[] = $this->GenericTypeModifier();
+            if ($this->stream->matches(Token::TYPE_IDENTIFIER)) {
+                $typeName[] = nodes\Identifier::createFromToken($this->stream->next());
+            } else {
+                // any keyword goes, see ColLabel
+                $typeName[] = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_KEYWORD));
             }
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
         }
 
-        return new nodes\TypeName(new nodes\QualifiedName(...$typeName), $modifiers);
+        return new nodes\TypeName(new nodes\QualifiedName(...$typeName), $this->GenericTypeModifierList());
+    }
+
+    protected function GenericTypeModifierList(): ?nodes\lists\TypeModifierList
+    {
+        if (!$this->stream->matchesSpecialChar('(')) {
+            return null;
+        }
+
+        $this->stream->next();
+        $modifiers = new nodes\lists\TypeModifierList([$this->GenericTypeModifier()]);
+        while ($this->stream->matchesSpecialChar(',')) {
+            $this->stream->next();
+            $modifiers[] = $this->GenericTypeModifier();
+        }
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        return $modifiers;
     }
 
     /**
@@ -2564,9 +2566,10 @@ class Parser
 
     protected function GenericLeadingTypecast(array $identifiers): nodes\expressions\TypecastExpression
     {
+        $modifiers = $this->GenericTypeModifierList();
         return new nodes\expressions\TypecastExpression(
             nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_STRING)),
-            $this->GenericTypeName($identifiers)
+            new nodes\TypeName(new nodes\QualifiedName(...$identifiers), $modifiers)
         );
     }
 
