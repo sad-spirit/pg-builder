@@ -2472,33 +2472,31 @@ class Parser
             return new nodes\expressions\SubselectExpression($this->SelectWithParentheses(), 'array');
 
         } else {
-            return new nodes\expressions\ArrayExpression($this->ArrayExpression());
+            return $this->ArrayExpression();
         }
     }
 
-    /**
-     * @return array<int, nodes\ScalarExpression|array>|nodes\lists\ExpressionList the method is recursive but there
-     *         is currently no way to typehint a recursive array in phpstan
-     */
-    protected function ArrayExpression()
+    protected function ArrayExpression(): nodes\expressions\ArrayExpression
     {
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '[');
         if ($this->stream->matchesSpecialChar(']')) {
-            $expression = [];
+            $this->stream->next();
+            return new nodes\expressions\ArrayExpression();
+        }
 
-        } elseif (!$this->stream->matchesSpecialChar('[')) {
-            $expression = $this->ExpressionList();
+        if (!$this->stream->matchesSpecialChar('[')) {
+            $array = new nodes\expressions\ArrayExpression($this->ExpressionList());
 
         } else {
-            $expression = [$this->ArrayExpression()];
+            $array = new nodes\expressions\ArrayExpression([$this->ArrayExpression()]);
             while ($this->stream->matchesSpecialChar(',')) {
                 $this->stream->next();
-                $expression[] = $this->ArrayExpression();
+                $array[] = $this->ArrayExpression();
             }
         }
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ']');
 
-        return $expression;
+        return $array;
     }
 
     protected function CaseExpression(): nodes\expressions\CaseExpression
@@ -2662,7 +2660,7 @@ class Parser
                 break;
 
             case 'trim':
-                list($funcName, $arguments) = $this->TrimFunctionArguments();
+                [$funcName, $arguments] = $this->TrimFunctionArguments();
                 break;
 
             case 'nullif': // only two arguments, so don't use ExpressionList()
@@ -2753,6 +2751,9 @@ class Parser
         return $funcNode;
     }
 
+    /**
+     * @return array{string, iterable<nodes\ScalarExpression>}
+     */
     protected function TrimFunctionArguments(): array
     {
         if (!$this->stream->matchesKeyword(['both', 'leading', 'trailing'])) {
@@ -2887,6 +2888,9 @@ class Parser
         return new nodes\xml\XmlRoot($xml, $version, $standalone);
     }
 
+    /**
+     * @return nodes\TargetElement[]
+     */
     protected function XmlAttributeList(): array
     {
         $attributes = [$this->XmlAttribute()];
@@ -3031,7 +3035,7 @@ class Parser
             if ($this->stream->matchesKeyword(['distinct', 'all'])) {
                 $distinct = 'distinct' === $this->stream->next()->getValue();
             }
-            list($value, $name, $variadic) = $this->GenericFunctionArgument();
+            [$value, $name, $variadic] = $this->GenericFunctionArgument();
             if (!$name) {
                 $positionalArguments[] = $value;
             } else {
@@ -3042,7 +3046,7 @@ class Parser
                 $this->stream->next();
 
                 $argToken = $this->stream->getCurrent();
-                list($value, $name, $variadic) = $this->GenericFunctionArgument();
+                [$value, $name, $variadic] = $this->GenericFunctionArgument();
                 if (!$name) {
                     if (empty($namedArguments)) {
                         $positionalArguments[] = $value;
@@ -3112,6 +3116,11 @@ class Parser
         return new nodes\QualifiedName(...$funcName);
     }
 
+    /**
+     * Parses (maybe named or variadic) function argument
+     *
+     * @return array{nodes\ScalarExpression, ?nodes\Identifier, bool}
+     */
     protected function GenericFunctionArgument(): array
     {
         if ($variadic = $this->stream->matchesKeyword('variadic')) {
@@ -3146,6 +3155,7 @@ class Parser
         while (!empty($indirection) && !($indirection[0] instanceof nodes\ArrayIndexes)) {
             $parts[] = array_shift($indirection);
         }
+        /** @var array<nodes\Identifier|nodes\Star> $parts */
         if (!empty($indirection)) {
             return new nodes\Indirection($indirection, new nodes\ColumnReference(...$parts));
         }
@@ -3153,6 +3163,10 @@ class Parser
         return new nodes\ColumnReference(...$parts);
     }
 
+    /**
+     * @param bool $allowStar Whether to allow Star nodes in returned array
+     * @return array<nodes\Identifier|nodes\ArrayIndexes|nodes\Star>
+     */
     protected function Indirection(bool $allowStar = true): array
     {
         $indirection = [];
@@ -3808,6 +3822,9 @@ class Parser
         return $element;
     }
 
+    /**
+     * @return nodes\ScalarExpression[]
+     */
     protected function XmlExistsArguments(): array
     {
         $arguments = [$this->ExpressionAtom()];
