@@ -2,6 +2,7 @@
 <psalm
     errorLevel="3"
     resolveFromConfigFile="true"
+    sealAllMethods="true"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
@@ -40,6 +41,16 @@
                 <referencedClass name="\Psr\Cache\InvalidArgumentException"/>
             </errorLevel>
         </InvalidCatch>
+
+        <InvalidPropertyAssignmentValue>
+            <errorLevel type="suppress">
+                <!-- 
+                    Triggered by $this->offsets[] = $prepared
+                    The error is triggered correctly, however all subclasses allow int array keys, so ignore
+                -->
+                <file name="src/sad_spirit/pg_builder/nodes/lists/GenericNodeList.php"/>
+            </errorLevel>
+        </InvalidPropertyAssignmentValue>
     </issueHandlers>
 
 </psalm>

@@ -60,13 +60,6 @@ parameters:
 			count: 1
 			path: src/sad_spirit/pg_builder/nodes/lists/GenericNodeList.php
 
-		# Technically we can typehint second argument of offsetSet() as mixed, but this will prevent catching actual problems
-		# We cannot typehint replaceChild() argument as T as it may be a replacement for a property rather than offset
-		-
-			message: "#^Parameter \\#2 \\$value of method sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\GenericNodeList\\<TKey,T of sad_spirit\\\\pg_builder\\\\Node\\>\\:\\:offsetSet\\(\\) expects string\\|T of sad_spirit\\\\pg_builder\\\\Node, sad_spirit\\\\pg_builder\\\\Node given\\.$#"
-			count: 1
-			path: src/sad_spirit/pg_builder/nodes/lists/GenericNodeList.php
-
 		# Looks like a bug in phpstan, it fucks up with guessing return value of GenericNodeList::prepareListElement()
 		-
 			message: "#^Method sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\IdentifierList\\:\\:prepareListElement\\(\\) should return sad_spirit\\\\pg_builder\\\\nodes\\\\Identifier but returns sad_spirit\\\\pg_builder\\\\Node\\.$#"

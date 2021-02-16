@@ -254,6 +254,8 @@ abstract class GenericNodeList extends GenericNode implements NodeList
             null === ($result = parent::replaceChild($oldChild, $newChild))
             && false !== ($key = array_search($oldChild, $this->offsets, true))
         ) {
+            // Since we found $oldChild in $offsets, $newChild should be of a compatible type
+            /** @var T $newChild */
             $this->offsetSet($key, $newChild);
             // offsetSet() is expected to check the value itself
             return $newChild;
