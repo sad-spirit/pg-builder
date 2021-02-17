@@ -23,18 +23,21 @@ Parsing is definitely not a fast operation, so there are means to cache parts of
 ## Usage example
 
 ```PHP
-use sad_spirit\pg_builder\StatementFactory,
-    sad_spirit\pg_builder\converters\ParserAwareTypeConverterFactory,
-    sad_spirit\pg_builder\Select,
-    sad_spirit\pg_wrapper\Connection;
+use sad_spirit\pg_builder\{
+    Select,
+    StatementFactory,
+    converters\ParserAwareTypeConverterFactory
+};
+use sad_spirit\pg_wrapper\Connection;
 
 $connection = new Connection('host=localhost user=username dbname=cms');
-$factory    = new StatementFactory($connection);
+// Uses DB connection properties to set up parsing and building of SQL 
+$factory    = StatementFactory::forConnection($connection);
 // Needed for handling type info extracted from query
 $connection->setTypeConverterFactory(new ParserAwareTypeConverterFactory($factory->getParser()));
 
 // latest 5 news
-/* @var $query Select */
+/** @var Select $query */
 $query      = $factory->createFromString(
     'select n.* from news as n order by news_added desc limit 5'
 );
