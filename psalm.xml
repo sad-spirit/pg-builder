@@ -54,6 +54,16 @@
             </errorLevel>
         </InvalidPropertyAssignmentValue>
 
+        <NonInvariantDocblockPropertyType>
+            <errorLevel type="suppress">
+                <!--
+                     The error is triggered correctly, but fixing it in a more proper way
+                     will require a large amount of work like adding generics to FromElement
+                -->
+                <file name="src/sad_spirit/pg_builder/nodes/range/FunctionFromElement.php"/>
+            </errorLevel>
+        </NonInvariantDocblockPropertyType>
+
         <!-- Ignore these in tests, whatever we access is guaranteed to be not null -->
         <PossiblyNullArrayAccess>
             <errorLevel type="suppress">

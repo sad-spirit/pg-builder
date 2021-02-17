@@ -581,7 +581,7 @@ abstract class BlankWalker implements TreeWalker
 
     public function walkRowsFrom(nodes\range\RowsFrom $rangeItem)
     {
-        $rangeItem->function->dispatch($this);
+        $rangeItem->functions->dispatch($this);
         $this->walkRangeItemAliases($rangeItem);
         return null;
     }

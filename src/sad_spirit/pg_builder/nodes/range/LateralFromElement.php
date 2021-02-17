@@ -20,29 +20,18 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\range;
 
-use sad_spirit\pg_builder\nodes\FunctionLike;
-use sad_spirit\pg_builder\TreeWalker;
-
 /**
- * AST node representing a function call in FROM clause
+ * Base class for items in FROM clause that can have a LATERAL option
  *
- * @property-read FunctionLike $function
+ * @property bool $lateral
  */
-class FunctionCall extends FunctionFromElement
+abstract class LateralFromElement extends FromElement
 {
-    /** @var FunctionLike */
-    protected $p_function;
+    /** @var bool */
+    protected $p_lateral = false;
 
-    public function __construct(FunctionLike $function)
+    public function setLateral(bool $lateral): void
     {
-        $this->generatePropertyNames();
-
-        $this->p_function = $function;
-        $this->p_function->setParentNode($this);
-    }
-
-    public function dispatch(TreeWalker $walker)
-    {
-        return $walker->walkRangeFunctionCall($this);
+        $this->p_lateral = $lateral;
     }
 }

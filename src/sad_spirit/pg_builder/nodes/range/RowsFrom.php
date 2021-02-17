@@ -26,19 +26,19 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * Represents a ROWS FROM() construct in FROM clause (PostgreSQL 9.4+)
  *
- * @property RowsFromList $function
+ * @property RowsFromList $functions
  */
-class RowsFrom extends FunctionCall
+class RowsFrom extends FunctionFromElement
 {
     /** @var RowsFromList */
-    protected $p_function;
+    protected $p_functions;
 
-    public function __construct(RowsFromList $function)
+    public function __construct(RowsFromList $functions)
     {
         $this->generatePropertyNames();
 
-        $this->p_function = $function;
-        $this->p_function->setParentNode($this);
+        $this->p_functions = $functions;
+        $this->p_functions->setParentNode($this);
     }
 
     public function dispatch(TreeWalker $walker)

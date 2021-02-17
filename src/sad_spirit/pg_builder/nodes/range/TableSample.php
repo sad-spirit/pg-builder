@@ -109,7 +109,7 @@ class TableSample extends FromElement
     public function __isset($name)
     {
         if ('tableAlias' === $name || 'columnAliases' === $name) {
-            return $this->p_relation->__isset($name);
+            return true;
         } else {
             return parent::__isset($name);
         }

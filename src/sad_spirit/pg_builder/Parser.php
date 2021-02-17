@@ -3382,9 +3382,11 @@ class Parser
         return $reference;
     }
 
-    protected function RangeFunctionCall(): nodes\range\FunctionCall
+    protected function RangeFunctionCall(): nodes\range\FunctionFromElement
     {
-        if ($this->stream->matchesKeywordSequence('rows', 'from')) {
+        if (!$this->stream->matchesKeywordSequence('rows', 'from')) {
+            $reference = new nodes\range\FunctionCall($this->SpecialFunctionCall() ?? $this->GenericFunctionCall());
+        } else {
             $this->stream->skip(2);
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
             $list = new nodes\lists\RowsFromList([$this->RowsFromElement()]);
@@ -3395,13 +3397,7 @@ class Parser
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
             $reference = new nodes\range\RowsFrom($list);
-
-        } else {
-            if (null === ($function = $this->SpecialFunctionCall())) {
-                $function = $this->GenericFunctionCall();
-            }
-            $reference = new nodes\range\FunctionCall($function);
-        }
+       }
 
         if ($this->stream->matchesKeywordSequence('with', 'ordinality')) {
             $this->stream->skip(2);
@@ -3417,9 +3413,7 @@ class Parser
 
     protected function RowsFromElement(): nodes\range\RowsFromElement
     {
-        if (null === ($function = $this->SpecialFunctionCall())) {
-            $function = $this->GenericFunctionCall();
-        }
+        $function = $this->SpecialFunctionCall() ?? $this->GenericFunctionCall();
 
         if (!$this->stream->matchesKeyword('as')) {
             $aliases = null;

@@ -36,16 +36,13 @@ use sad_spirit\pg_builder\TreeWalker;
  * @psalm-property XmlColumnList    $columns
  * @psalm-property XmlNamespaceList $namespaces
  *
- * @property bool                                $lateral
  * @property ScalarExpression                    $rowExpression
  * @property ScalarExpression                    $documentExpression
  * @property XmlColumnList|XmlColumnDefinition[] $columns
  * @property XmlNamespaceList|XmlNamespace[]     $namespaces
  */
-class XmlTable extends FromElement
+class XmlTable extends LateralFromElement
 {
-    /** @var bool */
-    protected $p_lateral = false;
     /** @var ScalarExpression */
     protected $p_rowExpression;
     /** @var ScalarExpression */
@@ -88,11 +85,6 @@ class XmlTable extends FromElement
     public function setDocumentExpression(ScalarExpression $documentExpression): void
     {
         $this->setRequiredProperty($this->p_documentExpression, $documentExpression);
-    }
-
-    public function setLateral(bool $lateral): void
-    {
-        $this->p_lateral = $lateral;
     }
 
     public function dispatch(TreeWalker $walker)

@@ -27,14 +27,11 @@ use sad_spirit\pg_builder\TreeWalker;
  * AST node representing a subselect in FROM clause
  *
  * @property SelectCommon $query
- * @property bool         $lateral
  */
-class Subselect extends FromElement
+class Subselect extends LateralFromElement
 {
     /** @var SelectCommon */
     protected $p_query;
-    /** @var bool */
-    protected $p_lateral = false;
 
     public function __construct(SelectCommon $query)
     {
@@ -47,11 +44,6 @@ class Subselect extends FromElement
     public function setQuery(SelectCommon $query): void
     {
         $this->setRequiredProperty($this->p_query, $query);
-    }
-
-    public function setLateral(bool $lateral): void
-    {
-        $this->p_lateral = $lateral;
     }
 
     public function dispatch(TreeWalker $walker)

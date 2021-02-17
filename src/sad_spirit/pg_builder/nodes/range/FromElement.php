@@ -34,8 +34,8 @@ use sad_spirit\pg_builder\nodes\lists\IdentifierList;
  *
  * @psalm-property IdentifierList|null $columnAliases
  *
- * @property-read Identifier|null                  $tableAlias
- * @property      IdentifierList|Identifier[]|null $columnAliases
+ * @property Identifier|null                  $tableAlias
+ * @property IdentifierList|Identifier[]|null $columnAliases
  */
 abstract class FromElement extends GenericNode
 {
@@ -52,15 +52,34 @@ abstract class FromElement extends GenericNode
      */
     public function setAlias(Identifier $tableAlias = null, NodeList $columnAliases = null): void
     {
-        if (null !== $columnAliases && !($columnAliases instanceof IdentifierList)) {
+        $this->setTableAlias($tableAlias);
+        $this->setColumnAliases($columnAliases);
+    }
+
+    /**
+     * Sets an alias for the FROM item itself
+     *
+     * @param Identifier|null $tableAlias
+     */
+    public function setTableAlias(?Identifier $tableAlias): void
+    {
+        $this->setProperty($this->p_tableAlias, $tableAlias);
+    }
+
+    /**
+     * Sets aliases for columns of FROM item
+     *
+     * @param IdentifierList|null $columnAliases
+     */
+    public function setColumnAliases(?NodeList $columnAliases): void
+    {
+        if (null !== $columnAliases && !$columnAliases instanceof IdentifierList) {
             throw new InvalidArgumentException(sprintf(
                 '%s expects an instance of IdentifierList for $columnAliases, %s given',
                 __METHOD__,
                 get_class($columnAliases)
             ));
         }
-
-        $this->setProperty($this->p_tableAlias, $tableAlias);
         $this->setProperty($this->p_columnAliases, $columnAliases);
     }
 

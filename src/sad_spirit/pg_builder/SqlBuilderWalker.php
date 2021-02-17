@@ -1087,7 +1087,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkRowsFrom(nodes\range\RowsFrom $rangeItem): string
     {
         return ($rangeItem->lateral ? 'lateral ' : '') . 'rows from('
-               . implode(', ', $rangeItem->function->dispatch($this)) . ')'
+               . implode(', ', $rangeItem->functions->dispatch($this)) . ')'
                . ($rangeItem->withOrdinality ? ' with ordinality' : '')
                . (
                     null !== $rangeItem->tableAlias || null !== $rangeItem->columnAliases
