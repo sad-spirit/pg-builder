@@ -16,6 +16,9 @@
   * 25% faster SQL building
   * 25% faster unserialization of AST and 30% smaller serialized data length
   * 50% faster cloning of AST
+* Tested and supported on PHP 8
+* Static analysis with phpstan and psalm
+* Package `Exception` interface now extends `\Throwable`
 
 ### Changed
 * Requires at least PHP 7.2

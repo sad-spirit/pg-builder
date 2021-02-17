@@ -23,6 +23,6 @@ namespace sad_spirit\pg_builder;
 /**
  * Interface that should be implemented by all package exceptions
  */
-interface Exception
+interface Exception extends \Throwable
 {
 }
