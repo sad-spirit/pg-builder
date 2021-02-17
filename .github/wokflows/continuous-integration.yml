@@ -1,0 +1,70 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.operating-system }}
+
+    strategy:
+      matrix:
+        postgres-version: ['9.5', '13']
+        operating-system: ['ubuntu-latest']
+        php-version: ['7.2', '7.3', '7.4', '8.0']
+
+    name: CI on ${{ matrix.operating-system }} with PHP ${{ matrix.php-version }} and PostgreSQL ${{ matrix.postgres-version }}
+
+    services:
+      postgres:
+        image: "postgres:${{ matrix.postgres-version }}"
+        env:
+          POSTGRES_PASSWORD: "postgres"
+
+        options: >-
+          --health-cmd "pg_isready"
+
+        ports:
+          - "5432:5432"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          tools: composer:v2
+          coverage: none
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-${{ matrix.php-version }}-${{ hashFiles('composer.*') }}-${{ matrix.composer-flags }}
+          restore-keys: |
+            composer-${{ runner.os }}-${{ matrix.php-version }}-${{ hashFiles('composer.*') }}-
+            composer-${{ runner.os }}-${{ matrix.php-version }}-
+            composer-${{ runner.os }}-
+            composer-
+
+      - name: Install dependencies with Composer
+        run: |
+          composer update --no-interaction --prefer-dist --no-progress ${{ matrix.composer-flags }}
+
+      - name: Create test database
+        run: psql -c 'create database pgbuilder_test' -U postgres -h 127.0.0.1
+        env:
+          PGPASSWORD: postgres
+
+      - name: Run PHPUnit
+        run: |
+          vendor/bin/phpunit --configuration ci/github-phpunit.xml

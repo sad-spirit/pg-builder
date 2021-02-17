@@ -1,6 +1,8 @@
 # sad_spirit/pg_builder
 
-[![Build Status](https://travis-ci.org/sad-spirit/pg-builder.svg?branch=master)](https://travis-ci.org/sad-spirit/pg-builder)
+[![Build Status](https://github.com/sad-spirit/pg-builder/workflows/Continuous%20Integration/badge.svg?branch=master)](https://github.com/sad-spirit/pg-builder/actions?query=branch%3Amaster+workflow%3A%22Continuous+Integration%22)
+
+[![Static Analysis](https://github.com/sad-spirit/pg-builder/workflows/Static%20Analysis/badge.svg?branch=master)](https://github.com/sad-spirit/pg-builder/actions?query=branch%3Amaster+workflow%3A%22Static+Analysis%22)
 
 > Note: master branch is being rewritten. Older but working code is on legacy-0.4 branch.
 
