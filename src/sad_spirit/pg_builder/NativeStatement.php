@@ -40,13 +40,13 @@ class NativeStatement
 
     /**
      * Mapping 'parameter name' => 'parameter position' if named parameters were used
-     * @var array
+     * @var array<string, int>
      */
     private $namedParameterMap;
 
     /**
      * Type info: 'parameter position' => 'parameter type' if explicit typecasts were used for parameters
-     * @var array
+     * @var array<int, ?nodes\TypeName>
      */
     private $parameterTypes;
 
@@ -58,9 +58,9 @@ class NativeStatement
     /**
      * Constructor, sets the query building results
      *
-     * @param string $sql
-     * @param array $parameterTypes
-     * @param array $namedParameterMap
+     * @param string                      $sql
+     * @param array<int, ?nodes\TypeName> $parameterTypes
+     * @param array<string, int>          $namedParameterMap
      */
     public function __construct(string $sql, array $parameterTypes, array $namedParameterMap)
     {
@@ -70,9 +70,9 @@ class NativeStatement
     }
 
     /**
-     * Prevents serialization of $_prepared property
+     * Prevents serialization of $preparedStatement property
      */
-    public function __sleep()
+    public function __sleep(): array
     {
         return ['sql', 'parameterTypes', 'namedParameterMap'];
     }
@@ -90,7 +90,7 @@ class NativeStatement
     /**
      * Returns mapping from named parameters to positional ones
      *
-     * @return array
+     * @return array<string, int>
      */
     public function getNamedParameterMap(): array
     {
@@ -100,7 +100,7 @@ class NativeStatement
     /**
      * Returns known types for parameters (if parameters were used with type casts)
      *
-     * @return array
+     * @return array<int, ?nodes\TypeName>
      */
     public function getParameterTypes(): array
     {
@@ -110,8 +110,8 @@ class NativeStatement
     /**
      * Converts parameters array keyed with parameters' names to positional array
      *
-     * @param array $parameters
-     * @return array
+     * @param array<string, mixed> $parameters
+     * @return array<int, mixed>
      * @throws exceptions\InvalidArgumentException
      */
     public function mapNamedParameters(array $parameters): array
@@ -135,15 +135,15 @@ class NativeStatement
     /**
      * Merges the types array received from builder with additional types info
      *
-     * @param array $inputTypes Parameter types (keys can be either names or positions), types from this
-     *                          array take precedence over types from parameterTypes
-     * @return array
+     * @param mixed[] $paramTypes Parameter types (keys can be either names or positions), types from this
+     *                            array take precedence over types from $parameterTypes
+     * @return array<int, mixed>
      * @throws exceptions\InvalidArgumentException
      */
-    public function mergeInputTypes(array $inputTypes): array
+    public function mergeParameterTypes(array $paramTypes): array
     {
         $types = $this->parameterTypes;
-        foreach ($inputTypes as $key => $type) {
+        foreach ($paramTypes as $key => $type) {
             if (array_key_exists($key, $types)) {
                 $types[$key] = $type;
             } elseif (array_key_exists($key, $this->namedParameterMap)) {
@@ -161,10 +161,10 @@ class NativeStatement
      * Executes the query with the ability to pass parameters separately
      *
      * @param Connection $connection  DB connection
-     * @param array      $params      Parameters (keys are treated as names unless namedParameterMap is empty)
-     * @param array      $inputTypes  Parameter types (keys can be either names or positions), types from this
-     *                                array take precedence over types from parameterTypes
-     * @param array      $outputTypes Result types to pass to ResultSet (keys can be either names or positions)
+     * @param mixed[]    $params      Parameters (keys are treated as names unless $namedParameterMap is empty)
+     * @param mixed[]    $paramTypes  Parameter types (keys can be either names or positions), types from this
+     *                                array take precedence over types from $parameterTypes property
+     * @param mixed[]    $resultTypes Result types to pass to ResultSet (keys can be either names or positions)
      * @return ResultSet
      * @throws ServerException
      * @throws exceptions\InvalidArgumentException
@@ -172,22 +172,22 @@ class NativeStatement
     public function executeParams(
         Connection $connection,
         array $params,
-        array $inputTypes = [],
-        array $outputTypes = []
+        array $paramTypes = [],
+        array $resultTypes = []
     ): ResultSet {
         if (empty($this->namedParameterMap)) {
             return $connection->executeParams(
                 $this->sql,
                 $params,
-                $this->mergeInputTypes($inputTypes),
-                $outputTypes
+                $this->mergeParameterTypes($paramTypes),
+                $resultTypes
             );
         } else {
             return $connection->executeParams(
                 $this->sql,
                 $this->mapNamedParameters($params),
-                $this->mergeInputTypes($inputTypes),
-                $outputTypes
+                $this->mergeParameterTypes($paramTypes),
+                $resultTypes
             );
         }
     }
@@ -196,21 +196,21 @@ class NativeStatement
      * Prepares the query for execution.
      *
      * @param Connection $connection DB connection
-     * @param array      $types      Parameter types (keys can be either names or positions), types from this
-     *                               array take precedence over types from parameterTypes
+     * @param mixed[]    $paramTypes Parameter types (keys can be either names or positions), types from this
+     *                               array take precedence over types from $parameterTypes property
      * @return PreparedStatement
      */
-    public function prepare(Connection $connection, array $types = []): PreparedStatement
+    public function prepare(Connection $connection, array $paramTypes = []): PreparedStatement
     {
-        $this->preparedStatement = $connection->prepare($this->sql, $this->mergeInputTypes($types));
+        $this->preparedStatement = $connection->prepare($this->sql, $this->mergeParameterTypes($paramTypes));
         return $this->preparedStatement;
     }
 
     /**
      * Executes the prepared statement (requires prepare() to be called first)
      *
-     * @param array $params
-     * @param array $resultTypes
+     * @param mixed[] $params      Parameters (keys are treated as names unless $namedParameterMap is empty)
+     * @param mixed[] $resultTypes Result types to pass to ResultSet (keys can be either names or positions)
      * @return ResultSet
      * @throws exceptions\RuntimeException
      * @throws ServerException
@@ -220,6 +220,10 @@ class NativeStatement
         if (null === $this->preparedStatement) {
             throw new exceptions\RuntimeException(__METHOD__ . '(): prepare() should be called first');
         }
-        return $this->preparedStatement->execute($this->mapNamedParameters($params), $resultTypes);
+        if (empty($this->namedParameterMap)) {
+            return $this->preparedStatement->execute($params, $resultTypes);
+        } else {
+            return $this->preparedStatement->execute($this->mapNamedParameters($params), $resultTypes);
+        }
     }
 }
