@@ -23,8 +23,10 @@ namespace sad_spirit\pg_builder\tests;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Lexer,
+    NativeStatement,
     Parser,
     converters\ParserAwareTypeConverterFactory,
+    exceptions\InvalidArgumentException,
     nodes\QualifiedName,
     nodes\TypeName
 };
@@ -93,6 +95,64 @@ class ParserAwareTypeConverterFactoryTest extends TestCase
             ["national character varying(13)", new StringConverter()],
             ["postgres.pg_catalog.int4 array", new ArrayConverter(new IntegerConverter())],
             ["interval hour to second(10)",    new IntervalConverter()]
+        ];
+    }
+
+    /**
+     * @noinspection SqlNoDataSourceInspection
+     * @noinspection SqlResolve
+     *
+     * @param array<string, mixed> $parameters
+     * @param array<string, mixed> $paramTypes
+     * @param string[]|string      $expected
+     * @dataProvider parametersProvider
+     */
+    public function testConvertParameters(array $parameters, array $paramTypes, $expected): void
+    {
+        $native = new NativeStatement(
+            'select * from foo where bar = :bar and baz > :baz',
+            [
+                new TypeName(new QualifiedName('point')),
+                null
+            ],
+            [
+                'bar' => 0,
+                'baz' => 1
+            ]
+        );
+
+        if (is_array($expected)) {
+            $this::assertEquals($expected, $this->factory->convertParameters($native, $parameters, $paramTypes));
+        } else {
+            $this::expectException(InvalidArgumentException::class);
+            $this::expectExceptionMessage($expected);
+            $this->factory->convertParameters($native, $parameters, $paramTypes);
+        }
+    }
+
+    public function parametersProvider(): array
+    {
+        return [
+            [
+                ['bar' => [1, 2], 'baz' => 3],
+                ['baz' => 'interval'],
+                ['bar' => '(1,2)', 'baz' => '3 seconds']
+            ],
+            [
+                ['bar' => [3, 4], 'baz' => new \DateInterval('PT3M')],
+                ['bar' => 'integer array'],
+                ['bar' => '{"3","4"}', 'baz' => 'PT3M']
+            ],
+            [
+                ['bar' => [5, 6]],
+                [],
+                "Missing parameter name 'baz'"
+            ],
+            [
+                ['bar' => [7, 8], 'baz' => 9, 'quux' => 10],
+                [],
+                "Unknown keys in parameters array: 'quux'"
+            ]
         ];
     }
 }

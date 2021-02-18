@@ -21,8 +21,9 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\converters;
 
 use sad_spirit\pg_builder\{
+    NativeStatement,
     Parser,
-    nodes\IntervalTypeName,
+    exceptions\InvalidArgumentException,
     nodes\QualifiedName,
     nodes\TypeName
 };
@@ -86,15 +87,11 @@ class ParserAwareTypeConverterFactory extends DefaultTypeConverterFactory
      */
     private function getConverterForTypeNameNode(TypeName $typeName): TypeConverter
     {
-        if ($typeName instanceof IntervalTypeName) {
-            return $this->getConverterForQualifiedName('interval', 'pg_catalog', count($typeName->bounds) > 0);
-        } else {
-            return $this->getConverterForQualifiedName(
-                $typeName->name->relation->value,
-                $typeName->name->schema !== null ? $typeName->name->schema->value : null,
-                count($typeName->bounds) > 0
-            );
-        }
+        return $this->getConverterForQualifiedName(
+            $typeName->name->relation->value,
+            $typeName->name->schema !== null ? $typeName->name->schema->value : null,
+            count($typeName->bounds) > 0
+        );
     }
 
     /**
@@ -141,5 +138,50 @@ class ParserAwareTypeConverterFactory extends DefaultTypeConverterFactory
                 return new TypeName(new QualifiedName($typeName));
             }
         }
+    }
+
+    /**
+     * Converts query parameters according to types stored in NativeStatement
+     *
+     * This is a convenience method for using NativeStatement with PDO, the resultant array may be directly
+     * fed to PDOStatement::execute():
+     * <code>
+     * $stmt = $pdo->prepare($native->getSql());
+     * $stmt->execute($factory->convertParameters($native, $params));
+     * </code>
+     *
+     * @param NativeStatement      $statement
+     * @param array<string, mixed> $parameters
+     * @param array<string, mixed> $paramTypes Additional parameter types, values from this array will take precedence
+     *                                         over types from $statement->getParameterTypes()
+     * @return array<string, ?string>
+     * @throws InvalidArgumentException
+     */
+    public function convertParameters(NativeStatement $statement, array $parameters, array $paramTypes = []): array
+    {
+        $inferredTypes = $statement->getParameterTypes();
+        $converted     = [];
+        foreach ($statement->getNamedParameterMap() as $name => $index) {
+            if (!array_key_exists($name, $parameters)) {
+                throw new InvalidArgumentException("Missing parameter name '{$name}'");
+            }
+            if (!empty($paramTypes[$name])) {
+                $converter = $this->getConverterForTypeSpecification($paramTypes[$name]);
+            } elseif (!empty($inferredTypes[$index])) {
+                $converter = $this->getConverterForTypeNameNode($inferredTypes[$index]);
+            } else {
+                $converter = $this->getConverterForPHPValue($parameters[$name]);
+            }
+            $converted[$name] = $converter->output($parameters[$name]);
+        }
+
+        if (count($converted) < count($parameters)) {
+            $unknown = array_diff(array_keys($parameters), array_keys($converted));
+            throw new InvalidArgumentException(
+                "Unknown keys in parameters array: '" . implode("', '", $unknown) . "'"
+            );
+        }
+
+        return $converted;
     }
 }
