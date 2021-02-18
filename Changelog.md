@@ -11,6 +11,8 @@
 * It is now possible to use the package to generate queries suitable for PDO
   * `StatementFactory` may be configured to keep `:foo` named parameters in generated SQL
   * Convenience method `StatementFactory::forPDO()` creates an instance of `StatementFactory` based on passed PDO connection
+  * New `ParserAwareTypeConverterFactory::convertParameters()` method prepares parameters for `PDOStatement::execute()`
+    using types info extracted from query
 * Substantial performance improvements, especially when using cache. Tested on PHP 7.4 against version 0.4.1:
   * 15-20% faster SQL parsing
   * 25% faster SQL building
@@ -18,33 +20,59 @@
   * 50% faster cloning of AST
 * Tested and supported on PHP 8
 * Static analysis with phpstan and psalm
+* Special function-like constructs in `FROM` clause are now properly supported (Postgres allows these):
+  ```SQL
+  select * from current_date, cast('PT1M' as interval);
+  ```
 * Package `Exception` interface now extends `\Throwable`
 
 ### Changed
 * Requires at least PHP 7.2
 * Requires at least PostgreSQL 9.5
 * Parser expects incoming SQL to be encoded in UTF-8, will throw exceptions in case of invalid encoding
+* Method `mergeInputTypes()` of `NativeStatement` renamed to `mergeParameterTypes()`
+* Changes to `StatementFactory` API
+  * Constructor accepts an instance of `Parser`, an instance of class implementing new `StatementToStringWalker` interface
+    (which is implemented by `SqlBuilderWalker`), and a flag to toggle PDO-compatible output.
+  * Creation of `StatementFactory` configured for `Connection` object from `pg_wrapper` package
+    is now done via `StatementFactory::forConnection()` method.
+  * Similarly, an instance of `StatementFactory` configured for `PDO` connection can be created with `StatementFactory::forPDO()`.
 * Changes to `Node` subclasses API: 
   * Methods `and_()` and `or_()` of `WhereOrHavingClause` were renamed to `and()` and `or()` as such names are allowed in PHP 7
   * Signatures of constructors for `ColumnReference` and `QualifiedName` were changed from `__construct(array $parts)` to `__construct(...$parts)`
-  * `OperatorExpression` no longer accepts _any_ string as an operator, it accepts either a string of characters valid for operator name or an instance
-    of new `QualifiedOperator` class representing a namespaced operator like `operator(pg_catalog.+)`. 
+  * `OperatorExpression` no longer accepts _any_ string as an operator, it accepts either a string of special characters valid for operator name or an instance
+    of new `QualifiedOperator` class representing a namespaced operator: `operator(pg_catalog.+)`. 
     SQL constructs previously represented by `OperatorExpression` have their own nodes:
     `AtTimeZoneExpression`, `IsDistinctFromExpression`, `IsExpression`, `OverlapsExpression`, `NotExpression`.
+  * Similar to above, `FunctionCall` constructor will no longer accept a string with an SQL keyword for a function name and will convert
+    a non-keyword string to `QualifiedName`. Thus `FunctionCall`'s `$name` property is always an instance of `QualifiedName`.
+    Function-like constructs previously represented by `FunctionCall` have their own nodes: `ArrayComparisonExpression` (for `ANY` / `ALL` / `SOME`),
+    `NullIfExpression`, `SystemFunctionCallExpression` (for `COALESCE`, `GREATEST`, `LEAST`, `XMLCONCAT`)
   * `NOT` in SQL constructs like `IS NOT DISTINCT FROM` or `NOT BETWEEN` is represented as `$negated` property of a relevant `Node`
   * `Constant` and `Parameter` nodes were essentially 1:1 mapping of `TYPE_LITERAL` and `TYPE_PARAMETER` `Token`s exposing `Token::TYPE_*` constants,
     so branching code was needed to process them. Added specialized `KeywordConstant`, `NumericConstant`, `StringConstant`, 
     `NamedParameter`, `PositionalParameter` child classes. `Constant` and `Parameter` are now abstract base classes
     containing factory-like methods for creating child class instances.
+  * `XmlColumnDefinition` (used in representing `XMLTABLE` constructs) is now an abstract class extended by `XmlOrdinalityColumnDefinition`
+    and `XmlTypedColumnDefinition`
+  * SQL standard "value functions" like `current_user` and `current_timestamp` are represented by a new `SQLValueFunction` Node
+    instead of ad-hoc system function calls and typecasts. They will now appear in generated SQL the same way they did in source.
+  * `ArrayIndexes` node representing a single offset access `[1]` rather than slice `[1:2]` will have that offset as an upper bound
+    rather than lower. `ArrayIndexes` will disallow setting lower bound for non-slice nodes.
+  * `RowsFrom` no longer extends `range\FunctionCall`, they both extend a new base `FunctionFromElement` class. Also property of `RowsFrom` 
+    containing function calls is named `$functions` rather than `$function`.
 * Changes to `TreeWalker` interface
-  * Added `walkQualifiedOperator()` for visiting `QualifiedOperator` nodes.
   * `walkConstant()` was replaced by `walkKeywordConstant()` / `walkNumericConstant()` / `walkStringConstant()` methods.
   * Similarly, `walkParameter()` was replaced by `walkNamedParameter()` and `walkPositionalParameter()`.
+  * Also `walkXmlColumnDefinition` was replaced by `walkXmlTypedColumnDefinition()` and `walkXmlOrdinalityColumnDefinition()`
+  * Added `walkQualifiedOperator()` for visiting `QualifiedOperator` nodes.
   * Added `walkAtTimeZoneExpression()`, `walkIsDistinctFromExpression()`, `walkIsExpression()`, `walkNotExpression()`,
     `walkOverlapsExpression()` for visiting nodes previously represented by `OperatorExpression`.
+  * Added `walkSQLValueFunction()` for visiting `SQLValueFunction` nodes.
+  * Added `walkSystemFunctionCall()`, `walkArrayComparisonExpression()`, `walkNullIfExpression()` for visiting nodes previously
+    represented by `FunctionCall`.
 * Most of the required changes to your code can be automated by using the provided rector rules, [consult the upgrade instructions](Upgrading.md).
-  Changes to custom `TreeWalker` implementations should be done manually.
-
+  Changes to custom `TreeWalker` implementations should be done manually, unfortunately.
 
 ### Removed
 * Support for `mbstring.func_overload`, which was deprecated in PHP 7.2
@@ -54,6 +82,7 @@
 ### Fixed
 * Single quotes in string literals with C-style escapes could be unescaped twice
 * Subselect with several parentheses around it could be incorrectly parsed
+* `and()` and `or()` methods of `WhereOrHavingClause` incorrectly handled empty `WhereOrHavingClause` and empty `LogicalExpression` passed as arguments. 
 * `BlankWalker` missed several `dispatch()` calls to child nodes
 
 ## [0.4.1] - 2020-09-30
