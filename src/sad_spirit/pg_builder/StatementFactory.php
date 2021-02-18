@@ -20,6 +20,21 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder;
 
+use sad_spirit\pg_builder\nodes\{
+    MultipleSetClause,
+    QualifiedName,
+    ScalarExpression,
+    SetToDefault,
+    SingleSetClause,
+    TargetElement,
+    expressions\RowExpression,
+    lists\RowList,
+    lists\SetClauseList,
+    lists\TargetList,
+    range\FromElement,
+    range\InsertTarget,
+    range\UpdateOrDeleteTarget
+};
 use sad_spirit\pg_wrapper\Connection;
 
 /**
@@ -183,12 +198,12 @@ class StatementFactory
     /**
      * Creates a DELETE statement object
      *
-     * @param string|nodes\range\UpdateOrDeleteTarget $from
+     * @param string|UpdateOrDeleteTarget $from
      * @return Delete
      */
     public function delete($from): Delete
     {
-        if ($from instanceof nodes\range\UpdateOrDeleteTarget) {
+        if ($from instanceof UpdateOrDeleteTarget) {
             $relation = $from;
         } else {
             $relation = $this->getParser()->parseRelationExpressionOptAlias($from);
@@ -203,15 +218,15 @@ class StatementFactory
     /**
      * Creates an INSERT statement object
      *
-     * @param string|nodes\QualifiedName|nodes\range\InsertTarget $into
+     * @param string|QualifiedName|InsertTarget $into
      * @return Insert
      */
     public function insert($into): Insert
     {
-        if ($into instanceof nodes\range\InsertTarget) {
+        if ($into instanceof InsertTarget) {
             $relation = $into;
-        } elseif ($into instanceof nodes\QualifiedName) {
-            $relation = new nodes\range\InsertTarget($into);
+        } elseif ($into instanceof QualifiedName) {
+            $relation = new InsertTarget($into);
         } else {
             $relation = $this->getParser()->parseInsertTarget($into);
         }
@@ -225,26 +240,26 @@ class StatementFactory
     /**
      * Creates a SELECT statement object
      *
-     * @param string|iterable<nodes\TargetElement|string>          $list
-     * @param string|iterable<nodes\range\FromElement|string>|null $from
+     * @param string|iterable<TargetElement|string>    $list
+     * @param string|iterable<FromElement|string>|null $from
      * @return Select
      */
     public function select($list, $from = null): Select
     {
-        if ($list instanceof nodes\lists\TargetList) {
+        if ($list instanceof TargetList) {
             $targetList = $list;
         } elseif (is_string($list)) {
-            $targetList = nodes\lists\TargetList::createFromString($this->getParser(), $list);
+            $targetList = TargetList::createFromString($this->getParser(), $list);
         } else {
             // we don't pass $list since it may contain strings instead of TargetElements,
             // Parser may be needed for that
-            $targetList = new nodes\lists\TargetList();
+            $targetList = new TargetList();
         }
 
         $select = new Select($targetList);
         $select->setParser($this->getParser());
 
-        if (!is_string($list) && !($list instanceof nodes\lists\TargetList)) {
+        if (!is_string($list) && !($list instanceof TargetList)) {
             $select->list->replace($list);
         }
         if (null !== $from) {
@@ -257,32 +272,32 @@ class StatementFactory
     /**
      * Creates an UPDATE statement object
      *
-     * @param string|nodes\range\UpdateOrDeleteTarget                               $table
-     * @param string|iterable<nodes\SingleSetClause|nodes\MultipleSetClause|string> $set
+     * @param string|UpdateOrDeleteTarget                               $table
+     * @param string|iterable<SingleSetClause|MultipleSetClause|string> $set
      * @return Update
      */
     public function update($table, $set): Update
     {
-        if ($table instanceof nodes\range\UpdateOrDeleteTarget) {
+        if ($table instanceof UpdateOrDeleteTarget) {
             $relation = $table;
         } else {
             $relation = $this->getParser()->parseRelationExpressionOptAlias($table);
         }
 
-        if ($set instanceof nodes\lists\SetClauseList) {
+        if ($set instanceof SetClauseList) {
             $setList = $set;
         } elseif (is_string($set)) {
             $setList = $this->getParser()->parseSetClauseList($set);
         } else {
             // we don't pass $set since it may contain strings instead of SetTargetElements,
             // Parser may be needed for that
-            $setList = new nodes\lists\SetClauseList();
+            $setList = new SetClauseList();
         }
 
         $update = new Update($relation, $setList);
         $update->setParser($this->getParser());
 
-        if (!is_string($set) && !($set instanceof nodes\lists\SetClauseList)) {
+        if (!is_string($set) && !($set instanceof SetClauseList)) {
             $update->set->replace($set);
         }
 
@@ -292,25 +307,34 @@ class StatementFactory
     /**
      * Creates a VALUES statement object
      *
-     * @param string|iterable<nodes\expressions\RowExpression|string|iterable<nodes\ScalarExpression|nodes\SetToDefault|string>> $rows
+     * Take care when passing arrays/iterators here. As VALUES statement may contain several rows, an outer array
+     * will be for rows rather than for elements within row, thus
+     * <code>$factory->values([new StringConstant('foo'), new StringConstant('bar')]);</code>
+     * will fail,
+     * <code>$factory->values([[new StringConstant('foo'), new StringConstant('bar')]]);</code>
+     * will produce a VALUES statement with one row containing two elements, and
+     * <code>$factory->values([[new StringConstant('foo')], [new StringConstant('bar')]]);</code>
+     * will produce a VALUES statement with two rows, each having a single element.
+     *
+     * @param string|iterable<RowExpression|string|iterable<ScalarExpression|SetToDefault|string>> $rows
      * @return Values
      */
     public function values($rows): Values
     {
-        if ($rows instanceof nodes\lists\RowList) {
+        if ($rows instanceof RowList) {
             $rowList = $rows;
         } elseif (is_string($rows)) {
-            $rowList = nodes\lists\RowList::createFromString($this->getParser(), $rows);
+            $rowList = RowList::createFromString($this->getParser(), $rows);
         } else {
             // we don't pass $rows as it may contain strings/arrays instead of RowExpressions,
             // Parser may be needed for that
-            $rowList = new nodes\lists\RowList();
+            $rowList = new RowList();
         }
 
         $values = new Values($rowList);
         $values->setParser($this->getParser());
 
-        if (!is_string($rows) && !($rows instanceof nodes\lists\RowList)) {
+        if (!is_string($rows) && !($rows instanceof RowList)) {
             $values->rows->replace($rows);
         }
 
