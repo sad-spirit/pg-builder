@@ -21,7 +21,6 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
-    nodes\GenericNode,
     nodes\ScalarExpression,
     exceptions\InvalidArgumentException,
     TreeWalker
@@ -37,9 +36,8 @@ use sad_spirit\pg_builder\{
  * @property      ScalarExpression      $pattern
  * @property      ScalarExpression|null $escape
  * @property-read string                $operator either of 'like' / 'ilike' / 'similar to'
- * @property      bool                  $negated  set to true for NOT LIKE and other negated expressions
  */
-class PatternMatchingExpression extends GenericNode implements ScalarExpression
+class PatternMatchingExpression extends NegatableExpression
 {
     public const LIKE       = 'like';
     public const ILIKE      = 'ilike';
@@ -59,14 +57,12 @@ class PatternMatchingExpression extends GenericNode implements ScalarExpression
     protected $p_escape;
     /** @var string */
     protected $p_operator;
-    /** @var bool */
-    protected $p_negated;
 
     public function __construct(
         ScalarExpression $argument,
         ScalarExpression $pattern,
         string $operator = self::LIKE,
-        bool $negated = false,
+        bool $not = false,
         ScalarExpression $escape = null
     ) {
         if (!isset(self::ALLOWED_OPERATORS[$operator])) {
@@ -90,7 +86,7 @@ class PatternMatchingExpression extends GenericNode implements ScalarExpression
         }
 
         $this->p_operator = $operator;
-        $this->p_negated  = $negated;
+        $this->p_not      = $not;
     }
 
     public function setArgument(ScalarExpression $argument): void
@@ -106,11 +102,6 @@ class PatternMatchingExpression extends GenericNode implements ScalarExpression
     public function setEscape(ScalarExpression $escape = null): void
     {
         $this->setProperty($this->p_escape, $escape);
-    }
-
-    public function setNegated(bool $negated): void
-    {
-        $this->p_negated = $negated;
     }
 
     public function dispatch(TreeWalker $walker)

@@ -22,7 +22,6 @@ namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
     exceptions\InvalidArgumentException,
-    nodes\GenericNode,
     nodes\ScalarExpression,
     TreeWalker
 };
@@ -34,9 +33,8 @@ use sad_spirit\pg_builder\{
  *
  * @property ScalarExpression $argument
  * @property string           $what
- * @property bool             $negated set to true for IS NOT expressions
  */
-class IsExpression extends GenericNode implements ScalarExpression
+class IsExpression extends NegatableExpression
 {
     public const NULL            = 'null';
     public const TRUE            = 'true';
@@ -66,17 +64,15 @@ class IsExpression extends GenericNode implements ScalarExpression
     protected $p_argument;
     /** @var string */
     protected $p_what;
-    /** @var bool */
-    protected $p_negated;
-    
-    public function __construct(ScalarExpression $argument, string $what, bool $negated = false)
+
+    public function __construct(ScalarExpression $argument, string $what, bool $not = false)
     {
         $this->generatePropertyNames();
 
         $this->p_argument = $argument;
         $this->p_argument->setParentNode($this);
 
-        $this->p_negated = $negated;
+        $this->p_not = $not;
 
         $this->setWhat($what);
     }
@@ -85,18 +81,13 @@ class IsExpression extends GenericNode implements ScalarExpression
     {
         $this->setRequiredProperty($this->p_argument, $argument);
     }
-    
+
     public function setWhat(string $what): void
     {
         if (!isset(self::ALLOWED_KEYWORDS[$what])) {
             throw new InvalidArgumentException("Unknown keyword '{$what}' for right side of IS expression");
         }
         $this->p_what = $what;
-    }
-    
-    public function setNegated(bool $negated): void
-    {
-        $this->p_negated = $negated;
     }
 
     public function dispatch(TreeWalker $walker)

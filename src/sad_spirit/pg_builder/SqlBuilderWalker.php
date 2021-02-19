@@ -813,7 +813,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkBetweenExpression(nodes\expressions\BetweenExpression $expression): string
     {
         return $this->optionalParentheses($expression->argument, $expression, false)
-               . ($expression->negated ? 'not ' : ' ') . $expression->operator . ' '
+               . ($expression->not ? 'not ' : ' ') . $expression->operator . ' '
                . $this->optionalParentheses($expression->left, $expression, true)
                . ' and '
                . $this->optionalParentheses($expression->right, $expression, true);
@@ -881,26 +881,26 @@ class SqlBuilderWalker implements StatementToStringWalker
         }
 
         return $this->optionalParentheses($expression->left, $expression, false)
-               . ($expression->negated ? ' not in ' : ' in ') . $right;
+               . ($expression->not ? ' not in ' : ' in ') . $right;
     }
 
     public function walkIsDistinctFromExpression(nodes\expressions\IsDistinctFromExpression $expression): string
     {
         return $this->optionalParentheses($expression->left, $expression, false)
-               . ' is ' . ($expression->negated ? 'not ' : '') . 'distinct from '
+               . ' is ' . ($expression->not ? 'not ' : '') . 'distinct from '
                . $this->optionalParentheses($expression->right, $expression, true);
     }
 
     public function walkIsExpression(nodes\expressions\IsExpression $expression): string
     {
         return $this->optionalParentheses($expression->argument, $expression, false)
-               . ' is ' . ($expression->negated ? 'not ' : '') . $expression->what;
+               . ' is ' . ($expression->not ? 'not ' : '') . $expression->what;
     }
 
     public function walkIsOfExpression(nodes\expressions\IsOfExpression $expression)
     {
         return $this->optionalParentheses($expression->left, $expression, false)
-               . ' is ' . ($expression->negated ? 'not ' : '') . 'of ('
+               . ' is ' . ($expression->not ? 'not ' : '') . 'of ('
                . implode(', ', $expression->right->dispatch($this)) . ')';
     }
 
@@ -972,7 +972,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkPatternMatchingExpression(nodes\expressions\PatternMatchingExpression $expression): string
     {
         return $this->optionalParentheses($expression->argument, $expression, false)
-               . ($expression->negated ? ' not ' : ' ') . $expression->operator . ' '
+               . ($expression->not ? ' not ' : ' ') . $expression->operator . ' '
                . $this->optionalParentheses($expression->pattern, $expression, true)
                . (
                     null !== $expression->escape

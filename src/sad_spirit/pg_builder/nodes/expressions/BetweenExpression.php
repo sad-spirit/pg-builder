@@ -21,7 +21,6 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
-    nodes\GenericNode,
     nodes\ScalarExpression,
     exceptions\InvalidArgumentException,
     TreeWalker
@@ -34,9 +33,8 @@ use sad_spirit\pg_builder\{
  * @property ScalarExpression $left
  * @property ScalarExpression $right
  * @property string           $operator either of 'between' / 'between symmetric' / 'between asymmetric'
- * @property bool             $negated  set to true for NOT BETWEEN expressions
  */
-class BetweenExpression extends GenericNode implements ScalarExpression
+class BetweenExpression extends NegatableExpression
 {
     public const BETWEEN                = 'between';
     public const BETWEEN_SYMMETRIC      = 'between symmetric';
@@ -56,15 +54,13 @@ class BetweenExpression extends GenericNode implements ScalarExpression
     protected $p_right;
     /** @var string */
     protected $p_operator;
-    /** @var bool */
-    protected $p_negated = false;
 
     public function __construct(
         ScalarExpression $argument,
         ScalarExpression $left,
         ScalarExpression $right,
         string $operator = self::BETWEEN,
-        bool $negated = false
+        bool $not = false
     ) {
         if ($argument === $left || $argument === $right || $left === $right) {
             throw new InvalidArgumentException("Cannot use the same Node for argument / left bound / right bound");
@@ -82,7 +78,7 @@ class BetweenExpression extends GenericNode implements ScalarExpression
         $this->p_right = $right;
         $this->p_right->setParentNode($this);
 
-        $this->p_negated = $negated;
+        $this->p_not = $not;
     }
 
     public function setArgument(ScalarExpression $argument): void
@@ -106,11 +102,6 @@ class BetweenExpression extends GenericNode implements ScalarExpression
             throw new InvalidArgumentException("Unknown operator '{$operator}' for BETWEEN-style expression");
         }
         $this->p_operator = $operator;
-    }
-
-    public function setNegated(bool $negated): void
-    {
-        $this->p_negated = $negated;
     }
 
     public function dispatch(TreeWalker $walker)

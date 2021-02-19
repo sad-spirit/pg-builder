@@ -48,7 +48,7 @@
     a non-keyword string to `QualifiedName`. Thus `FunctionCall`'s `$name` property is always an instance of `QualifiedName`.
     Function-like constructs previously represented by `FunctionCall` have their own nodes: `ArrayComparisonExpression` (for `ANY` / `ALL` / `SOME`),
     `NullIfExpression`, `SystemFunctionCallExpression` (for `COALESCE`, `GREATEST`, `LEAST`, `XMLCONCAT`)
-  * `NOT` in SQL constructs like `IS NOT DISTINCT FROM` or `NOT BETWEEN` is represented as `$negated` property of a relevant `Node`
+  * `NOT` in SQL constructs like `IS NOT DISTINCT FROM` or `NOT BETWEEN` is represented as `$not` property of a relevant `Node`
   * `Constant` and `Parameter` nodes were essentially 1:1 mapping of `TYPE_LITERAL` and `TYPE_PARAMETER` `Token`s exposing `Token::TYPE_*` constants,
     so branching code was needed to process them. Added specialized `KeywordConstant`, `NumericConstant`, `StringConstant`, 
     `NamedParameter`, `PositionalParameter` child classes. `Constant` and `Parameter` are now abstract base classes
@@ -71,8 +71,9 @@
   * Added `walkSQLValueFunction()` for visiting `SQLValueFunction` nodes.
   * Added `walkSystemFunctionCall()`, `walkArrayComparisonExpression()`, `walkNullIfExpression()` for visiting nodes previously
     represented by `FunctionCall`.
-* Most of the required changes to your code can be automated by using the provided rector rules, [consult the upgrade instructions](Upgrading.md).
-  Changes to custom `TreeWalker` implementations should be done manually, unfortunately.
+* Most of the required renames and changes to code that deals with creating objects can be automated by using the 
+  provided rector rules, [consult the upgrade instructions](Upgrading.md). Changes to custom `TreeWalker` implementations 
+  and to code that checks for particular object instances and property values should be done manually, unfortunately.
 
 ### Removed
 * Support for `mbstring.func_overload`, which was deprecated in PHP 7.2

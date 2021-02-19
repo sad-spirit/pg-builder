@@ -21,7 +21,6 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\TreeWalker;
 
@@ -30,18 +29,15 @@ use sad_spirit\pg_builder\TreeWalker;
  *
  * @property ScalarExpression $left
  * @property ScalarExpression $right
- * @property bool             $negated set to true for IS NOT DISTINCT FROM expressions
  */
-class IsDistinctFromExpression extends GenericNode implements ScalarExpression
+class IsDistinctFromExpression extends NegatableExpression
 {
     /** @var ScalarExpression */
     protected $p_left;
     /** @var ScalarExpression */
     protected $p_right;
-    /** @var bool */
-    protected $p_negated = false;
 
-    public function __construct(ScalarExpression $left, ScalarExpression $right, bool $negated = false)
+    public function __construct(ScalarExpression $left, ScalarExpression $right, bool $not = false)
     {
         if ($left === $right) {
             throw new InvalidArgumentException("Cannot use the same Node for left and right operands");
@@ -55,7 +51,7 @@ class IsDistinctFromExpression extends GenericNode implements ScalarExpression
         $this->p_right = $right;
         $this->p_right->setParentNode($this);
 
-        $this->p_negated = $negated;
+        $this->p_not = $not;
     }
 
     public function setLeft(ScalarExpression $left): void
@@ -66,11 +62,6 @@ class IsDistinctFromExpression extends GenericNode implements ScalarExpression
     public function setRight(ScalarExpression $right): void
     {
         $this->setRequiredProperty($this->p_right, $right);
-    }
-
-    public function setNegated(bool $negated): void
-    {
-        $this->p_negated = $negated;
     }
 
     public function dispatch(TreeWalker $walker)

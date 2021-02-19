@@ -22,7 +22,6 @@ namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
     Node,
-    nodes\GenericNode,
     SelectCommon,
     nodes\ScalarExpression,
     exceptions\InvalidArgumentException,
@@ -39,25 +38,22 @@ use sad_spirit\pg_builder\nodes\lists\ExpressionList;
  *
  * @property ScalarExpression                               $left
  * @property SelectCommon|ExpressionList|ScalarExpression[] $right
- * @property bool                                           $negated set to true for NOT IN expressions
  */
-class InExpression extends GenericNode implements ScalarExpression
+class InExpression extends NegatableExpression
 {
     /** @var ScalarExpression */
     protected $p_left;
     /** @var SelectCommon|ExpressionList */
     protected $p_right;
-    /** @var bool */
-    protected $p_negated = false;
 
     /**
      * InExpression constructor
      *
      * @param ScalarExpression            $left
      * @param SelectCommon|ExpressionList $right
-     * @param bool                        $negated
+     * @param bool                        $not
      */
-    public function __construct(ScalarExpression $left, Node $right, bool $negated = false)
+    public function __construct(ScalarExpression $left, Node $right, bool $not = false)
     {
         if (!($right instanceof SelectCommon) && !($right instanceof ExpressionList)) {
             throw new InvalidArgumentException(sprintf(
@@ -75,7 +71,7 @@ class InExpression extends GenericNode implements ScalarExpression
         $this->p_left = $left;
         $this->p_left->setParentNode($this);
 
-        $this->p_negated = $negated;
+        $this->p_not = $not;
     }
 
     public function setLeft(ScalarExpression $left): void
@@ -98,11 +94,6 @@ class InExpression extends GenericNode implements ScalarExpression
             ));
         }
         $this->setRequiredProperty($this->p_right, $right);
-    }
-
-    public function setNegated(bool $negated): void
-    {
-        $this->p_negated = $negated;
     }
 
     public function dispatch(TreeWalker $walker)

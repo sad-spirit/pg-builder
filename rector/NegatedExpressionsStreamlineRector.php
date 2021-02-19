@@ -23,7 +23,7 @@ use Rector\Core\{
 };
 
 /**
- * Expressions that allow negation (a NOT IN b, c NOT LIKE d) now expose it through $negated property set via constructor
+ * Expressions that allow negation (a NOT IN b, c NOT LIKE d) now expose it through $not property set via constructor
  */
 final class NegatedExpressionsStreamlineRector extends AbstractRector
 {
