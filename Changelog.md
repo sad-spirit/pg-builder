@@ -75,6 +75,11 @@
   provided rector rules, [consult the upgrade instructions](Upgrading.md). Changes to custom `TreeWalker` implementations 
   and to code that checks for particular object instances and property values should be done manually, unfortunately.
 
+### Deprecated
+* As postfix operators are deprecated in Postgres 13 and will be removed in Postgres 14, `OperatorExpression` will
+  now trigger a (silenced) `E_USER_DEPRECATED` error when right operand is missing. Support for postfix operators
+  will be removed altogether in the release of pg_builder that supports new syntax features of Postgres 14. 
+
 ### Removed
 * Support for `mbstring.func_overload`, which was deprecated in PHP 7.2
 * Support for operator precedence of pre-9.5 Postgres

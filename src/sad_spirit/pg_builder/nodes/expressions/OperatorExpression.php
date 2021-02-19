@@ -100,6 +100,12 @@ class OperatorExpression extends GenericNode implements ScalarExpression
         }
         if (null === $left && null === $right) {
             throw new InvalidArgumentException('At least one operand is required for OperatorExpression');
+        } elseif (null === $right) {
+            @trigger_error(
+                "Postfix operators are deprecated in Postgres 13 and will be removed in Postgres 14 "
+                . "and in the next pg_builder version with Postgres 14 support",
+                \E_USER_DEPRECATED
+            );
         }
         if ($left === $right) {
             throw new InvalidArgumentException("Cannot use the same Node for left and right operands");
@@ -132,8 +138,15 @@ class OperatorExpression extends GenericNode implements ScalarExpression
 
     public function setRight(ScalarExpression $right = null): void
     {
-        if (null === $right && null === $this->p_left) {
-            throw new InvalidArgumentException('At least one operand is required for OperatorExpression');
+        if (null === $right) {
+            if (null === $this->p_left) {
+                throw new InvalidArgumentException('At least one operand is required for OperatorExpression');
+            }
+            @trigger_error(
+                "Postfix operators are deprecated in Postgres 13 and will be removed in Postgres 14 "
+                . "and in the next pg_builder version with Postgres 14 support",
+                \E_USER_DEPRECATED
+            );
         }
         $this->setProperty($this->p_right, $right);
     }

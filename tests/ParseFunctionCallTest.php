@@ -547,6 +547,15 @@ QRY
 
     public function testWindowFunctionCalls(): void
     {
+        $deprecations = '';
+        set_error_handler(
+            function (int $errno, string $errstr) use (&$deprecations) {
+                $deprecations .= $errstr;
+                return true;
+            },
+            \E_USER_DEPRECATED
+        );
+
         $list = $this->parser->parseExpressionList(<<<QRY
     foo() over (), bar() over (blah), rank() over (partition by whatever),
     something() over (rows between 5 preceding and unbounded following exclude current row),
@@ -660,6 +669,9 @@ QRY
             ]),
             $list
         );
+        restore_error_handler();
+
+        $this::assertStringContainsString('Postfix operators', $deprecations);
     }
 
     /**
