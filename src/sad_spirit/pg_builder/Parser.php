@@ -3397,7 +3397,7 @@ class Parser
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
             $reference = new nodes\range\RowsFrom($list);
-       }
+        }
 
         if ($this->stream->matchesKeywordSequence('with', 'ordinality')) {
             $this->stream->skip(2);
