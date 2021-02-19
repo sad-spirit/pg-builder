@@ -55,6 +55,12 @@ class SqlBuilderWalker implements StatementToStringWalker
     private $escapedUnicodeIdentifiers = [];
 
     /**
+     * Whether to generate SQL compatible with PDO::prepare()
+     * @var bool
+     */
+    private $PDOPrepareCompatibility = false;
+
+    /**
      * Constructor, accepts options that tune output generation
      *
      * Known options:
@@ -74,6 +80,11 @@ class SqlBuilderWalker implements StatementToStringWalker
             new nodes\expressions\StringConstant('dummy'),
             new nodes\TypeName(new nodes\QualifiedName('dummy'))
         );
+    }
+
+    public function enablePDOPrepareCompatibility(bool $enable): void
+    {
+        $this->PDOPrepareCompatibility = $enable;
     }
 
     /**
@@ -517,6 +528,11 @@ class SqlBuilderWalker implements StatementToStringWalker
         if (false === strpos($node->value, "'") && false === strpos($node->value, '\\')) {
             return "'" . $node->value . "'";
         }
+        // We generate dollar-quoted strings by default as those are more readable, having no escapes.
+        // As PDO::prepare() may fail with these, fall back to generating C-style escapes
+        if ($this->PDOPrepareCompatibility) {
+            return "e'" . strtr($node->value, ["'" => "\\'", "\\" => "\\\\"]) . "'";
+        }
 
         if (false === strpos($node->value . '$', '$$')) {
             return '$$' . $node->value . '$$';
@@ -655,7 +671,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         return 'operator('
                . (null !== $node->catalog ? $node->catalog->dispatch($this) . '.' : '')
                . (null !== $node->schema ? $node->schema->dispatch($this) . '.' : '')
-               . $node->operator . ')';
+               . ($this->PDOPrepareCompatibility ? strtr($node->operator, ['?' => '??']) : $node->operator) . ')';
     }
 
     public function walkSetTargetElement(nodes\SetTargetElement $node): string
@@ -954,7 +970,7 @@ class SqlBuilderWalker implements StatementToStringWalker
             . (
                 $expression->operator instanceof nodes\QualifiedOperator
                 ? $expression->operator->dispatch($this)
-                : $expression->operator
+                : ($this->PDOPrepareCompatibility ? strtr($expression->operator, ['?' => '??']) : $expression->operator)
             )
             . (
                 null === $expression->right

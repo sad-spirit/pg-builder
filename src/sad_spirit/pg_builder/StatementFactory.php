@@ -188,11 +188,10 @@ class StatementFactory
         $pw = new ParameterWalker($this->PDOCompatible);
         $ast->dispatch($pw);
 
-        return new NativeStatement(
-            $ast->dispatch($this->getBuilder()),
-            $pw->getParameterTypes(),
-            $pw->getNamedParameterMap()
-        );
+        $builder = $this->getBuilder();
+        $builder->enablePDOPrepareCompatibility($this->PDOCompatible && [] !== $pw->getParameterTypes());
+
+        return new NativeStatement($ast->dispatch($builder), $pw->getParameterTypes(), $pw->getNamedParameterMap());
     }
 
     /**

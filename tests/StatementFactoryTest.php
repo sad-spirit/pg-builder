@@ -223,4 +223,47 @@ class StatementFactoryTest extends TestCase
         $this->assertEquals($rows, clone $values->rows);
         $this->assertSame($factory->getParser(), $values->getParser());
     }
+
+    protected function assertStringsEqualIgnoringWhitespace(
+        string $expected,
+        string $actual,
+        string $message = ''
+    ): void {
+        $this::assertEquals(
+            implode(' ', preg_split('/\s+/', trim($expected))),
+            implode(' ', preg_split('/\s+/', trim($actual))),
+            $message
+        );
+    }
+
+    /**
+     * @noinspection SqlNoDataSourceInspection
+     * @noinspection SqlResolve
+     */
+    public function testPDOPrepareCompatibility(): void
+    {
+        $factory = new StatementFactory(null, null, true);
+        $stmt    = $factory->createFromString(<<<'BLAH'
+select * 
+from foo 
+where bar = $$O'really? \ Yes, really$$ 
+      and baz ? :whatever
+BLAH
+        );
+
+        $this->assertStringsEqualIgnoringWhitespace(
+            "select * from foo where bar = e'O\\'really? \\\\ Yes, really' and baz ?? :whatever",
+            $factory->createFromAST($stmt)->getSql()
+        );
+
+        $stmt2 = $factory->createFromString($stmt2Source = <<<'BLAH'
+select * 
+from foo 
+where bar = $$O'really? \ Yes, really$$ 
+      and baz ? 'whatever'
+BLAH
+        );
+
+        $this->assertStringsEqualIgnoringWhitespace($stmt2Source, $factory->createFromAST($stmt2)->getSql());
+    }
 }
