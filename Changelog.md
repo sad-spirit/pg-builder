@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [1.0.0-beta] - 2021-02-21
 
 ### Added
 
@@ -186,4 +186,4 @@ Initial release on GitHub
 [0.3.0]: https://github.com/sad-spirit/pg-builder/compare/v0.2.3...v0.3.0
 [0.4.0]: https://github.com/sad-spirit/pg-builder/compare/v0.3.0...v0.4.0
 [0.4.1]: https://github.com/sad-spirit/pg-builder/compare/v0.4.0...v0.4.1
-[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v0.4.1...HEAD
+[1.0.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v0.4.1...v1.0.0-beta
