@@ -79,7 +79,7 @@ CODE_SAMPLE
 
         if ($node->args[0]->value instanceof Array_) {
             $newArgs = array_map(function (ArrayItem $item): Arg {
-                return new Arg($item);
+                return new Arg($item->value);
             }, $node->args[0]->value->items);
 
             $node->args = $newArgs;

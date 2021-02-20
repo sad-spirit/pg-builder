@@ -21,7 +21,7 @@ use Rector\Core\{
 };
 
 /**
- * Use newly-introduced specialized subclasses of Constant node
+ * Use newly-introduced specialized subclasses of Parameter node
  */
 final class NewParameterToFactoryMethodAndSubclassesRector extends AbstractRector
 {
