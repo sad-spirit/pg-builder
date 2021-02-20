@@ -4,8 +4,6 @@
 
 [![Static Analysis](https://github.com/sad-spirit/pg-builder/workflows/Static%20Analysis/badge.svg?branch=master)](https://github.com/sad-spirit/pg-builder/actions?query=branch%3Amaster+workflow%3A%22Static+Analysis%22)
 
-> Note: master branch is being rewritten. Older but working code is on legacy-0.4 branch.
-
 This is a query builder for Postgres with a twist: it contains a partial<sup>[1](#footnote1)</sup> reimplementation of PostgreSQL's own
 query parser. This sets it aside from the usual breed of "write-only" query builders:
 
