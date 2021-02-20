@@ -1,6 +1,6 @@
 {
     "name":         "sad_spirit/pg_builder",
-    "description":  "Query builder for PostgreSQL backed by query parser",
+    "description":  "Query builder for Postgres backed by SQL parser",
     "type":         "library",
     "keywords":     ["PostgreSQL", "Postgres", "SQL", "query", "builder", "parser", "lexer", "AST"],
     "license":      "BSD-2-Clause",
@@ -19,7 +19,7 @@
     },
     "suggest": {
         "psr/cache-implementation": "Used for caching parsed queries",
-        "sad_spirit/pg_wrapper":    "Used for running built queries",
+        "sad_spirit/pg_wrapper":    "Used for DB types conversion and running built queries",
         "ext-pdo_pgsql":            "Used for running built queries"
     },
     "require-dev":  {

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Query builder for PostgreSQL backed by a query parser
+ * Query builder for Postgres backed by SQL parser
  *
  * LICENSE
  *
@@ -10,9 +10,9 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014-2020 Alexey Borzov
+ * @copyright 2014-2021 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
- * @license   http://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
+ * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
  */
 
