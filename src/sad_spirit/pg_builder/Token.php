@@ -169,6 +169,7 @@ class Token
      * Returns token's type
      *
      * @return int
+     * @psalm-return self::TYPE_*
      */
     public function getType(): int
     {

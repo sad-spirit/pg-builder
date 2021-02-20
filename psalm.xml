@@ -17,15 +17,6 @@
     </projectFiles>
 
     <issueHandlers>
-        <ArgumentTypeCoercion>
-            <errorLevel type="suppress">
-                <!-- If return type of Token::getType() is defined as obvious Token::TYPE_*,
-                     https://github.com/vimeo/psalm/issues/5227 is triggered all over the place -->
-                <file name="src/sad_spirit/pg_builder/Parser.php"/>
-                <referencedFunction name="sad_spirit\pg_builder\Token::__construct"/>
-            </errorLevel>
-        </ArgumentTypeCoercion>
-
         <InaccessibleProperty>
             <errorLevel type="suppress">
                 <!-- https://github.com/vimeo/psalm/issues/5009 -->
