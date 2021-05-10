@@ -204,8 +204,9 @@ class TokenStream
         if (!$this->isAtKeyword || $this->current + count($keywords) >= count($this->tokens)) {
             return false;
         }
-        foreach ($keywords as $i => $keyword) {
-            if (!$this->tokens[$this->current + $i]->matches(Token::TYPE_KEYWORD, $keyword)) {
+        $index = 0;
+        foreach ($keywords as $keyword) {
+            if (!$this->tokens[$this->current + $index++]->matches(Token::TYPE_KEYWORD, $keyword)) {
                 return false;
             }
         }
