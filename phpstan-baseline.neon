@@ -48,26 +48,8 @@ parameters:
 			count: 1
 			path: src/sad_spirit/pg_builder/nodes/QualifiedOperator.php
 
-		# Looks like a bug in phpstan, it fucks up with guessing return value of GenericNodeList::prepareListElement()
-		-
-			message: "#^Method sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\ArrayExpression\\:\\:prepareListElement\\(\\) should return sad_spirit\\\\pg_builder\\\\nodes\\\\ScalarExpression but returns sad_spirit\\\\pg_builder\\\\Node\\.$#"
-			count: 1
-			path: src/sad_spirit/pg_builder/nodes/expressions/ArrayExpression.php
-
 		# triggered by $this->offsets[] = ...
 		-
 			message: "#^Array \\(array<TKey, T of sad_spirit\\\\pg_builder\\\\Node>\\) does not accept key int\\.$#"
 			count: 1
 			path: src/sad_spirit/pg_builder/nodes/lists/GenericNodeList.php
-
-		# Looks like a bug in phpstan, it fucks up with guessing return value of GenericNodeList::prepareListElement()
-		-
-			message: "#^Method sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\IdentifierList\\:\\:prepareListElement\\(\\) should return sad_spirit\\\\pg_builder\\\\nodes\\\\Identifier but returns sad_spirit\\\\pg_builder\\\\Node\\.$#"
-			count: 1
-			path: src/sad_spirit/pg_builder/nodes/lists/IdentifierList.php
-
-		# Looks like a bug in phpstan, it fucks up with guessing return value of GenericNodeList::prepareListElement()
-		-
-			message: "#^Method sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\RowList\\:\\:prepareListElement\\(\\) should return sad_spirit\\\\pg_builder\\\\nodes\\\\expressions\\\\RowExpression but returns sad_spirit\\\\pg_builder\\\\Node\\.$#"
-			count: 1
-			path: src/sad_spirit/pg_builder/nodes/lists/RowList.php
