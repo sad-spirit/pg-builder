@@ -27,10 +27,21 @@ use sad_spirit\pg_builder\nodes\TypeName;
  * List of type names (only appears in IS OF?)
  *
  * @extends NonAssociativeList<TypeName, iterable<TypeName>, TypeName>
+ * @deprecated This is only used by IsOfExpression and will be removed alongside it
  */
 class TypeList extends NonAssociativeList
 {
     use NonRecursiveNode;
+
+    public function __construct($list = null)
+    {
+        @trigger_error(
+            "Undocumented IS [NOT] OF expressions will be removed in Postgres 14 "
+            . "and in the next pg_builder version with Postgres 14 support",
+            \E_USER_DEPRECATED
+        );
+        parent::__construct($list);
+    }
 
     protected static function getAllowedElementClasses(): array
     {

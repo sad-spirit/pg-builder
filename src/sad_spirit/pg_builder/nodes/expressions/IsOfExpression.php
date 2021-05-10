@@ -36,6 +36,7 @@ use sad_spirit\pg_builder\TreeWalker;
  *
  * @property ScalarExpression    $left
  * @property TypeList|TypeName[] $right
+ * @deprecated IS [NOT] OF expression will be removed in Postgres 14
  */
 class IsOfExpression extends NegatableExpression
 {
@@ -46,6 +47,11 @@ class IsOfExpression extends NegatableExpression
 
     public function __construct(ScalarExpression $left, TypeList $right, bool $not = false)
     {
+        @trigger_error(
+            "Undocumented IS [NOT] OF expressions will be removed in Postgres 14 "
+            . "and in the next pg_builder version with Postgres 14 support",
+            \E_USER_DEPRECATED
+        );
         $this->generatePropertyNames();
 
         $this->p_left = $left;
