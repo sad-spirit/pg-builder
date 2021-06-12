@@ -657,8 +657,6 @@ REGEXP;
      * @param Token  $token      The whole Token is needed to be able to use its position in exception messages
      * @param string $escapeChar Value of escape character provided by UESCAPE 'X' clause, if present
      * @return string value of Token with Unicode escapes replaced by their UTF-8 equivalents
-     *
-     * @psalm-suppress TypeDoesNotContainType
      */
     private function unescapeUnicode(Token $token, string $escapeChar = '\\'): string
     {
