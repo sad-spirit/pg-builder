@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [1.0.0] - 2021-06-26
 
 ### Deprecated
 Support for undocumented `IS [NOT] OF` expression that will be removed in Postgres 14.
@@ -192,4 +192,4 @@ Initial release on GitHub
 [0.4.0]: https://github.com/sad-spirit/pg-builder/compare/v0.3.0...v0.4.0
 [0.4.1]: https://github.com/sad-spirit/pg-builder/compare/v0.4.0...v0.4.1
 [1.0.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v0.4.1...v1.0.0-beta
-[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v1.0.0-beta...HEAD
+[1.0.0]: https://github.com/sad-spirit/pg-builder/compare/v1.0.0-beta...v1.0.0
