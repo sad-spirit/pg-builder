@@ -82,27 +82,28 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
 
     public function merge(...$lists): void
     {
-        $addRecursive = false;
-        foreach ($lists as $list) {
-            $addRecursive = $addRecursive || $list instanceof self && $list->recursive;
+        foreach ($lists as &$list) {
+            if (is_string($list)) {
+                $list = self::createFromString($this->getParserOrFail("an argument to 'merge'"), $list);
+            }
+            if ($list instanceof self && $list->recursive) {
+                $this->p_recursive = true;
+                break;
+            }
         }
+        unset($list);
 
         parent::merge(...$lists);
-
-        if ($addRecursive) {
-            $this->p_recursive = true;
-        }
     }
 
     public function replace($list): void
     {
-        $addRecursive = $list instanceof self && $list->recursive;
+        if (is_string($list)) {
+            $list = self::createFromString($this->getParserOrFail("an argument to 'replace'"), $list);
+        }
+        $this->p_recursive = $list instanceof self && $list->recursive;
 
         parent::replace($list);
-
-        if ($addRecursive) {
-            $this->p_recursive = true;
-        }
     }
 
     public function setRecursive(bool $recursive): void
