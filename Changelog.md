@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.1] - 2021-07-13
+
+### Fixed
+`recursive` property of `WithClause` was not properly set when passing SQL strings to its `merge()` and `replace()` methods 
+
 ## [1.0.0] - 2021-06-26
 
 ### Deprecated
@@ -193,3 +198,4 @@ Initial release on GitHub
 [0.4.1]: https://github.com/sad-spirit/pg-builder/compare/v0.4.0...v0.4.1
 [1.0.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v0.4.1...v1.0.0-beta
 [1.0.0]: https://github.com/sad-spirit/pg-builder/compare/v1.0.0-beta...v1.0.0
+[1.0.1]: https://github.com/sad-spirit/pg-builder/compare/v1.0.0...v1.0.1
