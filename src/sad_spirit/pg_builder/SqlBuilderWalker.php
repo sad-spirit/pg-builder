@@ -828,8 +828,8 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkBetweenExpression(nodes\expressions\BetweenExpression $expression): string
     {
-        return $this->optionalParentheses($expression->argument, $expression, false)
-               . ($expression->not ? 'not ' : ' ') . $expression->operator . ' '
+        return $this->optionalParentheses($expression->argument, $expression)
+               . ($expression->not ? ' not ' : ' ') . $expression->operator . ' '
                . $this->optionalParentheses($expression->left, $expression, true)
                . ' and '
                . $this->optionalParentheses($expression->right, $expression, true);

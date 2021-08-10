@@ -131,7 +131,7 @@ QRY
 
     public function testBuildSelectStatement(): void
     {
-        $parsed = $this->parser->parseStatement($ts = <<<QRY
+        $parsed = $this->parser->parseStatement(<<<QRY
 with xmlstuff as (
     select xmlelement(name foo, bar, 'content'), xmlelement(name blah, xmlattributes(baz, quux as xyzzy), 'content'),
        xmlexists('//foo[text() = ''bar'']' passing by ref '<blah><foo>bar</foo></blah>'),
@@ -160,7 +160,7 @@ setopstuff (stuff) as not materialized (
     fetch first (3 + 2) rows with ties
 )
 select distinct on (something) quux.one, xyzzy.two[1], (quux.three).four, $1.blah, array[[1,2],[3,4]], row(3,4),
-       1 + 2 * 3, (1 + 2) * 3, six between five and seven,
+       1 + 2 * 3, (1 + 2) * 3, six between five and seven, eight not between nine and ten,
        quux.whatever is of (character varying, text, time with time zone),
        case when foo = 'bar' then 10 when foo = 'baz' then 100 else 1 end,
        'foo' collate bar.baz, '''whatever$$' noT ILIke 'quux' escape '!',
