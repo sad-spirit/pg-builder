@@ -1,9 +1,14 @@
 # Changelog
 
+## [1.0.2] - 2021-08-10
+
+### Fixed
+A space before `NOT` was missing when generating `NOT BETWEEN` expressions.
+
 ## [1.0.1] - 2021-07-13
 
 ### Fixed
-`recursive` property of `WithClause` was not properly set when passing SQL strings to its `merge()` and `replace()` methods 
+`recursive` property of `WithClause` was not properly set when passing SQL strings to its `merge()` and `replace()` methods. 
 
 ## [1.0.0] - 2021-06-26
 
@@ -20,7 +25,7 @@ Support for undocumented `IS [NOT] OF` expression that will be removed in Postgr
   * `SqlBuilderWalker` has a new `'escape_unicode'` option that will trigger converting multi-byte UTF-8 characters (i.e. non-ASCII) to Unicode escapes in generated SQL.
 * It is now much easier to use the package for generating queries suitable for PDO:
   * `StatementFactory` may be configured to keep `:foo` named parameters, automatically escape `?` in operator names 
-    and prevent generating dollar-quoted strings so that resultant SQL can be handled to `PDO::prepare()`
+    and prevent generating dollar-quoted strings so that resultant SQL can be handed to `PDO::prepare()`
   * Convenience method `StatementFactory::forPDO()` creates an instance of `StatementFactory` based on passed PDO 
     connection (and enables the above compatibility)
   * New `ParserAwareTypeConverterFactory::convertParameters()` method prepares parameters for `PDOStatement::execute()`
@@ -199,3 +204,4 @@ Initial release on GitHub
 [1.0.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v0.4.1...v1.0.0-beta
 [1.0.0]: https://github.com/sad-spirit/pg-builder/compare/v1.0.0-beta...v1.0.0
 [1.0.1]: https://github.com/sad-spirit/pg-builder/compare/v1.0.0...v1.0.1
+[1.0.2]: https://github.com/sad-spirit/pg-builder/compare/v1.0.1...v1.0.2
