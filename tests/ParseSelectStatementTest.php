@@ -81,7 +81,7 @@ class ParseSelectStatementTest extends TestCase
     public function testParseAllSimpleSelectClauses(): void
     {
         $parsed = $this->parser->parseStatement(<<<QRY
-select distinct on (foo) foo, bar, baz() over (win95) as blah, quux alias
+select distinct on (foo) foo, bar, baz() over (win95) as blah, quux alias, xyzzy as as, foobar any
 from one, two
 where one.id = two.id
 group by bar
@@ -107,7 +107,9 @@ QRY
                     ),
                     new Identifier('blah')
                 ),
-                new TargetElement(new ColumnReference('quux'), new Identifier('alias'))
+                new TargetElement(new ColumnReference('quux'), new Identifier('alias')),
+                new TargetElement(new ColumnReference('xyzzy'), new Identifier('as')),
+                new TargetElement(new ColumnReference('foobar'), new Identifier('any'))
             ]),
             new ExpressionList([new ColumnReference('foo')])
         );

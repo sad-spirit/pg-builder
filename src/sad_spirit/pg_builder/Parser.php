@@ -3196,7 +3196,11 @@ class Parser
             return new nodes\Star();
         }
         $element = $this->Expression();
-        if ($this->stream->matches(Token::TYPE_IDENTIFIER)) {
+        if (
+            $this->stream->matches(Token::TYPE_IDENTIFIER)
+            || $this->stream->matches(Token::TYPE_KEYWORD)
+               && Keywords::isBareLabelKeyword($this->stream->getCurrent()->getValue())
+        ) {
             $alias = nodes\Identifier::createFromToken($this->stream->next());
 
         } elseif ($this->stream->matchesKeyword('as')) {
