@@ -388,17 +388,8 @@ QRY
 
     public function testGenericOperator(): void
     {
-        $deprecations = '';
-        set_error_handler(
-            function (int $errno, string $errstr) use (&$deprecations) {
-                $deprecations .= $errstr;
-                return true;
-            },
-            \E_USER_DEPRECATED
-        );
-
         $list = $this->parser->parseExpressionList(<<<QRY
-    w # @ v ? u, q !, ! q, r operator(blah.###) s
+    w # @ v ? u, ! q, r operator(blah.###) s
 QRY
         );
         $this->assertEquals(
@@ -418,11 +409,6 @@ QRY
                 ),
                 new OperatorExpression(
                     '!',
-                    new ColumnReference(new Identifier('q')),
-                    null
-                ),
-                new OperatorExpression(
-                    '!',
                     null,
                     new ColumnReference(new Identifier('q'))
                 ),
@@ -434,9 +420,6 @@ QRY
             ]),
             $list
         );
-        restore_error_handler();
-
-        $this::assertStringContainsString('Postfix operators', $deprecations);
     }
 
     /**

@@ -457,9 +457,7 @@ abstract class BlankWalker implements TreeWalker
         if (null !== $expression->left) {
             $expression->left->dispatch($this);
         }
-        if (null !== $expression->right) {
-            $expression->right->dispatch($this);
-        }
+        $expression->right->dispatch($this);
         return null;
     }
 

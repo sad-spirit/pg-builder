@@ -515,23 +515,6 @@ class Parser
     }
 
     /**
-     * Tests whether current position of stream looks like a start of Expression()
-     *
-     * Used to decide whether a custom operator should be infix or postfix one, the
-     * former having higher precedence.
-     *
-     * @return bool
-     */
-    private function matchesExpressionStart(): bool
-    {
-        return !$this->stream->matchesAnyType(Token::TYPE_RESERVED_KEYWORD, Token::TYPE_SPECIAL)
-               || $this->stream->matchesKeyword(['not', 'true', 'false', 'null', 'row', 'array', 'case', 'exists'])
-               || $this->stream->matchesSpecialChar(['(', '+', '-'])
-               || $this->stream->matches(Token::TYPE_OPERATOR)
-               || $this->matchesFunctionCall();
-    }
-
-    /**
      * Tests whether current position of stream looks like a type cast with standard type name
      *
      * i.e. "typename 'string constant'" where typename is SQL standard one: "integer" but not "int4"
@@ -1676,11 +1659,6 @@ class Parser
                     $leftOperand,
                     $this->SubqueryExpression()
                 );
-
-            } elseif (!$this->matchesExpressionStart()) {
-                // postfix operator
-                return new nodes\expressions\OperatorExpression($operator, $leftOperand, null);
-
             } else {
                 $leftOperand = new nodes\expressions\OperatorExpression(
                     $operator,

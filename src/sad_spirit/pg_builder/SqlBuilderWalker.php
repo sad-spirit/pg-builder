@@ -965,11 +965,7 @@ class SqlBuilderWalker implements StatementToStringWalker
                 ? $expression->operator->dispatch($this)
                 : ($this->PDOPrepareCompatibility ? strtr($expression->operator, ['?' => '??']) : $expression->operator)
             )
-            . (
-                null === $expression->right
-                ? ''
-                : ' ' . $this->optionalParentheses($expression->right, $expression, true)
-            );
+            . ' ' . $this->optionalParentheses($expression->right, $expression, true);
     }
 
     public function walkOverlapsExpression(nodes\expressions\OverlapsExpression $expression): string

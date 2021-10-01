@@ -547,19 +547,10 @@ QRY
 
     public function testWindowFunctionCalls(): void
     {
-        $deprecations = '';
-        set_error_handler(
-            function (int $errno, string $errstr) use (&$deprecations) {
-                $deprecations .= $errstr;
-                return true;
-            },
-            \E_USER_DEPRECATED
-        );
-
         $list = $this->parser->parseExpressionList(<<<QRY
     foo() over (), bar() over (blah), rank() over (partition by whatever),
     something() over (rows between 5 preceding and unbounded following exclude current row),
-    count(bar) filter(where bar !@#&) over (partition by foo),
+    count(bar) filter(where !@#& bar) over (partition by foo),
     foo() over (range between unbounded preceding and 3 following),
     bar() over (groups between current row and unbounded following exclude ties)
 QRY
@@ -624,7 +615,7 @@ QRY
                     false,
                     null,
                     false,
-                    new OperatorExpression('!@#&', new ColumnReference('bar')),
+                    new OperatorExpression('!@#&', null, new ColumnReference('bar')),
                     new WindowDefinition(null, new ExpressionList([new ColumnReference('foo')]))
                 ),
                 new FunctionExpression(
@@ -669,9 +660,6 @@ QRY
             ]),
             $list
         );
-        restore_error_handler();
-
-        $this::assertStringContainsString('Postfix operators', $deprecations);
     }
 
     /**

@@ -73,11 +73,6 @@ interface ScalarExpression extends Node
     public const PRECEDENCE_IN             = 90;
 
     /**
-     * Precedence for generic postfix operators
-     */
-    public const PRECEDENCE_POSTFIX_OP     = 100;
-
-    /**
      * Precedence for generic infix and prefix operators
      */
     public const PRECEDENCE_GENERIC_OP     = 110;

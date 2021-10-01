@@ -34,13 +34,12 @@ use sad_spirit\pg_builder\{
  * AST node representing a generic operator-like expression
  *
  * This is used for constructs of the form
- *  * <left argument> <operator>
  *  * <operator> <right argument>
  *  * <left argument> <operator> <right argument>
  * Operator here is roughly equivalent to qual_all_Op production from grammar
  *
  * @property      ScalarExpression|null    $left
- * @property      ScalarExpression|null    $right
+ * @property      ScalarExpression         $right
  * @property-read string|QualifiedOperator $operator
  */
 class OperatorExpression extends GenericNode implements ScalarExpression
@@ -71,8 +70,8 @@ class OperatorExpression extends GenericNode implements ScalarExpression
 
     /** @var ScalarExpression|null */
     protected $p_left = null;
-    /** @var ScalarExpression|null */
-    protected $p_right = null;
+    /** @var ScalarExpression */
+    protected $p_right;
     /** @var string|QualifiedOperator */
     protected $p_operator;
 
@@ -81,9 +80,9 @@ class OperatorExpression extends GenericNode implements ScalarExpression
      *
      * @param string|QualifiedOperator $operator
      * @param ScalarExpression|null    $left
-     * @param ScalarExpression|null    $right
+     * @param ScalarExpression         $right
      */
-    public function __construct($operator, ScalarExpression $left = null, ScalarExpression $right = null)
+    public function __construct($operator, ?ScalarExpression $left, ScalarExpression $right)
     {
         if (!is_string($operator) && !$operator instanceof QualifiedOperator) {
             throw new InvalidArgumentException(sprintf(
@@ -98,15 +97,6 @@ class OperatorExpression extends GenericNode implements ScalarExpression
                 $operator
             ));
         }
-        if (null === $left && null === $right) {
-            throw new InvalidArgumentException('At least one operand is required for OperatorExpression');
-        } elseif (null === $right) {
-            @trigger_error(
-                "Postfix operators are deprecated in Postgres 13 and will be removed in Postgres 14 "
-                . "and in the next pg_builder version with Postgres 14 support",
-                \E_USER_DEPRECATED
-            );
-        }
         if ($left === $right) {
             throw new InvalidArgumentException("Cannot use the same Node for left and right operands");
         }
@@ -117,10 +107,8 @@ class OperatorExpression extends GenericNode implements ScalarExpression
             $this->p_left = $left;
             $this->p_left->setParentNode($this);
         }
-        if (null !== $right) {
-            $this->p_right = $right;
-            $this->p_right->setParentNode($this);
-        }
+        $this->p_right = $right;
+        $this->p_right->setParentNode($this);
 
         $this->p_operator = $operator;
         if ($this->p_operator instanceof QualifiedOperator) {
@@ -130,25 +118,12 @@ class OperatorExpression extends GenericNode implements ScalarExpression
 
     public function setLeft(ScalarExpression $left = null): void
     {
-        if (null === $left && null === $this->p_right) {
-            throw new InvalidArgumentException('At least one operand is required for OperatorExpression');
-        }
         $this->setProperty($this->p_left, $left);
     }
 
-    public function setRight(ScalarExpression $right = null): void
+    public function setRight(ScalarExpression $right): void
     {
-        if (null === $right) {
-            if (null === $this->p_left) {
-                throw new InvalidArgumentException('At least one operand is required for OperatorExpression');
-            }
-            @trigger_error(
-                "Postfix operators are deprecated in Postgres 13 and will be removed in Postgres 14 "
-                . "and in the next pg_builder version with Postgres 14 support",
-                \E_USER_DEPRECATED
-            );
-        }
-        $this->setProperty($this->p_right, $right);
+        $this->setRequiredProperty($this->p_right, $right);
     }
 
     public function dispatch(TreeWalker $walker)
@@ -159,7 +134,7 @@ class OperatorExpression extends GenericNode implements ScalarExpression
     public function getPrecedence(): int
     {
         if (!is_string($this->p_operator) || !isset(self::PRECEDENCES[$this->p_operator])) {
-            return null === $this->p_right ? self::PRECEDENCE_POSTFIX_OP : self::PRECEDENCE_GENERIC_OP;
+            return self::PRECEDENCE_GENERIC_OP;
         } elseif (null === $this->p_left && isset(self::PRECEDENCES_UNARY[$this->p_operator])) {
             return self::PRECEDENCES_UNARY[$this->p_operator];
         } else {
