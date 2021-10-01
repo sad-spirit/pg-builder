@@ -88,7 +88,6 @@ w10 as materialized (
 )
 select distinct on (e1) e2.e3, e4.e5[e6], (e7.e8).e9, $1.e10, array[[e11,2],[3,e12]], row(e13,:foo),
        1 + e14 * 3, (1 + e15) * 3, e16 between e17 and e18,
-       e19.e20 is of (character varying, text, time with time zone),
        case when e21 = e22 then e23 else e24 end,
        case e25 when e26 + e27 then e28.e29 end,
        e30 collate e31.e32, e33 noT ILIke e34 escape '!',

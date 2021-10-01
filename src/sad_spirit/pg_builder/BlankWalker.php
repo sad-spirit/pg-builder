@@ -430,13 +430,6 @@ abstract class BlankWalker implements TreeWalker
         return null;
     }
 
-    public function walkIsOfExpression(nodes\expressions\IsOfExpression $expression)
-    {
-        $expression->left->dispatch($this);
-        $expression->right->dispatch($this);
-        return null;
-    }
-
     public function walkLogicalExpression(nodes\expressions\LogicalExpression $expression)
     {
         $this->walkGenericNodeList($expression);

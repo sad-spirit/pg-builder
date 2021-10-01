@@ -53,7 +53,6 @@ use sad_spirit\pg_builder\nodes\expressions\{
     CaseExpression,
     CollateExpression,
     InExpression,
-    IsOfExpression,
     NamedParameter,
     NumericConstant,
     OperatorExpression,
@@ -72,7 +71,6 @@ use sad_spirit\pg_builder\nodes\lists\{
     OrderByList,
     SetClauseList,
     TargetList,
-    TypeList,
     TypeModifierList
 };
 use sad_spirit\pg_builder\nodes\range\{
@@ -385,17 +383,6 @@ class SetParentNodeTest extends TestCase
 
         $this->assertSame($in, $in->left->getParentNode());
         $this->assertSame($in, $in->right->getParentNode());
-    }
-
-    public function testIsOfExpression(): void
-    {
-        $isOf = new IsOfExpression(
-            new ColumnReference('foo'),
-            new TypeList([new TypeName(new QualifiedName('pg_catalog', 'text'))])
-        );
-
-        $this->assertSame($isOf, $isOf->left->getParentNode());
-        $this->assertSame($isOf, $isOf->right->getParentNode());
     }
 
     public function testOperatorExpression(): void

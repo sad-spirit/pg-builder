@@ -1794,33 +1794,10 @@ class Parser
                 );
             }
 
-            if (
-                $this->stream->matchesKeyword('of')
-                && $this->stream->look()->matches(Token::TYPE_SPECIAL_CHAR, '(')
-            ) {
-                $this->stream->skip(2);
-                $right = $this->TypeList();
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-                $operand = new nodes\expressions\IsOfExpression($operand, $right, $isNot);
-                continue;
-            }
-
             throw new exceptions\SyntaxException('Unexpected ' . $this->stream->getCurrent());
         }
 
         return $operand;
-    }
-
-    protected function TypeList(): nodes\lists\TypeList
-    {
-        $types = new nodes\lists\TypeList([$this->TypeName()]);
-
-        while ($this->stream->matchesSpecialChar(',')) {
-            $this->stream->next();
-            $types[] = $this->TypeName();
-        }
-
-        return $types;
     }
 
     protected function TypeName(): nodes\TypeName

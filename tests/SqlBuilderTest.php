@@ -161,7 +161,6 @@ setopstuff (stuff) as not materialized (
 )
 select distinct on (something) quux.one, xyzzy.two[1], (quux.three).four, $1.blah, array[[1,2],[3,4]], row(3,4),
        1 + 2 * 3, (1 + 2) * 3, six between five and seven, eight not between nine and ten,
-       quux.whatever is of (character varying, text, time with time zone),
        case when foo = 'bar' then 10 when foo = 'baz' then 100 else 1 end,
        'foo' collate bar.baz, '''whatever$$' noT ILIke 'quux' escape '!',
        cast (foo as text array[5]), foo::bar::baz(666), windowfn() over (win95), count(*) filter(where foo > 10),

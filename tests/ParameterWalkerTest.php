@@ -87,7 +87,7 @@ select :target, :indirect.blah, :arraymember[1], foo[:arrayindex], (select foost
     somevalue between :between and somethingelse,
     case :caseargument when :whenclause then :thenclause else :caseelse end,
     :collate collate bar.baz, :pattern similar to 'quux', a_function(:scalarfnarg),
-    :inleft in ('foo', 'bar'), :isof is of (text, bool, date),
+    :inleft in ('foo', 'bar'),
     cast(:typecast as text[]), :typecastop::foo::bar(666),
     xmlelement(name foo, :xmlelement, 'content'),
     xmlelement(name blah, xmlattributes(baz, :xmlattribute as xyzzy), 'content'),
@@ -113,9 +113,9 @@ QRY
         $map   = $this->walker->getNamedParameterMap();
         $types = $this->walker->getParameterTypes();
         preg_match_all('#\$\d+#', $statement->dispatch($this->builder), $matches);
-        $this->assertCount(37, $map);
-        $this->assertCount(37, $types);
-        $this->assertCount(37, $matches[0]);
+        $this->assertCount(36, $map);
+        $this->assertCount(36, $types);
+        $this->assertCount(36, $matches[0]);
 
         $text = new TypeName(new QualifiedName('text'));
         $text->setBounds([-1]);

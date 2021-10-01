@@ -913,13 +913,6 @@ class SqlBuilderWalker implements StatementToStringWalker
                . ' is ' . ($expression->not ? 'not ' : '') . $expression->what;
     }
 
-    public function walkIsOfExpression(nodes\expressions\IsOfExpression $expression)
-    {
-        return $this->optionalParentheses($expression->left, $expression, false)
-               . ' is ' . ($expression->not ? 'not ' : '') . 'of ('
-               . implode(', ', $expression->right->dispatch($this)) . ')';
-    }
-
     public function walkLogicalExpression(nodes\expressions\LogicalExpression $expression): string
     {
         $parent = $expression;

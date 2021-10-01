@@ -42,7 +42,6 @@ use sad_spirit\pg_builder\nodes\range\RelationReference;
 use sad_spirit\pg_builder\nodes\lists\{
     ExpressionList,
     FunctionArgumentList,
-    TypeList,
     TargetList
 };
 use sad_spirit\pg_builder\nodes\expressions\{
@@ -59,7 +58,6 @@ use sad_spirit\pg_builder\nodes\expressions\{
     RowExpression,
     ArrayExpression,
     InExpression,
-    IsOfExpression,
     LogicalExpression,
     OperatorExpression,
     PatternMatchingExpression,
@@ -472,8 +470,7 @@ QRY
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     foo is null isnull, bar is not null notnull, 'foo' is distinct from 'bar',
-    blah is of (character varying, text, time with time zone), 'xml' is not document,
-    foobar is normalized, barbaz is not nfkc normalized
+    'xml' is not document, foobar is normalized, barbaz is not nfkc normalized
 QRY
         );
         $this->assertEquals(
@@ -497,16 +494,6 @@ QRY
                 new IsDistinctFromExpression(
                     new StringConstant('foo'),
                     new StringConstant('bar')
-                ),
-                new IsOfExpression(
-                    new ColumnReference(new Identifier('blah')),
-                    new TypeList(
-                        [
-                            new TypeName(new QualifiedName('pg_catalog', 'varchar')),
-                            new TypeName(new QualifiedName('text')),
-                            new TypeName(new QualifiedName('pg_catalog', 'timetz'))
-                        ]
-                    )
                 ),
                 new IsExpression(
                     new StringConstant('xml'),

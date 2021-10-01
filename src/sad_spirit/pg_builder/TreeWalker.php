@@ -434,15 +434,6 @@ interface TreeWalker
     public function walkIsExpression(nodes\expressions\IsExpression $expression);
 
     /**
-     * Visits the node representing "... IS [NOT] OF (...)" expression
-     *
-     * @param nodes\expressions\IsOfExpression $expression
-     * @return mixed
-     * @since 0.1.0
-     */
-    public function walkIsOfExpression(nodes\expressions\IsOfExpression $expression);
-
-    /**
      * Visits the node representing a group of expressions combined by AND or OR operators
      *
      * @param nodes\expressions\LogicalExpression $expression
