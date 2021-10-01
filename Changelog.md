@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+* It is now possible to use most of the keywords as column aliases without `AS` 
+
+### Removed
+* Support for `IS [NOT] OF` expressions
+* Support for postfix operators
+
 ## [1.0.2] - 2021-08-10
 
 ### Fixed
@@ -205,3 +214,4 @@ Initial release on GitHub
 [1.0.0]: https://github.com/sad-spirit/pg-builder/compare/v1.0.0-beta...v1.0.0
 [1.0.1]: https://github.com/sad-spirit/pg-builder/compare/v1.0.0...v1.0.1
 [1.0.2]: https://github.com/sad-spirit/pg-builder/compare/v1.0.1...v1.0.2
+[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v1.0.2...HEAD
