@@ -195,10 +195,10 @@ QRY
 
         $a = new RelationReference(new QualifiedName('a'));
         $a->setAlias(new Identifier('aa'));
-        
+
         $b = new RelationReference(new QualifiedName('b'));
         $b->setAlias(new Identifier('bb'));
-        
+
         $ab = new JoinExpression($a, $b, 'inner');
         $ab->setNatural(true);
 

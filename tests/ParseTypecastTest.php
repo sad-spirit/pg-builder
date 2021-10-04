@@ -263,7 +263,7 @@ QRY
         $foo    = new ColumnReference('foo');
         $array5 = new TypeName(new QualifiedName('text'));
         $array5->setBounds([5]);
-        
+
         $setof  = new TypeName(new QualifiedName('text'));
         $setof->setSetOf(true);
 

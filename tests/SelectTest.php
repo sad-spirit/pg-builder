@@ -86,7 +86,7 @@ class SelectTest extends TestCase
     {
         $select = $this->parser->parseSelectStatement('select * from foo');
         $select->setParser($this->parser);
-        
+
         $setOp = $select->union('select * from bar', false);
         $this->assertSame($this->parser, $setOp->getParser());
         $this->assertEquals(

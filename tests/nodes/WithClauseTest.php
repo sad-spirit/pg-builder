@@ -45,8 +45,7 @@ class WithClauseTest extends TestCase
     {
         $this::assertFalse($this->withClause->recursive);
 
-        $this->withClause->replace(
-<<<QRY
+        $this->withClause->replace(<<<QRY
 with recursive bar (val) as (
     select 1 as val
     union all
@@ -57,8 +56,7 @@ QRY
         );
         $this::assertTrue($this->withClause->recursive);
 
-        $this->withClause->replace(
-<<<QRY
+        $this->withClause->replace(<<<QRY
 with baz (val) as (
     select 1 as val
 ) 
@@ -69,8 +67,7 @@ QRY
 
     public function testMergeSetsRecursiveProperty(): void
     {
-        $this->withClause->merge(
-<<<QRY
+        $this->withClause->merge(<<<QRY
 with quux (xyzzy) as (
     select 2 as xyzzy
 )
@@ -78,8 +75,7 @@ QRY
         );
         $this::assertFalse($this->withClause->recursive);
 
-        $this->withClause->merge(
-<<<QRY
+        $this->withClause->merge(<<<QRY
 with recursive bar (val) as (
     select 1 as val
     union all
@@ -90,8 +86,7 @@ QRY
         );
         $this::assertTrue($this->withClause->recursive);
 
-        $this->withClause->merge(
-<<<QRY
+        $this->withClause->merge(<<<QRY
 with baz (val) as (
     select 1 as val
 ) 

@@ -47,7 +47,7 @@ class JoinExpression extends FromElement
     public const RIGHT = 'right';
     public const FULL  = 'full';
     public const INNER = 'inner';
-    
+
     private const ALLOWED_TYPES = [
         self::CROSS => true,
         self::LEFT  => true,

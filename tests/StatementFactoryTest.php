@@ -80,7 +80,7 @@ class StatementFactoryTest extends TestCase
         $connection->execute("set standard_conforming_strings = off");
         $connection->execute("set client_encoding = 'windows-1251'");
         $connection->setMetadataCache($cache);
-        
+
         $factory         = StatementFactory::forConnection($connection);
         $expectedParser  = new Parser(new Lexer(['standard_conforming_strings' => false]), $cache);
         $expectedBuilder = new SqlBuilderWalker(['escape_unicode' => true]);
