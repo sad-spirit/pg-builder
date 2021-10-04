@@ -3,7 +3,9 @@
 ## [Unreleased]
 
 ### Added
-* It is now possible to use most of the keywords as column aliases without `AS` 
+* Support for new syntax of PostgreSQL 14:
+  * It is now possible to use most of the keywords as column aliases without `AS`
+  * `DISTINCT` clause for `GROUP BY`. Exposed as `$distinct` property for a new `GroupByClause` node.
 
 ### Removed
 * Support for `IS [NOT] OF` expressions

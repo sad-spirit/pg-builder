@@ -1347,6 +1347,15 @@ class SqlBuilderWalker implements StatementToStringWalker
         return 'grouping sets(' . implode(', ', $this->walkGenericNodeList($clause)) . ')';
     }
 
+    public function walkGroupByClause(nodes\group\GroupByClause $clause)
+    {
+        $items = $this->walkGenericNodeList($clause);
+        if ($clause->distinct && [] !== $items) {
+            $items[0] = 'distinct ' . $items[0];
+        }
+        return $items;
+    }
+
     /**
      * Returns an array of code points corresponding to characters in UTF-8 string
      *

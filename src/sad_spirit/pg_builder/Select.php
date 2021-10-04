@@ -21,10 +21,10 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_builder\nodes\{
+    group\GroupByClause,
     group\GroupByElement,
     lists\ExpressionList,
     lists\FromList,
-    lists\GroupByList,
     lists\TargetList,
     lists\WindowList,
     range\FromElement,
@@ -41,16 +41,16 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  * @psalm-property TargetList          $list
  * @psalm-property bool|ExpressionList $distinct
  * @psalm-property FromList            $from
- * @psalm-property GroupByList         $group
+ * @psalm-property GroupByClause       $group
  * @psalm-property WindowList          $window
  *
- * @property      TargetList|TargetElement[]             $list
- * @property      bool|ExpressionList|ScalarExpression[] $distinct
- * @property      FromList|FromElement[]                 $from
- * @property-read WhereOrHavingClause                    $where
- * @property      GroupByList|GroupByElement[]           $group
- * @property-read WhereOrHavingClause                    $having
- * @property      WindowList|WindowDefinition[]          $window
+ * @property      TargetList|TargetElement[]                        $list
+ * @property      bool|ExpressionList|ScalarExpression[]            $distinct
+ * @property      FromList|FromElement[]                            $from
+ * @property-read WhereOrHavingClause                               $where
+ * @property      GroupByClause|GroupByElement[]|ScalarExpression[] $group
+ * @property-read WhereOrHavingClause                               $having
+ * @property      WindowList|WindowDefinition[]                     $window
  */
 class Select extends SelectCommon
 {
@@ -62,7 +62,7 @@ class Select extends SelectCommon
     protected $p_from;
     /** @var WhereOrHavingClause */
     protected $p_where;
-    /** @var GroupByList */
+    /** @var GroupByClause */
     protected $p_group;
     /** @var WhereOrHavingClause */
     protected $p_having;
@@ -86,7 +86,7 @@ class Select extends SelectCommon
 
         $this->p_from   = new FromList();
         $this->p_where  = new WhereOrHavingClause();
-        $this->p_group  = new GroupByList();
+        $this->p_group  = new GroupByClause();
         $this->p_having = new WhereOrHavingClause();
         $this->p_window = new WindowList();
 

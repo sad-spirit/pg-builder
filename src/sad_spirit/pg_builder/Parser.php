@@ -65,7 +65,7 @@ use Psr\Cache\InvalidArgumentException;
  * @method nodes\OnConflictClause           parseOnConflict($input)
  * @method nodes\IndexParameters            parseIndexParameters($input)
  * @method nodes\IndexElement               parseIndexElement($input)
- * @method nodes\lists\GroupByList          parseGroupByList($input)
+ * @method nodes\group\GroupByClause        parseGroupByClause($input)
  * @method nodes\ScalarExpression|nodes\group\GroupByElement parseGroupByElement($input)
  * @method nodes\xml\XmlNamespaceList       parseXmlNamespaceList($input)
  * @method nodes\xml\XmlNamespace           parseXmlNamespace($input)
@@ -288,7 +288,7 @@ class Parser
         'indexparameters'            => true,
         'indexelement'               => true,
         'onconflict'                 => true,
-        'groupbylist'                => true,
+        'groupbyclause'              => true,
         'groupbyelement'             => true,
         'xmlnamespacelist'           => true,
         'xmlnamespace'               => true,
@@ -1253,7 +1253,7 @@ class Parser
 
         if ($this->stream->matchesKeywordSequence('group', 'by')) {
             $this->stream->skip(2);
-            $stmt->group->replace($this->GroupByList());
+            $stmt->group->replace($this->GroupByClause());
         }
 
         if ($this->stream->matchesKeyword('having')) {
@@ -3739,16 +3739,22 @@ class Parser
         return new nodes\IndexElement($expression, $collation, $opClass, $direction, $nullsOrder);
     }
 
-    protected function GroupByList(): nodes\lists\GroupByList
+    protected function GroupByClause(): nodes\group\GroupByClause
     {
-        $items = new nodes\lists\GroupByList([$this->GroupByElement()]);
+        $distinct = $this->stream->matchesKeyword(['all', 'distinct'])
+                    && 'distinct' === $this->stream->next()->getValue();
+        $this->GroupByListElements($clause = new nodes\group\GroupByClause(null, $distinct));
+        return $clause;
+    }
+
+    protected function GroupByListElements(nodes\lists\GroupByList $list): void
+    {
+        $list[] = $this->GroupByElement();
 
         while ($this->stream->matchesSpecialChar(',')) {
             $this->stream->next();
-            $items[] = $this->GroupByElement();
+            $list[] = $this->GroupByElement();
         }
-
-        return $items;
     }
 
     /**
@@ -3772,7 +3778,7 @@ class Parser
         } elseif ($this->stream->matchesKeywordSequence('grouping', 'sets')) {
             $this->stream->skip(2);
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-            $element = new nodes\group\GroupingSetsClause($this->GroupByList());
+            $this->GroupByListElements($element = new nodes\group\GroupingSetsClause());
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
         } else {

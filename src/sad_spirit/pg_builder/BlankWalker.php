@@ -745,4 +745,9 @@ abstract class BlankWalker implements TreeWalker
     {
         return $this->walkGenericNodeList($clause);
     }
+
+    public function walkGroupByClause(nodes\group\GroupByClause $clause)
+    {
+        return $this->walkGenericNodeList($clause);
+    }
 }

@@ -41,7 +41,7 @@ use sad_spirit\pg_builder\nodes\group\GroupByElement;
  * >
  * @implements ElementParseable<ScalarExpression|GroupByElement>
  */
-class GroupByList extends NonAssociativeList implements Parseable, ElementParseable
+abstract class GroupByList extends NonAssociativeList implements ElementParseable
 {
     protected static function getAllowedElementClasses(): array
     {
@@ -54,10 +54,5 @@ class GroupByList extends NonAssociativeList implements Parseable, ElementParsea
     public function createElementFromString(string $sql): Node
     {
         return $this->getParserOrFail('a list element')->parseGroupByElement($sql);
-    }
-
-    public static function createFromString(Parser $parser, string $sql): self
-    {
-        return $parser->parseGroupByList($sql);
     }
 }

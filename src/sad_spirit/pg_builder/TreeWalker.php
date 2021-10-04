@@ -780,4 +780,13 @@ interface TreeWalker
      * @since 0.2.0
      */
     public function walkGroupingSetsClause(nodes\group\GroupingSetsClause $clause);
+
+    /**
+     * Visits the node representing GROUP BY clause
+     *
+     * @param nodes\group\GroupByClause $clause
+     * @return mixed
+     * @since 2.0.0
+     */
+    public function walkGroupByClause(nodes\group\GroupByClause $clause);
 }

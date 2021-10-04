@@ -84,7 +84,7 @@ class ParseSelectStatementTest extends TestCase
 select distinct on (foo) foo, bar, baz() over (win95) as blah, quux alias, xyzzy as as, foobar any
 from one, two
 where one.id = two.id
-group by bar
+group by distinct bar
 having count(quux) > 1
 window win95 as ()
 QRY
@@ -126,6 +126,7 @@ QRY
         $built->group->replace([
             new ColumnReference('bar')
         ]);
+        $built->group->distinct = true;
         $built->having->condition = new OperatorExpression(
             '>',
             new FunctionExpression(
