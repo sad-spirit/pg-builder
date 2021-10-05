@@ -485,7 +485,20 @@ class SqlBuilderWalker implements StatementToStringWalker
                . 'as ' . $materialized . '(' . $this->options['linebreak'] . $node->statement->dispatch($this);
         $this->indentLevel--;
 
-        return $sql . $this->options['linebreak'] . $this->getIndent() . ')';
+        $sql .= $this->options['linebreak'] . $this->getIndent() . ')';
+
+        $trailing = [];
+        if (null !== $node->search) {
+            $trailing[] = $node->search->dispatch($this);
+        }
+        if (null !== $node->cycle) {
+            $trailing[] = $node->cycle->dispatch($this);
+        }
+        if ([] !== $trailing) {
+            $sql .= ' ' . \implode($this->options['linebreak'] . $this->getIndent(), $trailing);
+        }
+
+        return $sql;
     }
 
     public function walkKeywordConstant(nodes\expressions\KeywordConstant $node): string
@@ -1022,6 +1035,24 @@ class SqlBuilderWalker implements StatementToStringWalker
         }
     }
 
+    public function walkConstantTypecastExpression(nodes\expressions\ConstantTypecastExpression $expression): string
+    {
+        $modifiers = 0 < count($expression->type->modifiers)
+                     ? ' (' . \implode(', ', $expression->type->modifiers->dispatch($this)) . ')'
+                     : '';
+        return (
+                $expression->type instanceof nodes\IntervalTypeName
+                ? 'interval' . ('' === $expression->type->mask ? $modifiers : '')
+                : $expression->type->name->dispatch($this) . $modifiers
+            )
+            . ' ' . $expression->argument->dispatch($this)
+            . (
+                $expression->type instanceof nodes\IntervalTypeName && '' !== $expression->type->mask
+                ? ' ' . $expression->type->mask . $modifiers
+                : ''
+            );
+    }
+
     public function walkGroupingExpression(nodes\expressions\GroupingExpression $expression): string
     {
         return 'grouping(' . implode(', ', $this->walkGenericNodeList($expression)) . ')';
@@ -1347,13 +1378,32 @@ class SqlBuilderWalker implements StatementToStringWalker
         return 'grouping sets(' . implode(', ', $this->walkGenericNodeList($clause)) . ')';
     }
 
-    public function walkGroupByClause(nodes\group\GroupByClause $clause)
+    public function walkGroupByClause(nodes\group\GroupByClause $clause): array
     {
         $items = $this->walkGenericNodeList($clause);
         if ($clause->distinct && [] !== $items) {
             $items[0] = 'distinct ' . $items[0];
         }
         return $items;
+    }
+
+    public function walkSearchClause(nodes\cte\SearchClause $clause): string
+    {
+        return 'search ' . ($clause->breadthFirst ? 'breadth' : 'depth') . ' first'
+            . ' by ' . \implode(', ', $clause->trackColumns->dispatch($this))
+            . ' set ' . $clause->sequenceColumn->dispatch($this);
+    }
+
+    public function walkCycleClause(nodes\cte\CycleClause $clause): string
+    {
+        return 'cycle ' . \implode(', ', $clause->trackColumns->dispatch($this))
+            . ' set ' . $clause->markColumn->dispatch($this)
+            . (
+                null === $clause->markValue || null === $clause->markDefault
+                ? ''
+                : ' to ' . $clause->markValue->dispatch($this) . ' default ' . $clause->markDefault->dispatch($this)
+            )
+            . ' using ' . $clause->pathColumn->dispatch($this);
     }
 
     /**

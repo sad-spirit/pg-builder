@@ -43,7 +43,8 @@ with recursive w1 (w2, w3) as (
     from s13 s14, s15 s16
     where s17.s18 = s19.s20 
     order by s21.s22
-), 
+) search depth first by w11, w12 set w13
+  cycle w14, w15 set w16 to date 'tomorrow' default date 'yesterday' using w17,
 w4 as (
     delete from only d1 as d2
     using d3.d4 as d5

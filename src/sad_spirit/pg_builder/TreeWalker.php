@@ -515,6 +515,15 @@ interface TreeWalker
     public function walkTypecastExpression(nodes\expressions\TypecastExpression $expression);
 
     /**
+     * Visits the node representing a "type.name 'a string value'" type cast
+     *
+     * @param nodes\expressions\ConstantTypecastExpression $expression
+     * @return mixed
+     * @since 2.0.0
+     */
+    public function walkConstantTypecastExpression(nodes\expressions\ConstantTypecastExpression $expression);
+
+    /**
      * Visits the node representing a GROUPING(...) expression
      *
      * @param nodes\expressions\GroupingExpression $expression
@@ -789,4 +798,22 @@ interface TreeWalker
      * @since 2.0.0
      */
     public function walkGroupByClause(nodes\group\GroupByClause $clause);
+
+    /**
+     * Visits the node representing SEARCH BREADTH / DEPTH FIRST clause for Common Table Expressions
+     *
+     * @param nodes\cte\SearchClause $clause
+     * @return mixed
+     * @since 2.0.0
+     */
+    public function walkSearchClause(nodes\cte\SearchClause $clause);
+
+    /**
+     * Visits the node representing CYCLE clause for Common Table Expressions
+     *
+     * @param nodes\cte\CycleClause $clause
+     * @return mixed
+     * @since 2.0.0
+     */
+    public function walkCycleClause(nodes\cte\CycleClause $clause);
 }

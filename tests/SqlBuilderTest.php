@@ -158,7 +158,8 @@ setopstuff (stuff) as not materialized (
     select bazstuff
     from baz
     fetch first (3 + 2) rows with ties
-)
+) search breadth first by foostuff, barstuff set morestuff
+  cycle barstuff, bazstuff set donealready to date 'tomorrow' default date 'yesterday' using somepath
 select distinct on (something) quux.one, xyzzy.two[1], (quux.three).four, $1.blah, array[[1,2],[3,4]], row(3,4),
        1 + 2 * 3, (1 + 2) * 3, six between five and seven, eight not between nine and ten,
        case when foo = 'bar' then 10 when foo = 'baz' then 100 else 1 end,

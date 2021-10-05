@@ -20,8 +20,12 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes;
 
+use sad_spirit\pg_builder\nodes\{
+    cte\CycleClause,
+    cte\SearchClause,
+    lists\IdentifierList
+};
 use sad_spirit\pg_builder\Statement;
-use sad_spirit\pg_builder\nodes\lists\IdentifierList;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -36,6 +40,8 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read Identifier                  $alias
  * @property-read IdentifierList|Identifier[] $columnAliases
  * @property      bool|null                   $materialized
+ * @property      SearchClause|null           $search
+ * @property      CycleClause|null            $cycle
  */
 class CommonTableExpression extends GenericNode
 {
@@ -47,12 +53,18 @@ class CommonTableExpression extends GenericNode
     protected $p_columnAliases;
     /** @var bool|null */
     protected $p_materialized;
+    /** @var SearchClause|null */
+    protected $p_search;
+    /** @var CycleClause|null */
+    protected $p_cycle;
 
     public function __construct(
         Statement $statement,
         Identifier $alias,
         IdentifierList $columnAliases = null,
-        ?bool $materialized = null
+        ?bool $materialized = null,
+        ?SearchClause $search = null,
+        ?CycleClause $cycle = null
     ) {
         $this->generatePropertyNames();
         $this->p_statement = $statement;
@@ -65,6 +77,15 @@ class CommonTableExpression extends GenericNode
         $this->p_columnAliases->setParentNode($this);
 
         $this->p_materialized = $materialized;
+
+        if (null !== $search) {
+            $this->p_search = $search;
+            $this->p_search->setParentNode($this);
+        }
+        if (null !== $cycle) {
+            $this->p_cycle = $cycle;
+            $this->p_cycle->setParentNode($this);
+        }
     }
 
     public function setStatement(Statement $statement): void
@@ -75,6 +96,16 @@ class CommonTableExpression extends GenericNode
     public function setMaterialized(?bool $materialized): void
     {
         $this->p_materialized = $materialized;
+    }
+
+    public function setSearch(?SearchClause $search): void
+    {
+        $this->setProperty($this->p_search, $search);
+    }
+
+    public function setCycle(?CycleClause $cycle): void
+    {
+        $this->setProperty($this->p_cycle, $cycle);
     }
 
     public function dispatch(TreeWalker $walker)

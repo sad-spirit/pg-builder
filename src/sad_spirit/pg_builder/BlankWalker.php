@@ -148,6 +148,12 @@ abstract class BlankWalker implements TreeWalker
         $node->statement->dispatch($this);
         $node->alias->dispatch($this);
         $node->columnAliases->dispatch($this);
+        if (null !== $node->search) {
+            $node->search->dispatch($this);
+        }
+        if (null !== $node->cycle) {
+            $node->cycle->dispatch($this);
+        }
         return null;
     }
 
@@ -497,6 +503,11 @@ abstract class BlankWalker implements TreeWalker
         return null;
     }
 
+    public function walkConstantTypecastExpression(nodes\expressions\ConstantTypecastExpression $expression)
+    {
+        return $this->walkTypecastExpression($expression);
+    }
+
     public function walkGroupingExpression(nodes\expressions\GroupingExpression $expression)
     {
         $this->walkGenericNodeList($expression);
@@ -749,5 +760,26 @@ abstract class BlankWalker implements TreeWalker
     public function walkGroupByClause(nodes\group\GroupByClause $clause)
     {
         return $this->walkGenericNodeList($clause);
+    }
+
+    public function walkSearchClause(nodes\cte\SearchClause $clause)
+    {
+        $clause->trackColumns->dispatch($this);
+        $clause->sequenceColumn->dispatch($this);
+        return null;
+    }
+
+    public function walkCycleClause(nodes\cte\CycleClause $clause)
+    {
+        $clause->trackColumns->dispatch($this);
+        $clause->markColumn->dispatch($this);
+        $clause->pathColumn->dispatch($this);
+        if (null !== $clause->markValue) {
+            $clause->markValue->dispatch($this);
+        }
+        if (null !== $clause->markDefault) {
+            $clause->markDefault->dispatch($this);
+        }
+        return null;
     }
 }

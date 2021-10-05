@@ -50,8 +50,7 @@ class TypecastExpression extends GenericNode implements ScalarExpression, Functi
     {
         $this->generatePropertyNames();
 
-        $this->p_argument = $argument;
-        $this->p_argument->setParentNode($this);
+        $this->setArgument($argument);
 
         $this->p_type = $type;
         $this->p_type->setParentNode($this);
@@ -59,7 +58,12 @@ class TypecastExpression extends GenericNode implements ScalarExpression, Functi
 
     public function setArgument(ScalarExpression $argument): void
     {
-        $this->setRequiredProperty($this->p_argument, $argument);
+        if (!empty($this->p_argument)) {
+            $this->setRequiredProperty($this->p_argument, $argument);
+        } else {
+            $this->p_argument = $argument;
+            $this->p_argument->setParentNode($this);
+        }
     }
 
     public function dispatch(TreeWalker $walker)

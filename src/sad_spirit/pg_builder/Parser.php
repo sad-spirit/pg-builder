@@ -892,6 +892,8 @@ class Parser
         $alias         = $this->ColId();
         $columnAliases = new nodes\lists\IdentifierList();
         $materialized  = null;
+        $search        = null;
+        $cycle         = null;
         if ($this->stream->matchesSpecialChar('(')) {
             do {
                 $this->stream->next();
@@ -914,7 +916,52 @@ class Parser
         $statement = $this->Statement();
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
-        return new nodes\CommonTableExpression($statement, $alias, $columnAliases, $materialized);
+        if ($this->stream->matchesKeyword('search')) {
+            $search = $this->SearchClause();
+        }
+        if ($this->stream->matchesKeyword('cycle')) {
+            $cycle = $this->CycleClause();
+        }
+
+        return new nodes\CommonTableExpression($statement, $alias, $columnAliases, $materialized, $search, $cycle);
+    }
+
+    public function SearchClause(): nodes\cte\SearchClause
+    {
+        $this->stream->expect(Token::TYPE_KEYWORD, 'search');
+        $first = $this->stream->expect(Token::TYPE_KEYWORD, ['breadth', 'depth']);
+        $this->stream->expect(Token::TYPE_KEYWORD, 'first');
+
+        $this->stream->expect(Token::TYPE_KEYWORD, 'by');
+        $trackColumns = $this->ColIdList();
+
+        $this->stream->expect(Token::TYPE_KEYWORD, 'set');
+        $sequenceColumn = $this->ColId();
+
+        return new nodes\cte\SearchClause('breadth' === $first->getValue(), $trackColumns, $sequenceColumn);
+    }
+
+    public function CycleClause(): nodes\cte\CycleClause
+    {
+        $this->stream->expect(Token::TYPE_KEYWORD, 'cycle');
+        $trackColumns = $this->ColIdList();
+
+        $this->stream->expect(Token::TYPE_KEYWORD, 'set');
+        $markColumn = $this->ColId();
+
+        $markValue   = null;
+        $markDefault = null;
+        if ($this->stream->matchesKeyword('to')) {
+            $this->stream->next();
+            $markValue = $this->ConstantExpression();
+            $this->stream->expect(Token::TYPE_KEYWORD, 'default');
+            $markDefault = $this->ConstantExpression();
+        }
+
+        $this->stream->expect(Token::TYPE_KEYWORD, 'using');
+        $pathColumn = $this->ColId();
+
+        return new nodes\cte\CycleClause($trackColumns, $markColumn, $pathColumn, $markValue, $markDefault);
     }
 
     protected function ForLockingClause(SelectCommon $stmt): void
@@ -2325,6 +2372,36 @@ class Parser
         }
 
         return $atom;
+    }
+
+    /**
+     * Represents AexprConst production from the grammar, used only in CYCLE clause currently
+     *
+     * @return nodes\expressions\Constant|nodes\expressions\ConstantTypecastExpression
+     */
+    public function ConstantExpression(): nodes\ScalarExpression
+    {
+        if (
+            $this->stream->matchesKeyword(['true', 'false', 'null'])
+            || $this->stream->matches(Token::TYPE_LITERAL)
+        ) {
+            return nodes\expressions\Constant::createFromToken($this->stream->next());
+        }
+        if ($this->matchesConstTypecast()) {
+            $typecast = $this->ConstLeadingTypecast();
+        } else {
+            // We are only interested in typecasts here, everything else is an error according to AexprConst
+            $token    = $this->stream->getCurrent();
+            $typecast = $this->NamedExpressionAtom();
+            if (!$typecast instanceof nodes\expressions\TypecastExpression) {
+                throw exceptions\SyntaxException::atPosition(
+                    "Unexpected {$token}, expecting constant expression",
+                    $this->stream->getSource(),
+                    $token->getPosition()
+                );
+            }
+        }
+        return new nodes\expressions\ConstantTypecastExpression(clone $typecast->argument, clone $typecast->type);
     }
 
     protected function NamedExpressionAtom(): nodes\ScalarExpression
