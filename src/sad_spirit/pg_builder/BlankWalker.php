@@ -782,4 +782,13 @@ abstract class BlankWalker implements TreeWalker
         }
         return null;
     }
+
+    public function walkUsingClause(nodes\range\UsingClause $clause)
+    {
+        $this->walkGenericNodeList($clause);
+        if (null !== $clause->alias) {
+            $clause->alias->dispatch($this);
+        }
+        return null;
+    }
 }

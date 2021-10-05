@@ -80,7 +80,8 @@ use sad_spirit\pg_builder\nodes\range\{
     JoinExpression,
     RelationReference,
     Subselect,
-    UpdateOrDeleteTarget
+    UpdateOrDeleteTarget,
+    UsingClause
 };
 use sad_spirit\pg_builder\nodes\xml\{
     XmlElement,
@@ -495,7 +496,7 @@ class SetParentNodeTest extends TestCase
         $this->assertSame($join, $join->left->getParentNode());
         $this->assertSame($join, $join->right->getParentNode());
 
-        $using = new IdentifierList(['one', 'two', 'three']);
+        $using = new UsingClause(['one', 'two', 'three']);
         $join->setUsing($using);
         $this->assertSame($join, $using->getParentNode());
 

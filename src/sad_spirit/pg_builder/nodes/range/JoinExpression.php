@@ -26,18 +26,17 @@ use sad_spirit\pg_builder\{
     nodes\ScalarExpression,
     TreeWalker
 };
-use sad_spirit\pg_builder\nodes\lists\IdentifierList;
 
 /**
  * AST node for JOIN expression in FROM clause
  *
- * @psalm-property IdentifierList|null $using
+ * @psalm-property UsingClause|null $using
  *
  * @property      FromElement                      $left
  * @property      FromElement                      $right
  * @property-read string                           $type
  * @property      bool                             $natural
- * @property      IdentifierList|Identifier[]|null $using
+ * @property      UsingClause|Identifier[]|null    $using
  * @property      ScalarExpression|null            $on
  */
 class JoinExpression extends FromElement
@@ -64,7 +63,7 @@ class JoinExpression extends FromElement
     protected $p_type;
     /** @var bool */
     protected $p_natural = false;
-    /** @var IdentifierList|null */
+    /** @var UsingClause|null */
     protected $p_using = null;
     /** @var ScalarExpression|null */
     protected $p_on = null;
@@ -114,7 +113,7 @@ class JoinExpression extends FromElement
     /**
      * Sets USING clause for JOIN expression
      *
-     * @param null|string|iterable<Identifier> $using
+     * @param null|string|iterable<Identifier>|UsingClause $using
      */
     public function setUsing($using = null): void
     {
@@ -124,14 +123,14 @@ class JoinExpression extends FromElement
             } elseif (!empty($this->p_natural) || !empty($this->p_on)) {
                 throw new InvalidArgumentException('Only one of NATURAL, USING, ON clauses should be set for JOIN');
             }
-            if (!$using instanceof IdentifierList) {
+            if (!$using instanceof UsingClause) {
                 if (is_string($using)) {
-                    $using = $this->getParserOrFail('a USING clause')->parseColIdList($using);
+                    $using = UsingClause::createFromString($this->getParserOrFail('a USING clause'), $using);
                 } elseif (is_iterable($using)) {
-                    $using = new IdentifierList($using);
+                    $using = new UsingClause($using);
                 } else {
                     throw new InvalidArgumentException(sprintf(
-                        '%s requires an SQL string, an array of identifiers or an instance of IdentifierList, %s given',
+                        '%s requires an SQL string, an array of identifiers, or an instance of UsingClause, %s given',
                         __METHOD__,
                         is_object($using) ? 'object(' . get_class($using) . ')' : gettype($using)
                     ));

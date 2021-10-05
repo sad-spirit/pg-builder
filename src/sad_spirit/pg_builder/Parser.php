@@ -62,6 +62,7 @@ use Psr\Cache\InvalidArgumentException;
  * @method nodes\WithClause                 parseWithClause($input)
  * @method nodes\CommonTableExpression      parseCommonTableExpression($input)
  * @method nodes\lists\IdentifierList       parseColIdList($input)
+ * @method nodes\range\UsingClause          parseUsingClause($input)
  * @method nodes\OnConflictClause           parseOnConflict($input)
  * @method nodes\IndexParameters            parseIndexParameters($input)
  * @method nodes\IndexElement               parseIndexElement($input)
@@ -285,6 +286,7 @@ class Parser
         'withclause'                 => true,
         'commontableexpression'      => true,
         'colidlist'                  => true,
+        'usingclause'                => true,
         'indexparameters'            => true,
         'indexelement'               => true,
         'onconflict'                 => true,
@@ -3347,15 +3349,44 @@ class Parser
                 if ('on' === $token->getValue()) {
                     $left->setOn($this->Expression());
                 } else {
-                    $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-                    $using = $this->ColIdList();
-                    $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-                    $left->setUsing($using);
+                    $left->setUsing($this->UsingClause(true));
                 }
             }
         }
 
         return $left;
+    }
+
+    /**
+     * Parses the USING clause of JOIN expression
+     *
+     * Setting $parentheses to false allows to parse the clause as ColIdList, rather than unconditionally
+     * fail if the stream is not on the opening parenthesis. This is mostly needed for BC.
+     *
+     * @param bool $parentheses whether to require parentheses
+     * @return nodes\range\UsingClause
+     */
+    protected function UsingClause(bool $parentheses = false): nodes\range\UsingClause
+    {
+        if ($parentheses) {
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        } elseif ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+            $parentheses = true;
+            $this->stream->next();
+        }
+
+        $alias = null;
+        $items = $this->ColIdList();
+
+        if ($parentheses) {
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            if ($this->stream->matchesKeyword('as')) {
+                $this->stream->next();
+                $alias = $this->ColId();
+            }
+        }
+
+        return new nodes\range\UsingClause($items, $alias);
     }
 
     protected function TableReference(): nodes\range\FromElement

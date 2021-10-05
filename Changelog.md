@@ -4,12 +4,13 @@
 
 ### Added
 * Support for new syntax of PostgreSQL 14:
-  * It is now possible to use most of the keywords as column aliases without `AS`
+  * It is now possible to use most of the keywords as column aliases without `AS`.
   * `DISTINCT` clause for `GROUP BY`. Exposed as `$distinct` property for a new `GroupByClause` node
     which is now used for `$group` property of `Select`.
   * `SEARCH` and `CYCLE` clauses for Common Table Expressions. Implemented as `SearchClause` and `CycleClause` classes and
     exposed as `$search` and `$cycle` properties of `CommonTableExpression` class.
-    
+  * Alias can be specified for `USING` clause of `JOIN` expression. Exposed as `$alias` property of a new
+    `UsingClause` node which is now used for `$using` property of `JoinExpression`.
 
 ### Removed
 * Support for `IS [NOT] OF` expressions

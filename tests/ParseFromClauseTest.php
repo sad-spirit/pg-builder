@@ -51,6 +51,7 @@ use sad_spirit\pg_builder\nodes\range\{
     Subselect,
     ColumnDefinition,
     TableSample,
+    UsingClause,
     XmlTable
 };
 use sad_spirit\pg_builder\nodes\lists\{
@@ -188,7 +189,7 @@ QRY
     public function testJoins(): void
     {
         $list = $this->parser->parseFromList(<<<QRY
-    a as aa natural join b bb left join (c right join d on (true = false)) as joinalias using (blah),
+    a as aa natural join b bb left join (c right join d on (true = false)) as joinalias using (blah) as bleh,
     f full outer join g(1) on false <> true cross join lateral (select 'blah') as h
 QRY
         );
@@ -215,7 +216,7 @@ QRY
         $cd->setAlias(new Identifier('joinalias'));
 
         $abcd = new JoinExpression($ab, $cd, 'left');
-        $abcd->setUsing(new IdentifierList(['blah']));
+        $abcd->setUsing(new UsingClause(['blah'], new Identifier('bleh')));
 
         $fg = new JoinExpression(
             new RelationReference(new QualifiedName('f')),

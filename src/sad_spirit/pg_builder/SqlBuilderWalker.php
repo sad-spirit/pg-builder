@@ -1157,7 +1157,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         if ($rangeItem->on) {
             $sql .= ' on ' . $rangeItem->on->dispatch($this);
         } elseif ($rangeItem->using) {
-            $sql .= ' using (' . implode(', ', $rangeItem->using->dispatch($this)) . ')';
+            $sql .= ' ' . $rangeItem->using->dispatch($this);
         }
 
         return null !== $rangeItem->tableAlias || null !== $rangeItem->columnAliases
@@ -1404,6 +1404,13 @@ class SqlBuilderWalker implements StatementToStringWalker
                 : ' to ' . $clause->markValue->dispatch($this) . ' default ' . $clause->markDefault->dispatch($this)
             )
             . ' using ' . $clause->pathColumn->dispatch($this);
+    }
+
+    public function walkUsingClause(nodes\range\UsingClause $clause): string
+    {
+        $items = $this->walkGenericNodeList($clause);
+        return 'using (' . \implode(', ', $items) . ')'
+               . (null === $clause->alias ? '' : ' as ' . $clause->alias->dispatch($this));
     }
 
     /**

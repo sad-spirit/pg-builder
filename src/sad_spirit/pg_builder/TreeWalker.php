@@ -816,4 +816,13 @@ interface TreeWalker
      * @since 2.0.0
      */
     public function walkCycleClause(nodes\cte\CycleClause $clause);
+
+    /**
+     * Visits the node representing USING clause of JOIN expression
+     *
+     * @param nodes\range\UsingClause $clause
+     * @return mixed
+     * @since 2.0.0
+     */
+    public function walkUsingClause(nodes\range\UsingClause $clause);
 }
