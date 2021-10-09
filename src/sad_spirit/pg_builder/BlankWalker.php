@@ -404,6 +404,18 @@ abstract class BlankWalker implements TreeWalker
         return null;
     }
 
+    public function walkCollationForExpression(nodes\expressions\CollationForExpression $expression)
+    {
+        $expression->argument->dispatch($this);
+        return null;
+    }
+
+    public function walkExtractExpression(nodes\expressions\ExtractExpression $expression)
+    {
+        $expression->source->dispatch($this);
+        return null;
+    }
+
     public function walkFunctionExpression(nodes\expressions\FunctionExpression $expression)
     {
         $this->walkFunctionCall($expression);
@@ -474,6 +486,17 @@ abstract class BlankWalker implements TreeWalker
         return null;
     }
 
+    public function walkOverlayExpression(nodes\expressions\OverlayExpression $expression)
+    {
+        $expression->string->dispatch($this);
+        $expression->newSubstring->dispatch($this);
+        $expression->start->dispatch($this);
+        if (null !== $expression->count) {
+            $expression->count->dispatch($this);
+        }
+        return null;
+    }
+
     public function walkPatternMatchingExpression(nodes\expressions\PatternMatchingExpression $expression)
     {
         $expression->argument->dispatch($this);
@@ -481,6 +504,13 @@ abstract class BlankWalker implements TreeWalker
         if (null !== $expression->escape) {
             $expression->escape->dispatch($this);
         }
+        return null;
+    }
+
+    public function walkPositionExpression(nodes\expressions\PositionExpression $expression)
+    {
+        $expression->substring->dispatch($this);
+        $expression->string->dispatch($this);
         return null;
     }
 
@@ -493,6 +523,26 @@ abstract class BlankWalker implements TreeWalker
     public function walkSubselectExpression(nodes\expressions\SubselectExpression $expression)
     {
         $expression->query->dispatch($this);
+        return null;
+    }
+
+    public function walkSubstringFromExpression(nodes\expressions\SubstringFromExpression $expression)
+    {
+        $expression->string->dispatch($this);
+        if (null !== $expression->from) {
+            $expression->from->dispatch($this);
+        }
+        if (null !== $expression->for) {
+            $expression->for->dispatch($this);
+        }
+        return null;
+    }
+
+    public function walkSubstringSimilarExpression(nodes\expressions\SubstringSimilarExpression $expression)
+    {
+        $expression->string->dispatch($this);
+        $expression->pattern->dispatch($this);
+        $expression->escape->dispatch($this);
         return null;
     }
 

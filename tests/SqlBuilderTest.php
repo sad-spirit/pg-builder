@@ -166,7 +166,12 @@ select distinct on (something) quux.one, xyzzy.two[1], (quux.three).four, $1.bla
        'foo' collate bar.baz, '''whatever$$' noT ILIke 'quux' escape '!',
        cast (foo as text array[5]), foo::bar::baz(666), windowfn() over (win95), count(*) filter(where foo > 10),
        interval 'a value' minute to second (10), grouping(one, two, three, four),
-       xyzzy.arr[:], xyzzy.arr[2:], xyzzy.arr[:3]
+       xyzzy.arr[:], xyzzy.arr[2:], xyzzy.arr[:3],
+       extract(epoch from ancient.times),
+       overlay('foobar' placing 'baz' from 4 for 3),
+       position('a' in 'foobar'),
+       collation for(collatable),
+       substring(), substring('a string' from 3 for 6), substring('a string' similar pattern escape '#')
 from quux, xyzzy left join (atable as one left join anothertable as two using (commonfield) as usingalias)
                 as three on xyzzy.id = three.xyzzy_id,
      some_function(1, 'two', array[3, 4]) with ordinality as sf (id integer, name text collate somecollation),

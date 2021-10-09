@@ -37,12 +37,18 @@ use sad_spirit\pg_builder\nodes\{
     WindowFrameClause
 };
 use sad_spirit\pg_builder\nodes\expressions\{
+    CollationForExpression,
+    ExtractExpression,
     FunctionExpression,
     NullIfExpression,
+    OverlayExpression,
+    PositionExpression,
     SQLValueFunction,
     NumericConstant,
     OperatorExpression,
     StringConstant,
+    SubstringFromExpression,
+    SubstringSimilarExpression,
     SystemFunctionCall
 };
 use sad_spirit\pg_builder\nodes\lists\{
@@ -119,18 +125,9 @@ QRY
         );
         $this->assertEquals(
             new ExpressionList([
-                new FunctionExpression(
-                    new QualifiedName('pg_catalog', 'date_part'),
-                    new FunctionArgumentList([new StringConstant('epoch'), new ColumnReference('foo')])
-                ),
-                new FunctionExpression(
-                    new QualifiedName('pg_catalog', 'date_part'),
-                    new FunctionArgumentList([new StringConstant('minute'), new ColumnReference('bar')])
-                ),
-                new FunctionExpression(
-                    new QualifiedName('pg_catalog', 'date_part'),
-                    new FunctionArgumentList([new StringConstant('whatever'), new ColumnReference('baz')])
-                )
+                new ExtractExpression('epoch', new ColumnReference('foo')),
+                new ExtractExpression('minute', new ColumnReference('bar')),
+                new ExtractExpression('whatever', new ColumnReference('baz'))
             ]),
             $list
         );
@@ -144,19 +141,13 @@ QRY
         );
         $this->assertEquals(
             new ExpressionList([
-                new FunctionExpression(
-                    new QualifiedName('pg_catalog', 'overlay'),
-                    new FunctionArgumentList([
-                        new StringConstant('fooxxxbaz'), new StringConstant('bar'),
-                        new NumericConstant('3'), new NumericConstant('3')
-                    ])
+                new OverlayExpression(
+                    new StringConstant('fooxxxbaz'),
+                    new StringConstant('bar'),
+                    new NumericConstant('3'),
+                    new NumericConstant('3')
                 ),
-                new FunctionExpression(
-                    new QualifiedName('pg_catalog', 'overlay'),
-                    new FunctionArgumentList([
-                        new StringConstant('adc'), new StringConstant('b'), new NumericConstant('2')
-                    ])
-                )
+                new OverlayExpression(new StringConstant('adc'), new StringConstant('b'), new NumericConstant('2'))
             ]),
             $list
         );
@@ -165,10 +156,7 @@ QRY
     public function testPosition(): void
     {
         $this->assertEquals(
-            new FunctionExpression(
-                new QualifiedName('pg_catalog', 'position'),
-                new FunctionArgumentList([new StringConstant('foobar'), new StringConstant('a')])
-            ),
+            new PositionExpression(new StringConstant('a'), new StringConstant('foobar')),
             $this->parser->parseExpression("position('a' in 'foobar')")
         );
     }
@@ -176,35 +164,50 @@ QRY
     public function testSubstring(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
-    substring('foobar', 2, 3), substring('foobar' from 2 for 3), substring('foobar' for 3 from 2),
-    substring('foobar' for 3)
+    substring(),
+    substring(foo := bar),
+    substring('foobar'),
+    substring('foobar', 2, 3),
+    substring('foobar' from 2 for 3), 
+    substring('foobar' for 3 from 2), 
+    substring('foobar' for 3), 
+    substring('foobar' from 3), 
+    substring('foobar' similar 'foo' escape '#')
 QRY
         );
         $this->assertEquals(
             new ExpressionList([
+                new FunctionExpression(new QualifiedName('substring'), new FunctionArgumentList()),
                 new FunctionExpression(
-                    new QualifiedName('pg_catalog', 'substring'),
+                    new QualifiedName('substring'),
+                    new FunctionArgumentList(['foo' => new ColumnReference('bar')])
+                ),
+                new FunctionExpression(
+                    new QualifiedName('substring'),
+                    new FunctionArgumentList([new StringConstant('foobar')])
+                ),
+                new FunctionExpression(
+                    new QualifiedName('substring'),
                     new FunctionArgumentList([
                         new StringConstant('foobar'), new NumericConstant('2'), new NumericConstant('3')
                     ])
                 ),
-                new FunctionExpression(
-                    new QualifiedName('pg_catalog', 'substring'),
-                    new FunctionArgumentList([
-                        new StringConstant('foobar'), new NumericConstant('2'), new NumericConstant('3')
-                    ])
+                new SubstringFromExpression(
+                    new StringConstant('foobar'),
+                    new NumericConstant('2'),
+                    new NumericConstant('3')
                 ),
-                new FunctionExpression(
-                    new QualifiedName('pg_catalog', 'substring'),
-                    new FunctionArgumentList([
-                        new StringConstant('foobar'), new NumericConstant('2'), new NumericConstant('3')
-                    ])
+                new SubstringFromExpression(
+                    new StringConstant('foobar'),
+                    new NumericConstant('2'),
+                    new NumericConstant('3')
                 ),
-                new FunctionExpression(
-                    new QualifiedName('pg_catalog', 'substring'),
-                    new FunctionArgumentList([
-                        new StringConstant('foobar'), new NumericConstant('1'), new NumericConstant('3')
-                    ])
+                new SubstringFromExpression(new StringConstant('foobar'), null, new NumericConstant('3')),
+                new SubstringFromExpression(new StringConstant('foobar'), new NumericConstant('3'), null),
+                new SubstringSimilarExpression(
+                    new StringConstant('foobar'),
+                    new StringConstant('foo'),
+                    new StringConstant('#')
                 )
             ]),
             $list
@@ -397,10 +400,7 @@ QRY
     public function testCollationFor(): void
     {
         $this->assertEquals(
-            new FunctionExpression(
-                new QualifiedName('pg_catalog', 'pg_collation_for'),
-                new FunctionArgumentList([new ColumnReference('foo', 'bar')])
-            ),
+            new CollationForExpression(new ColumnReference('foo', 'bar')),
             $this->parser->parseExpression('collation for (foo.bar)')
         );
     }

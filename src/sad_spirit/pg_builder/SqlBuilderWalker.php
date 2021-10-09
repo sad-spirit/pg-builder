@@ -873,6 +873,20 @@ class SqlBuilderWalker implements StatementToStringWalker
                . ' collate ' . $expression->collation->dispatch($this);
     }
 
+    public function walkCollationForExpression(nodes\expressions\CollationForExpression $expression): string
+    {
+        return 'collation for(' . $expression->argument->dispatch($this) . ')';
+    }
+
+    public function walkExtractExpression(nodes\expressions\ExtractExpression $expression): string
+    {
+        $field = in_array($expression->field, $expression::KEYWORDS)
+            ? $expression->field
+            : (new nodes\Identifier($expression->field))->dispatch($this);
+
+        return 'extract(' . $field . ' from ' . $expression->source->dispatch($this) . ')';
+    }
+
     public function walkFunctionExpression(nodes\expressions\FunctionExpression $expression): string
     {
         if (!$expression->withinGroup) {
@@ -987,6 +1001,15 @@ class SqlBuilderWalker implements StatementToStringWalker
         return $expression->left->dispatch($this) . ' overlaps ' . $expression->right->dispatch($this);
     }
 
+    public function walkOverlayExpression(nodes\expressions\OverlayExpression $expression): string
+    {
+        return 'overlay(' . $expression->string->dispatch($this)
+            . ' placing ' . $expression->newSubstring->dispatch($this)
+            . ' from ' . $expression->start->dispatch($this)
+            . (null === $expression->count ? '' : ' for ' . $expression->count->dispatch($this))
+            . ')';
+    }
+
     public function walkPatternMatchingExpression(nodes\expressions\PatternMatchingExpression $expression): string
     {
         return $this->optionalParentheses($expression->argument, $expression, false)
@@ -999,6 +1022,15 @@ class SqlBuilderWalker implements StatementToStringWalker
                );
     }
 
+    public function walkPositionExpression(nodes\expressions\PositionExpression $expression): string
+    {
+        // Both arguments are b_expr in grammar, our Parser::RestrictedExpression()
+        $substring = $this->optionalParentheses($expression->substring, $this->dummyTypecast);
+        $string    = $this->optionalParentheses($expression->string, $this->dummyTypecast, true);
+
+        return 'position(' . $substring . ' in ' . $string . ')';
+    }
+
     public function walkRowExpression(nodes\expressions\RowExpression $expression): string
     {
         if ($expression->getParentNode() instanceof nodes\lists\RowList) {
@@ -1008,6 +1040,21 @@ class SqlBuilderWalker implements StatementToStringWalker
         } else {
             return '(' . implode(', ', $this->walkGenericNodeList($expression)) . ')';
         }
+    }
+
+    public function walkSubstringFromExpression(nodes\expressions\SubstringFromExpression $expression): string
+    {
+        return 'substring(' . $expression->string->dispatch($this)
+            . (null === $expression->from ? '' : ' from ' . $expression->from->dispatch($this))
+            . (null === $expression->for ? '' : ' for ' . $expression->for->dispatch($this))
+            . ')';
+    }
+
+    public function walkSubstringSimilarExpression(nodes\expressions\SubstringSimilarExpression $expression): string
+    {
+        return 'substring(' . $expression->string->dispatch($this)
+            . ' similar ' . $expression->pattern->dispatch($this)
+            . ' escape ' . $expression->escape->dispatch($this) . ')';
     }
 
     public function walkSubselectExpression(nodes\expressions\SubselectExpression $expression): string

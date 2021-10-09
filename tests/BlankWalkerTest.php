@@ -98,7 +98,13 @@ select distinct on (e1) e2.e3, e4.e5[e6], (e7.e8).e9, $1.e10, array[[e11,2],[3,e
        e37.e38[:], e39.e40[e41:], e42.e43[: e44],
        e45 at time zone e46,
        (e47, 2) overlaps (e48, 3),
-       current_user
+       current_user,
+       extract(epoch from f20),
+       overlay(f21 placing f22 from f23 for f24),
+       position(f25 in f26),
+       collation for(f27),
+       substring(f28 from f29 for f30),
+       substring(f31 similar f32 escape f33)
 from s34, s35 left join (s36 as s37 left join s38 as s39 using (s40))
                 as s41 on s42.s43 = s44.s45,
      s46(s47, 'two', array[3, s48]) with ordinality as s49 (s50 integer, s51 s52 collate s53),
@@ -166,7 +172,7 @@ QRY;
 
     private function assertAllNodeSubClassesAreUsed(Node $ast): void
     {
-        preg_match_all('{"(sad_spirit\\\\pg_builder\\\\(?:[^"]+))"}', serialize($ast), $m);
+        preg_match_all('{"(sad_spirit\\\\pg_builder\\\\[^"]+)"}', serialize($ast), $m);
 
         $notFound = array_diff($this->createListOfAllConcreteNodeSubclasses(), $m[1]);
 

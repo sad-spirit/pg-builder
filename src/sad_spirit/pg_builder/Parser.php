@@ -108,9 +108,14 @@ class Parser
     private const PARENTHESES_SELECT     = 'select';
 
     /**
-     * Returned by {@link checkContentsOfParentheses()} if row constructor is found
+     * Returned by {@link checkContentsOfParentheses()} if row constructor (=expression list) is found
      */
     private const PARENTHESES_ROW        = 'row';
+
+    /**
+     * Returned by {@link checkContentsOfParentheses()} if parentheses contain a named function argument
+     */
+    private const PARENTHESES_ARGS       = 'args';
 
     /**
      * Returned by {@link checkContentsOfParentheses()} if parentheses contain a scalar expression
@@ -322,17 +327,17 @@ class Parser
      *  * row constructors: (foo, bar)
      *  * subselects (select foo, bar)
      *
+     * @param int $lookIdx Where to start looking for parentheses (defaults to current position)
      * @return null|string Either of 'select', 'row' or 'expression'. Null if stream was not on opening parenthesis
      * @throws exceptions\SyntaxException in case of unclosed parenthesis
      */
-    private function checkContentsOfParentheses(): ?string
+    private function checkContentsOfParentheses(int $lookIdx = 0): ?string
     {
         $openParens = [];
-        $lookIdx    = 0;
         while ($this->stream->look($lookIdx)->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
             $openParens[] = $lookIdx++;
         }
-        if (0 === $lookIdx) {
+        if (0 === $lookIdx && [] === $openParens) {
             return null;
         }
 
@@ -344,6 +349,12 @@ class Parser
 
         do {
             $token = $this->stream->look(++$lookIdx);
+            if (
+                (Token::TYPE_COLON_EQUALS === $token->getType() || Token::TYPE_EQUALS_GREATER == $token->getType())
+                && 1 === count($openParens) && !$selectLevel
+            ) {
+                return self::PARENTHESES_ARGS;
+            }
             if (!$token->matches(Token::TYPE_SPECIAL_CHAR)) {
                 continue;
             }
@@ -2662,19 +2673,16 @@ class Parser
                 break;
 
             case 'extract':
-                $funcName = 'date_part';
                 if (
-                    $this->stream->matchesKeyword(['year', 'month', 'day', 'hour', 'minute', 'second'])
+                    $this->stream->matchesKeyword(nodes\expressions\ExtractExpression::KEYWORDS)
                     || $this->stream->matches(Token::TYPE_STRING)
                 ) {
-                    $arguments[] = new nodes\expressions\StringConstant($this->stream->next()->getValue());
+                    $field = $this->stream->next()->getValue();
                 } else {
-                    $arguments[] = new nodes\expressions\StringConstant(
-                        $this->stream->expect(Token::TYPE_IDENTIFIER)->getValue()
-                    );
+                    $field = $this->stream->expect(Token::TYPE_IDENTIFIER)->getValue();
                 }
                 $this->stream->expect(Token::TYPE_KEYWORD, 'from');
-                $arguments[] = $this->Expression();
+                $funcNode = new nodes\expressions\ExtractExpression($field, $this->Expression());
                 break;
 
             case 'overlay':
@@ -2687,17 +2695,17 @@ class Parser
                     $this->stream->next();
                     $arguments[] = $this->Expression();
                 }
+                $funcNode = new nodes\expressions\OverlayExpression(...$arguments);
                 break;
 
             case 'position':
-                // position(A in B) = "position"(B, A)
-                $arguments[] = $this->RestrictedExpression();
+                $substring = $this->RestrictedExpression();
                 $this->stream->expect(Token::TYPE_KEYWORD, 'in');
-                array_unshift($arguments, $this->RestrictedExpression());
+                $funcNode = new nodes\expressions\PositionExpression($substring, $this->RestrictedExpression());
                 break;
 
             case 'substring':
-                $arguments = $this->SubstringFunctionArguments();
+                $funcNode = $this->SubstringExpressionFromArguments();
                 break;
 
             case 'trim':
@@ -2834,50 +2842,62 @@ class Parser
         return [$funcName, $arguments];
     }
 
-    protected function SubstringFunctionArguments(): nodes\lists\FunctionArgumentList
+    protected function SubstringExpressionFromArguments(): nodes\FunctionLike
     {
-        $arguments = new nodes\lists\FunctionArgumentList([$this->Expression()]);
-        $from  = $for = null;
-        if (!$this->stream->matchesKeyword(['from', 'for'])) {
-            if ($this->stream->matchesSpecialChar(',')) {
-                $this->stream->next();
-            } else {
-                $token = $this->stream->getCurrent();
-                throw exceptions\SyntaxException::atPosition(
-                    "Unexpected {$token}, expecting ',' or 'from' or 'for'",
-                    $this->stream->getSource(),
-                    $token->getPosition()
+        if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ')')) {
+            // This is an invocation of user-defined function named "substring" with no arguments
+            return new nodes\expressions\FunctionExpression(
+                new nodes\QualifiedName('substring'),
+                new nodes\lists\FunctionArgumentList()
+            );
+        }
+        switch ($this->checkContentsOfParentheses(-1)) {
+            case self::PARENTHESES_ARGS:
+            case self::PARENTHESES_ROW:
+                // This is an invocation of user-defined function named substring with generic arguments
+                return new nodes\expressions\FunctionExpression(
+                    new nodes\QualifiedName('substring'),
+                    $this->FunctionArgumentList()
                 );
-            }
-            $arguments->merge($this->ExpressionList());
 
-        } else {
-            if ('from' === $this->stream->next()->getValue()) {
-                $from = $this->Expression();
-            } else {
-                $for  = $this->Expression();
-            }
-            if ($this->stream->matchesKeyword(['from', 'for'])) {
-                if (!$from && 'from' === $this->stream->getCurrent()->getValue()) {
-                    $this->stream->next();
-                    $from = $this->Expression();
-
-                } elseif (!$for && 'for' === $this->stream->getCurrent()->getValue()) {
-                    $this->stream->next();
-                    $for  = $this->Expression();
+            default:
+                // This may be either a user-defined function with a single argument or an SQL-standard one
+                $arguments = [$this->Expression()];
+                if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ')')) {
+                    return new nodes\expressions\FunctionExpression(
+                        new nodes\QualifiedName('substring'),
+                        new nodes\lists\FunctionArgumentList($arguments)
+                    );
                 }
-            }
-        }
+                $token = $this->stream->expect(Token::TYPE_KEYWORD, ['from', 'for', 'similar']);
+                if ('similar' === $token->getValue()) {
+                    $similar = $this->Expression();
+                    $this->stream->expect(Token::TYPE_KEYWORD, 'escape');
+                    return new nodes\expressions\SubstringSimilarExpression(
+                        $arguments[0],
+                        $similar,
+                        $this->Expression()
+                    );
+                }
+                $arguments[] = null;
+                $arguments[] = null;
+                if ('from' === $token->getValue()) {
+                    $arguments[1] = $this->Expression();
+                } else {
+                    $arguments[2] = $this->Expression();
+                }
+                if ($this->stream->matchesKeyword(['from', 'for'])) {
+                    if (!$arguments[1] && 'from' === $this->stream->getCurrent()->getValue()) {
+                        $this->stream->next();
+                        $arguments[1] = $this->Expression();
 
-        if ($from && $for) {
-            $arguments->merge([$from, $for]);
-        } elseif (null !== $from) {
-            $arguments[] = $from;
-        } elseif (null !== $for) {
-            $arguments->merge([new nodes\expressions\NumericConstant('1'), $for]);
+                    } elseif (!$arguments[2] && 'for' === $this->stream->getCurrent()->getValue()) {
+                        $this->stream->next();
+                        $arguments[2] = $this->Expression();
+                    }
+                }
+                return new nodes\expressions\SubstringFromExpression(...$arguments);
         }
-
-        return $arguments;
     }
 
     protected function XmlElementFunction(): nodes\xml\XmlElement
@@ -3048,12 +3068,8 @@ class Parser
         if (null === $funcNode && $this->stream->matchesKeywordSequence('collation', 'for')) {
             $this->stream->skip(2);
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-            $argument = $this->Expression();
+            $funcNode = new nodes\expressions\CollationForExpression($this->Expression());
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-            $funcNode = new nodes\FunctionCall(
-                new nodes\QualifiedName('pg_catalog', 'pg_collation_for'),
-                new nodes\lists\FunctionArgumentList([$argument])
-            );
         }
 
         return $funcNode;
@@ -3158,13 +3174,59 @@ class Parser
     }
 
     /**
+     * func_arg_list production from grammar, needed for substring() and friends
+     *
+     * @return nodes\lists\FunctionArgumentList
+     */
+    protected function FunctionArgumentList(): nodes\lists\FunctionArgumentList
+    {
+        $positionalArguments = $namedArguments = [];
+        [$value, $name, ] = $this->GenericFunctionArgument(false);
+        if (!$name) {
+            $positionalArguments[] = $value;
+        } else {
+            $namedArguments[(string)$name] = $value;
+        }
+
+        while ($this->stream->matchesSpecialChar(',')) {
+            $this->stream->next();
+
+            $argToken = $this->stream->getCurrent();
+            [$value, $name, ] = $this->GenericFunctionArgument(false);
+            if (!$name) {
+                if (empty($namedArguments)) {
+                    $positionalArguments[] = $value;
+                } else {
+                    throw exceptions\SyntaxException::atPosition(
+                        'Positional argument cannot follow named argument',
+                        $this->stream->getSource(),
+                        $argToken->getPosition()
+                    );
+                }
+            } elseif (!isset($namedArguments[(string)$name])) {
+                $namedArguments[(string)$name] = $value;
+            } else {
+                throw exceptions\SyntaxException::atPosition(
+                    "Argument name {$name} used more than once",
+                    $this->stream->getSource(),
+                    $argToken->getPosition()
+                );
+            }
+        }
+
+        return new nodes\lists\FunctionArgumentList($positionalArguments + $namedArguments);
+    }
+
+    /**
      * Parses (maybe named or variadic) function argument
      *
+     * @param bool $allowVariadic Whether to check for VARIADIC keyword before the argument
      * @return array{nodes\ScalarExpression, ?nodes\Identifier, bool}
      */
-    protected function GenericFunctionArgument(): array
+    protected function GenericFunctionArgument(bool $allowVariadic = true): array
     {
-        if ($variadic = $this->stream->matchesKeyword('variadic')) {
+        $variadic = false;
+        if ($allowVariadic && ($variadic = $this->stream->matchesKeyword('variadic'))) {
             $this->stream->next();
         }
 

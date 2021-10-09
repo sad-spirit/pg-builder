@@ -398,6 +398,24 @@ interface TreeWalker
     public function walkCollateExpression(nodes\expressions\CollateExpression $expression);
 
     /**
+     * Visits the node representing COLLATION FOR(...) expression
+     *
+     * @param nodes\expressions\CollationForExpression $expression
+     * @return mixed
+     * @since 2.0.0 previously represented by FunctionExpression
+     */
+    public function walkCollationForExpression(nodes\expressions\CollationForExpression $expression);
+
+    /**
+     * Visits the node representing EXTRACT(field FROM source) expression
+     *
+     * @param nodes\expressions\ExtractExpression $expression
+     * @return mixed
+     * @since 2.0.0 previously represented by FunctionExpression
+     */
+    public function walkExtractExpression(nodes\expressions\ExtractExpression $expression);
+
+    /**
      * Visits the node representing a function call in scalar context
      *
      * @param nodes\expressions\FunctionExpression $expression
@@ -479,6 +497,15 @@ interface TreeWalker
     public function walkOverlapsExpression(nodes\expressions\OverlapsExpression $expression);
 
     /**
+     * Visits the node representing OVERLAY(...) function call with special arguments format
+     *
+     * @param nodes\expressions\OverlayExpression $expression
+     * @return mixed
+     * @since 2.0.0 previously represented by FunctionExpression
+     */
+    public function walkOverlayExpression(nodes\expressions\OverlayExpression $expression);
+
+    /**
      * Visits the node representing [NOT] LIKE | ILIKE | SIMILAR TO operators
      *
      * @param nodes\expressions\PatternMatchingExpression $expression
@@ -486,6 +513,15 @@ interface TreeWalker
      * @since 0.1.0
      */
     public function walkPatternMatchingExpression(nodes\expressions\PatternMatchingExpression $expression);
+
+    /**
+     * Visits the node representing POSITION(...) function call with special arguments format
+     *
+     * @param nodes\expressions\PositionExpression $expression
+     * @return mixed
+     * @since 2.0.0 previously represented by FunctionExpression
+     */
+    public function walkPositionExpression(nodes\expressions\PositionExpression $expression);
 
     /**
      * Visits the node representing a ROW(...) constructor expression
@@ -504,6 +540,23 @@ interface TreeWalker
      * @since 0.1.0
      */
     public function walkSubselectExpression(nodes\expressions\SubselectExpression $expression);
+
+    /**
+     * Visits the node representing SUBSTRING(string FROM ...) function call with special arguments format
+     *
+     * @param nodes\expressions\SubstringFromExpression $expression
+     * @return mixed
+     * @since 2.0.0 previously represented by FunctionExpression
+     */
+    public function walkSubstringFromExpression(nodes\expressions\SubstringFromExpression $expression);
+
+    /**
+     * Visits the node representing SUBSTRING(string SIMILAR ...) function call with special arguments format
+     *
+     * @return mixed
+     * @since 2.0.0
+     */
+    public function walkSubstringSimilarExpression(nodes\expressions\SubstringSimilarExpression $expression);
 
     /**
      * Visits the node representing a conversion of some value to a given datatype
