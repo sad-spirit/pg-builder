@@ -2686,16 +2686,7 @@ class Parser
                 break;
 
             case 'overlay':
-                $arguments[] = $this->Expression();
-                $this->stream->expect(Token::TYPE_KEYWORD, 'placing');
-                $arguments[] = $this->Expression();
-                $this->stream->expect(Token::TYPE_KEYWORD, 'from');
-                $arguments[] = $this->Expression();
-                if ($this->stream->matchesKeyword('for')) {
-                    $this->stream->next();
-                    $arguments[] = $this->Expression();
-                }
-                $funcNode = new nodes\expressions\OverlayExpression(...$arguments);
+                $funcNode = $this->OverlayExpressionFromArguments();
                 break;
 
             case 'position':
@@ -2842,6 +2833,45 @@ class Parser
         return [$funcName, $arguments];
     }
 
+    protected function OverlayExpressionFromArguments(): nodes\FunctionLike
+    {
+        if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ')')) {
+            // This is an invocation of user-defined function named "overlay" with no arguments
+            return new nodes\expressions\FunctionExpression(
+                new nodes\QualifiedName('overlay'),
+                new nodes\lists\FunctionArgumentList()
+            );
+        }
+        switch ($this->checkContentsOfParentheses(-1)) {
+            case self::PARENTHESES_ARGS:
+            case self::PARENTHESES_ROW:
+                // This is an invocation of user-defined function named "overlay" with generic arguments
+                return new nodes\expressions\FunctionExpression(
+                    new nodes\QualifiedName('overlay'),
+                    $this->FunctionArgumentList()
+                );
+
+            default:
+                // This may be either a user-defined function with a single argument or an SQL-standard one
+                $arguments = [$this->Expression()];
+                if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ')')) {
+                    return new nodes\expressions\FunctionExpression(
+                        new nodes\QualifiedName('overlay'),
+                        new nodes\lists\FunctionArgumentList($arguments)
+                    );
+                }
+                $this->stream->expect(Token::TYPE_KEYWORD, 'placing');
+                $arguments[] = $this->Expression();
+                $this->stream->expect(Token::TYPE_KEYWORD, 'from');
+                $arguments[] = $this->Expression();
+                if ($this->stream->matchesKeyword('for')) {
+                    $this->stream->next();
+                    $arguments[] = $this->Expression();
+                }
+                return new nodes\expressions\OverlayExpression(...$arguments);
+        }
+    }
+
     protected function SubstringExpressionFromArguments(): nodes\FunctionLike
     {
         if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ')')) {
@@ -2854,7 +2884,7 @@ class Parser
         switch ($this->checkContentsOfParentheses(-1)) {
             case self::PARENTHESES_ARGS:
             case self::PARENTHESES_ROW:
-                // This is an invocation of user-defined function named substring with generic arguments
+                // This is an invocation of user-defined function named "substring" with generic arguments
                 return new nodes\expressions\FunctionExpression(
                     new nodes\QualifiedName('substring'),
                     $this->FunctionArgumentList()

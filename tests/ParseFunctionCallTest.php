@@ -136,7 +136,12 @@ QRY
     public function testOverlay(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
-    overlay('fooxxxbaz' placing 'bar' from 3 for 3), overlay('adc' placing 'b' from 2)
+    overlay('fooxxxbaz' placing 'bar' from 3 for 3),
+    overlay('adc' placing 'b' from 2),
+    overlay(),
+    overlay(foo => bar),
+    overlay('foo'),
+    overlay('foo', 2, 3)
 QRY
         );
         $this->assertEquals(
@@ -147,7 +152,22 @@ QRY
                     new NumericConstant('3'),
                     new NumericConstant('3')
                 ),
-                new OverlayExpression(new StringConstant('adc'), new StringConstant('b'), new NumericConstant('2'))
+                new OverlayExpression(new StringConstant('adc'), new StringConstant('b'), new NumericConstant('2')),
+                new FunctionExpression(new QualifiedName('overlay'), new FunctionArgumentList()),
+                new FunctionExpression(
+                    new QualifiedName('overlay'),
+                    new FunctionArgumentList(['foo' => new ColumnReference('bar')])
+                ),
+                new FunctionExpression(
+                    new QualifiedName('overlay'),
+                    new FunctionArgumentList([new StringConstant('foo')])
+                ),
+                new FunctionExpression(
+                    new QualifiedName('overlay'),
+                    new FunctionArgumentList(
+                        [new StringConstant('foo'), new NumericConstant('2'), new NumericConstant('3')]
+                    )
+                )
             ]),
             $list
         );
