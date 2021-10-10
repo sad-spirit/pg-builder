@@ -454,6 +454,12 @@ abstract class BlankWalker implements TreeWalker
         return null;
     }
 
+    public function walkNormalizeExpression(nodes\expressions\NormalizeExpression $expression)
+    {
+        $expression->argument->dispatch($this);
+        return null;
+    }
+
     public function walkNotExpression(nodes\expressions\NotExpression $expression)
     {
         $expression->argument->dispatch($this);
@@ -543,6 +549,12 @@ abstract class BlankWalker implements TreeWalker
         $expression->string->dispatch($this);
         $expression->pattern->dispatch($this);
         $expression->escape->dispatch($this);
+        return null;
+    }
+
+    public function walkTrimExpression(nodes\expressions\TrimExpression $expression)
+    {
+        $expression->arguments->dispatch($this);
         return null;
     }
 
@@ -684,6 +696,13 @@ abstract class BlankWalker implements TreeWalker
         $xml->name->dispatch($this);
         $xml->attributes->dispatch($this);
         $xml->content->dispatch($this);
+        return null;
+    }
+
+    public function walkXmlExists(nodes\xml\XmlExists $xml)
+    {
+        $xml->xpath->dispatch($this);
+        $xml->xml->dispatch($this);
         return null;
     }
 

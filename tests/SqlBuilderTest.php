@@ -171,7 +171,10 @@ select distinct on (something) quux.one, xyzzy.two[1], (quux.three).four, $1.bla
        overlay('foobar' placing 'baz' from 4 for 3),
        position('a' in 'foobar'),
        collation for(collatable),
-       substring(), substring('a string' from 3 for 6), substring('a string' similar pattern escape '#')
+       substring(), substring('a string' from 3 for 6), substring('a string' similar pattern escape '#'),
+       trim(leading 'f' from 'foo'), trim(from 'foo', 'f', 'o'),
+       normalize(abnormal, nfd),
+       xmlexists('//foo[text() = ''bar'']' passing by ref ('<blah><foo>bar' || '</foo></blah>'))
 from quux, xyzzy left join (atable as one left join anothertable as two using (commonfield) as usingalias)
                 as three on xyzzy.id = three.xyzzy_id,
      some_function(1, 'two', array[3, 4]) with ordinality as sf (id integer, name text collate somecollation),

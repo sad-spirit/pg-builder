@@ -461,6 +461,15 @@ interface TreeWalker
     public function walkLogicalExpression(nodes\expressions\LogicalExpression $expression);
 
     /**
+     * Visits the node representing NORMALIZE(...) function call with special arguments format
+     *
+     * @param nodes\expressions\NormalizeExpression $expression
+     * @return mixed
+     * @since 2.0.0 previously represented by FunctionExpression
+     */
+    public function walkNormalizeExpression(nodes\expressions\NormalizeExpression $expression);
+
+    /**
      * Visits the node representing a logical NOT operator applied to an expression
      *
      * @param nodes\expressions\NotExpression $expression
@@ -557,6 +566,15 @@ interface TreeWalker
      * @since 2.0.0
      */
     public function walkSubstringSimilarExpression(nodes\expressions\SubstringSimilarExpression $expression);
+
+    /**
+     * Visits the node representing TRIM(...) function call with special arguments format
+     *
+     * @param nodes\expressions\TrimExpression $expression
+     * @return mixed
+     * @since 2.0.0 previously represented by FunctionExpression
+     */
+    public function walkTrimExpression(nodes\expressions\TrimExpression $expression);
 
     /**
      * Visits the node representing a conversion of some value to a given datatype
@@ -705,6 +723,15 @@ interface TreeWalker
      * @since 0.1.0
      */
     public function walkXmlElement(nodes\xml\XmlElement $xml);
+
+    /**
+     * Visits the node representing XMLEXISTS() expression
+     *
+     * @param nodes\xml\XmlExists $xml
+     * @return mixed
+     * @since 2.0.0 previously represented by FunctionExpression
+     */
+    public function walkXmlExists(nodes\xml\XmlExists $xml);
 
     /**
      * Visits the node representing an xmlforest() expression

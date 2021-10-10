@@ -2700,7 +2700,7 @@ class Parser
                 break;
 
             case 'trim':
-                [$funcName, $arguments] = $this->TrimFunctionArguments();
+                $funcNode = new nodes\expressions\TrimExpression(...$this->TrimFunctionArguments());
                 break;
 
             case 'nullif': // only two arguments, so don't use ExpressionList()
@@ -2715,7 +2715,7 @@ class Parser
                 break;
 
             case 'xmlexists':
-                $arguments = $this->XmlExistsArguments();
+                $funcNode = new nodes\xml\XmlExists(...$this->XmlExistsArguments());
                 break;
 
             case 'xmlforest':
@@ -2766,12 +2766,15 @@ class Parser
                 break;
 
             case 'normalize':
-                $arguments[] = $this->Expression();
+                $argument = $this->Expression();
                 if ($this->stream->matchesSpecialChar(',')) {
                     $this->stream->skip(1);
-                    $form = $this->stream->expect(Token::TYPE_KEYWORD, ['nfc', 'nfd', 'nfkc', 'nfkd']);
-                    $arguments[] = new nodes\expressions\StringConstant($form->getValue());
+                    $form = $this->stream->expect(
+                        Token::TYPE_KEYWORD,
+                        nodes\expressions\NormalizeExpression::FORMS
+                    )->getValue();
                 }
+                $funcNode = new nodes\expressions\NormalizeExpression($argument, $form ?? null);
                 break;
 
             default: // 'coalesce', 'greatest', 'least', 'xmlconcat'
@@ -2782,35 +2785,17 @@ class Parser
         }
 
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-        if (empty($funcNode)) {
-            $funcNode = new nodes\FunctionCall(
-                new nodes\QualifiedName('pg_catalog', $funcName),
-                new nodes\lists\FunctionArgumentList($arguments)
-            );
-        }
         return $funcNode;
     }
 
     /**
-     * @return array{string, iterable<nodes\ScalarExpression>}
+     * @return array{nodes\lists\ExpressionList, string}
      */
     protected function TrimFunctionArguments(): array
     {
-        if (!$this->stream->matchesKeyword(['both', 'leading', 'trailing'])) {
-            $funcName = 'btrim';
-        } else {
-            switch ($this->stream->next()->getValue()) {
-                case 'leading':
-                    $funcName = 'ltrim';
-                    break;
-                case 'trailing':
-                    $funcName = 'rtrim';
-                    break;
-                case 'both':
-                default:
-                    $funcName = 'btrim';
-            }
-        }
+        $side = $this->stream->matchesKeyword(nodes\expressions\TrimExpression::SIDES)
+            ? $this->stream->next()->getValue()
+            : nodes\expressions\TrimExpression::BOTH;
 
         if ($this->stream->matchesKeyword('from')) {
             $this->stream->next();
@@ -2821,16 +2806,16 @@ class Parser
                 $this->stream->next();
                 $arguments   = $this->ExpressionList();
                 $arguments[] = $first;
-            } elseif ($this->stream->matchesSpecialChar(',')) {
-                $this->stream->next();
-                $arguments = new nodes\lists\ExpressionList([$first]);
-                $arguments->merge($this->ExpressionList());
             } else {
-                $arguments = [$first];
+                $arguments = new nodes\lists\ExpressionList([$first]);
+                if ($this->stream->matchesSpecialChar(',')) {
+                    $this->stream->next();
+                    $arguments->merge($this->ExpressionList());
+                }
             }
         }
 
-        return [$funcName, $arguments];
+        return [$arguments, $side];
     }
 
     protected function OverlayExpressionFromArguments(): nodes\FunctionLike

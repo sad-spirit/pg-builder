@@ -970,6 +970,12 @@ class SqlBuilderWalker implements StatementToStringWalker
         return implode($delimiter, $items);
     }
 
+    public function walkNormalizeExpression(nodes\expressions\NormalizeExpression $expression): string
+    {
+        return 'normalize(' . $expression->argument->dispatch($this)
+            . (null === $expression->form ? '' : ', ' . $expression->form) . ')';
+    }
+
     public function walkNotExpression(nodes\expressions\NotExpression $expression): string
     {
         return 'not ' . $this->optionalParentheses($expression->argument, $expression);
@@ -1065,6 +1071,19 @@ class SqlBuilderWalker implements StatementToStringWalker
         $this->indentLevel--;
 
         return $sql . $this->options['linebreak'] . $this->getIndent() . ')';
+    }
+
+    public function walkTrimExpression(nodes\expressions\TrimExpression $expression): string
+    {
+        $arguments  = $this->walkGenericNodeList($expression->arguments);
+        $from       = \array_shift($arguments);
+        $characters = \array_pop($arguments);
+
+        return 'trim(' . $expression->side
+            . (null !== $characters ? ' ' . $characters : '')
+            . (null !== $from ? ' from ' . $from : '')
+            . (empty($arguments) ? '' : ', ' . \implode(', ', $arguments))
+            . ')';
     }
 
     public function walkTypecastExpression(nodes\expressions\TypecastExpression $expression): string
@@ -1272,6 +1291,13 @@ class SqlBuilderWalker implements StatementToStringWalker
             $sql .= ', ' . implode(', ', $xml->content->dispatch($this));
         }
         return $sql . ')';
+    }
+
+    public function walkXmlExists(nodes\xml\XmlExists $xml): string
+    {
+        return 'xmlexists(' . $this->optionalParentheses($xml->xpath, $this->dummyTypecast)
+            . ' passing ' . $this->optionalParentheses($xml->xml, $this->dummyTypecast, true)
+            . ')';
     }
 
     public function walkXmlForest(nodes\xml\XmlForest $xml): string

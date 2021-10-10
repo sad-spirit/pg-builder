@@ -40,6 +40,7 @@ use sad_spirit\pg_builder\nodes\expressions\{
     CollationForExpression,
     ExtractExpression,
     FunctionExpression,
+    NormalizeExpression,
     NullIfExpression,
     OverlayExpression,
     PositionExpression,
@@ -49,7 +50,8 @@ use sad_spirit\pg_builder\nodes\expressions\{
     StringConstant,
     SubstringFromExpression,
     SubstringSimilarExpression,
-    SystemFunctionCall
+    SystemFunctionCall,
+    TrimExpression
 };
 use sad_spirit\pg_builder\nodes\lists\{
     ExpressionList,
@@ -59,6 +61,7 @@ use sad_spirit\pg_builder\nodes\lists\{
 };
 use sad_spirit\pg_builder\nodes\xml\{
     XmlElement,
+    XmlExists,
     XmlForest,
     XmlParse,
     XmlPi,
@@ -237,27 +240,30 @@ QRY
     public function testTrim(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
-    trim(from ' foo '), trim(leading '_' from '_foo_'), trim(trailing from 'foo '), trim(trailing from 'foo', 'o')
+    trim(from ' foo '), trim(leading '_' from '_foo_'), trim(trailing from 'foo '), trim(trailing from 'foo', 'o'),
+    trim(from 'foo', 'f', 'o') -- this will ultimately result in error in Postgres, but should parse
 QRY
         );
         $this->assertEquals(
             new ExpressionList([
-                new FunctionExpression(
-                    new QualifiedName('pg_catalog', 'btrim'),
-                    new FunctionArgumentList([new StringConstant(' foo ')])
+                new TrimExpression(new ExpressionList([new StringConstant(' foo ')])),
+                new TrimExpression(
+                    new ExpressionList([new StringConstant('_foo_'), new StringConstant('_')]),
+                    TrimExpression::LEADING
                 ),
-                new FunctionExpression(
-                    new QualifiedName('pg_catalog', 'ltrim'),
-                    new FunctionArgumentList([new StringConstant('_foo_'), new StringConstant('_')])
+                new TrimExpression(
+                    new ExpressionList([new StringConstant('foo ')]),
+                    TrimExpression::TRAILING
                 ),
-                new FunctionExpression(
-                    new QualifiedName('pg_catalog', 'rtrim'),
-                    new FunctionArgumentList([new StringConstant('foo ')])
+                new TrimExpression(
+                    new ExpressionList([new StringConstant('foo'), new StringConstant('o')]),
+                    TrimExpression::TRAILING
                 ),
-                new FunctionExpression(
-                    new QualifiedName('pg_catalog', 'rtrim'),
-                    new FunctionArgumentList([new StringConstant('foo'), new StringConstant('o')])
-                ),
+                new TrimExpression(new ExpressionList([
+                    new StringConstant('foo'),
+                    new StringConstant('f'),
+                    new StringConstant('o')
+                ]))
             ]),
             $list
         );
@@ -304,12 +310,9 @@ QRY
     public function testXmlExists(): void
     {
         $this->assertEquals(
-            new FunctionExpression(
-                new QualifiedName('pg_catalog', 'xmlexists'),
-                new FunctionArgumentList([
-                    new StringConstant("//foo[text() = 'bar']"),
-                    new StringConstant('<blah><foo>bar</foo></blah>')
-                ])
+            new XmlExists(
+                new StringConstant("//foo[text() = 'bar']"),
+                new StringConstant('<blah><foo>bar</foo></blah>')
             ),
             $this->parser->parseExpression(
                 "xmlexists('//foo[text() = ''bar'']' passing by ref '<blah><foo>bar</foo></blah>')"
@@ -368,14 +371,8 @@ QRY
     {
         $this::assertEquals(
             new ExpressionList([
-                new FunctionExpression(
-                    new QualifiedName('pg_catalog', 'normalize'),
-                    new FunctionArgumentList([new ColumnReference('foo')])
-                ),
-                new FunctionExpression(
-                    new QualifiedName('pg_catalog', 'normalize'),
-                    new FunctionArgumentList([new ColumnReference('bar'), new StringConstant('nfd')])
-                )
+                new NormalizeExpression(new ColumnReference('foo')),
+                new NormalizeExpression(new ColumnReference('bar'), NormalizeExpression::NFD)
             ]),
             $this->parser->parseExpressionList('normalize(foo), normalize(bar, nFd)')
         );

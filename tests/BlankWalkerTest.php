@@ -104,7 +104,10 @@ select distinct on (e1) e2.e3, e4.e5[e6], (e7.e8).e9, $1.e10, array[[e11,2],[3,e
        position(f25 in f26),
        collation for(f27),
        substring(f28 from f29 for f30),
-       substring(f31 similar f32 escape f33)
+       substring(f31 similar f32 escape f33),
+       trim(leading f34 from f35),
+       normalize(f36, nfkc),
+       xmlexists(f37 passing by value f38)
 from s34, s35 left join (s36 as s37 left join s38 as s39 using (s40))
                 as s41 on s42.s43 = s44.s45,
      s46(s47, 'two', array[3, s48]) with ordinality as s49 (s50 integer, s51 s52 collate s53),
