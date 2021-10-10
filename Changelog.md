@@ -11,6 +11,25 @@
     exposed as `$search` and `$cycle` properties of `CommonTableExpression` class.
   * Alias can be specified for `USING` clause of `JOIN` expression. Exposed as `$alias` property of a new
     `UsingClause` node which is now used for `$using` property of `JoinExpression`.
+  * `SUBSTRING(string SIMILAR pattern ESCAPE escape)` function call, represented by `nodes\expressions\SubstringSimilarExpression`
+
+### Changed
+Several SQL standard functions with special arguments format (arguments separated by keywords or keywords as arguments, etc) were
+previously parsed into `FunctionExpression` with `pg_catalog.internal_name` for a function name and a standard argument list,
+they appeared that way in generated SQL: `trim(trailing 'o' from 'foo')` -> `pg_catalog.rtrim('foo', 'o')`.
+These functions are now represented by separate `Node` subclasses and will appear in generated SQL the same way they did in source. 
+The following functions were affected:
+* `COLLATION FOR(...)` is now represented by `nodes\expressions\CollationForExpression`
+* `EXTRACT(field FROM source)` - `nodes\expressions\ExtractExpression`
+* `NORMALIZE(...)` - `nodes\expressions\NormalizeExpression`
+* `OVERLAY(...)` - `nodes\expressions\OverlayExpression`
+* `POSITION(...)` - `nodes\expressions\PositionExpression`
+* `SUBSTRING(... FROM ...)` - `nodes\expressions\SubstringFromExpression`
+* `TRIM(...)` - `nodes\expressions\TrimExpression`
+* `XMLEXISTS(...)` - `nodes\xml\XmlExists`
+
+This follows the changes done in Postgres 14. Note also that `EXTRACT()` function maps to internal `pg_catalog.extract()` 
+in Postgres 14 while in previous versions it mapped to `pg_catalog.date_part()`.
 
 ### Removed
 * Support for `IS [NOT] OF` expressions
