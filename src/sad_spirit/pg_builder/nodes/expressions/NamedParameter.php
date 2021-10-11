@@ -51,8 +51,18 @@ class NamedParameter extends Parameter
         return $this->p_name;
     }
 
+    public function __serialize(): array
+    {
+        return [$this->p_name];
+    }
+
     public function unserialize($serialized)
     {
         $this->p_name = $serialized;
+    }
+
+    public function __unserialize(array $data): void
+    {
+        [$this->p_name] = $data;
     }
 }

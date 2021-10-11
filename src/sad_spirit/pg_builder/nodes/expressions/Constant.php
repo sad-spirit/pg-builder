@@ -130,8 +130,18 @@ abstract class Constant extends GenericNode implements ScalarExpression
         return $this->p_value;
     }
 
+    public function __serialize(): array
+    {
+        return [$this->p_value];
+    }
+
     public function unserialize($serialized)
     {
         $this->p_value = $serialized;
+    }
+
+    public function __unserialize(array $data): void
+    {
+        [$this->p_value] = $data;
     }
 }

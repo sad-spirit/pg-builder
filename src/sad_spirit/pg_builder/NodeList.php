@@ -23,8 +23,7 @@ namespace sad_spirit\pg_builder;
 /**
  * Interface for "array-like" AST nodes, e.g. list of tables in FROM clause
  *
- * @psalm-template TKey of array-key
- * @phpstan-template TKey
+ * @template TKey of array-key
  * @template T
  * @template TListInput
  * @extends \IteratorAggregate<TKey, T>

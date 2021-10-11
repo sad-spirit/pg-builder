@@ -116,6 +116,16 @@ class QualifiedName extends GenericNode
         }, $this->propertyNames));
     }
 
+    public function __serialize(): array
+    {
+        return array_map(
+            function ($prop) {
+                return $this->$prop instanceof Identifier ? $this->$prop->value : $this->$prop;
+            },
+            $this->propertyNames
+        );
+    }
+
     protected function unserializeProperties(array $properties): void
     {
         $this->generatePropertyNames();

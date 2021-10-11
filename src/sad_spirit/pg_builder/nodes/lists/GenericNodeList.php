@@ -34,8 +34,8 @@ use sad_spirit\pg_builder\{
  * An array that enforces the type of its elements
  *
  * Inspired by PEAR's PHP_ArrayOf class
- * @psalm-template TKey of array-key
- * @phpstan-template TKey
+ *
+ * @template TKey of array-key
  * @template T of Node
  * @template TListInput
  * @template TInput
@@ -101,12 +101,32 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     }
 
     /**
+     * GenericNodeList only serializes its $offsets property by default
+     * @return array
+     */
+    public function __serialize(): array
+    {
+        return $this->offsets;
+    }
+
+    /**
      * GenericNodeList only unserializes its $offsets property by default
      * @param string $serialized
      */
     public function unserialize($serialized)
     {
         $this->offsets = unserialize($serialized);
+        $this->updateParentNodeOnOffsets();
+    }
+
+    /**
+     * GenericNodeList only unserializes its $offsets property by default
+     * @param array $data
+     */
+    public function __unserialize(array $data): void
+    {
+        /** @phpstan-var array<TKey, T> $data */
+        $this->offsets = $data;
         $this->updateParentNodeOnOffsets();
     }
 
@@ -131,7 +151,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      *
      * @param TKey $offset
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->offsets[$offset]);
     }
@@ -144,7 +164,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * @param TKey $offset
      * @return T
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): Node
     {
         if (isset($this->offsets[$offset])) {
             return $this->offsets[$offset];
@@ -160,7 +180,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * @param TKey|null $offset
      * @param T|TInput  $value
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         $prepared = $this->prepareListElement($value);
 
@@ -183,7 +203,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      *
      * {@inheritDoc}
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         if (isset($this->offsets[$offset])) {
             if ($this->offsets[$offset] instanceof GenericNode) {
@@ -200,7 +220,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      *
      * {@inheritDoc}
      */
-    public function count()
+    public function count(): int
     {
         return count($this->offsets);
     }
@@ -209,8 +229,9 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * Method required by IteratorAggregate interface
      *
      * {@inheritDoc}
+     * @return \ArrayIterator<TKey, T>
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->offsets);
     }
@@ -276,6 +297,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
             null === ($result = parent::removeChild($child))
             && false !== ($key = array_search($child, $this->offsets, true))
         ) {
+            /** @phpstan-var TKey $key */
             $this->offsetUnset($key);
             return $child;
         }

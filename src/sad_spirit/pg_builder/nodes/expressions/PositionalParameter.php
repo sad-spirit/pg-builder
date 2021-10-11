@@ -55,8 +55,18 @@ class PositionalParameter extends Parameter
         return (string)$this->p_position;
     }
 
+    public function __serialize(): array
+    {
+        return [$this->p_position];
+    }
+
     public function unserialize($serialized)
     {
         $this->p_position = (int)$serialized;
+    }
+
+    public function __unserialize(array $data): void
+    {
+        [$this->p_position] = $data;
     }
 }

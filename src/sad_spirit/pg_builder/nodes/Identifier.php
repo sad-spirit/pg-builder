@@ -94,12 +94,30 @@ class Identifier extends GenericNode
     }
 
     /**
+     * Serialized representation of Identifier is its value property
+     * @return array
+     */
+    public function __serialize(): array
+    {
+        return [$this->p_value];
+    }
+
+    /**
      * Sets the value property from given string
      * @param string $serialized
      */
     public function unserialize($serialized)
     {
         $this->p_value = $serialized;
+    }
+
+    /**
+     * Sets the value property from given array
+     * @param array $data
+     */
+    public function __unserialize(array $data): void
+    {
+        [$this->p_value] = $data;
     }
 
     /**

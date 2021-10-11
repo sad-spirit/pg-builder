@@ -149,6 +149,19 @@ class ColumnReference extends GenericNode implements ScalarExpression
         }, $this->propertyNames));
     }
 
+    public function __serialize(): array
+    {
+        return array_map(
+            function ($prop) {
+                if (null !== $this->$prop) {
+                    return $this->$prop instanceof Identifier ? $this->$prop->value : '';
+                }
+                return null;
+            },
+            $this->propertyNames
+        );
+    }
+
     protected function unserializeProperties(array $properties): void
     {
         $this->generatePropertyNames();

@@ -50,6 +50,6 @@ parameters:
 
 		# triggered by $this->offsets[] = ...
 		-
-			message: "#^Array \\(array<TKey, T of sad_spirit\\\\pg_builder\\\\Node>\\) does not accept key int\\.$#"
+			message: "#^Array \\(array<TKey of \\(int\\|string\\), T of sad_spirit\\\\pg_builder\\\\Node>\\) does not accept key int\\.$#"
 			count: 1
 			path: src/sad_spirit/pg_builder/nodes/lists/GenericNodeList.php

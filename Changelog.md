@@ -31,6 +31,11 @@ The following functions were affected:
 This follows the changes done in Postgres 14. Note also that `EXTRACT()` function maps to internal `pg_catalog.extract()` 
 in Postgres 14 while in previous versions it mapped to `pg_catalog.date_part()`.
 
+### Fixed
+The package will run under PHP 8.1 with no `E_DEPRECATED` messages:
+* Added return type hints to implementations of methods from `ArrayAccess`, `Countable`, and `IteratorAggregate` interfaces.
+* Implemented `__serialize()` and `__unserialize()` magic methods alongside methods defined in deprecated `Serializable` interface.
+
 ### Removed
 * Support for `IS [NOT] OF` expressions
 * Support for postfix operators

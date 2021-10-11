@@ -38,7 +38,7 @@ abstract class NonAssociativeList extends GenericNodeList
      *
      * {@inheritDoc}
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         if (null !== $offset && (!is_int($offset) || $offset < 0)) {
             if (!is_int($offset) && ctype_digit((string)$offset)) {

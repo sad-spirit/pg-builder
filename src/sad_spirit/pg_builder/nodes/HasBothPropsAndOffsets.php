@@ -32,12 +32,24 @@ trait HasBothPropsAndOffsets
         return serialize([$this->collectProperties(), $this->offsets]);
     }
 
+    public function __serialize(): array
+    {
+        return [$this->collectProperties(), $this->offsets];
+    }
+
     /**
      * @param string $serialized
      */
     public function unserialize($serialized)
     {
         [$props, $this->offsets] = unserialize($serialized);
+        $this->unserializeProperties($props);
+        $this->updateParentNodeOnOffsets();
+    }
+
+    public function __unserialize(array $data): void
+    {
+        [$props, $this->offsets] = $data;
         $this->unserializeProperties($props);
         $this->updateParentNodeOnOffsets();
     }
