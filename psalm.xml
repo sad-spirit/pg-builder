@@ -27,14 +27,6 @@
             </errorLevel>
         </InaccessibleProperty>
 
-        <InvalidArgument>
-            <errorLevel type="suppress">
-                <!-- https://github.com/vimeo/psalm/issues/6631 -->
-                <file name="src/sad_spirit/pg_builder/Parser.php"/>
-                <referencedFunction name="\sad_spirit\pg_builder\nodes\expressions\OverlayExpression::__construct"/>
-            </errorLevel>
-        </InvalidArgument>
-        
         <InvalidCatch>
             <errorLevel type="suppress">
                 <!-- Doesn't like catching \Psr\Cache\InvalidArgumentException that does not extend \Throwable -->
@@ -89,7 +81,7 @@
     </issueHandlers>
 
     <stubs>
-        <file name="tests/config.php.dist"/>
+        <file name="tests/config.php.psalm"/>
     </stubs>
 
 </psalm>

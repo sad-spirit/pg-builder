@@ -47,11 +47,11 @@ class CycleClause extends GenericNode
 {
     use NonRecursiveNode;
 
-    /** @var IdentifierList */
+    /** @var IdentifierList|null */
     protected $p_trackColumns;
-    /** @var Identifier */
+    /** @var Identifier|null */
     protected $p_markColumn;
-    /** @var Identifier */
+    /** @var Identifier|null */
     protected $p_pathColumn;
     /** @var Constant|ConstantTypecastExpression|null */
     protected $p_markValue;

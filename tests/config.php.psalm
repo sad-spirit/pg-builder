@@ -1,0 +1,14 @@
+<?php
+
+// This should prevent psalm from ASSuming something about the constants' values.
+// Until https://github.com/vimeo/psalm/issues/4024 is implemented
+
+define(
+    'TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING',
+    mt_rand(1, 10) > 5 ? 'a string' : false
+);
+
+define(
+    'TESTS_SAD_SPIRIT_PG_BUILDER_PDO_DSN',
+    mt_rand(1, 10) > 5 ? 'a string' : false
+);

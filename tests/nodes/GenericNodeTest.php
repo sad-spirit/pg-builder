@@ -31,13 +31,10 @@ class GenericNodeTest extends TestCase
 {
     /** @var GenericNodeImplementation */
     private $node;
-    /** @var mixed */
-    private $error;
 
     protected function setUp(): void
     {
-        $this->node  = new GenericNodeImplementation(new GenericNodeImplementation());
-        $this->error = null;
+        $this->node = new GenericNodeImplementation(new GenericNodeImplementation());
     }
 
     public function testCanReadDefinedProperty(): void
@@ -54,7 +51,7 @@ class GenericNodeTest extends TestCase
         $this::expectExceptionMessage('Unknown property');
 
         // @phpstan-ignore-next-line
-        $this->error = $this->node->foo;
+        $foo = $this->node->foo;
     }
 
     /**

@@ -44,9 +44,9 @@ class SearchClause extends GenericNode
 
     /** @var bool */
     protected $p_breadthFirst;
-    /** @var IdentifierList */
+    /** @var IdentifierList|null */
     protected $p_trackColumns;
-    /** @var Identifier */
+    /** @var Identifier|null */
     protected $p_sequenceColumn;
 
     /**

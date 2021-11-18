@@ -53,3 +53,21 @@ parameters:
 			message: "#^Array \\(array<TKey of \\(int\\|string\\), T of sad_spirit\\\\pg_builder\\\\Node>\\) does not accept key int\\.$#"
 			count: 1
 			path: src/sad_spirit/pg_builder/nodes/lists/GenericNodeList.php
+
+		# Looks like a bug with memoizing the result of stream->matches(...) call
+		-
+			message: "#^If condition is always false\\.$#"
+			count: 3
+			path: src/sad_spirit/pg_builder/Parser.php
+
+		# Looks like a bug with memoizing the result of stream->matches(...) call
+		-
+			message: "#^If condition is always true\\.$#"
+			count: 1
+			path: src/sad_spirit/pg_builder/Parser.php
+
+		# This is a genuine problem but fixing it correctly is hard, so leave as is for now
+		-
+			message: "#^PHPDoc type sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\ColumnDefinitionList\\|sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\IdentifierList\\|null of property sad_spirit\\\\pg_builder\\\\nodes\\\\range\\\\FunctionFromElement\\:\\:\\$p_columnAliases is not covariant with PHPDoc type sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\IdentifierList\\|null of overridden property sad_spirit\\\\pg_builder\\\\nodes\\\\range\\\\FromElement\\:\\:\\$p_columnAliases\\.$#"
+			count: 1
+			path: src/sad_spirit/pg_builder/nodes/range/FunctionFromElement.php

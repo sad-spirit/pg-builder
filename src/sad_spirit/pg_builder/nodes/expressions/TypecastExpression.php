@@ -41,7 +41,7 @@ use sad_spirit\pg_builder\{
  */
 class TypecastExpression extends GenericNode implements ScalarExpression, FunctionLike
 {
-    /** @var ScalarExpression */
+    /** @var ScalarExpression|null */
     protected $p_argument;
     /** @var TypeName */
     protected $p_type;

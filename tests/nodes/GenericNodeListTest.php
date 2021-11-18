@@ -31,20 +31,17 @@ class GenericNodeListTest extends TestCase
 {
     /** @var GenericNodeListImplementation */
     private $nodeList;
-    /** @var mixed */
-    private $error;
 
     protected function setUp(): void
     {
         $this->nodeList = new GenericNodeListImplementation();
-        $this->error    = null;
     }
 
     public function testCannotReadUndefinedOffset(): void
     {
         $this::expectException(InvalidArgumentException::class);
         $this::expectExceptionMessage('Undefined offset');
-        $this->error = $this->nodeList[1];
+        $foo = $this->nodeList[1];
     }
 
     public function testAcceptsAnyNodeInstance(): void
