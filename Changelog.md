@@ -1,6 +1,8 @@
 # Changelog
 
-## [Unreleased]
+## [2.0.0-beta] - 2021-11-19
+
+Updated for Postgres 14 and PHP 8.1. The major version is incremented due to a few BC breaks.
 
 ### Added
 * Support for new syntax of PostgreSQL 14:
@@ -245,4 +247,4 @@ Initial release on GitHub
 [1.0.0]: https://github.com/sad-spirit/pg-builder/compare/v1.0.0-beta...v1.0.0
 [1.0.1]: https://github.com/sad-spirit/pg-builder/compare/v1.0.0...v1.0.1
 [1.0.2]: https://github.com/sad-spirit/pg-builder/compare/v1.0.1...v1.0.2
-[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v1.0.2...HEAD
+[2.0.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v1.0.2...v2.0.0-beta
