@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0] - 2021-12-31
+
+### Changed
+* Update dependencies, prevent using incompatible versions
+* When caching parsed query fragments, a version is added to cache key to prevent loading
+  cache saved by previous version (e.g. `GroupByList` is now an abstract class and will cause an error if appearing in cache).
+
 ## [2.0.0-beta] - 2021-11-19
 
 Updated for Postgres 14 and PHP 8.1. The major version is incremented due to a few BC breaks.
@@ -248,3 +255,4 @@ Initial release on GitHub
 [1.0.1]: https://github.com/sad-spirit/pg-builder/compare/v1.0.0...v1.0.1
 [1.0.2]: https://github.com/sad-spirit/pg-builder/compare/v1.0.1...v1.0.2
 [2.0.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v1.0.2...v2.0.0-beta
+[2.0.0]: https://github.com/sad-spirit/pg-builder/compare/v2.0.0-beta...v2.0.0
