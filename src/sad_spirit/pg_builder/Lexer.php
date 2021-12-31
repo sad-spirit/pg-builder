@@ -139,6 +139,8 @@ REGEXP;
      * @return TokenStream
      * @throws exceptions\NotImplementedException
      * @throws exceptions\SyntaxException
+     *
+     * @psalm-suppress RedundantCast
      */
     public function tokenize(string $sql): TokenStream
     {

@@ -26,10 +26,13 @@
         "ext-pgsql":             "*",
         "ext-pdo_pgsql":         "*",
         "phpunit/phpunit":       "^8.0",
-        "sad_spirit/pg_wrapper": "^2.0.0@beta",
+        "sad_spirit/pg_wrapper": "^2.0.0",
         "psr/cache":             "^1.0",
-        "phpstan/phpstan":       "^1.1",
-        "vimeo/psalm":           "^4.12"
+        "phpstan/phpstan":       "~1.2.0",
+        "vimeo/psalm":           "^4.16"
+    },
+    "conflict": {
+        "sad_spirit/pg_wrapper": "<2.0"
     },
     "autoload":     {
         "psr-4":    {
