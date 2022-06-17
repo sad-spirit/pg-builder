@@ -1295,7 +1295,24 @@ class Parser
             }
         }
 
-        $stmt = new Select($this->TargetList(), $distinctClause);
+        if (
+            $distinctClause === false
+            && (
+                $this->stream->matchesKeyword([
+                    'into', 'from', 'where', 'group', 'having', 'window',
+                    'union', 'intersect', 'except',
+                    'order', 'limit', 'offset', 'fetch', 'for'
+                ])
+                || $this->stream->matchesSpecialChar(')')
+                || $this->stream->isEOF()
+            )
+        ) {
+            $targetList = new nodes\lists\TargetList([]);
+        } else {
+            $targetList = $this->TargetList();
+        }
+
+        $stmt = new Select($targetList, $distinctClause);
 
         if ($this->stream->matchesKeyword('into')) {
             throw new exceptions\NotImplementedException("SELECT INTO clauses are not supported");

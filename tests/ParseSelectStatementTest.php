@@ -319,4 +319,45 @@ QRY
         $this->expectExceptionMessage('SELECT INTO clauses are not supported');
         $this->parser->parseStatement('select foo into bar from baz');
     }
+
+    public function testSelectWithEmptyTargetList(): void
+    {
+        $parsed = $this->parser->parseStatement('select');
+        $this->assertEquals(new Select(new TargetList([])), $parsed);
+    }
+
+    public function testSelectFromTableWithEmptyTargetList(): void
+    {
+        $parsed = $this->parser->parseStatement('select from bar');
+
+        $built = new Select(new TargetList([]));
+        $built->from->replace([new RelationReference(new QualifiedName('bar'))]);
+
+        $this->assertEquals($built, $parsed);
+    }
+
+    public function testComplexSelectWithEmptyTargetList(): void
+    {
+        $parsed = $this->parser->parseStatement('select union (select) intersect select limit 1');
+
+        $built = new SetOpSelect(
+            new Select(new TargetList([])),
+            new SetOpSelect(
+                new Select(new TargetList([])),
+                new Select(new TargetList([])),
+                SetOpSelect::INTERSECT
+            )
+        );
+        $built->limit = new NumericConstant('1');
+
+        $this->assertEquals($built, $parsed);
+    }
+
+    public function testDisallowedSelectDistinctWithEmptyTargetList(): void
+    {
+        $this->expectException(SyntaxException::class);
+        $this->expectExceptionMessage('Unexpected end of input');
+        $this->parser->parseStatement('select distinct');
+    }
+
 }
