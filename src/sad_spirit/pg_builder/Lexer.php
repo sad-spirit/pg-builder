@@ -140,7 +140,7 @@ REGEXP;
      * @throws exceptions\NotImplementedException
      * @throws exceptions\SyntaxException
      *
-     * @psalm-suppress RedundantCast
+     * @psalm-suppress RedundantFunctionCall
      */
     public function tokenize(string $sql): TokenStream
     {
