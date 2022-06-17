@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.1] - 2022-06-17
+
+### Fixed
+* Parser accepts `SELECT` queries with empty target lists (thanks to [@rvanvelzen](https://github.com/rvanvelzen) for [PR #14](https://github.com/sad-spirit/pg-builder/pull/14)).
+
 ## [2.0.0] - 2021-12-31
 
 ### Changed
@@ -256,3 +261,4 @@ Initial release on GitHub
 [1.0.2]: https://github.com/sad-spirit/pg-builder/compare/v1.0.1...v1.0.2
 [2.0.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v1.0.2...v2.0.0-beta
 [2.0.0]: https://github.com/sad-spirit/pg-builder/compare/v2.0.0-beta...v2.0.0
+[2.0.1]: https://github.com/sad-spirit/pg-builder/compare/v2.0.0...v2.0.1
