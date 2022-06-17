@@ -359,5 +359,4 @@ QRY
         $this->expectExceptionMessage('Unexpected end of input');
         $this->parser->parseStatement('select distinct');
     }
-
 }
