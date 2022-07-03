@@ -4095,11 +4095,8 @@ class Parser
 
         $type = $this->TypeName();
         $nullable = $default = $path = null;
-        // 'path' is for some reason not a keyword in Postgres, so production for xmltable_column_option_el
-        // accepts any identifier and then xmltable_column_el basically rejects anything that is not 'path'.
-        // We explicitly check for 'path' here instead.
         do {
-            if ($this->stream->matches(Token::TYPE_IDENTIFIER, 'path')) {
+            if ($this->stream->matchesKeyword('path')) {
                 if (null !== $path) {
                     throw exceptions\SyntaxException::atPosition(
                         "only one PATH value per column is allowed",
