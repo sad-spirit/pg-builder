@@ -860,4 +860,10 @@ abstract class BlankWalker implements TreeWalker
         }
         return null;
     }
+
+    public function walkIsJsonExpression(nodes\expressions\IsJsonExpression $expression)
+    {
+        $expression->argument->dispatch($this);
+        return null;
+    }
 }
