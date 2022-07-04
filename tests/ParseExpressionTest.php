@@ -49,6 +49,7 @@ use sad_spirit\pg_builder\nodes\expressions\{
     AtTimeZoneExpression,
     IsDistinctFromExpression,
     IsExpression,
+    IsJsonExpression,
     KeywordConstant,
     NamedParameter,
     NotExpression,
@@ -490,6 +491,39 @@ QRY
                 new IsExpression(
                     new ColumnReference(new Identifier('barbaz')),
                     IsExpression::NFKC_NORMALIZED,
+                    true
+                )
+            ]),
+            $list
+        );
+    }
+
+    public function testIsJson(): void
+    {
+        $list = $this->parser->parseExpressionList(<<<QRY
+    foo is json, bar is json without unique, baz is not json array, quux is json object with unique keys
+QRY
+        );
+        $this::assertEquals(
+            new ExpressionList([
+                new IsJsonExpression(
+                    new ColumnReference(new Identifier('foo'))
+                ),
+                new IsJsonExpression(
+                    new ColumnReference(new Identifier('bar')),
+                    false,
+                    null,
+                    false
+                ),
+                new IsJsonExpression(
+                    new ColumnReference(new Identifier('baz')),
+                    true,
+                    IsJsonExpression::TYPE_ARRAY
+                ),
+                new IsJsonExpression(
+                    new ColumnReference(new Identifier('quux')),
+                    false,
+                    IsJsonExpression::TYPE_OBJECT,
                     true
                 )
             ]),

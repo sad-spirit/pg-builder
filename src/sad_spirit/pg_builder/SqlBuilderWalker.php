@@ -1571,6 +1571,18 @@ class SqlBuilderWalker implements StatementToStringWalker
         return implode($this->options['linebreak'] ?: ' ', $lines);
     }
 
+    public function walkIsJsonExpression(nodes\expressions\IsJsonExpression $expression): string
+    {
+        return $expression->argument->dispatch($this)
+               . ' is ' . ($expression->not ? 'not ' : '') . 'json'
+               . (null === $expression->type ? '' : ' ' . $expression->type)
+               . (
+                   null === $expression->uniqueKeys
+                   ? ''
+                   : ($expression->uniqueKeys ? ' with' : ' without') . ' unique keys'
+               );
+    }
+
     /**
      * Returns an array of code points corresponding to characters in UTF-8 string
      *

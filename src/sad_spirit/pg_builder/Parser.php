@@ -235,7 +235,8 @@ class Parser
         ['false'],
         ['unknown'],
         ['normalized'],
-        [['nfc', 'nfd', 'nfkc', 'nfkd'], 'normalized']
+        [['nfc', 'nfd', 'nfkc', 'nfkd'], 'normalized'],
+        ['json']
     ];
 
     /**
@@ -1842,7 +1843,25 @@ class Parser
                     for ($i = 0; $i < count($check); $i++) {
                         $isOperator[] = $this->stream->next()->getValue();
                     }
-                    $operand = new nodes\expressions\IsExpression($operand, implode(' ', $isOperator), $isNot);
+                    if (['json'] !== $isOperator) {
+                        $operand = new nodes\expressions\IsExpression($operand, implode(' ', $isOperator), $isNot);
+                    } else {
+                        $type = $uniqueKeys = null;
+
+                        if ($this->stream->matchesKeyword(nodes\expressions\IsJsonExpression::TYPES)) {
+                            $type = $this->stream->next()->getValue();
+                        }
+
+                        if ($this->stream->matchesKeyword(['with', 'without'])) {
+                            $uniqueKeys = 'with' === $this->stream->next()->getValue();
+                            $this->stream->expect(Token::TYPE_KEYWORD, 'unique');
+                            if ($this->stream->matchesKeyword('keys')) {
+                                $this->stream->next();
+                            }
+                        }
+
+                        $operand = new nodes\expressions\IsJsonExpression($operand, $isNot, $type, $uniqueKeys);
+                    }
                     continue 2;
                 }
             }

@@ -968,4 +968,13 @@ interface TreeWalker
      * @since 2.1.0
      */
     public function walkMergeWhenNotMatched(nodes\merge\MergeWhenNotMatched $clause);
+
+    /**
+     * Visits the node representing "foo ... IS [NOT] JSON ..." expression
+     *
+     * @param nodes\expressions\IsJsonExpression $expression
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkIsJsonExpression(nodes\expressions\IsJsonExpression $expression);
 }
