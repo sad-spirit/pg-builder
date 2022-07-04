@@ -143,7 +143,7 @@ class Parser
     private const STANDARD_TYPES_CHARACTER = ['character', 'char', 'varchar', 'nchar', 'national'];
 
     /**
-     * Checks for SQL standard character type name(s)
+     * Checks for SQL standard bit type name(s)
      */
     private const STANDARD_TYPES_BIT       = 'bit';
 
@@ -153,6 +153,11 @@ class Parser
     private const STANDARD_TYPES_NUMERIC   = [
         'int', 'integer', 'smallint', 'bigint', 'real', 'float', 'decimal', 'dec', 'numeric', 'boolean', 'double'
     ];
+
+    /**
+     * Checks for SQL standard JSON type name
+     */
+    private const STANDARD_TYPES_JSON      = 'json';
 
     /**
      * Two-word names for SQL standard types
@@ -544,7 +549,7 @@ class Parser
                 self::STANDARD_TYPES_CHARACTER,
                 self::STANDARD_TYPES_NUMERIC,
                 self::STANDARD_TYPES_DATETIME,
-                [self::STANDARD_TYPES_BIT, 'interval']
+                [self::STANDARD_TYPES_BIT, self::STANDARD_TYPES_JSON, 'interval']
             );
             $trailingTimezone = array_flip(self::STANDARD_TYPES_DATETIME);
         }
@@ -1896,6 +1901,7 @@ class Parser
                     ?? $this->CharacterTypeName()
                     ?? $this->BitTypeName()
                     ?? $this->NumericTypeName()
+                    ?? $this->JsonTypeName()
                     ?? $this->GenericTypeName();
 
         if (null !== $typeName) {
@@ -2150,6 +2156,15 @@ class Parser
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
         }
         return $modifiers;
+    }
+
+    protected function JsonTypeName(): ?nodes\TypeName
+    {
+        if (!$this->stream->matchesKeyword('json')) {
+            return null;
+        }
+        $this->stream->next();
+        return new nodes\TypeName(new nodes\QualifiedName('pg_catalog', 'json'));
     }
 
     protected function GenericTypeName(): ?nodes\TypeName
@@ -2618,7 +2633,8 @@ class Parser
         $typeName = $this->DateTimeTypeName()
                     ?? $this->CharacterTypeName(true)
                     ?? $this->BitTypeName(true)
-                    ?? $this->NumericTypeName();
+                    ?? $this->NumericTypeName()
+                    ?? $this->JsonTypeName();
 
         if (null !== $typeName) {
             return new nodes\expressions\TypecastExpression(

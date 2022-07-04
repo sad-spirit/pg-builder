@@ -153,7 +153,8 @@ QRY
     {
         $list = $this->parser->parseExpressionList(<<<QRY
     cast(blah as character), blah::char varying, cast(blah as character varying(13)),
-    blah::char(13), blah::varchar, blah::nchar, cast(blah as national character varying(13))
+    blah::char(13), blah::varchar, blah::nchar, cast(blah as national character varying(13)),
+    blah::json
 QRY
         );
         $blah  = new ColumnReference('blah');
@@ -190,6 +191,10 @@ QRY
                     clone $blah,
                     new TypeName(new QualifiedName('pg_catalog', 'varchar'), clone $mod13)
                 ),
+                new TypecastExpression(
+                    clone $blah,
+                    new TypeName(new QualifiedName('pg_catalog', 'json'))
+                )
             ]),
             $list
         );
@@ -299,7 +304,7 @@ QRY
     double precision 'a value', national char varying 'a value', varchar(10) 'a value',
     char 'a value', bit 'a value', bit varying (10) 'a value', time (10) with time zone 'a value',
     timestamp without time zone 'a value', interval 'a value' minute to second (10), interval (10) 'a value', 
-    quux.xyzzy 'a value', blah.blah (10) 'a value'
+    quux.xyzzy 'a value', blah.blah (10) 'a value', json '{"foo":"bar"}'
 QRY
         );
         $val      = new StringConstant('a value');
@@ -355,6 +360,10 @@ QRY
                 new TypecastExpression(
                     clone $val,
                     new TypeName(new QualifiedName('blah', 'blah'), clone $mod10)
+                ),
+                new TypecastExpression(
+                    new StringConstant('{"foo":"bar"}'),
+                    new TypeName(new QualifiedName('pg_catalog', 'json'))
                 )
             ]),
             $list
