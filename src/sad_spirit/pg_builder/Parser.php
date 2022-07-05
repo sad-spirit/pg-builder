@@ -518,7 +518,10 @@ class Parser
                || ($this->stream->matchesKeyword(self::SYSTEM_FUNCTIONS)
                    && $this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, '('))
                || ($this->stream->matchesKeywordSequence('collation', 'for') // COLLATION FOR (...)
-                   && $this->stream->look(2)->matches(Token::TYPE_SPECIAL_CHAR, '('));
+                   && $this->stream->look(2)->matches(Token::TYPE_SPECIAL_CHAR, '('))
+               // these are handled somewhat separately
+               || ($this->stream->matchesKeyword(['json_objectagg', 'json_arrayagg'])
+                   && $this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, '('));
     }
 
     /**
@@ -1844,21 +1847,14 @@ class Parser
                     if (['json'] !== $isOperator) {
                         $operand = new nodes\expressions\IsExpression($operand, implode(' ', $isOperator), $isNot);
                     } else {
-                        $type = $uniqueKeys = null;
-
-                        if ($this->stream->matchesKeyword(nodes\expressions\IsJsonExpression::TYPES)) {
-                            $type = $this->stream->next()->getValue();
-                        }
-
-                        if ($this->stream->matchesKeyword(['with', 'without'])) {
-                            $uniqueKeys = 'with' === $this->stream->next()->getValue();
-                            $this->stream->expect(Token::TYPE_KEYWORD, 'unique');
-                            if ($this->stream->matchesKeyword('keys')) {
-                                $this->stream->next();
-                            }
-                        }
-
-                        $operand = new nodes\expressions\IsJsonExpression($operand, $isNot, $type, $uniqueKeys);
+                        $operand = new nodes\expressions\IsJsonExpression(
+                            $operand,
+                            $isNot,
+                            $this->stream->matchesKeyword(nodes\expressions\IsJsonExpression::TYPES)
+                                ? $this->stream->next()->getValue()
+                                : null,
+                            $this->JsonUniquenessConstraint()
+                        );
                     }
                     continue 2;
                 }
@@ -2419,7 +2415,10 @@ class Parser
             if ($this->matchesConstTypecast()) {
                 return $this->ConstLeadingTypecast();
 
-            } elseif ($this->matchesSpecialFunctionCall() && null !== ($function = $this->SpecialFunctionCall())) {
+            } elseif (
+                $this->matchesSpecialFunctionCall()
+                && null !== ($function = $this->SpecialFunctionCall() ?? $this->JsonAggregateFunc())
+            ) {
                 return $this->convertSpecialFunctionCallToFunctionExpression($function);
 
             } else {
@@ -3049,7 +3048,9 @@ class Parser
     protected function convertSpecialFunctionCallToFunctionExpression(
         nodes\FunctionLike $function
     ): nodes\ScalarExpression {
-        if ($function instanceof nodes\FunctionCall) {
+        if ($function instanceof nodes\ScalarExpression) {
+            return $function;
+        } elseif ($function instanceof nodes\FunctionCall) {
             return new nodes\expressions\FunctionExpression(
                 clone $function->name,
                 clone $function->arguments,
@@ -3057,8 +3058,6 @@ class Parser
                 $function->variadic,
                 clone $function->order
             );
-        } elseif ($function instanceof nodes\ScalarExpression) {
-            return $function;
         }
 
         throw new exceptions\InvalidArgumentException(
@@ -3071,7 +3070,7 @@ class Parser
     {
         $function    = $this->GenericFunctionCall($identifiers);
         $withinGroup = false;
-        $order       = $filter = $over = null;
+        $order       = null;
 
         if ($this->stream->matchesKeywordSequence('within', 'group')) {
             if (count($function->order) > 0) {
@@ -3103,17 +3102,7 @@ class Parser
             $order = $this->OrderByList();
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
         }
-        if ($this->stream->matchesKeyword('filter')) {
-            $this->stream->next();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-            $this->stream->expect(Token::TYPE_KEYWORD, 'where');
-            $filter = $this->Expression();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-        }
-        if ($this->stream->matchesKeyword('over')) {
-            $this->stream->next();
-            $over = $this->WindowSpecification();
-        }
+
         return new nodes\expressions\FunctionExpression(
             clone $function->name,
             clone $function->arguments,
@@ -3121,9 +3110,33 @@ class Parser
             $function->variadic,
             $order ?: clone $function->order,
             $withinGroup,
-            $filter,
-            $over
+            $this->FilterClause(),
+            $this->OverClause()
         );
+    }
+
+    protected function FilterClause(): ?nodes\ScalarExpression
+    {
+        if (!$this->stream->matchesKeyword('filter')) {
+            return null;
+        }
+
+        $this->stream->next();
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(Token::TYPE_KEYWORD, 'where');
+        $filter = $this->Expression();
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+        return $filter;
+    }
+
+    protected function OverClause(): ?nodes\WindowDefinition
+    {
+        if (!$this->stream->matchesKeyword('over')) {
+            return null;
+        }
+        $this->stream->next();
+        return $this->WindowSpecification();
     }
 
     protected function SpecialFunctionCall(): ?nodes\FunctionLike
@@ -3581,7 +3594,11 @@ class Parser
     protected function RangeFunctionCall(): nodes\range\FunctionFromElement
     {
         if (!$this->stream->matchesKeywordSequence('rows', 'from')) {
-            $reference = new nodes\range\FunctionCall($this->SpecialFunctionCall() ?? $this->GenericFunctionCall());
+            $reference = new nodes\range\FunctionCall(
+                $this->SpecialFunctionCall()
+                ?? $this->JsonAggregateFunc(true)
+                ?? $this->GenericFunctionCall()
+            );
         } else {
             $this->stream->skip(2);
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
@@ -3609,7 +3626,9 @@ class Parser
 
     protected function RowsFromElement(): nodes\range\RowsFromElement
     {
-        $function = $this->SpecialFunctionCall() ?? $this->GenericFunctionCall();
+        $function = $this->SpecialFunctionCall()
+            ?? $this->JsonAggregateFunc(true)
+            ?? $this->GenericFunctionCall();
 
         if (!$this->stream->matchesKeyword('as')) {
             $aliases = null;
@@ -3934,14 +3953,10 @@ class Parser
 
         } elseif ($this->matchesFunctionCall()) {
             /** @var nodes\FunctionCall $function */
-            $function = $this->SpecialFunctionCall() ?? $this->GenericFunctionCall();
-            $expression = new nodes\expressions\FunctionExpression(
-                clone $function->name,
-                clone $function->arguments,
-                $function->distinct,
-                $function->variadic,
-                clone $function->order
-            );
+            $function = $this->SpecialFunctionCall()
+                ?? $this->JsonAggregateFunc(true)
+                ?? $this->GenericFunctionCall();
+            $expression = $this->convertSpecialFunctionCallToFunctionExpression($function);
 
         } else {
             $expression = $this->ColId();
@@ -4185,5 +4200,119 @@ class Parser
         } while (true);
 
         return new nodes\xml\XmlTypedColumnDefinition($name, $type, $path, $nullable, $default);
+    }
+
+    protected function JsonUniquenessConstraint(): ?bool
+    {
+        if (!$this->stream->matchesKeyword(['with', 'without'])) {
+            return null;
+        }
+
+        $uniqueKeys = 'with' === $this->stream->next()->getValue();
+        $this->stream->expect(Token::TYPE_KEYWORD, 'unique');
+        if ($this->stream->matchesKeyword('keys')) {
+            $this->stream->next();
+        }
+
+        return $uniqueKeys;
+    }
+
+    protected function JsonNullClause(): ?bool
+    {
+        if (!$this->stream->matchesKeyword(['absent', 'null'])) {
+            return null;
+        }
+        $absent = 'absent' === $this->stream->next()->getValue();
+        $this->stream->expect(Token::TYPE_KEYWORD, 'on');
+        $this->stream->expect(Token::TYPE_KEYWORD, 'null');
+
+        return $absent;
+    }
+
+    protected function JsonFormat(): ?nodes\json\JsonFormat
+    {
+        if (!$this->stream->matchesKeyword('format')) {
+            return null;
+        }
+
+        $this->stream->next();
+        $this->stream->expect(Token::TYPE_KEYWORD, 'json');
+        if (!$this->stream->matchesKeyword('encoding')) {
+            $encoding = null;
+        } else {
+            $this->stream->next();
+            $encoding = $this->ColId()->value;
+        }
+        return new nodes\json\JsonFormat('json', $encoding);
+    }
+
+    protected function JsonKeyValue(): nodes\json\JsonKeyValue
+    {
+        $key = $this->Expression();
+        if (!$this->stream->matchesKeyword('value')) {
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ':');
+        } else {
+            $this->stream->next();
+        }
+
+        return new nodes\json\JsonKeyValue($key, $this->JsonValue());
+    }
+
+    protected function JsonValue(): nodes\json\JsonValue
+    {
+        return new nodes\json\JsonValue($this->Expression(), $this->JsonFormat());
+    }
+
+    protected function JsonReturningClause(): ?nodes\json\JsonReturning
+    {
+        if (!$this->stream->matchesKeyword('returning')) {
+            return null;
+        }
+
+        $this->stream->next();
+        return new nodes\json\JsonReturning($this->TypeName(), $this->JsonFormat());
+    }
+
+    /**
+     * Parses JSON aggregate functions (json_arrayagg / json_objectagg)
+     *
+     * NB: for some strange reason these functions explicitly appear in func_expr_windowless production,
+     * which is used for e.g. functions in FROM and for index definitions. Of course, using aggregate
+     * functions in FROM causes an error.
+     *
+     * @param bool $windowless
+     * @return nodes\json\JsonAggregate|null
+     */
+    protected function JsonAggregateFunc(bool $windowless = false): ?nodes\json\JsonAggregate
+    {
+        if (!$this->stream->matchesKeyword(['json_arrayagg', 'json_objectagg'])) {
+            return null;
+        }
+
+        $name = $this->stream->next();
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        if ('json_arrayagg' === $name->getValue()) {
+            $expression = new nodes\json\JsonArrayAgg($this->JsonValue());
+            if ($this->stream->matchesKeywordSequence('order', 'by')) {
+                $this->stream->skip(2);
+                $expression->order = $this->OrderByList();
+            }
+            $expression->absentOnNull = $this->JsonNullClause();
+        } else {
+            $expression = new nodes\json\JsonObjectAgg(
+                $this->JsonKeyValue(),
+                $this->JsonNullClause(),
+                $this->JsonUniquenessConstraint()
+            );
+        }
+        $expression->returning = $this->JsonReturningClause();
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+        if (!$windowless) {
+            $expression->filter = $this->FilterClause();
+            $expression->over   = $this->OverClause();
+        }
+
+        return $expression;
     }
 }

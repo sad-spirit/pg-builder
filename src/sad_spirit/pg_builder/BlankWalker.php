@@ -866,4 +866,64 @@ abstract class BlankWalker implements TreeWalker
         $expression->argument->dispatch($this);
         return null;
     }
+
+    public function walkJsonFormat(nodes\json\JsonFormat $clause)
+    {
+        return null;
+    }
+
+    public function walkJsonReturning(nodes\json\JsonReturning $clause)
+    {
+        $clause->type->dispatch($this);
+        if (null !== $clause->format) {
+            $clause->format->dispatch($this);
+        }
+        return null;
+    }
+
+    public function walkJsonValue(nodes\json\JsonValue $clause)
+    {
+        $clause->expression->dispatch($this);
+        if (null !== $clause->format) {
+            $clause->format->dispatch($this);
+        }
+        return null;
+    }
+
+    public function walkJsonKeyValue(nodes\json\JsonKeyValue $clause)
+    {
+        $clause->key->dispatch($this);
+        $clause->value->dispatch($this);
+        return null;
+    }
+
+    protected function walkCommonJsonAggregateFields(nodes\json\JsonAggregate $expression): void
+    {
+        if (null !== $expression->returning) {
+            $expression->returning->dispatch($this);
+        }
+        if (null !== $expression->filter) {
+            $expression->filter->dispatch($this);
+        }
+        if (null !== $expression->over) {
+            $expression->over->dispatch($this);
+        }
+    }
+
+    public function walkJsonArrayAgg(nodes\json\JsonArrayAgg $expression)
+    {
+        $this->walkCommonJsonAggregateFields($expression);
+        $expression->value->dispatch($this);
+        if (null !== $expression->order) {
+            $expression->order->dispatch($this);
+        }
+        return null;
+    }
+
+    public function walkJsonObjectAgg(nodes\json\JsonObjectAgg $expression)
+    {
+        $this->walkCommonJsonAggregateFields($expression);
+        $expression->keyValue->dispatch($this);
+        return null;
+    }
 }

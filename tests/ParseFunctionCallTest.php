@@ -53,6 +53,14 @@ use sad_spirit\pg_builder\nodes\expressions\{
     SystemFunctionCall,
     TrimExpression
 };
+use sad_spirit\pg_builder\nodes\json\{
+    JsonArrayAgg,
+    JsonFormat,
+    JsonKeyValue,
+    JsonObjectAgg,
+    JsonReturning,
+    JsonValue
+};
 use sad_spirit\pg_builder\nodes\lists\{
     ExpressionList,
     FunctionArgumentList,
@@ -556,6 +564,38 @@ QRY
                     false,
                     new OrderByList([new OrderByElement(new ColumnReference('foo'))]),
                     true
+                )
+            ]),
+            $list
+        );
+    }
+
+    public function testJsonAggregates(): void
+    {
+        $list = $this->parser->parseExpressionList(<<<QRY
+    json_objectagg(k value v), json_arrayagg(v format json encoding utf32 returning blah),
+    json_objectagg(k: v null on null) filter (where v > 0) over (win95)
+QRY
+        );
+        $this::assertEquals(
+            new ExpressionList([
+                new JsonObjectAgg(new JsonKeyValue(
+                    new ColumnReference('k'),
+                    new JsonValue(new ColumnReference('v'))
+                )),
+                new JsonArrayAgg(
+                    new JsonValue(new ColumnReference('v'), new JsonFormat('json', 'utf32')),
+                    null,
+                    null,
+                    new JsonReturning(new TypeName(new QualifiedName('blah')))
+                ),
+                new JsonObjectAgg(
+                    new JsonKeyValue(new ColumnReference('k'), new JsonValue(new ColumnReference('v'))),
+                    false,
+                    null,
+                    null,
+                    new OperatorExpression('>', new ColumnReference('v'), new NumericConstant('0')),
+                    new WindowDefinition(new Identifier('win95'))
                 )
             ]),
             $list
