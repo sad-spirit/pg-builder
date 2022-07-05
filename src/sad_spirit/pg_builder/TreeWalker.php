@@ -977,4 +977,58 @@ interface TreeWalker
      * @since 2.1.0
      */
     public function walkIsJsonExpression(nodes\expressions\IsJsonExpression $expression);
+
+    /**
+     * Visits the node representing FORMAT clause of JSON expressions
+     *
+     * @param nodes\json\JsonFormat $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonFormat(nodes\json\JsonFormat $clause);
+
+    /**
+     * Visits the node representing RETURNING clause of JSON expressions
+     *
+     * @param nodes\json\JsonReturning $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonReturning(nodes\json\JsonReturning $clause);
+
+    /**
+     * Visits the node representing JSON value (an expression with possible trailing FORMAT)
+     *
+     * @param nodes\json\JsonValue $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonValue(nodes\json\JsonValue $clause);
+
+    /**
+     * Visits the node representing a JSON key-value pair
+     *
+     * @param nodes\json\JsonKeyValue $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonKeyValue(nodes\json\JsonKeyValue $clause);
+
+    /**
+     * Visits the node representing json_arrayagg() expression
+     *
+     * @param nodes\json\JsonArrayAgg $expression
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonArrayAgg(nodes\json\JsonArrayAgg $expression);
+
+    /**
+     * Visits the node representing json_objectagg() expression
+     *
+     * @param nodes\json\JsonObjectAgg $expression
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonObjectAgg(nodes\json\JsonObjectAgg $expression);
 }

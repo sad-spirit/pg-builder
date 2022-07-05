@@ -1583,6 +1583,65 @@ class SqlBuilderWalker implements StatementToStringWalker
                );
     }
 
+    public function walkJsonFormat(nodes\json\JsonFormat $clause): string
+    {
+        return 'format ' . $clause->format
+               . (null === $clause->encoding ? '' : ' encoding ' . $clause->encoding);
+    }
+
+    public function walkJsonReturning(nodes\json\JsonReturning $clause): string
+    {
+        return 'returning ' . $clause->type->dispatch($this)
+               . (null === $clause->format ? '' : ' ' . $clause->format->dispatch($this));
+    }
+
+    public function walkJsonValue(nodes\json\JsonValue $clause): string
+    {
+        return $clause->expression->dispatch($this)
+               . (null === $clause->format ? '' : ' ' . $clause->format->dispatch($this));
+    }
+
+    public function walkJsonKeyValue(nodes\json\JsonKeyValue $clause): string
+    {
+        return $clause->key->dispatch($this) . ' : ' . $clause->value->dispatch($this);
+    }
+
+    protected function walkCommonJsonAggregateFields(nodes\json\JsonAggregate $expression): string
+    {
+        return (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
+               . ')'
+               . (null === $expression->filter ? '' : ' filter (where ' . $expression->filter->dispatch($this) . ')')
+               . (null === $expression->over ? '' : ' over ' . $expression->over->dispatch($this));
+    }
+
+    public function walkJsonArrayAgg(nodes\json\JsonArrayAgg $expression): string
+    {
+        return 'json_arrayagg(' . $expression->value->dispatch($this)
+               . (null === $expression->order ? '' : ' order by ' . implode(', ', $expression->order->dispatch($this)))
+               . (
+                    null === $expression->absentOnNull
+                        ? ''
+                        : ($expression->absentOnNull ? ' absent' : ' null') . ' on null'
+               )
+               . $this->walkCommonJsonAggregateFields($expression);
+    }
+
+    public function walkJsonObjectAgg(nodes\json\JsonObjectAgg $expression): string
+    {
+        return 'json_objectagg(' . $expression->keyValue->dispatch($this)
+               . (
+                   null === $expression->absentOnNull
+                       ? ''
+                       : ($expression->absentOnNull ? ' absent' : ' null') . ' on null'
+               )
+               . (
+                   null === $expression->uniqueKeys
+                       ? ''
+                       : ($expression->uniqueKeys ? ' with' : ' without') . ' unique keys'
+               )
+               . $this->walkCommonJsonAggregateFields($expression);
+    }
+
     /**
      * Returns an array of code points corresponding to characters in UTF-8 string
      *

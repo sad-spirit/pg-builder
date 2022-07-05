@@ -189,7 +189,9 @@ select distinct on (something) quux.one, xyzzy.two[1], (quux.three).four, $1.bla
        trim(leading 'f' from 'foo'), trim(from 'foo', 'f', 'o'),
        normalize(abnormal, nfd),
        xmlexists('//foo[text() = ''bar'']' passing by ref ('<blah><foo>bar' || '</foo></blah>')),
-       '{}' is json object with unique keys, 'blah' is not json 
+       '{}' is json object with unique keys, 'blah' is not json,
+       json_arrayagg(ary order by something returning blah) over (win95),
+       json_objectagg(k: v null on null) filter (where v <> 0)
 from quux, xyzzy left join (atable as one left join anothertable as two using (commonfield) as usingalias)
                 as three on xyzzy.id = three.xyzzy_id,
      some_function(1, 'two', array[3, 4]) with ordinality as sf (id integer, name text collate somecollation),
