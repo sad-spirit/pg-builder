@@ -99,7 +99,9 @@ class Parser
         'cast', 'extract', 'overlay', 'position', 'substring', 'treat', 'trim',
         'nullif', 'coalesce', 'greatest', 'least', 'xmlconcat', 'xmlelement',
         'xmlexists', 'xmlforest', 'xmlparse', 'xmlpi', 'xmlroot', 'xmlserialize',
-        'normalize'
+        'normalize',
+        // new JSON functions in Postgres 15, json_func_expr production
+        'json_object', 'json_array'
     ];
 
     /**
@@ -2828,6 +2830,14 @@ class Parser
                 $funcNode = new nodes\expressions\NormalizeExpression($argument, $form ?? null);
                 break;
 
+            case 'json_object':
+                $funcNode = $this->JsonObjectConstructor();
+                break;
+
+            case 'json_array':
+                $funcNode = $this->JsonArrayConstructor();
+                break;
+
             default: // 'coalesce', 'greatest', 'least', 'xmlconcat'
                 $funcNode = new nodes\expressions\SystemFunctionCall(
                     $funcName,
@@ -4273,6 +4283,30 @@ class Parser
         return new nodes\json\JsonReturning($this->TypeName(), $this->JsonFormat());
     }
 
+    protected function JsonValueList(): nodes\json\JsonValueList
+    {
+        $list = new nodes\json\JsonValueList([$this->JsonValue()]);
+
+        while ($this->stream->matchesSpecialChar(',')) {
+            $this->stream->next();
+            $list[] = $this->JsonValue();
+        }
+
+        return $list;
+    }
+
+    protected function JsonKeyValueList(): nodes\json\JsonKeyValueList
+    {
+        $list = new nodes\json\JsonKeyValueList([$this->JsonKeyValue()]);
+
+        while ($this->stream->matchesSpecialChar(',')) {
+            $this->stream->next();
+            $list[] = $this->JsonKeyValue();
+        }
+
+        return $list;
+    }
+
     /**
      * Parses JSON aggregate functions (json_arrayagg / json_objectagg)
      *
@@ -4314,5 +4348,72 @@ class Parser
         }
 
         return $expression;
+    }
+
+    public function JsonArrayConstructor(): nodes\json\JsonArray
+    {
+        $arguments = $absentOnNull = null;
+
+        if (self::PARENTHESES_SELECT === $this->checkContentsOfParentheses(-1)) {
+            $arguments = $this->SelectStatement();
+        } elseif (
+            !$this->stream->matchesKeyword('returning')
+            && !$this->stream->matchesSpecialChar(')')
+        ) {
+            $arguments    = $this->JsonValueList();
+            $absentOnNull = $this->JsonNullClause();
+        }
+
+        return new nodes\json\JsonArray($arguments, $absentOnNull, $this->JsonReturningClause());
+    }
+
+    public function JsonObjectConstructor(): nodes\FunctionLike
+    {
+        if ($this->stream->matchesSpecialChar(')')) {
+            return new nodes\json\JsonObject();
+        } elseif ($this->stream->matchesKeyword('returning')) {
+            return new nodes\json\JsonObject(null, null, null, $this->JsonReturningClause());
+        }
+
+        // Now it's getting tricky: all other variants of json_object() should have at least one argument.
+        // We need to differentiate between a list of function arguments and a list of key-value pairs
+        if (
+            $this->stream->look(1)->matches(Token::TYPE_COLON_EQUALS)
+            || $this->stream->look(1)->matches(Token::TYPE_EQUALS_GREATER)
+        ) {
+            // If we are seeing this, we are currently at a named function argument
+            return new nodes\expressions\FunctionExpression(
+                new nodes\QualifiedName('json_object'),
+                $this->FunctionArgumentList()
+            );
+        }
+
+        // This can be either a function argument or a key for JSON key-value pair
+        $argument = $this->Expression();
+        if ($this->stream->matchesSpecialChar([',', ')'])) {
+            $arguments = new nodes\lists\FunctionArgumentList([$argument]);
+            if ($this->stream->matchesSpecialChar(',')) {
+                $this->stream->next();
+                $arguments->merge($this->FunctionArgumentList());
+            }
+            return new nodes\expressions\FunctionExpression(new nodes\QualifiedName('json_object'), $arguments);
+        } else {
+            if (!$this->stream->matchesKeyword('value')) {
+                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ':');
+            } else {
+                $this->stream->next();
+            }
+            $arguments = new nodes\json\JsonKeyValueList([new nodes\json\JsonKeyValue($argument, $this->JsonValue())]);
+            if ($this->stream->matchesSpecialChar(',')) {
+                $this->stream->next();
+                $arguments->merge($this->JsonKeyValueList());
+            }
+            return new nodes\json\JsonObject(
+                $arguments,
+                $this->JsonNullClause(),
+                $this->JsonUniquenessConstraint(),
+                $this->JsonReturningClause()
+            );
+        }
     }
 }

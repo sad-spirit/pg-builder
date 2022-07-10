@@ -24,57 +24,49 @@ use sad_spirit\pg_builder\nodes\{
     ExpressionAtom,
     FunctionLike,
     GenericNode,
-    ScalarExpression,
-    WindowDefinition
+    ScalarExpression
 };
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
- * Base class for nodes representing JSON aggregate functions (json_arrayagg / json_objectagg)
+ * AST node representing the json_object() expression
  *
- * @property ScalarExpression|null $filter
- * @property WindowDefinition|null $over
+ * @psalm-property JsonKeyValueList $arguments
+ *
+ * @property JsonKeyValueList|JsonKeyValue[] $arguments
  */
-abstract class JsonAggregate extends GenericNode implements ScalarExpression, FunctionLike
+class JsonObject extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
     use AbsentOnNullProperty;
     use ReturningProperty;
+    use UniqueKeysProperty;
 
-    /** @var ScalarExpression|null */
-    protected $p_filter = null;
-    /** @var WindowDefinition|null */
-    protected $p_over = null;
+    /** @var JsonKeyValueList */
+    protected $p_arguments;
 
     public function __construct(
-        ?bool $absentOnNull,
-        ?JsonReturning $returning,
-        ?ScalarExpression $filter,
-        ?WindowDefinition $over
+        ?JsonKeyValueList $arguments = null,
+        ?bool $absentOnNull = null,
+        ?bool $uniqueKeys = null,
+        ?JsonReturning $returning = null
     ) {
         $this->generatePropertyNames();
 
+        $this->p_arguments = $arguments ?? new JsonKeyValueList();
+        $this->p_arguments->setParentNode($this);
+
         $this->p_absentOnNull = $absentOnNull;
+        $this->p_uniqueKeys = $uniqueKeys;
+
         if (null !== $returning) {
             $this->p_returning = $returning;
             $this->p_returning->setParentNode($this);
         }
-        if (null !== $filter) {
-            $this->p_filter = $filter;
-            $this->p_filter->setParentNode($this);
-        }
-        if (null !== $over) {
-            $this->p_over = $over;
-            $this->p_over->setParentNode($this);
-        }
     }
 
-    public function setFilter(?ScalarExpression $filter): void
+    public function dispatch(TreeWalker $walker)
     {
-        $this->setProperty($this->p_filter, $filter);
-    }
-
-    public function setOver(?WindowDefinition $over): void
-    {
-        $this->setProperty($this->p_over, $over);
+        return $walker->walkJsonObject($this);
     }
 }
