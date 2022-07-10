@@ -21,8 +21,11 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\tests;
 
 use PHPUnit\Framework\TestCase;
-use sad_spirit\pg_builder\Parser;
-use sad_spirit\pg_builder\Lexer;
+use sad_spirit\pg_builder\{
+    Parser,
+    Lexer,
+    Values
+};
 use sad_spirit\pg_builder\exceptions\SyntaxException;
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
@@ -44,6 +47,7 @@ use sad_spirit\pg_builder\nodes\expressions\{
     NullIfExpression,
     OverlayExpression,
     PositionExpression,
+    RowExpression,
     SQLValueFunction,
     NumericConstant,
     OperatorExpression,
@@ -54,17 +58,22 @@ use sad_spirit\pg_builder\nodes\expressions\{
     TrimExpression
 };
 use sad_spirit\pg_builder\nodes\json\{
+    JsonArray,
     JsonArrayAgg,
     JsonFormat,
     JsonKeyValue,
+    JsonKeyValueList,
+    JsonObject,
     JsonObjectAgg,
     JsonReturning,
-    JsonValue
+    JsonValue,
+    JsonValueList
 };
 use sad_spirit\pg_builder\nodes\lists\{
     ExpressionList,
     FunctionArgumentList,
     OrderByList,
+    RowList,
     TargetList
 };
 use sad_spirit\pg_builder\nodes\xml\{
@@ -597,6 +606,77 @@ QRY
                     new OperatorExpression('>', new ColumnReference('v'), new NumericConstant('0')),
                     new WindowDefinition(new Identifier('win95'))
                 )
+            ]),
+            $list
+        );
+    }
+
+    public function testJsonObjectConstructor(): void
+    {
+        $list = $this->parser->parseExpressionList(<<<QRY
+    json_object(),
+    json_object(returning jsonb),
+    json_object('{foo,bar}'),
+    json_object('{foo,bar}', '{baz,quux}'),
+    json_object(k: v null on null),
+    json_object(k: v, kk value vv without unique keys)
+QRY
+        );
+
+        $this::assertEquals(
+            new ExpressionList([
+                new JsonObject(),
+                new JsonObject(null, null, null, new JsonReturning(new TypeName(new QualifiedName('jsonb')))),
+                new FunctionExpression(
+                    new QualifiedName('json_object'),
+                    new FunctionArgumentList([new StringConstant('{foo,bar}')])
+                ),
+                new FunctionExpression(
+                    new QualifiedName('json_object'),
+                    new FunctionArgumentList([new StringConstant('{foo,bar}'), new StringConstant('{baz,quux}')])
+                ),
+                new JsonObject(new JsonKeyValueList([
+                    new JsonKeyValue(new ColumnReference('k'), new JsonValue(new ColumnReference('v')))
+                ]), false),
+                new JsonObject(new JsonKeyValueList([
+                    new JsonKeyValue(new ColumnReference('k'), new JsonValue(new ColumnReference('v'))),
+                    new JsonKeyValue(new ColumnReference('kk'), new JsonValue(new ColumnReference('vv')))
+                ]), null, false)
+            ]),
+            $list
+        );
+    }
+
+    public function testJsonArrayConstructor(): void
+    {
+        $list = $this->parser->parseExpressionList(<<<QRY
+    json_array(),
+    json_array(returning jsonb),
+    json_array(one format json, two null on null),
+    json_array((foo + bar)),
+    json_array((values (2), (1), (3)) order by 1 returning bytea)
+QRY
+        );
+
+        $values = new Values(new RowList([
+            new RowExpression([new NumericConstant('2')]),
+            new RowExpression([new NumericConstant('1')]),
+            new RowExpression([new NumericConstant('3')])
+        ]));
+        $values->order[] = new OrderByElement(new NumericConstant('1'));
+
+        $this::assertEquals(
+            new ExpressionList([
+                new JsonArray(),
+                new JsonArray(null, null, new JsonReturning(new TypeName(new QualifiedName('jsonb')))),
+                new JsonArray(new JsonValueList([
+                    new JsonValue(new ColumnReference('one'), new JsonFormat()),
+                    new JsonValue(new ColumnReference('two'))
+                ]), false),
+                new JsonArray(new JsonValueList([new JsonValue(
+                    new OperatorExpression('+', new ColumnReference('foo'), new ColumnReference('bar')))
+                ])),
+                new JsonArray($values, null, new JsonReturning(new TypeName(new QualifiedName('bytea'))))
             ]),
             $list
         );

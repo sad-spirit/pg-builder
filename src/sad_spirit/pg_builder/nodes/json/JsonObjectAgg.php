@@ -30,14 +30,13 @@ use sad_spirit\pg_builder\{
  * Represents json_objectagg() expression
  *
  * @property JsonKeyValue $keyValue
- * @property bool|null    $uniqueKeys
  */
 class JsonObjectAgg extends JsonAggregate
 {
+    use UniqueKeysProperty;
+
     /** @var JsonKeyValue */
     protected $p_keyValue;
-    /** @var bool|null */
-    protected $p_uniqueKeys;
 
     public function __construct(
         JsonKeyValue $keyValue,
@@ -58,11 +57,6 @@ class JsonObjectAgg extends JsonAggregate
     public function setKeyValue(JsonKeyValue $keyValue): void
     {
         $this->setRequiredProperty($this->p_keyValue, $keyValue);
-    }
-
-    public function setUniqueKeys(?bool $uniqueKeys): void
-    {
-        $this->p_uniqueKeys = $uniqueKeys;
     }
 
     public function dispatch(TreeWalker $walker)

@@ -1642,6 +1642,42 @@ class SqlBuilderWalker implements StatementToStringWalker
                . $this->walkCommonJsonAggregateFields($expression);
     }
 
+    public function walkJsonArray(nodes\json\JsonArray $expression): string
+    {
+        if (null === $expression->arguments) {
+            $arguments = '';
+        } elseif ($expression->arguments instanceof SelectCommon) {
+            $arguments = $expression->arguments->dispatch($this);
+        } else {
+            $arguments = $this->implode(', ', $expression->arguments->dispatch($this));
+        }
+        return 'json_array(' . $arguments
+               . (
+                   null === $expression->absentOnNull
+                       ? ''
+                       : ($expression->absentOnNull ? ' absent' : ' null') . ' on null'
+               )
+               . (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
+               . ')';
+    }
+
+    public function walkJsonObject(nodes\json\JsonObject $expression): string
+    {
+        return 'json_object(' . implode(', ', $expression->arguments->dispatch($this))
+               . (
+                   null === $expression->absentOnNull
+                       ? ''
+                       : ($expression->absentOnNull ? ' absent' : ' null') . ' on null'
+               )
+               . (
+                   null === $expression->uniqueKeys
+                       ? ''
+                       : ($expression->uniqueKeys ? ' with' : ' without') . ' unique keys'
+               )
+               . (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
+               . ')';
+    }
+
     /**
      * Returns an array of code points corresponding to characters in UTF-8 string
      *
