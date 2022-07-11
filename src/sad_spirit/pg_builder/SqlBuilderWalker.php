@@ -1523,37 +1523,54 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     protected function walkCommonJsonAggregateFields(nodes\json\JsonAggregate $expression): string
     {
-        return (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
+        return $this->jsonReturningClause($expression->returning)
                . ')'
                . (null === $expression->filter ? '' : ' filter (where ' . $expression->filter->dispatch($this) . ')')
                . (null === $expression->over ? '' : ' over ' . $expression->over->dispatch($this));
+    }
+
+    protected function jsonReturningClause(?nodes\GenericNode $returning): string
+    {
+        if ($returning instanceof nodes\TypeName) {
+            return ' returning ' . $returning->dispatch($this);
+        } elseif ($returning instanceof nodes\json\JsonReturning) {
+            return ' ' . $returning->dispatch($this);
+        } else {
+            return '';
+        }
+    }
+
+    protected function jsonOnNullClause(?bool $absentOnNull): string
+    {
+        if (null === $absentOnNull) {
+            return '';
+        } else {
+            return ($absentOnNull ? ' absent' : ' null') . ' on null';
+        }
+    }
+
+    protected function jsonUniqueKeysClause(?bool $uniqueKeys): string
+    {
+        if (null === $uniqueKeys) {
+            return '';
+        } else {
+            return ($uniqueKeys ? ' with' : ' without') . ' unique keys';
+        }
     }
 
     public function walkJsonArrayAgg(nodes\json\JsonArrayAgg $expression): string
     {
         return 'json_arrayagg(' . $expression->value->dispatch($this)
                . (null === $expression->order ? '' : ' order by ' . implode(', ', $expression->order->dispatch($this)))
-               . (
-                    null === $expression->absentOnNull
-                        ? ''
-                        : ($expression->absentOnNull ? ' absent' : ' null') . ' on null'
-               )
+               . $this->jsonOnNullClause($expression->absentOnNull)
                . $this->walkCommonJsonAggregateFields($expression);
     }
 
     public function walkJsonObjectAgg(nodes\json\JsonObjectAgg $expression): string
     {
         return 'json_objectagg(' . $expression->keyValue->dispatch($this)
-               . (
-                   null === $expression->absentOnNull
-                       ? ''
-                       : ($expression->absentOnNull ? ' absent' : ' null') . ' on null'
-               )
-               . (
-                   null === $expression->uniqueKeys
-                       ? ''
-                       : ($expression->uniqueKeys ? ' with' : ' without') . ' unique keys'
-               )
+               . $this->jsonOnNullClause($expression->absentOnNull)
+               . $this->jsonUniqueKeysClause($expression->uniqueKeys)
                . $this->walkCommonJsonAggregateFields($expression);
     }
 
@@ -1567,29 +1584,39 @@ class SqlBuilderWalker implements StatementToStringWalker
             $arguments = $this->implode(', ', $expression->arguments->dispatch($this));
         }
         return 'json_array(' . $arguments
-               . (
-                   null === $expression->absentOnNull
-                       ? ''
-                       : ($expression->absentOnNull ? ' absent' : ' null') . ' on null'
-               )
-               . (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
+               . $this->jsonOnNullClause($expression->absentOnNull)
+               . $this->jsonReturningClause($expression->returning)
                . ')';
     }
 
     public function walkJsonObject(nodes\json\JsonObject $expression): string
     {
         return 'json_object(' . implode(', ', $expression->arguments->dispatch($this))
-               . (
-                   null === $expression->absentOnNull
-                       ? ''
-                       : ($expression->absentOnNull ? ' absent' : ' null') . ' on null'
-               )
-               . (
-                   null === $expression->uniqueKeys
-                       ? ''
-                       : ($expression->uniqueKeys ? ' with' : ' without') . ' unique keys'
-               )
-               . (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
+               . $this->jsonOnNullClause($expression->absentOnNull)
+               . $this->jsonUniqueKeysClause($expression->uniqueKeys)
+               . $this->jsonReturningClause($expression->returning)
+               . ')';
+    }
+
+    public function walkJsonConstructor(nodes\json\JsonConstructor $expression): string
+    {
+        return 'json(' . $expression->expression->dispatch($this)
+               . $this->jsonUniqueKeysClause($expression->uniqueKeys)
+               . $this->jsonReturningClause($expression->returning)
+               . ')';
+    }
+
+    public function walkJsonScalar(nodes\json\JsonScalar $expression): string
+    {
+        return 'json_scalar(' . $expression->expression->dispatch($this)
+               . $this->jsonReturningClause($expression->returning)
+               . ')';
+    }
+
+    public function walkJsonSerialize(nodes\json\JsonSerialize $expression): string
+    {
+        return 'json_serialize(' . $expression->expression->dispatch($this)
+               . $this->jsonReturningClause($expression->returning)
                . ')';
     }
 

@@ -43,6 +43,7 @@ use sad_spirit\pg_builder\nodes\expressions\{
     CollationForExpression,
     ExtractExpression,
     FunctionExpression,
+    KeywordConstant,
     NormalizeExpression,
     NullIfExpression,
     OverlayExpression,
@@ -55,20 +56,21 @@ use sad_spirit\pg_builder\nodes\expressions\{
     SubstringFromExpression,
     SubstringSimilarExpression,
     SystemFunctionCall,
-    TrimExpression
-};
+    TrimExpression};
 use sad_spirit\pg_builder\nodes\json\{
     JsonArray,
     JsonArrayAgg,
+    JsonConstructor,
     JsonFormat,
     JsonKeyValue,
     JsonKeyValueList,
     JsonObject,
     JsonObjectAgg,
     JsonReturning,
+    JsonScalar,
+    JsonSerialize,
     JsonValue,
-    JsonValueList
-};
+    JsonValueList};
 use sad_spirit\pg_builder\nodes\lists\{
     ExpressionList,
     FunctionArgumentList,
@@ -677,6 +679,35 @@ QRY
                     new OperatorExpression('+', new ColumnReference('foo'), new ColumnReference('bar')))
                 ])),
                 new JsonArray($values, null, new JsonReturning(new TypeName(new QualifiedName('bytea'))))
+            ]),
+            $list
+        );
+    }
+
+    public function testMiscJsonExpressions(): void
+    {
+        $list = $this->parser->parseExpressionList(<<<QRY
+    json_scalar(1), json_scalar(2 returning jsonb),
+    json(null), json('{"foo":1}' format json encoding utf8 without unique returning jsonb),
+    json_serialize(null), json_serialize('{"foo":"bar"}' format json encoding utf8 returning bytea format json)
+QRY
+        );
+
+        $this::assertEquals(
+            new ExpressionList([
+                new JsonScalar(new NumericConstant('1')),
+                new JsonScalar(new NumericConstant('2'), new TypeName(new QualifiedName('jsonb'))),
+                new JsonConstructor(new JsonValue(new KeywordConstant(KeywordConstant::NULL))),
+                new JsonConstructor(
+                    new JsonValue(new StringConstant('{"foo":1}'), new JsonFormat('json', 'utf8')),
+                    false,
+                    new TypeName(new QualifiedName('jsonb'))
+                ),
+                new JsonSerialize(new JsonValue(new KeywordConstant(KeywordConstant::NULL))),
+                new JsonSerialize(
+                    new JsonValue(new StringConstant('{"foo":"bar"}'), new JsonFormat('json', 'utf8')),
+                    new JsonReturning(new TypeName(new QualifiedName('bytea')), new JsonFormat())
+                )
             ]),
             $list
         );

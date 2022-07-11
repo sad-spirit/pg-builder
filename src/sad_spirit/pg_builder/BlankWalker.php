@@ -946,4 +946,31 @@ abstract class BlankWalker implements TreeWalker
         }
         return null;
     }
+
+    public function walkJsonConstructor(nodes\json\JsonConstructor $expression)
+    {
+        $expression->expression->dispatch($this);
+        if (null !== $expression->returning) {
+            $expression->returning->dispatch($this);
+        }
+        return null;
+    }
+
+    public function walkJsonScalar(nodes\json\JsonScalar $expression)
+    {
+        $expression->expression->dispatch($this);
+        if (null !== $expression->returning) {
+            $expression->returning->dispatch($this);
+        }
+        return null;
+    }
+
+    public function walkJsonSerialize(nodes\json\JsonSerialize $expression)
+    {
+        $expression->expression->dispatch($this);
+        if (null !== $expression->returning) {
+            $expression->returning->dispatch($this);
+        }
+        return null;
+    }
 }

@@ -101,7 +101,7 @@ class Parser
         'xmlexists', 'xmlforest', 'xmlparse', 'xmlpi', 'xmlroot', 'xmlserialize',
         'normalize',
         // new JSON functions in Postgres 15, json_func_expr production
-        'json_object', 'json_array'
+        'json_object', 'json_array', 'json', 'json_scalar', 'json_serialize'
     ];
 
     /**
@@ -2708,8 +2708,7 @@ class Parser
         if (!$this->stream->matchesKeyword(self::SYSTEM_FUNCTIONS)) {
             return null;
         }
-        $funcName  = $this->stream->next()->getValue();
-        $arguments = [];
+        $funcName = $this->stream->next()->getValue();
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
 
         switch ($funcName) {
@@ -2836,6 +2835,22 @@ class Parser
 
             case 'json_array':
                 $funcNode = $this->JsonArrayConstructor();
+                break;
+
+            case 'json':
+                $funcNode = new nodes\json\JsonConstructor(
+                    $this->JsonValue(),
+                    $this->JsonUniquenessConstraint(),
+                    $this->JsonReturningTypename()
+                );
+                break;
+
+            case 'json_scalar':
+                $funcNode = new nodes\json\JsonScalar($this->Expression(), $this->JsonReturningTypename());
+                break;
+
+            case 'json_serialize':
+                $funcNode = new nodes\json\JsonSerialize($this->JsonValue(), $this->JsonReturningClause());
                 break;
 
             default: // 'coalesce', 'greatest', 'least', 'xmlconcat'
@@ -4281,6 +4296,16 @@ class Parser
 
         $this->stream->next();
         return new nodes\json\JsonReturning($this->TypeName(), $this->JsonFormat());
+    }
+
+    protected function JsonReturningTypename(): ?nodes\TypeName
+    {
+        if (!$this->stream->matchesKeyword('returning')) {
+            return null;
+        }
+
+        $this->stream->next();
+        return $this->TypeName();
     }
 
     protected function JsonValueList(): nodes\json\JsonValueList

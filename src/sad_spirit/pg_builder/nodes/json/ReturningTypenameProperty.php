@@ -20,17 +20,21 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\json;
 
+use sad_spirit\pg_builder\nodes\TypeName;
+
 /**
- * Adds $returning property that maps to "RETURNING ... [FORMAT ...]" clause used in JSON expressions
+ * Adds $returning property that maps to "RETURNING type_name" clause used in JSON expressions
  *
- * @property JsonReturning|null $returning
+ * If syntax allows FORMAT after type_name then JsonReturning and ReturningProperty should be used
+ *
+ * @property TypeName|null $returning
  */
-trait ReturningProperty
+trait ReturningTypenameProperty
 {
-    /** @var JsonReturning|null */
+    /** @var TypeName|null */
     protected $p_returning = null;
 
-    public function setReturning(?JsonReturning $returning): void
+    public function setReturning(?TypeName $returning): void
     {
         $this->setProperty($this->p_returning, $returning);
     }

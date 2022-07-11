@@ -986,4 +986,31 @@ interface TreeWalker
      * @since 2.1.0
      */
     public function walkJsonObject(nodes\json\JsonObject $expression);
+
+    /**
+     * Visits the node representing json() expression
+     *
+     * @param nodes\json\JsonConstructor $expression
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonConstructor(nodes\json\JsonConstructor $expression);
+
+    /**
+     * Visits the node representing json_scalar() expression
+     *
+     * @param nodes\json\JsonScalar $expression
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonScalar(nodes\json\JsonScalar $expression);
+
+    /**
+     * Visits the node representing json_serialize() expression
+     *
+     * @param nodes\json\JsonSerialize $expression
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonSerialize(nodes\json\JsonSerialize $expression);
 }
