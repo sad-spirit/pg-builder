@@ -35,9 +35,9 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 /**
  * AST node representing the json_array() expression
  *
- * @psalm-property JsonValueList|SelectCommon|null $arguments
+ * @psalm-property JsonFormattedValueList|SelectCommon|null $arguments
  *
- * @property JsonValueList|JsonValue[]|SelectCommon|null $arguments
+ * @property JsonFormattedValueList|JsonFormattedValue[]|SelectCommon|null $arguments
  */
 class JsonArray extends GenericNode implements ScalarExpression, FunctionLike
 {
@@ -47,7 +47,7 @@ class JsonArray extends GenericNode implements ScalarExpression, FunctionLike
     }
     use ReturningProperty;
 
-    /** @var JsonValueList|SelectCommon|null */
+    /** @var JsonFormattedValueList|SelectCommon|null */
     protected $p_arguments = null;
 
     public function __construct(
@@ -58,9 +58,9 @@ class JsonArray extends GenericNode implements ScalarExpression, FunctionLike
         $this->generatePropertyNames();
 
         if (null !== $arguments) {
-            if (!($arguments instanceof JsonValueList) && !($arguments instanceof SelectCommon)) {
+            if (!($arguments instanceof JsonFormattedValueList) && !($arguments instanceof SelectCommon)) {
                 throw new InvalidArgumentException(sprintf(
-                    '%s requires an instance of either SelectCommon or JsonValueList for $arguments, %s given',
+                    '%s requires an instance of either SelectCommon or JsonFormattedValueList for $arguments, %s given',
                     __CLASS__,
                     get_class($arguments)
                 ));
@@ -80,25 +80,25 @@ class JsonArray extends GenericNode implements ScalarExpression, FunctionLike
     public function setArguments(?GenericNode $arguments): void
     {
         if (null !== $arguments) {
-            if (!($arguments instanceof JsonValueList) && !($arguments instanceof SelectCommon)) {
+            if (!($arguments instanceof JsonFormattedValueList) && !($arguments instanceof SelectCommon)) {
                 throw new InvalidArgumentException(sprintf(
-                    '%s requires an instance of either SelectCommon or JsonValueList for $arguments, %s given',
+                    '%s requires an instance of either SelectCommon or JsonFormattedValueList for $arguments, %s given',
                     __CLASS__,
                     get_class($arguments)
                 ));
             }
         }
         $this->setProperty($this->p_arguments, $arguments);
-        if (!($arguments instanceof JsonValueList)) {
+        if (!($arguments instanceof JsonFormattedValueList)) {
             $this->setAbsentOnNull(null);
         }
     }
 
     public function setAbsentOnNull(?bool $absentOnNull): void
     {
-        if (null !== $absentOnNull && !($this->p_arguments instanceof JsonValueList)) {
+        if (null !== $absentOnNull && !($this->p_arguments instanceof JsonFormattedValueList)) {
             throw new InvalidArgumentException(
-                'Setting $absentOnNull is only possible when $arguments is an instance of JsonValueList'
+                'Setting $absentOnNull is only possible when $arguments is an instance of JsonFormattedValueList'
             );
         }
         $this->setAbsentOnNullImpl($absentOnNull);

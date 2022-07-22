@@ -60,14 +60,15 @@ use sad_spirit\pg_builder\nodes\expressions\{
 use sad_spirit\pg_builder\nodes\json\{
     JsonArray,
     JsonArrayAgg,
+    JsonConstructor,
     JsonFormat,
     JsonKeyValue,
     JsonKeyValueList,
     JsonObject,
     JsonObjectAgg,
     JsonReturning,
-    JsonValue,
-    JsonValueList
+    JsonFormattedValue,
+    JsonFormattedValueList
 };
 use sad_spirit\pg_builder\nodes\lists\{
     ExpressionList,
@@ -590,16 +591,16 @@ QRY
             new ExpressionList([
                 new JsonObjectAgg(new JsonKeyValue(
                     new ColumnReference('k'),
-                    new JsonValue(new ColumnReference('v'))
+                    new JsonFormattedValue(new ColumnReference('v'))
                 )),
                 new JsonArrayAgg(
-                    new JsonValue(new ColumnReference('v'), new JsonFormat('json', 'utf32')),
+                    new JsonFormattedValue(new ColumnReference('v'), new JsonFormat('json', 'utf32')),
                     null,
                     null,
                     new JsonReturning(new TypeName(new QualifiedName('blah')))
                 ),
                 new JsonObjectAgg(
-                    new JsonKeyValue(new ColumnReference('k'), new JsonValue(new ColumnReference('v'))),
+                    new JsonKeyValue(new ColumnReference('k'), new JsonFormattedValue(new ColumnReference('v'))),
                     false,
                     null,
                     null,
@@ -636,11 +637,11 @@ QRY
                     new FunctionArgumentList([new StringConstant('{foo,bar}'), new StringConstant('{baz,quux}')])
                 ),
                 new JsonObject(new JsonKeyValueList([
-                    new JsonKeyValue(new ColumnReference('k'), new JsonValue(new ColumnReference('v')))
+                    new JsonKeyValue(new ColumnReference('k'), new JsonFormattedValue(new ColumnReference('v')))
                 ]), false),
                 new JsonObject(new JsonKeyValueList([
-                    new JsonKeyValue(new ColumnReference('k'), new JsonValue(new ColumnReference('v'))),
-                    new JsonKeyValue(new ColumnReference('kk'), new JsonValue(new ColumnReference('vv')))
+                    new JsonKeyValue(new ColumnReference('k'), new JsonFormattedValue(new ColumnReference('v'))),
+                    new JsonKeyValue(new ColumnReference('kk'), new JsonFormattedValue(new ColumnReference('vv')))
                 ]), null, false)
             ]),
             $list
@@ -669,13 +670,13 @@ QRY
             new ExpressionList([
                 new JsonArray(),
                 new JsonArray(null, null, new JsonReturning(new TypeName(new QualifiedName('jsonb')))),
-                new JsonArray(new JsonValueList([
-                    new JsonValue(new ColumnReference('one'), new JsonFormat()),
-                    new JsonValue(new ColumnReference('two'))
+                new JsonArray(new JsonFormattedValueList([
+                    new JsonFormattedValue(new ColumnReference('one'), new JsonFormat()),
+                    new JsonFormattedValue(new ColumnReference('two'))
                 ]), false),
-                new JsonArray(new JsonValueList([new JsonValue(
-                    new OperatorExpression('+', new ColumnReference('foo'), new ColumnReference('bar')))
-                ])),
+                new JsonArray(new JsonFormattedValueList([new JsonFormattedValue(
+                    new OperatorExpression('+', new ColumnReference('foo'), new ColumnReference('bar'))
+                )])),
                 new JsonArray($values, null, new JsonReturning(new TypeName(new QualifiedName('bytea'))))
             ]),
             $list

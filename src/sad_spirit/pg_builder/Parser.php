@@ -147,7 +147,7 @@ class Parser
     private const STANDARD_TYPES_CHARACTER = ['character', 'char', 'varchar', 'nchar', 'national'];
 
     /**
-     * Checks for SQL standard character type name(s)
+     * Checks for SQL standard bit type name(s)
      */
     private const STANDARD_TYPES_BIT       = 'bit';
 
@@ -4372,12 +4372,12 @@ class Parser
             $this->stream->next();
         }
 
-        return new nodes\json\JsonKeyValue($key, $this->JsonValue());
+        return new nodes\json\JsonKeyValue($key, $this->JsonFormattedValue());
     }
 
-    protected function JsonValue(): nodes\json\JsonValue
+    protected function JsonFormattedValue(): nodes\json\JsonFormattedValue
     {
-        return new nodes\json\JsonValue($this->Expression(), $this->JsonFormat());
+        return new nodes\json\JsonFormattedValue($this->Expression(), $this->JsonFormat());
     }
 
     protected function JsonReturningClause(): ?nodes\json\JsonReturning
@@ -4390,13 +4390,13 @@ class Parser
         return new nodes\json\JsonReturning($this->TypeName(), $this->JsonFormat());
     }
 
-    protected function JsonValueList(): nodes\json\JsonValueList
+    protected function JsonFormattedValueList(): nodes\json\JsonFormattedValueList
     {
-        $list = new nodes\json\JsonValueList([$this->JsonValue()]);
+        $list = new nodes\json\JsonFormattedValueList([$this->JsonFormattedValue()]);
 
         while ($this->stream->matchesSpecialChar(',')) {
             $this->stream->next();
-            $list[] = $this->JsonValue();
+            $list[] = $this->JsonFormattedValue();
         }
 
         return $list;
@@ -4433,7 +4433,7 @@ class Parser
         $name = $this->stream->next();
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
         if ('json_arrayagg' === $name->getValue()) {
-            $expression = new nodes\json\JsonArrayAgg($this->JsonValue());
+            $expression = new nodes\json\JsonArrayAgg($this->JsonFormattedValue());
             if ($this->stream->matchesKeywordSequence('order', 'by')) {
                 $this->stream->skip(2);
                 $expression->order = $this->OrderByList();
@@ -4467,7 +4467,7 @@ class Parser
             !$this->stream->matchesKeyword('returning')
             && !$this->stream->matchesSpecialChar(')')
         ) {
-            $arguments    = $this->JsonValueList();
+            $arguments    = $this->JsonFormattedValueList();
             $absentOnNull = $this->JsonNullClause();
         }
 
@@ -4510,7 +4510,9 @@ class Parser
             } else {
                 $this->stream->next();
             }
-            $arguments = new nodes\json\JsonKeyValueList([new nodes\json\JsonKeyValue($argument, $this->JsonValue())]);
+            $arguments = new nodes\json\JsonKeyValueList([
+                new nodes\json\JsonKeyValue($argument, $this->JsonFormattedValue())
+            ]);
             if ($this->stream->matchesSpecialChar(',')) {
                 $this->stream->next();
                 $arguments->merge($this->JsonKeyValueList());

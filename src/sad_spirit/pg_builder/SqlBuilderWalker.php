@@ -1595,7 +1595,7 @@ class SqlBuilderWalker implements StatementToStringWalker
                . (null === $clause->format ? '' : ' ' . $clause->format->dispatch($this));
     }
 
-    public function walkJsonValue(nodes\json\JsonValue $clause): string
+    public function walkJsonFormattedValue(nodes\json\JsonFormattedValue $clause): string
     {
         return $clause->expression->dispatch($this)
                . (null === $clause->format ? '' : ' ' . $clause->format->dispatch($this));

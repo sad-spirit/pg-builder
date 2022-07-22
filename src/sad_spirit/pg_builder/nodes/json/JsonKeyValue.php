@@ -29,17 +29,17 @@ use sad_spirit\pg_builder\{
 /**
  * Represents a key-value pair for JSON
  *
- * @property ScalarExpression $key
- * @property JsonValue        $value
+ * @property ScalarExpression   $key
+ * @property JsonFormattedValue $value
  */
 class JsonKeyValue extends GenericNode
 {
     /** @var ScalarExpression */
     protected $p_key;
-    /** @var JsonValue */
+    /** @var JsonFormattedValue */
     protected $p_value;
 
-    public function __construct(ScalarExpression $key, JsonValue $value)
+    public function __construct(ScalarExpression $key, JsonFormattedValue $value)
     {
         $this->generatePropertyNames();
 
@@ -55,7 +55,7 @@ class JsonKeyValue extends GenericNode
         $this->setRequiredProperty($this->p_key, $key);
     }
 
-    public function setValue(JsonValue $value): void
+    public function setValue(JsonFormattedValue $value): void
     {
         $this->setRequiredProperty($this->p_value, $value);
     }
