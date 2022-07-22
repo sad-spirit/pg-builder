@@ -936,11 +936,11 @@ interface TreeWalker
     /**
      * Visits the node representing JSON value (an expression with possible trailing FORMAT)
      *
-     * @param nodes\json\JsonValue $clause
+     * @param nodes\json\JsonFormattedValue $clause
      * @return mixed
      * @since 2.1.0
      */
-    public function walkJsonValue(nodes\json\JsonValue $clause);
+    public function walkJsonFormattedValue(nodes\json\JsonFormattedValue $clause);
 
     /**
      * Visits the node representing a JSON key-value pair

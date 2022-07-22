@@ -31,17 +31,17 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing the json_serialize() expression
  *
- * @property JsonValue $expression
+ * @property JsonFormattedValue $expression
  */
 class JsonSerialize extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
     use ReturningProperty;
 
-    /** @var JsonValue */
+    /** @var JsonFormattedValue */
     protected $p_expression;
 
-    public function __construct(JsonValue $expression, ?JsonReturning $returning = null)
+    public function __construct(JsonFormattedValue $expression, ?JsonReturning $returning = null)
     {
         $this->generatePropertyNames();
 
@@ -54,7 +54,7 @@ class JsonSerialize extends GenericNode implements ScalarExpression, FunctionLik
         }
     }
 
-    public function setExpression(JsonValue $expression): void
+    public function setExpression(JsonFormattedValue $expression): void
     {
         $this->setRequiredProperty($this->p_expression, $expression);
     }

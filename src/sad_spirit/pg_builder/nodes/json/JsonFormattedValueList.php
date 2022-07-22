@@ -25,12 +25,12 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 /**
  * Represents a list of values for JSON
  *
- * @extends NonAssociativeList<JsonValue, iterable<JsonValue>, JsonValue>
+ * @extends NonAssociativeList<JsonFormattedValue, iterable<JsonFormattedValue>, JsonFormattedValue>
  */
-class JsonValueList extends NonAssociativeList
+class JsonFormattedValueList extends NonAssociativeList
 {
     protected static function getAllowedElementClasses(): array
     {
-        return [JsonValue::class];
+        return [JsonFormattedValue::class];
     }
 }

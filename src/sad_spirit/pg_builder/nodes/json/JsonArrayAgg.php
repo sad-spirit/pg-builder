@@ -33,18 +33,18 @@ use sad_spirit\pg_builder\TreeWalker;
  *
  * @psalm-property OrderByList|null $order
  *
- * @property JsonValue                         $value
+ * @property JsonFormattedValue                $value
  * @property OrderByList|OrderByElement[]|null $order
  */
 class JsonArrayAgg extends JsonAggregate
 {
-    /** @var JsonValue */
+    /** @var JsonFormattedValue */
     protected $p_value;
     /** @var OrderByList|null */
     protected $p_order = null;
 
     public function __construct(
-        JsonValue $value,
+        JsonFormattedValue $value,
         ?OrderByList $order = null,
         ?bool $absentOnNull = null,
         ?JsonReturning $returning = null,
@@ -62,7 +62,7 @@ class JsonArrayAgg extends JsonAggregate
         }
     }
 
-    public function setValue(JsonValue $value): void
+    public function setValue(JsonFormattedValue $value): void
     {
         $this->setRequiredProperty($this->p_value, $value);
     }

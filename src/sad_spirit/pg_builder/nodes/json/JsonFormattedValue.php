@@ -32,7 +32,7 @@ use sad_spirit\pg_builder\{
  * @property ScalarExpression $expression
  * @property JsonFormat|null  $format
  */
-class JsonValue extends GenericNode
+class JsonFormattedValue extends GenericNode
 {
     /** @var ScalarExpression */
     protected $p_expression;
@@ -64,6 +64,6 @@ class JsonValue extends GenericNode
 
     public function dispatch(TreeWalker $walker)
     {
-        return $walker->walkJsonValue($this);
+        return $walker->walkJsonFormattedValue($this);
     }
 }

@@ -32,7 +32,7 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing the json() expression
  *
- * @property JsonValue $expression
+ * @property JsonFormattedValue $expression
  */
 class JsonConstructor extends GenericNode implements ScalarExpression, FunctionLike
 {
@@ -40,10 +40,10 @@ class JsonConstructor extends GenericNode implements ScalarExpression, FunctionL
     use UniqueKeysProperty;
     use ReturningTypenameProperty;
 
-    /** @var JsonValue */
+    /** @var JsonFormattedValue */
     protected $p_expression;
 
-    public function __construct(JsonValue $expression, ?bool $uniqueKeys = null, ?TypeName $returning = null)
+    public function __construct(JsonFormattedValue $expression, ?bool $uniqueKeys = null, ?TypeName $returning = null)
     {
         $this->generatePropertyNames();
 
@@ -58,7 +58,7 @@ class JsonConstructor extends GenericNode implements ScalarExpression, FunctionL
         }
     }
 
-    public function setExpression(JsonValue $expression): void
+    public function setExpression(JsonFormattedValue $expression): void
     {
         $this->setRequiredProperty($this->p_expression, $expression);
     }

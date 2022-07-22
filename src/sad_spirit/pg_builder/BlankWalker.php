@@ -881,7 +881,7 @@ abstract class BlankWalker implements TreeWalker
         return null;
     }
 
-    public function walkJsonValue(nodes\json\JsonValue $clause)
+    public function walkJsonFormattedValue(nodes\json\JsonFormattedValue $clause)
     {
         $clause->expression->dispatch($this);
         if (null !== $clause->format) {
