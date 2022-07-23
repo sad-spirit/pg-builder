@@ -131,7 +131,7 @@ QRY
 
     public function testBuildSelectStatement(): void
     {
-        $parsed = $this->parser->parseStatement(<<<QRY
+        $parsed = $this->parser->parseStatement(<<<'QRY'
 with xmlstuff as (
     select xmlelement(name foo, bar, 'content'), xmlelement(name blah, xmlattributes(baz, quux as xyzzy), 'content'),
        xmlexists('//foo[text() = ''bar'']' passing by ref '<blah><foo>bar</foo></blah>'),
@@ -182,7 +182,11 @@ select distinct on (something) quux.one, xyzzy.two[1], (quux.three).four, $1.bla
        json_object(k: v, kk value vv with unique keys),
        json('{"foo":1}' format json encoding utf8 without unique returning jsonb),
        json_scalar(123),
-       json_serialize('{"foo":"bar"}' format json encoding utf8 returning bytea format json)
+       json_serialize('{"foo":"bar"}' format json encoding utf8 returning bytea format json),
+       json_exists(jsonb '{"a": 1, "b": 2}', '$.* ? (@ > $x)' passing 1 as x returning bool false on error),
+       json_value(jsonb '{"a": 1, "b": 2}', '$.* ? (@ > $x)' passing 2 as x returning int null on empty),
+       json_query(jsonb '{"a": 1, "b": 2}', '$.* ? (@ > $x)' passing 1 as x returning jsonb 
+                  without wrapper keep quotes empty on error)
 from quux, xyzzy left join (atable as one left join anothertable as two using (commonfield) as usingalias)
                 as three on xyzzy.id = three.xyzzy_id,
      some_function(1, 'two', array[3, 4]) with ordinality as sf (id integer, name text collate somecollation),

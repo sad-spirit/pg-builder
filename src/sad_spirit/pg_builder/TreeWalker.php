@@ -1013,4 +1013,40 @@ interface TreeWalker
      * @since 2.1.0
      */
     public function walkJsonSerialize(nodes\json\JsonSerialize $expression);
+
+    /**
+     * Visits the node representing an element of JSON "PASSING ..." clause
+     *
+     * @param nodes\json\JsonArgument $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonArgument(nodes\json\JsonArgument $clause);
+
+    /**
+     * Visits the node representing json_exists() expression
+     *
+     * @param nodes\json\JsonExists $expression
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonExists(nodes\json\JsonExists $expression);
+
+    /**
+     * Visits the node representing json_value() expression
+     *
+     * @param nodes\json\JsonValue $expression
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonValue(nodes\json\JsonValue $expression);
+
+    /**
+     * Visits the node representing json_query() expression
+     *
+     * @param nodes\json\JsonQuery $expression
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonQuery(nodes\json\JsonQuery $expression);
 }

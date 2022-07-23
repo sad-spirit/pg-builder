@@ -1620,6 +1620,68 @@ class SqlBuilderWalker implements StatementToStringWalker
                . ')';
     }
 
+    public function walkJsonArgument(nodes\json\JsonArgument $clause): string
+    {
+        return $clause->value->dispatch($this) . ' as ' . $clause->alias->dispatch($this);
+    }
+
+    protected function walkCommonJsonQueryFields(nodes\json\JsonQueryCommon $expression): string
+    {
+        return $expression->context->dispatch($this)
+               . ', ' . $expression->path->dispatch($this)
+               . (
+                   0 === count($expression->passing)
+                   ? ''
+                   : ' passing ' . implode(', ', $expression->passing->dispatch($this))
+               );
+    }
+
+    protected function jsonQueryBehaviours(nodes\json\JsonQueryCommon $expression): string
+    {
+        $result = '';
+        if (!empty($expression->onEmpty)) {
+            if ($expression->onEmpty instanceof nodes\ScalarExpression) {
+                $result .= ' default ' . $expression->onEmpty->dispatch($this) . ' on empty';
+            } else {
+                $result .= ' ' . $expression->onEmpty . ' on empty';
+            }
+        }
+        if (!empty($expression->onError)) {
+            if ($expression->onError instanceof nodes\ScalarExpression) {
+                $result .= ' default ' . $expression->onError->dispatch($this) . ' on error';
+            } else {
+                $result .= ' ' . $expression->onError . ' on error';
+            }
+        }
+        return $result;
+    }
+
+    public function walkJsonExists(nodes\json\JsonExists $expression): string
+    {
+        return 'json_exists(' . $this->walkCommonJsonQueryFields($expression)
+               . $this->jsonReturningClause($expression->returning)
+               . $this->jsonQueryBehaviours($expression)
+               . ')';
+    }
+
+    public function walkJsonValue(nodes\json\JsonValue $expression): string
+    {
+        return 'json_value(' . $this->walkCommonJsonQueryFields($expression)
+               . $this->jsonReturningClause($expression->returning)
+               . $this->jsonQueryBehaviours($expression)
+               . ')';
+    }
+
+    public function walkJsonQuery(nodes\json\JsonQuery $expression): string
+    {
+        return 'json_query(' . $this->walkCommonJsonQueryFields($expression)
+               . $this->jsonReturningClause($expression->returning)
+               . (null === $expression->wrapper ? '' : ' ' . $expression->wrapper . ' wrapper')
+               . (null === $expression->keepQuotes ? '' : ' ' . ($expression->keepQuotes ? 'keep' : 'omit') . ' quotes')
+               . $this->jsonQueryBehaviours($expression)
+               . ')';
+    }
+
     /**
      * Returns an array of code points corresponding to characters in UTF-8 string
      *

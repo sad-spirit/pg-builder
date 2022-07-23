@@ -101,7 +101,8 @@ class Parser
         'xmlexists', 'xmlforest', 'xmlparse', 'xmlpi', 'xmlroot', 'xmlserialize',
         'normalize',
         // new JSON functions in Postgres 15, json_func_expr production
-        'json_object', 'json_array', 'json', 'json_scalar', 'json_serialize'
+        'json_object', 'json_array', 'json', 'json_scalar', 'json_serialize',
+        'json_exists', 'json_value', 'json_query'
     ];
 
     /**
@@ -2853,6 +2854,12 @@ class Parser
                 $funcNode = new nodes\json\JsonSerialize($this->JsonFormattedValue(), $this->JsonReturningClause());
                 break;
 
+            case 'json_exists':
+            case 'json_value':
+            case 'json_query':
+                $funcNode = $this->JsonQueryFunction($funcName);
+                break;
+
             default: // 'coalesce', 'greatest', 'least', 'xmlconcat'
                 $funcNode = new nodes\expressions\SystemFunctionCall(
                     $funcName,
@@ -4288,6 +4295,18 @@ class Parser
         return new nodes\json\JsonFormattedValue($this->Expression(), $this->JsonFormat());
     }
 
+    protected function JsonArgument(): nodes\json\JsonArgument
+    {
+        $value = $this->JsonFormattedValue();
+        $this->stream->expect(Token::TYPE_KEYWORD, 'as');
+        if ($this->stream->matches(Token::TYPE_KEYWORD)) {
+            $alias = nodes\Identifier::createFromToken($this->stream->next());
+        } else {
+            $alias = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
+        }
+        return new nodes\json\JsonArgument($value, $alias);
+    }
+
     protected function JsonReturningClause(): ?nodes\json\JsonReturning
     {
         if (!$this->stream->matchesKeyword('returning')) {
@@ -4327,6 +4346,18 @@ class Parser
         while ($this->stream->matchesSpecialChar(',')) {
             $this->stream->next();
             $list[] = $this->JsonKeyValue();
+        }
+
+        return $list;
+    }
+
+    protected function JsonArgumentList(): nodes\json\JsonArgumentList
+    {
+        $list = new nodes\json\JsonArgumentList([$this->JsonArgument()]);
+
+        while ($this->stream->matchesSpecialChar(',')) {
+            $this->stream->next();
+            $list[] = $this->JsonArgument();
         }
 
         return $list;
@@ -4442,5 +4473,120 @@ class Parser
                 $this->JsonReturningClause()
             );
         }
+    }
+
+    public function JsonQueryFunction(string $funcName): nodes\json\JsonQueryCommon
+    {
+        $context = $this->JsonFormattedValue();
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
+        $path    = $this->Expression();
+        if (!$this->stream->matchesKeyword('passing')) {
+            $passing = null;
+        } else {
+            $this->stream->next();
+            $passing = $this->JsonArgumentList();
+        }
+
+        switch ($funcName) {
+            case 'json_exists':
+                $returning = $this->JsonReturningTypename();
+                if (!$this->stream->matchesKeyword(nodes\json\JsonExists::ALLOWED_BEHAVIOURS)) {
+                    $onError = null;
+                } else {
+                    $onError = $this->stream->next()->getValue();
+                    $this->stream->expect(Token::TYPE_KEYWORD, 'on');
+                    $this->stream->expect(Token::TYPE_KEYWORD, 'error');
+                }
+                return new nodes\json\JsonExists($context, $path, $passing, $returning, $onError);
+
+            case 'json_value':
+                $returning = $this->JsonReturningTypename();
+                [$onEmpty, $onError] = $this->JsonQueryBehaviour(
+                    array_merge(nodes\json\JsonValue::ALLOWED_BEHAVIOURS, ['default'])
+                );
+                return new nodes\json\JsonValue($context, $path, $passing, $returning, $onEmpty, $onError);
+
+            case 'json_query':
+                $returning = $this->JsonReturningClause();
+                if (!$this->stream->matchesKeyword(['with', 'without'])) {
+                    $wrapper = null;
+                } else {
+                    $wrapper = $this->stream->next()->getValue();
+                    if ('with' === $wrapper) {
+                        if ($this->stream->matchesKeyword(['conditional', 'unconditional'])) {
+                            $wrapper .= ' ' . $this->stream->next()->getValue();
+                        } else {
+                            $wrapper .= ' unconditional';
+                        }
+                    }
+                    if ($this->stream->matchesKeyword('array')) {
+                        $this->stream->next();
+                    }
+                    $this->stream->expect(Token::TYPE_KEYWORD, 'wrapper');
+                }
+                if (!$this->stream->matchesKeyword(['keep', 'omit'])) {
+                    $keepQuotes = null;
+                } else {
+                    $keepQuotes = 'keep' === $this->stream->next()->getValue();
+                    $this->stream->expect(Token::TYPE_KEYWORD, 'quotes');
+                    if ($this->stream->matchesKeyword('on')) {
+                        $this->stream->next();
+                        $this->stream->expect(Token::TYPE_KEYWORD, 'scalar');
+                        $this->stream->expect(Token::TYPE_KEYWORD, 'string');
+                    }
+                }
+                [$onEmpty, $onError] = $this->JsonQueryBehaviour(
+                    array_merge(nodes\json\JsonQuery::ALLOWED_BEHAVIOURS, ['default', 'empty'])
+                );
+                return new nodes\json\JsonQuery(
+                    $context,
+                    $path,
+                    $passing,
+                    $returning,
+                    $wrapper,
+                    $keepQuotes,
+                    $onEmpty,
+                    $onError
+                );
+
+            default:
+                throw new exceptions\InvalidArgumentException("Unknown JSON query function name $funcName");
+        }
+    }
+
+    protected function JsonQueryBehaviour(array $keywords): array
+    {
+        $onError   = null;
+        $onEmpty   = null;
+        while ($this->stream->matchesKeyword($keywords)) {
+            $keyword   = $this->stream->next();
+            $behaviour = $keyword->getValue();
+            if ('default' === $behaviour) {
+                $behaviour = $this->Expression();
+            } elseif ('empty' === $behaviour) {
+                if ($this->stream->matchesKeyword(['array', 'object'])) {
+                    $behaviour .= ' ' . $this->stream->next()->getValue();
+                } else {
+                    $behaviour .= ' array';
+                }
+            }
+
+            $this->stream->expect(Token::TYPE_KEYWORD, 'on');
+            $onWhat = $this->stream->expect(Token::TYPE_KEYWORD, ['empty', 'error'])->getValue();
+            if ('error' === $onWhat && null === $onError) {
+                $onError = $behaviour;
+            } elseif ('empty' === $onWhat && null === $onEmpty && null === $onError) {
+                $onEmpty = $behaviour;
+            } else {
+                // Error should point to the first relevant token rather than to the current one
+                throw exceptions\SyntaxException::expectationFailed(
+                    Token::TYPE_SPECIAL_CHAR,
+                    ')',
+                    $keyword,
+                    $this->stream->getSource()
+                );
+            }
+        }
+        return [$onEmpty, $onError];
     }
 }

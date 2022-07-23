@@ -56,21 +56,29 @@ use sad_spirit\pg_builder\nodes\expressions\{
     SubstringFromExpression,
     SubstringSimilarExpression,
     SystemFunctionCall,
-    TrimExpression};
+    TrimExpression,
+    TypecastExpression
+};
 use sad_spirit\pg_builder\nodes\json\{
+    JsonArgument,
+    JsonArgumentList,
     JsonArray,
     JsonArrayAgg,
     JsonConstructor,
+    JsonExists,
     JsonFormat,
     JsonKeyValue,
     JsonKeyValueList,
     JsonObject,
     JsonObjectAgg,
+    JsonQuery,
+    JsonQueryCommon,
     JsonReturning,
     JsonScalar,
     JsonSerialize,
     JsonFormattedValue,
-    JsonFormattedValueList
+    JsonFormattedValueList,
+    JsonValue
 };
 use sad_spirit\pg_builder\nodes\lists\{
     ExpressionList,
@@ -708,6 +716,82 @@ QRY
                 new JsonSerialize(
                     new JsonFormattedValue(new StringConstant('{"foo":"bar"}'), new JsonFormat('json', 'utf8')),
                     new JsonReturning(new TypeName(new QualifiedName('bytea')), new JsonFormat())
+                )
+            ]),
+            $list
+        );
+    }
+
+    public function testJsonQueryExpressions(): void
+    {
+        $list = $this->parser->parseExpressionList(<<<'QRY'
+    json_exists(null format json, '$'),
+    json_exists(jsonb '{"a": 1, "b": 2}', '$.* ? (@ > $x)' passing 1 as x returning bool false on error),
+    json_value(null::jsonb, '$'),
+    json_value(jsonb '{"a": 1, "b": 2}', '$.* ? (@ > $x)' passing 2 as x returning int
+               null on empty default -1 on error),
+    json_query(null format json, '$'),
+    json_query(jsonb '{"a": 1, "b": 2}', '$.* ? (@ > $x)' passing 1 as x returning jsonb 
+               without wrapper keep quotes default 0 on empty empty on error)
+QRY
+        );
+
+        $this::assertEquals(
+            new ExpressionList([
+                new JsonExists(
+                    new JsonFormattedValue(new KeywordConstant(KeywordConstant::NULL), new JsonFormat()),
+                    new StringConstant('$')
+                ),
+                new JsonExists(
+                    new JsonFormattedValue(new TypecastExpression(
+                        new StringConstant('{"a": 1, "b": 2}'),
+                        new TypeName(new QualifiedName('jsonb'))
+                    )),
+                    new StringConstant('$.* ? (@ > $x)'),
+                    new JsonArgumentList([
+                        new JsonArgument(new JsonFormattedValue(new NumericConstant('1')), new Identifier('x'))
+                    ]),
+                    new TypeName(new QualifiedName('bool')),
+                    JsonQueryCommon::BEHAVIOUR_FALSE
+                ),
+                new JsonValue(
+                    new JsonFormattedValue(new TypecastExpression(
+                        new KeywordConstant(KeywordConstant::NULL),
+                        new TypeName(new QualifiedName('jsonb'))
+                    )),
+                    new StringConstant('$')
+                ),
+                new JsonValue(
+                    new JsonFormattedValue(new TypecastExpression(
+                        new StringConstant('{"a": 1, "b": 2}'),
+                        new TypeName(new QualifiedName('jsonb'))
+                    )),
+                    new StringConstant('$.* ? (@ > $x)'),
+                    new JsonArgumentList([
+                        new JsonArgument(new JsonFormattedValue(new NumericConstant('2')), new Identifier('x'))
+                    ]),
+                    new TypeName(new QualifiedName('pg_catalog', 'int4')),
+                    JsonQueryCommon::BEHAVIOUR_NULL,
+                    new NumericConstant('-1')
+                ),
+                new JsonQuery(
+                    new JsonFormattedValue(new KeywordConstant(KeywordConstant::NULL), new JsonFormat()),
+                    new StringConstant('$')
+                ),
+                new JsonQuery(
+                    new JsonFormattedValue(new TypecastExpression(
+                        new StringConstant('{"a": 1, "b": 2}'),
+                        new TypeName(new QualifiedName('jsonb'))
+                    )),
+                    new StringConstant('$.* ? (@ > $x)'),
+                    new JsonArgumentList([
+                        new JsonArgument(new JsonFormattedValue(new NumericConstant('1')), new Identifier('x'))
+                    ]),
+                    new JsonReturning(new TypeName(new QualifiedName('jsonb'))),
+                    JsonQuery::WRAPPER_WITHOUT,
+                    true,
+                    new NumericConstant('0'),
+                    JsonQueryCommon::BEHAVIOUR_EMPTY_ARRAY
                 )
             ]),
             $list

@@ -973,4 +973,57 @@ abstract class BlankWalker implements TreeWalker
         }
         return null;
     }
+
+    public function walkJsonArgument(nodes\json\JsonArgument $clause)
+    {
+        $clause->value->dispatch($this);
+        $clause->alias->dispatch($this);
+        return null;
+    }
+
+    protected function walkCommonJsonQueryFields(nodes\json\JsonQueryCommon $expression): void
+    {
+        $expression->context->dispatch($this);
+        $expression->path->dispatch($this);
+        $expression->passing->dispatch($this);
+    }
+
+    public function walkJsonExists(nodes\json\JsonExists $expression)
+    {
+        $this->walkCommonJsonQueryFields($expression);
+        if (null !== $expression->returning) {
+            $expression->returning->dispatch($this);
+        }
+        return null;
+    }
+
+    public function walkJsonValue(nodes\json\JsonValue $expression)
+    {
+        $this->walkCommonJsonQueryFields($expression);
+        if (null !== $expression->returning) {
+            $expression->returning->dispatch($this);
+        }
+        if ($expression->onEmpty instanceof nodes\ScalarExpression) {
+            $expression->onEmpty->dispatch($this);
+        }
+        if ($expression->onError instanceof nodes\ScalarExpression) {
+            $expression->onError->dispatch($this);
+        }
+        return null;
+    }
+
+    public function walkJsonQuery(nodes\json\JsonQuery $expression)
+    {
+        $this->walkCommonJsonQueryFields($expression);
+        if (null !== $expression->returning) {
+            $expression->returning->dispatch($this);
+        }
+        if ($expression->onEmpty instanceof nodes\ScalarExpression) {
+            $expression->onEmpty->dispatch($this);
+        }
+        if ($expression->onError instanceof nodes\ScalarExpression) {
+            $expression->onError->dispatch($this);
+        }
+        return null;
+    }
 }
