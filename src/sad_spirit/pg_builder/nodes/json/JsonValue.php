@@ -28,23 +28,11 @@ use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing the json_value() expression
- *
- * @property string|ScalarExpression|null $onEmpty
- * @property string|ScalarExpression|null $onError
  */
 class JsonValue extends JsonQueryCommon
 {
     use ReturningTypenameProperty;
-
-    public const ALLOWED_BEHAVIOURS = [
-        self::BEHAVIOUR_ERROR,
-        self::BEHAVIOUR_NULL
-    ];
-
-    /** @var string|ScalarExpression|null */
-    protected $p_onEmpty = null;
-    /** @var string|ScalarExpression|null */
-    protected $p_onError = null;
+    use JsonValueBehaviours;
 
     /**
      * Constructor
@@ -71,28 +59,6 @@ class JsonValue extends JsonQueryCommon
         }
         $this->setOnEmpty($onEmpty);
         $this->setOnError($onError);
-    }
-
-    /**
-     * Sets the value for ON EMPTY clause
-     *
-     * @param string|ScalarExpression|null $onEmpty an instance of ScalarExpression corresponds to "DEFAULT ..." value
-     * @return void
-     */
-    public function setOnEmpty($onEmpty): void
-    {
-        $this->setBehaviour($this->p_onEmpty, 'ON EMPTY', self::ALLOWED_BEHAVIOURS, $onEmpty);
-    }
-
-    /**
-     * Sets the value for ON ERROR clause
-     *
-     * @param string|ScalarExpression|null $onError an instance of ScalarExpression corresponds to "DEFAULT ..." value
-     * @return void
-     */
-    public function setOnError($onError): void
-    {
-        $this->setBehaviour($this->p_onError, 'ON ERROR', self::ALLOWED_BEHAVIOURS, $onError);
     }
 
     public function dispatch(TreeWalker $walker)

@@ -28,22 +28,11 @@ use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing the json_exists() expression
- *
- * @property string|null $onError
  */
 class JsonExists extends JsonQueryCommon
 {
     use ReturningTypenameProperty;
-
-    /** @var string|null */
-    protected $p_onError;
-
-    public const ALLOWED_BEHAVIOURS = [
-        self::BEHAVIOUR_UNKNOWN,
-        self::BEHAVIOUR_TRUE,
-        self::BEHAVIOUR_FALSE,
-        self::BEHAVIOUR_ERROR
-    ];
+    use JsonExistsBehaviours;
 
     public function __construct(
         JsonFormattedValue $context,
@@ -59,12 +48,6 @@ class JsonExists extends JsonQueryCommon
             $this->p_returning->setParentNode($this);
         }
         $this->setOnError($onError);
-    }
-
-    public function setOnError(?string $onError): void
-    {
-        /** @psalm-suppress PossiblyInvalidPropertyAssignmentValue */
-        $this->setBehaviour($this->p_onError, 'ON ERROR', self::ALLOWED_BEHAVIOURS, $onError);
     }
 
     public function dispatch(TreeWalker $walker)

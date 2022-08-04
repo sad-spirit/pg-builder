@@ -4490,7 +4490,7 @@ class Parser
         switch ($funcName) {
             case 'json_exists':
                 $returning = $this->JsonReturningTypename();
-                if (!$this->stream->matchesKeyword(nodes\json\JsonExists::ALLOWED_BEHAVIOURS)) {
+                if (!$this->stream->matchesKeyword(nodes\json\JsonKeywords::BEHAVIOURS_EXISTS)) {
                     $onError = null;
                 } else {
                     $onError = $this->stream->next()->getValue();
@@ -4502,7 +4502,7 @@ class Parser
             case 'json_value':
                 $returning = $this->JsonReturningTypename();
                 [$onEmpty, $onError] = $this->JsonQueryBehaviour(
-                    array_merge(nodes\json\JsonValue::ALLOWED_BEHAVIOURS, ['default'])
+                    array_merge(nodes\json\JsonKeywords::BEHAVIOURS_VALUE, ['default'])
                 );
                 return new nodes\json\JsonValue($context, $path, $passing, $returning, $onEmpty, $onError);
 
@@ -4536,7 +4536,7 @@ class Parser
                     }
                 }
                 [$onEmpty, $onError] = $this->JsonQueryBehaviour(
-                    array_merge(nodes\json\JsonQuery::ALLOWED_BEHAVIOURS, ['default', 'empty'])
+                    array_merge(nodes\json\JsonKeywords::BEHAVIOURS_QUERY, ['default', 'empty'])
                 );
                 return new nodes\json\JsonQuery(
                     $context,

@@ -22,11 +22,14 @@ namespace sad_spirit\pg_builder\tests;
 
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
-    Parser,
     Lexer,
+    Parser,
     Values
 };
-use sad_spirit\pg_builder\exceptions\SyntaxException;
+use sad_spirit\pg_builder\exceptions\{
+    InvalidArgumentException,
+    SyntaxException
+};
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
     Identifier,
@@ -69,10 +72,10 @@ use sad_spirit\pg_builder\nodes\json\{
     JsonFormat,
     JsonKeyValue,
     JsonKeyValueList,
+    JsonKeywords,
     JsonObject,
     JsonObjectAgg,
     JsonQuery,
-    JsonQueryCommon,
     JsonReturning,
     JsonScalar,
     JsonSerialize,
@@ -752,7 +755,7 @@ QRY
                         new JsonArgument(new JsonFormattedValue(new NumericConstant('1')), new Identifier('x'))
                     ]),
                     new TypeName(new QualifiedName('bool')),
-                    JsonQueryCommon::BEHAVIOUR_FALSE
+                    JsonKeywords::BEHAVIOUR_FALSE
                 ),
                 new JsonValue(
                     new JsonFormattedValue(new TypecastExpression(
@@ -771,7 +774,7 @@ QRY
                         new JsonArgument(new JsonFormattedValue(new NumericConstant('2')), new Identifier('x'))
                     ]),
                     new TypeName(new QualifiedName('pg_catalog', 'int4')),
-                    JsonQueryCommon::BEHAVIOUR_NULL,
+                    JsonKeywords::BEHAVIOUR_NULL,
                     new NumericConstant('-1')
                 ),
                 new JsonQuery(
@@ -788,14 +791,63 @@ QRY
                         new JsonArgument(new JsonFormattedValue(new NumericConstant('1')), new Identifier('x'))
                     ]),
                     new JsonReturning(new TypeName(new QualifiedName('jsonb'))),
-                    JsonQuery::WRAPPER_WITHOUT,
+                    JsonKeywords::WRAPPER_WITHOUT,
                     true,
                     new NumericConstant('0'),
-                    JsonQueryCommon::BEHAVIOUR_EMPTY_ARRAY
+                    JsonKeywords::BEHAVIOUR_EMPTY_ARRAY
                 )
             ]),
             $list
         );
+    }
+
+    /**
+     * @dataProvider getInvalidJsonExpressions
+     * @param string                   $expression
+     * @param class-string<\Throwable> $exception
+     * @param string                   $message
+     */
+    public function testInvalidJsonExpressions(string $expression, string $exception, string $message): void
+    {
+        $this::expectException($exception);
+        $this::expectExceptionMessage($message);
+        $this->parser->parseExpression($expression);
+    }
+
+    public function getInvalidJsonExpressions(): array
+    {
+        return [
+            [
+                "json('null' format not_json)",
+                SyntaxException::class,
+                "expecting keyword 'json'"
+            ],
+            [
+                "json('null' format json encoding utf64)",
+                InvalidArgumentException::class,
+                "Unrecognized JSON encoding"
+            ],
+            [
+                "json_value('null', '$' error on error empty on error)",
+                SyntaxException::class,
+                "Unexpected keyword 'empty'"
+            ],
+            [
+                "json_value('null', '$' empty on error error on empty)",
+                SyntaxException::class,
+                "Unexpected keyword 'empty'"
+            ],
+            [
+                "json_exists('null', '$' default 666 on empty)",
+                SyntaxException::class,
+                "Unexpected keyword 'default'"
+            ],
+            [
+                "json_query('null', '$' with wrapper keep quotes)",
+                InvalidArgumentException::class,
+                "QUOTES behaviour must not be specified "
+            ]
+        ];
     }
 
     public function testWindowFunctionCalls(): void
