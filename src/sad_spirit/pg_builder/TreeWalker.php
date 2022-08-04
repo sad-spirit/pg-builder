@@ -1049,4 +1049,58 @@ interface TreeWalker
      * @since 2.1.0
      */
     public function walkJsonQuery(nodes\json\JsonQuery $expression);
+
+    /**
+     * Visits the node representing json_table() expression
+     *
+     * @param nodes\range\JsonTable $rangeItem
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonTable(nodes\range\JsonTable $rangeItem);
+
+    /**
+     * Visits the node representing an EXISTS column definition in json_table() expression
+     *
+     * @param nodes\range\json\JsonExistsColumnDefinition $column
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonExistsColumnDefinition(nodes\range\json\JsonExistsColumnDefinition $column);
+
+    /**
+     * Visits the node representing column definition with FORMAT clause in json_table() expression
+     *
+     * @param nodes\range\json\JsonFormattedColumnDefinition $column
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonFormattedColumnDefinition(nodes\range\json\JsonFormattedColumnDefinition $column);
+
+    /**
+     * Visits the node representing a "FOR ORDINALITY" column definition in json_table() expression
+     *
+     * @param nodes\range\json\JsonOrdinalityColumnDefinition $column
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonOrdinalityColumnDefinition(nodes\range\json\JsonOrdinalityColumnDefinition $column);
+
+    /**
+     * Visits the node representing a regular column definition in json_table() expression
+     *
+     * @param nodes\range\json\JsonRegularColumnDefinition $column
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonRegularColumnDefinition(nodes\range\json\JsonRegularColumnDefinition $column);
+
+    /**
+     * Visits the node representing nested column definitions in json_table() expression
+     *
+     * @param nodes\range\json\JsonNestedColumns $column
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonNestedColumns(nodes\range\json\JsonNestedColumns $column);
 }

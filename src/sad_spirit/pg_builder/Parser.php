@@ -3572,6 +3572,8 @@ class Parser
                 $reference = $this->RangeSubselect();
             } elseif ($this->stream->matchesKeyword('xmltable')) {
                 $reference = $this->XmlTable();
+            } elseif ($this->stream->matchesKeyword('json_table')) {
+                $reference = $this->JsonTable();
             } else {
                 $reference = $this->RangeFunctionCall();
             }
@@ -3592,6 +3594,9 @@ class Parser
 
         } elseif ($this->stream->matchesKeyword('xmltable')) {
             $reference = $this->XmlTable();
+
+        } elseif ($this->stream->matchesKeyword('json_table')) {
+            $reference = $this->JsonTable();
 
         } elseif (
             $this->stream->matchesKeywordSequence('rows', 'from')
@@ -4490,13 +4495,7 @@ class Parser
         switch ($funcName) {
             case 'json_exists':
                 $returning = $this->JsonReturningTypename();
-                if (!$this->stream->matchesKeyword(nodes\json\JsonKeywords::BEHAVIOURS_EXISTS)) {
-                    $onError = null;
-                } else {
-                    $onError = $this->stream->next()->getValue();
-                    $this->stream->expect(Token::TYPE_KEYWORD, 'on');
-                    $this->stream->expect(Token::TYPE_KEYWORD, 'error');
-                }
+                $onError   = $this->JsonExistsOnErrorClause();
                 return new nodes\json\JsonExists($context, $path, $passing, $returning, $onError);
 
             case 'json_value':
@@ -4507,34 +4506,9 @@ class Parser
                 return new nodes\json\JsonValue($context, $path, $passing, $returning, $onEmpty, $onError);
 
             case 'json_query':
-                $returning = $this->JsonReturningClause();
-                if (!$this->stream->matchesKeyword(['with', 'without'])) {
-                    $wrapper = null;
-                } else {
-                    $wrapper = $this->stream->next()->getValue();
-                    if ('with' === $wrapper) {
-                        if ($this->stream->matchesKeyword(['conditional', 'unconditional'])) {
-                            $wrapper .= ' ' . $this->stream->next()->getValue();
-                        } else {
-                            $wrapper .= ' unconditional';
-                        }
-                    }
-                    if ($this->stream->matchesKeyword('array')) {
-                        $this->stream->next();
-                    }
-                    $this->stream->expect(Token::TYPE_KEYWORD, 'wrapper');
-                }
-                if (!$this->stream->matchesKeyword(['keep', 'omit'])) {
-                    $keepQuotes = null;
-                } else {
-                    $keepQuotes = 'keep' === $this->stream->next()->getValue();
-                    $this->stream->expect(Token::TYPE_KEYWORD, 'quotes');
-                    if ($this->stream->matchesKeyword('on')) {
-                        $this->stream->next();
-                        $this->stream->expect(Token::TYPE_KEYWORD, 'scalar');
-                        $this->stream->expect(Token::TYPE_KEYWORD, 'string');
-                    }
-                }
+                $returning  = $this->JsonReturningClause();
+                $wrapper    = $this->JsonWrapperClause();
+                $keepQuotes = $this->JsonQuotesClause();
                 [$onEmpty, $onError] = $this->JsonQueryBehaviour(
                     array_merge(nodes\json\JsonKeywords::BEHAVIOURS_QUERY, ['default', 'empty'])
                 );
@@ -4552,6 +4526,58 @@ class Parser
             default:
                 throw new exceptions\InvalidArgumentException("Unknown JSON query function name $funcName");
         }
+    }
+
+    protected function JsonWrapperClause(): ?string
+    {
+        if (!$this->stream->matchesKeyword(['with', 'without'])) {
+            return null;
+        }
+
+        $wrapper = $this->stream->next()->getValue();
+        if ('with' === $wrapper) {
+            if ($this->stream->matchesKeyword(['conditional', 'unconditional'])) {
+                $wrapper .= ' ' . $this->stream->next()->getValue();
+            } else {
+                $wrapper .= ' unconditional';
+            }
+        }
+        if ($this->stream->matchesKeyword('array')) {
+            $this->stream->next();
+        }
+        $this->stream->expect(Token::TYPE_KEYWORD, 'wrapper');
+
+        return $wrapper;
+    }
+
+    protected function JsonQuotesClause(): ?bool
+    {
+        if (!$this->stream->matchesKeyword(['keep', 'omit'])) {
+            return null;
+        }
+
+        $keepQuotes = 'keep' === $this->stream->next()->getValue();
+        $this->stream->expect(Token::TYPE_KEYWORD, 'quotes');
+        if ($this->stream->matchesKeyword('on')) {
+            $this->stream->next();
+            $this->stream->expect(Token::TYPE_KEYWORD, 'scalar');
+            $this->stream->expect(Token::TYPE_KEYWORD, 'string');
+        }
+
+        return $keepQuotes;
+    }
+
+    protected function JsonExistsOnErrorClause(): ?string
+    {
+        if (!$this->stream->matchesKeyword(nodes\json\JsonKeywords::BEHAVIOURS_EXISTS)) {
+            return null;
+        }
+
+        $onError = $this->stream->next()->getValue();
+        $this->stream->expect(Token::TYPE_KEYWORD, 'on');
+        $this->stream->expect(Token::TYPE_KEYWORD, 'error');
+
+        return $onError;
     }
 
     protected function JsonQueryBehaviour(array $keywords): array
@@ -4588,5 +4614,152 @@ class Parser
             }
         }
         return [$onEmpty, $onError];
+    }
+
+    protected function JsonTable(): nodes\range\JsonTable
+    {
+        $this->stream->expect(Token::TYPE_KEYWORD, 'json_table');
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+
+        $context = $this->JsonFormattedValue();
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
+        $path    = $this->Expression();
+        if (!$this->stream->matchesKeyword('as')) {
+            $pathName = null;
+        } else {
+            $this->stream->next();
+            $pathName = $this->ColId();
+        }
+        if (!$this->stream->matchesKeyword('passing')) {
+            $passing = null;
+        } else {
+            $this->stream->next();
+            $passing = $this->JsonArgumentList();
+        }
+        $columns = $this->JsonTableColumnsClause();
+
+        $table = new nodes\range\JsonTable(
+            $context,
+            $path,
+            $pathName,
+            $passing,
+            $columns
+        );
+
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        if ($alias = $this->OptionalAliasClause()) {
+            $table->setAlias($alias[0], $alias[1]);
+        }
+
+        return $table;
+    }
+
+    protected function JsonTableColumnsClause(): nodes\range\json\JsonColumnDefinitionList
+    {
+        $this->stream->expect(Token::TYPE_KEYWORD, 'columns');
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+
+        $list = $this->JsonColumnDefinitionList();
+
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+        return $list;
+    }
+
+    protected function JsonColumnDefinitionList(): nodes\range\json\JsonColumnDefinitionList
+    {
+        $list = new nodes\range\json\JsonColumnDefinitionList([$this->JsonColumnDefinition()]);
+
+        while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
+            $this->stream->next();
+            $list[] = $this->JsonColumnDefinition();
+        }
+
+        return $list;
+    }
+
+    protected function JsonColumnDefinition(): nodes\range\json\JsonColumnDefinition
+    {
+        if ($this->stream->matches(Token::TYPE_KEYWORD, 'nested')) {
+            return $this->JsonNestedColumns();
+        }
+
+        $name = $this->ColId();
+        if ($this->stream->matchesKeywordSequence('for', 'ordinality')) {
+            $this->stream->skip(2);
+            return new nodes\range\json\JsonOrdinalityColumnDefinition($name);
+        }
+
+        $type = $this->TypeName();
+        if ($this->stream->matchesKeyword('exists')) {
+            $this->stream->skip(1);
+            $path    = $this->JsonConstantPath();
+            $onError = $this->JsonExistsOnErrorClause();
+            return new nodes\range\json\JsonExistsColumnDefinition($name, $type, $path, $onError);
+
+        } elseif ($this->stream->matchesKeyword('format')) {
+            /** @var nodes\json\JsonFormat $format */
+            $format     = $this->JsonFormat();
+            $path       = $this->JsonConstantPath();
+            $wrapper    = $this->JsonWrapperClause();
+            $keepQuotes = $this->JsonQuotesClause();
+            [$onEmpty, $onError] = $this->JsonQueryBehaviour(
+                array_merge(nodes\json\JsonKeywords::BEHAVIOURS_QUERY, ['default', 'empty'])
+            );
+            return new nodes\range\json\JsonFormattedColumnDefinition(
+                $name,
+                $type,
+                $format,
+                $path,
+                $wrapper,
+                $keepQuotes,
+                $onEmpty,
+                $onError
+            );
+
+        } else {
+            $path       = $this->JsonConstantPath();
+            $wrapper    = $this->JsonWrapperClause();
+            $keepQuotes = $this->JsonQuotesClause();
+            [$onEmpty, $onError] = $this->JsonQueryBehaviour(
+                array_merge(nodes\json\JsonKeywords::BEHAVIOURS_VALUE, ['default'])
+            );
+            return new nodes\range\json\JsonRegularColumnDefinition(
+                $name,
+                $type,
+                $path,
+                $wrapper,
+                $keepQuotes,
+                $onEmpty,
+                $onError
+            );
+        }
+    }
+
+    protected function JsonConstantPath(): ?nodes\expressions\StringConstant
+    {
+        if (!$this->stream->matchesKeyword('path')) {
+            return null;
+        }
+
+        $this->stream->skip(1);
+        return new nodes\expressions\StringConstant($this->stream->expect(Token::TYPE_STRING)->getValue());
+    }
+
+    protected function JsonNestedColumns(): nodes\range\json\JsonNestedColumns
+    {
+        $this->stream->expect(Token::TYPE_KEYWORD, 'nested');
+        if ($this->stream->matchesKeyword('path')) {
+            $this->stream->skip(1);
+        }
+        $path = new nodes\expressions\StringConstant($this->stream->expect(Token::TYPE_STRING)->getValue());
+        if (!$this->stream->matchesKeyword('as')) {
+            $pathName = null;
+        } else {
+            $this->stream->next();
+            $pathName = $this->ColId();
+        }
+
+        return new nodes\range\json\JsonNestedColumns($path, $pathName, $this->JsonTableColumnsClause());
     }
 }

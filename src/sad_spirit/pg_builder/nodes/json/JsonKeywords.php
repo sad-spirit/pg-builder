@@ -42,6 +42,7 @@ final class JsonKeywords
     public const BEHAVIOUR_FALSE = 'false';
     public const BEHAVIOUR_NULL = 'null';
     public const BEHAVIOUR_EMPTY_ARRAY = 'empty array';
+    public const BEHAVIOUR_EMPTY = 'empty';
 
     public const BEHAVIOURS_EXISTS = [
         self::BEHAVIOUR_UNKNOWN,
@@ -60,5 +61,10 @@ final class JsonKeywords
     public const BEHAVIOURS_VALUE = [
         self::BEHAVIOUR_ERROR,
         self::BEHAVIOUR_NULL
+    ];
+
+    public const BEHAVIOURS_TABLE = [
+        self::BEHAVIOUR_ERROR,
+        self::BEHAVIOUR_EMPTY
     ];
 }

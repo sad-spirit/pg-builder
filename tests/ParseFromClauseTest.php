@@ -28,31 +28,48 @@ use sad_spirit\pg_builder\{
 };
 use sad_spirit\pg_builder\exceptions\SyntaxException;
 use sad_spirit\pg_builder\nodes\{
-    TargetElement,
-    FunctionCall,
     ColumnReference,
+    FunctionCall,
     Identifier,
-    TypeName,
-    QualifiedName
+    QualifiedName,
+    TargetElement,
+    TypeName
 };
 use sad_spirit\pg_builder\nodes\expressions\{
     KeywordConstant,
     NumericConstant,
     OperatorExpression,
     StringConstant,
-    SubselectExpression
+    SubselectExpression,
+    TypecastExpression
+};
+use sad_spirit\pg_builder\nodes\json\{
+    JsonArgument,
+    JsonArgumentList,
+    JsonFormat,
+    JsonFormattedValue,
+    JsonKeywords
 };
 use sad_spirit\pg_builder\nodes\range\{
-    JoinExpression,
-    RelationReference,
+    ColumnDefinition,
     FunctionCall as RangeFunctionCall,
+    JoinExpression,
+    JsonTable,
+    RelationReference,
     RowsFrom,
     RowsFromElement,
     Subselect,
-    ColumnDefinition,
     TableSample,
     UsingClause,
     XmlTable
+};
+use sad_spirit\pg_builder\nodes\range\json\{
+    JsonColumnDefinitionList,
+    JsonExistsColumnDefinition,
+    JsonFormattedColumnDefinition,
+    JsonNestedColumns,
+    JsonOrdinalityColumnDefinition,
+    JsonRegularColumnDefinition
 };
 use sad_spirit\pg_builder\nodes\lists\{
     ExpressionList,
@@ -450,5 +467,105 @@ QRY
         $table2->setAlias(new Identifier('baz'));
 
         $this->assertEquals(new FromList([$table1, $table2]), $list);
+    }
+
+    public function testJsonTable(): void
+    {
+        $list = $this->parser->parseFromList(<<<QRY
+lateral json_table(
+    jsonb 'null', 'lax $[*]' passing 1 + 2 as a, json '"foo"' as "b c"
+    columns (
+        id for ordinality,
+        "text" text path '$' with wrapper,
+        jsf jsonb format json encoding utf8 path '$' omit quotes,
+        "exists" int exists path '$.aaa' true on error,
+        nested path '$[1]' as p1 columns (
+            a1 int,
+            nested path '$[*]' as "p1 1" columns (
+                a11 text
+            ),
+            b1 text
+        )
+    )
+) as jst
+QRY
+        );
+
+        $table1 = new JsonTable(
+            new JsonFormattedValue(
+                new TypecastExpression(new StringConstant('null'), new TypeName(new QualifiedName('jsonb')))
+            ),
+            new StringConstant('lax $[*]'),
+            null,
+            new JsonArgumentList([
+                new JsonArgument(
+                    new JsonFormattedValue(
+                        new OperatorExpression('+', new NumericConstant('1'), new NumericConstant('2'))
+                    ),
+                    new Identifier('a')
+                ),
+                new JsonArgument(
+                    new JsonFormattedValue(
+                        new TypecastExpression(
+                            new StringConstant('"foo"'),
+                            new TypeName(new QualifiedName('pg_catalog', 'json'))
+                        )
+                    ),
+                    new Identifier('b c')
+                )
+            ]),
+            new JsonColumnDefinitionList([
+                new JsonOrdinalityColumnDefinition(new Identifier('id')),
+                new JsonRegularColumnDefinition(
+                    new Identifier('text'),
+                    new TypeName(new QualifiedName('text')),
+                    new StringConstant('$'),
+                    JsonKeywords::WRAPPER_UNCONDITIONAL
+                ),
+                new JsonFormattedColumnDefinition(
+                    new Identifier('jsf'),
+                    new TypeName(new QualifiedName('jsonb')),
+                    new JsonFormat(JsonFormat::FORMAT_JSON, JsonFormat::ENCODING_UTF8),
+                    new StringConstant('$'),
+                    null,
+                    false
+                ),
+                new JsonExistsColumnDefinition(
+                    new Identifier('exists'),
+                    new TypeName(new QualifiedName('pg_catalog', 'int4')),
+                    new StringConstant('$.aaa'),
+                    JsonKeywords::BEHAVIOUR_TRUE
+                ),
+                new JsonNestedColumns(
+                    new StringConstant('$[1]'),
+                    new Identifier('p1'),
+                    new JsonColumnDefinitionList([
+                        new JsonRegularColumnDefinition(
+                            new Identifier('a1'),
+                            new TypeName(new QualifiedName('pg_catalog', 'int4'))
+                        ),
+                        new JsonNestedColumns(
+                            new StringConstant('$[*]'),
+                            new Identifier('p1 1'),
+                            new JsonColumnDefinitionList([
+                                new JsonRegularColumnDefinition(
+                                    new Identifier('a11'),
+                                    new TypeName(new QualifiedName('text'))
+                                )
+                            ])
+                        ),
+                        new JsonRegularColumnDefinition(
+                            new Identifier('b1'),
+                            new TypeName(new QualifiedName('text'))
+                        )
+                    ])
+                )
+            ])
+        );
+
+        $table1->setLateral(true);
+        $table1->setAlias(new Identifier('jst'));
+
+        $this::assertEquals(new FromList([$table1]), $list);
     }
 }

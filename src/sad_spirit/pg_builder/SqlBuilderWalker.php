@@ -1581,7 +1581,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         } elseif ($expression->arguments instanceof SelectCommon) {
             $arguments = $expression->arguments->dispatch($this);
         } else {
-            $arguments = $this->implode(', ', $expression->arguments->dispatch($this));
+            $arguments = implode(', ', $expression->arguments->dispatch($this));
         }
         return 'json_array(' . $arguments
                . $this->jsonOnNullClause($expression->absentOnNull)
@@ -1636,7 +1636,7 @@ class SqlBuilderWalker implements StatementToStringWalker
                );
     }
 
-    protected function jsonQueryBehaviours(nodes\json\JsonQueryCommon $expression): string
+    protected function jsonQueryBehaviours(nodes\GenericNode $expression): string
     {
         $result = '';
         if (!empty($expression->onEmpty)) {
@@ -1680,6 +1680,89 @@ class SqlBuilderWalker implements StatementToStringWalker
                . (null === $expression->keepQuotes ? '' : ' ' . ($expression->keepQuotes ? 'keep' : 'omit') . ' quotes')
                . $this->jsonQueryBehaviours($expression)
                . ')';
+    }
+
+    public function walkJsonTable(nodes\range\JsonTable $rangeItem): string
+    {
+        $this->indentLevel++;
+        $lines = [($rangeItem->lateral ? 'lateral ' : '') . 'json_table('];
+
+        $lines[] = $this->getIndent() . $rangeItem->context->dispatch($this)
+                   . ', ' . $rangeItem->path->dispatch($this)
+                   . (null === $rangeItem->pathName ? '' : ' as ' . $rangeItem->pathName->dispatch($this));
+
+        if (0 < count($rangeItem->passing)) {
+            $lines[] = $this->implode($this->getIndent() . 'passing ', $rangeItem->passing->dispatch($this), ',');
+        }
+
+        $lines[] = $this->getIndent() . 'columns (';
+        $lines[] = $this->walkJsonColumnDefinitionList($rangeItem->columns);
+        $lines[] = $this->getIndent() . ')';
+
+        $this->indentLevel--;
+        $sql = implode($this->options['linebreak'] ?: ' ', $lines)
+               . $this->options['linebreak'] . $this->getIndent() . ')';
+        if ($rangeItem->tableAlias || $rangeItem->columnAliases) {
+            $sql .= $this->getFromItemAliases($rangeItem);
+        }
+
+        return $sql;
+    }
+
+    protected function walkJsonColumnDefinitionList(nodes\range\json\JsonColumnDefinitionList $columns): string
+    {
+        $this->indentLevel++;
+        $glue = $this->options['linebreak']
+                ? ',' . $this->options['linebreak'] . $this->getIndent()
+                : ', ';
+        $result = $this->getIndent() . implode($glue, $this->walkGenericNodeList($columns));
+        $this->indentLevel--;
+
+        return $result;
+    }
+
+    public function walkJsonExistsColumnDefinition(nodes\range\json\JsonExistsColumnDefinition $column): string
+    {
+        return $column->name->dispatch($this) . ' ' . $column->type->dispatch($this)
+               . ' exists' . (null === $column->path ? '' : ' path ' . $column->path->dispatch($this))
+               .  $this->jsonQueryBehaviours($column);
+    }
+
+    public function walkJsonFormattedColumnDefinition(nodes\range\json\JsonFormattedColumnDefinition $column): string
+    {
+        return $column->name->dispatch($this) . ' ' . $column->type->dispatch($this)
+               . ' '  . $column->format->dispatch($this)
+               . (null === $column->path ? '' : ' path ' . $column->path->dispatch($this))
+               . (null === $column->wrapper ? '' : ' ' . $column->wrapper . ' wrapper')
+               . (null === $column->keepQuotes ? '' : ' ' . ($column->keepQuotes ? 'keep' : 'omit') . ' quotes')
+               . $this->jsonQueryBehaviours($column);
+    }
+
+    public function walkJsonOrdinalityColumnDefinition(nodes\range\json\JsonOrdinalityColumnDefinition $column): string
+    {
+        return $column->name->dispatch($this) . ' for ordinality';
+    }
+
+    public function walkJsonRegularColumnDefinition(nodes\range\json\JsonRegularColumnDefinition $column): string
+    {
+        return $column->name->dispatch($this) . ' ' . $column->type->dispatch($this)
+               . (null === $column->path ? '' : ' path ' . $column->path->dispatch($this))
+               . (null === $column->wrapper ? '' : ' ' . $column->wrapper . ' wrapper')
+               . (null === $column->keepQuotes ? '' : ' ' . ($column->keepQuotes ? 'keep' : 'omit') . ' quotes')
+               . $this->jsonQueryBehaviours($column);
+    }
+
+    public function walkJsonNestedColumns(nodes\range\json\JsonNestedColumns $column): string
+    {
+        $lines = [
+            'nested path ' . $column->path->dispatch($this)
+            . (null === $column->pathName ? '' : ' as ' . $column->pathName->dispatch($this))
+            . ' columns ('
+        ];
+        $lines[] = $this->walkJsonColumnDefinitionList($column->columns);
+        $lines[] = $this->getIndent() . ')';
+
+        return implode($this->options['linebreak'] ?: ' ', $lines);
     }
 
     /**

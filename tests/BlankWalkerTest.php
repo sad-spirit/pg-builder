@@ -134,7 +134,23 @@ from s34, s35 left join (s36 as s37 left join s38 as s39 using (s40))
          COLUMNS x28 int PATH '@foo' not null default 'foo default',
                  x29 int PATH '@B:bar',
                  x30 FOR ORDINALITY
-     ) AS s72
+     ) AS s72,
+     json_table(
+         j1, j2 passing j3 as j4
+         columns (
+             j5 for ordinality,
+             j6 j7 path '$' with wrapper default j21 on empty default j22 on error,
+             j8 j9 format json encoding utf8 path '$' omit quotes default j23 on empty default j24 on error,
+             j10 j11 exists path '$.aaa' true on error,
+             nested path '$[1]' as j12 columns (
+                j13 j14,
+                nested path '$[*]' as j15 columns (
+                    j16 j17
+                ),
+                j18 j19
+            )
+     )
+) as j20
 where s73.s74 <= any(array[s75, s76]) or
       not ((not e49) is false and e50)
 group by g3.g4, g5, grouping sets(cube((g6, g7), g8), rollup(g9, (g10, g11)), g12, ())

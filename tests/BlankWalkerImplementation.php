@@ -28,7 +28,7 @@ use sad_spirit\pg_builder\nodes\Identifier;
  */
 class BlankWalkerImplementation extends BlankWalker
 {
-    public const IDENTIFIER_MASK = '[sdivuwxfge]\d+';
+    public const IDENTIFIER_MASK = '[sdivuwxfgej]\d+';
 
     /** @var array<string, true> */
     public $identifiers = [];

@@ -1026,4 +1026,77 @@ abstract class BlankWalker implements TreeWalker
         }
         return null;
     }
+
+    public function walkJsonTable(nodes\range\JsonTable $rangeItem)
+    {
+        $rangeItem->context->dispatch($this);
+        $rangeItem->path->dispatch($this);
+        if (null !== $rangeItem->pathName) {
+            $rangeItem->pathName->dispatch($this);
+        }
+        $rangeItem->passing->dispatch($this);
+        $rangeItem->columns->dispatch($this);
+        if (null !== $rangeItem->plan) {
+            $rangeItem->plan->dispatch($this);
+        }
+
+        $this->walkRangeItemAliases($rangeItem);
+        return null;
+    }
+
+    protected function walkJsonTypedColumnDefinition(nodes\range\json\JsonTypedColumnDefinition $column): void
+    {
+        $column->name->dispatch($this);
+        $column->type->dispatch($this);
+        if (null !== $column->path) {
+            $column->path->dispatch($this);
+        }
+    }
+
+    public function walkJsonExistsColumnDefinition(nodes\range\json\JsonExistsColumnDefinition $column)
+    {
+        $this->walkJsonTypedColumnDefinition($column);
+        return null;
+    }
+
+    public function walkJsonFormattedColumnDefinition(nodes\range\json\JsonFormattedColumnDefinition $column)
+    {
+        $this->walkJsonTypedColumnDefinition($column);
+        $column->format->dispatch($this);
+        if ($column->onEmpty instanceof nodes\ScalarExpression) {
+            $column->onEmpty->dispatch($this);
+        }
+        if ($column->onError instanceof nodes\ScalarExpression) {
+            $column->onError->dispatch($this);
+        }
+        return null;
+    }
+
+    public function walkJsonOrdinalityColumnDefinition(nodes\range\json\JsonOrdinalityColumnDefinition $column)
+    {
+        $column->name->dispatch($this);
+        return null;
+    }
+
+    public function walkJsonRegularColumnDefinition(nodes\range\json\JsonRegularColumnDefinition $column)
+    {
+        $this->walkJsonTypedColumnDefinition($column);
+        if ($column->onEmpty instanceof nodes\ScalarExpression) {
+            $column->onEmpty->dispatch($this);
+        }
+        if ($column->onError instanceof nodes\ScalarExpression) {
+            $column->onError->dispatch($this);
+        }
+        return null;
+    }
+
+    public function walkJsonNestedColumns(nodes\range\json\JsonNestedColumns $column)
+    {
+        $column->path->dispatch($this);
+        if (null !== $column->pathName) {
+            $column->pathName->dispatch($this);
+        }
+        $column->columns->dispatch($this);
+        return null;
+    }
 }

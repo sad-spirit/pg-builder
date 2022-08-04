@@ -201,7 +201,19 @@ from quux, xyzzy left join (atable as one left join anothertable as two using (c
          '/x:example/x:item' PASSING by value (SELECT data FROM xmldata)
          COLUMNS foo int PATH '@foo' not null default 'foo default',
                  bar int PATH '@B:bar'
-     ) AS baz
+     ) AS baz,
+     lateral json_table(
+        jsonb 'null', 'lax $[*]' PASSING 1 + 2 AS a, json '"foo"' AS "b c"
+        columns (
+            id for ordinality,
+            "text" text path '$' without wrapper keep quotes,
+            exists_aaa text exists path 'strict $.aaa' false on error,
+            jsb jsonb format json encoding utf8 path '$' default 123 on empty,
+            nested path '$[1]' as nestedpath columns (
+                foo bar
+            )
+        )
+     ) as jsonbaz
 where quux.id = ya.five and
       quux.id = xyzzy.quux_id or
       ya.six <= any(select stuff from setopstuff) or
