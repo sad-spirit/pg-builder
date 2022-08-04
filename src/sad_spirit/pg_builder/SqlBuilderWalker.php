@@ -1699,7 +1699,20 @@ class SqlBuilderWalker implements StatementToStringWalker
         $lines[] = $this->walkJsonColumnDefinitionList($rangeItem->columns);
         $lines[] = $this->getIndent() . ')';
 
+        if (null !== $rangeItem->plan) {
+            $lines[] = $this->getIndent()
+                       . (
+                            $rangeItem->plan instanceof nodes\range\json\JsonTableDefaultPlan
+                            ? $rangeItem->plan->dispatch($this)
+                            : 'plan (' . $rangeItem->plan->dispatch($this) . ')'
+                       );
+        }
+        if (null !== $rangeItem->onError) {
+            $lines[] = $this->getIndent() . $rangeItem->onError . ' on error';
+        }
+
         $this->indentLevel--;
+
         $sql = implode($this->options['linebreak'] ?: ' ', $lines)
                . $this->options['linebreak'] . $this->getIndent() . ')';
         if ($rangeItem->tableAlias || $rangeItem->columnAliases) {
@@ -1763,6 +1776,41 @@ class SqlBuilderWalker implements StatementToStringWalker
         $lines[] = $this->getIndent() . ')';
 
         return implode($this->options['linebreak'] ?: ' ', $lines);
+    }
+
+    public function walkJsonTableDefaultPlan(nodes\range\json\JsonTableDefaultPlan $plan): string
+    {
+        $parts = [];
+        if (null !== $plan->parentChild) {
+            $parts[] = $plan->parentChild;
+        }
+        if (null !== $plan->sibling) {
+            $parts[] = $plan->sibling;
+        }
+
+        return 'plan default (' . implode(', ', $parts) . ')';
+    }
+
+    public function walkJsonTableParentChildPlan(nodes\range\json\JsonTableParentChildPlan $plan): string
+    {
+        $right = $plan->right->dispatch($this);
+        return $plan->left->dispatch($this)
+               . ' ' . $plan->type
+               . ' ' . ($plan->right instanceof nodes\range\json\JsonTableSimplePlan ? $right : '(' . $right . ')');
+    }
+
+    public function walkJsonTableSiblingPlan(nodes\range\json\JsonTableSiblingPlan $plan): string
+    {
+        $left  = $plan->left->dispatch($this);
+        $right = $plan->right->dispatch($this);
+        return ($plan->left instanceof nodes\range\json\JsonTableSimplePlan ? $left : '(' . $left . ')')
+               . ' ' . $plan->type
+               . ' ' . ($plan->right instanceof nodes\range\json\JsonTableSimplePlan ? $right : '(' . $right . ')');
+    }
+
+    public function walkJsonTableSimplePlan(nodes\range\json\JsonTableSimplePlan $plan): string
+    {
+        return $plan->name->dispatch($this);
     }
 
     /**

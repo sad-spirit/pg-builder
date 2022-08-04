@@ -4637,13 +4637,23 @@ class Parser
             $passing = $this->JsonArgumentList();
         }
         $columns = $this->JsonTableColumnsClause();
+        $plan    = $this->JsonTablePlanClause();
+        if (!$this->stream->matchesKeyword(nodes\json\JsonKeywords::BEHAVIOURS_TABLE)) {
+            $onError = null;
+        } else {
+            $onError = $this->stream->next()->getValue();
+            $this->stream->expect(Token::TYPE_KEYWORD, 'on');
+            $this->stream->expect(Token::TYPE_KEYWORD, 'error');
+        }
 
         $table = new nodes\range\JsonTable(
             $context,
             $path,
             $pathName,
             $passing,
-            $columns
+            $columns,
+            $plan,
+            $onError
         );
 
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
@@ -4750,7 +4760,7 @@ class Parser
     {
         $this->stream->expect(Token::TYPE_KEYWORD, 'nested');
         if ($this->stream->matchesKeyword('path')) {
-            $this->stream->skip(1);
+            $this->stream->next();
         }
         $path = new nodes\expressions\StringConstant($this->stream->expect(Token::TYPE_STRING)->getValue());
         if (!$this->stream->matchesKeyword('as')) {
@@ -4761,5 +4771,110 @@ class Parser
         }
 
         return new nodes\range\json\JsonNestedColumns($path, $pathName, $this->JsonTableColumnsClause());
+    }
+
+    protected function JsonTablePlanClause(): ?nodes\range\json\JsonTablePlan
+    {
+        if (!$this->stream->matchesKeyword('plan')) {
+            return null;
+        }
+
+        $this->stream->next();
+        if ($this->stream->matchesKeyword('default')) {
+            $this->stream->next();
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+            $plan = $this->JsonTableDefaultPlan();
+        } else {
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+            $plan = $this->JsonTableSpecificPlan();
+        }
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+        return $plan;
+    }
+
+    protected function JsonTableDefaultPlan(): nodes\range\json\JsonTableDefaultPlan
+    {
+        $parentChild = null;
+        $sibling     = null;
+        $value       = $this->stream->expect(
+            Token::TYPE_KEYWORD,
+            array_merge(nodes\range\json\JsonTablePlan::PARENT_CHILD, nodes\range\json\JsonTablePlan::SIBLING)
+        )
+            ->getValue();
+
+        if (in_array($value, nodes\range\json\JsonTablePlan::PARENT_CHILD)) {
+            $parentChild = $value;
+        } else {
+            $sibling     = $value;
+        }
+
+        if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
+            $this->stream->next();
+            if (null !== $parentChild) {
+                $sibling = $this->stream->expect(Token::TYPE_KEYWORD, nodes\range\json\JsonTablePlan::SIBLING)
+                    ->getValue();
+            } else {
+                $parentChild = $this->stream->expect(Token::TYPE_KEYWORD, nodes\range\json\JsonTablePlan::PARENT_CHILD)
+                    ->getValue();
+            }
+        }
+
+        return new nodes\range\json\JsonTableDefaultPlan($parentChild, $sibling);
+    }
+
+    protected function JsonTableSpecificPlan(): nodes\range\json\JsonTableSpecificPlan
+    {
+        // If we are seeing an opening parenthesis here, this can only be json_table_plan_sibling production,
+        // e.g. plan (((foo))) will cause an error in Postgres
+        if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+            return $this->JsonTablePlanSibling();
+        }
+
+        $plan = new nodes\range\json\JsonTableSimplePlan($this->ColId());
+        if ($this->stream->matchesKeyword(nodes\range\json\JsonTablePlan::PARENT_CHILD)) {
+            $type = $this->stream->next()->getValue();
+            $plan = new nodes\range\json\JsonTableParentChildPlan($plan, $this->JsonTablePlanPrimary(), $type);
+        } elseif ($this->stream->matchesKeyword(nodes\range\json\JsonTablePlan::SIBLING)) {
+            return $this->JsonTablePlanSibling($plan);
+        }
+
+        return $plan;
+    }
+
+    protected function JsonTablePlanSibling(
+        nodes\range\json\JsonTableSpecificPlan $left = null
+    ): nodes\range\json\JsonTableSiblingPlan {
+        if (null === $left) {
+            $left = $this->JsonTablePlanPrimary();
+        }
+        $type = $this->stream->expect(Token::TYPE_KEYWORD, nodes\range\json\JsonTablePlan::SIBLING)
+            ->getValue();
+
+        do {
+            $left = new nodes\range\json\JsonTableSiblingPlan($left, $this->JsonTablePlanPrimary(), $type);
+            if (!$this->stream->matchesKeyword($type)) {
+                break;
+            }
+            $this->stream->next();
+        } while (true);
+
+        /** @psalm-var nodes\range\json\JsonTableSiblingPlan $left */
+        return $left;
+    }
+
+    protected function JsonTablePlanPrimary(): nodes\range\json\JsonTableSpecificPlan
+    {
+        if (!$this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+            // json_table_plan_simple
+            return new nodes\range\json\JsonTableSimplePlan($this->ColId());
+        }
+
+        // parenthesized json_table_plan
+        $this->stream->next();
+        $plan = $this->JsonTableSpecificPlan();
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+        return $plan;
     }
 }

@@ -1103,4 +1103,42 @@ interface TreeWalker
      * @since 2.1.0
      */
     public function walkJsonNestedColumns(nodes\range\json\JsonNestedColumns $column);
+
+    /**
+     * Visits the node representing "PLAN DEFAULT(...)" clause in json_table() expression
+     *
+     * @param nodes\range\json\JsonTableDefaultPlan $plan
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonTableDefaultPlan(nodes\range\json\JsonTableDefaultPlan $plan);
+
+    /**
+     * Visits the node representing part of "PLAN(...)" clause in json_table() expression that specifies parent-child
+     * joining plan
+     *
+     * @param nodes\range\json\JsonTableParentChildPlan $plan
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonTableParentChildPlan(nodes\range\json\JsonTableParentChildPlan $plan);
+
+    /**
+     * Visits the node representing part of "PLAN(...)" clause in json_table() expression that specifies sibling
+     * joining plan
+     *
+     * @param nodes\range\json\JsonTableSiblingPlan $plan
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonTableSiblingPlan(nodes\range\json\JsonTableSiblingPlan $plan);
+
+    /**
+     * Visits the node representing a reference to a named path within "PLAN(...)" clause of json_table()
+     *
+     * @param nodes\range\json\JsonTableSimplePlan $plan
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkJsonTableSimplePlan(nodes\range\json\JsonTableSimplePlan $plan);
 }
