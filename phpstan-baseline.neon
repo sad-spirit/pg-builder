@@ -48,12 +48,6 @@ parameters:
 			count: 1
 			path: src/sad_spirit/pg_builder/nodes/QualifiedOperator.php
 
-		# triggered by $this->offsets[] = ...
-		-
-			message: "#^Array \\(array<TKey of \\(int\\|string\\), T of sad_spirit\\\\pg_builder\\\\Node>\\) does not accept key int\\.$#"
-			count: 1
-			path: src/sad_spirit/pg_builder/nodes/lists/GenericNodeList.php
-
 		# Looks like a bug with memoizing the result of stream->matches(...) call
 		-
 			message: "#^If condition is always false\\.$#"
