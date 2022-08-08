@@ -237,6 +237,38 @@ class StatementFactory
     }
 
     /**
+     * Creates a MERGE statement object
+     *
+     * @param UpdateOrDeleteTarget|string $into
+     * @param FromElement|string          $using
+     * @param ScalarExpression|string     $on
+     * @return Merge
+     */
+    public function merge($into, $using, $on): Merge
+    {
+        if ($into instanceof UpdateOrDeleteTarget) {
+            $relation = $into;
+        } else {
+            $relation = $this->getParser()->parseRelationExpressionOptAlias($into);
+        }
+        if ($using instanceof FromElement) {
+            $joined = $using;
+        } else {
+            $joined = $this->getParser()->parseFromElement($using);
+        }
+        if ($on instanceof ScalarExpression) {
+            $condition = $on;
+        } else {
+            $condition = $this->getParser()->parseExpression($on);
+        }
+
+        $merge = new Merge($relation, $joined, $condition);
+        $merge->setParser($this->getParser());
+
+        return $merge;
+    }
+
+    /**
      * Creates a SELECT statement object
      *
      * @param string|iterable<TargetElement|string>    $list
