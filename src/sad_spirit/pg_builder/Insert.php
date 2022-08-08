@@ -48,7 +48,7 @@ class Insert extends Statement
     public const OVERRIDING_USER   = 'user';
     public const OVERRIDING_SYSTEM = 'system';
 
-    private const ALLOWED_OVERRIDING = [
+    public const ALLOWED_OVERRIDING = [
         self::OVERRIDING_SYSTEM => true,
         self::OVERRIDING_USER   => true
     ];

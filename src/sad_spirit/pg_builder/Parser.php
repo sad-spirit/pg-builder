@@ -73,6 +73,8 @@ use Psr\Cache\InvalidArgumentException;
  * @method nodes\xml\XmlColumnList          parseXmlColumnList($input)
  * @method nodes\xml\XmlColumnDefinition    parseXmlColumnDefinition($input)
  * @method nodes\TypeName                   parseTypeName($input)
+ * @method nodes\merge\MergeWhenList        parseMergeWhenList($input)
+ * @method nodes\merge\MergeWhenClause      parseMergeWhenClause($input)
  */
 class Parser
 {
@@ -301,7 +303,9 @@ class Parser
         'xmlnamespace'               => true,
         'xmlcolumnlist'              => true,
         'xmlcolumndefinition'        => true,
-        'typename'                   => true
+        'typename'                   => true,
+        'mergewhenlist'              => true,
+        'mergewhenclause'            => true
     ];
 
     /**
@@ -696,10 +700,13 @@ class Parser
         } elseif ($this->stream->matchesKeyword('delete')) {
             $stmt = $this->DeleteStatement();
 
+        } elseif ($this->stream->matchesKeyword('merge')) {
+            $stmt = $this->MergeStatement();
+
         } else {
             throw new exceptions\SyntaxException(
                 'Unexpected ' . $this->stream->getCurrent()
-                . ', expecting SELECT / INSERT / UPDATE / DELETE statement'
+                . ', expecting SELECT / INSERT / UPDATE / DELETE / MERGE statement'
             );
         }
 
@@ -2672,8 +2679,7 @@ class Parser
         if (!$this->stream->matchesKeyword(self::SYSTEM_FUNCTIONS)) {
             return null;
         }
-        $funcName  = $this->stream->next()->getValue();
-        $arguments = [];
+        $funcName = $this->stream->next()->getValue();
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
 
         switch ($funcName) {
@@ -3014,7 +3020,9 @@ class Parser
     protected function convertSpecialFunctionCallToFunctionExpression(
         nodes\FunctionLike $function
     ): nodes\ScalarExpression {
-        if ($function instanceof nodes\FunctionCall) {
+        if ($function instanceof nodes\ScalarExpression) {
+            return $function;
+        } elseif ($function instanceof nodes\FunctionCall) {
             return new nodes\expressions\FunctionExpression(
                 clone $function->name,
                 clone $function->arguments,
@@ -3022,8 +3030,6 @@ class Parser
                 $function->variadic,
                 clone $function->order
             );
-        } elseif ($function instanceof nodes\ScalarExpression) {
-            return $function;
         }
 
         throw new exceptions\InvalidArgumentException(
@@ -3036,7 +3042,7 @@ class Parser
     {
         $function    = $this->GenericFunctionCall($identifiers);
         $withinGroup = false;
-        $order       = $filter = $over = null;
+        $order       = null;
 
         if ($this->stream->matchesKeywordSequence('within', 'group')) {
             if (count($function->order) > 0) {
@@ -3068,17 +3074,7 @@ class Parser
             $order = $this->OrderByList();
             $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
         }
-        if ($this->stream->matchesKeyword('filter')) {
-            $this->stream->next();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-            $this->stream->expect(Token::TYPE_KEYWORD, 'where');
-            $filter = $this->Expression();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-        }
-        if ($this->stream->matchesKeyword('over')) {
-            $this->stream->next();
-            $over = $this->WindowSpecification();
-        }
+
         return new nodes\expressions\FunctionExpression(
             clone $function->name,
             clone $function->arguments,
@@ -3086,9 +3082,33 @@ class Parser
             $function->variadic,
             $order ?: clone $function->order,
             $withinGroup,
-            $filter,
-            $over
+            $this->FilterClause(),
+            $this->OverClause()
         );
+    }
+
+    protected function FilterClause(): ?nodes\ScalarExpression
+    {
+        if (!$this->stream->matchesKeyword('filter')) {
+            return null;
+        }
+
+        $this->stream->next();
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(Token::TYPE_KEYWORD, 'where');
+        $filter = $this->Expression();
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+        return $filter;
+    }
+
+    protected function OverClause(): ?nodes\WindowDefinition
+    {
+        if (!$this->stream->matchesKeyword('over')) {
+            return null;
+        }
+        $this->stream->next();
+        return $this->WindowSpecification();
     }
 
     protected function SpecialFunctionCall(): ?nodes\FunctionLike
@@ -3900,13 +3920,7 @@ class Parser
         } elseif ($this->matchesFunctionCall()) {
             /** @var nodes\FunctionCall $function */
             $function = $this->SpecialFunctionCall() ?? $this->GenericFunctionCall();
-            $expression = new nodes\expressions\FunctionExpression(
-                clone $function->name,
-                clone $function->arguments,
-                $function->distinct,
-                $function->variadic,
-                clone $function->order
-            );
+            $expression = $this->convertSpecialFunctionCallToFunctionExpression($function);
 
         } else {
             $expression = $this->ColId();
@@ -4153,5 +4167,119 @@ class Parser
         } while (true);
 
         return new nodes\xml\XmlTypedColumnDefinition($name, $type, $path, $nullable, $default);
+    }
+
+    protected function MergeStatement(): Merge
+    {
+        if ($this->stream->matchesKeyword('with')) {
+            $withClause = $this->WithClause();
+        }
+
+        $this->stream->expect(Token::TYPE_KEYWORD, 'merge');
+        $this->stream->expect(Token::TYPE_KEYWORD, 'into');
+        $relation = $this->UpdateOrDeleteTarget(self::RELATION_FORMAT_DELETE);
+
+        $this->stream->expect(Token::TYPE_KEYWORD, 'using');
+        $using = $this->FromElement();
+
+        $this->stream->expect(Token::TYPE_KEYWORD, 'on');
+
+        $merge = new Merge($relation, $using, $this->Expression(), $this->MergeWhenList());
+        if (!empty($withClause)) {
+            $merge->with = $withClause;
+        }
+        return $merge;
+    }
+
+    protected function MergeWhenList(): nodes\merge\MergeWhenList
+    {
+        $list = new nodes\merge\MergeWhenList([$this->MergeWhenClause()]);
+        while ($this->stream->matchesKeyword('when')) {
+            $list[] = $this->MergeWhenClause();
+        }
+        return $list;
+    }
+
+    protected function MergeWhenClause(): nodes\merge\MergeWhenClause
+    {
+        $this->stream->expect(Token::TYPE_KEYWORD, 'when');
+        if (!$this->stream->matches(Token::TYPE_KEYWORD, 'not')) {
+            $matched = true;
+        } else {
+            $matched = false;
+            $this->stream->next();
+        }
+        $this->stream->expect(Token::TYPE_KEYWORD, 'matched');
+
+        if (!$this->stream->matches(Token::TYPE_KEYWORD, 'and')) {
+            $condition = null;
+        } else {
+            $this->stream->next();
+            $condition = $this->Expression();
+        }
+
+        $this->stream->expect(Token::TYPE_KEYWORD, 'then');
+        return $matched
+               ? new nodes\merge\MergeWhenMatched($condition, $this->MergeWhenMatchedAction())
+               : new nodes\merge\MergeWhenNotMatched($condition, $this->MergeWhenNotMatchedAction());
+    }
+
+    protected function MergeWhenMatchedAction(): ?Node
+    {
+        $keyword = $this->stream->expect(Token::TYPE_KEYWORD, ['do', 'delete', 'update'])->getValue();
+        switch ($keyword) {
+            case 'do':
+                $this->stream->expect(Token::TYPE_KEYWORD, 'nothing');
+                return null;
+
+            case 'delete':
+                return new nodes\merge\MergeDelete();
+
+            case 'update':
+            default:
+                $this->stream->expect(Token::TYPE_KEYWORD, 'set');
+                return new nodes\merge\MergeUpdate($this->SetClauseList());
+        }
+    }
+
+    protected function MergeWhenNotMatchedAction(): ?nodes\merge\MergeInsert
+    {
+        if ('do' === $this->stream->expect(Token::TYPE_KEYWORD, ['do', 'insert'])->getValue()) {
+            $this->stream->expect(Token::TYPE_KEYWORD, 'nothing');
+            return null;
+        }
+
+        if ($this->stream->matchesKeywordSequence('default', 'values')) {
+            $this->stream->skip(2);
+            return new nodes\merge\MergeInsert();
+        }
+
+        if (!$this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+            $cols = null;
+        } else {
+            $this->stream->next();
+            $cols = $this->InsertTargetList();
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        }
+
+        if (!$this->stream->matches(Token::TYPE_KEYWORD, 'overriding')) {
+            $overriding = null;
+        } else {
+            $this->stream->next();
+            $overriding = $this->stream->expect(Token::TYPE_KEYWORD, ['user', 'system'])->getValue();
+            $this->stream->expect(Token::TYPE_KEYWORD, 'value');
+        }
+
+        return new nodes\merge\MergeInsert($cols, $this->MergeValues(), $overriding);
+    }
+
+    protected function MergeValues(): nodes\merge\MergeValues
+    {
+        $this->stream->expect(Token::TYPE_KEYWORD, 'values');
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $list = $this->ExpressionListWithDefault();
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+        return new nodes\merge\MergeValues($list);
     }
 }

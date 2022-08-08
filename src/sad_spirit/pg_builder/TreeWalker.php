@@ -905,4 +905,67 @@ interface TreeWalker
      * @since 2.0.0
      */
     public function walkUsingClause(nodes\range\UsingClause $clause);
+
+    /**
+     * Visits the node representing a complete MERGE statement
+     *
+     * @param Merge $statement
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkMergeStatement(Merge $statement);
+
+    /**
+     * Visits the node representing the DELETE action of MERGE statement
+     *
+     * @param nodes\merge\MergeDelete $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkMergeDelete(nodes\merge\MergeDelete $clause);
+
+    /**
+     * Visits the node representing the INSERT action of MERGE statement
+     *
+     * @param nodes\merge\MergeInsert $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkMergeInsert(nodes\merge\MergeInsert $clause);
+
+    /**
+     * Visits the node representing the UPDATE action of MERGE statement
+     *
+     * @param nodes\merge\MergeUpdate $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkMergeUpdate(nodes\merge\MergeUpdate $clause);
+
+    /**
+     * Visits the node representing VALUES part of INSERT action for MERGE statement
+     *
+     * @param nodes\merge\MergeValues $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkMergeValues(nodes\merge\MergeValues $clause);
+
+    /**
+     * Visits the node representing "WHEN MATCHED ..." clause of MERGE statement
+     *
+     * @param nodes\merge\MergeWhenMatched $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkMergeWhenMatched(nodes\merge\MergeWhenMatched $clause);
+
+    /**
+     * Visits the node representing "WHEN NOT MATCHED ..." clause of MERGE statement
+     *
+     * @param nodes\merge\MergeWhenNotMatched $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkMergeWhenNotMatched(nodes\merge\MergeWhenNotMatched $clause);
 }
