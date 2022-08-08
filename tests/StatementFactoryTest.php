@@ -40,6 +40,7 @@ use sad_spirit\pg_builder\nodes\{
 };
 use sad_spirit\pg_builder\nodes\expressions\{
     NumericConstant,
+    OperatorExpression,
     StringConstant
 };
 use sad_spirit\pg_builder\nodes\lists\{
@@ -48,6 +49,7 @@ use sad_spirit\pg_builder\nodes\lists\{
     SetClauseList,
     TargetList
 };
+use sad_spirit\pg_builder\nodes\merge\MergeWhenMatched;
 use sad_spirit\pg_builder\nodes\range\{
     InsertTarget,
     RelationReference,
@@ -149,6 +151,30 @@ class StatementFactoryTest extends TestCase
 
         $insert2 = $factory->insert($target);
         $this->assertSame($target, $insert2->relation);
+    }
+
+    public function testCreateMergeStatement(): void
+    {
+        $factory = new StatementFactory();
+
+        $merge = $factory->merge('foo as target', 'foo as source', 'source.id = target.id');
+        $merge->when[] = 'when matched then do nothing';
+
+        $relation  = new UpdateOrDeleteTarget(new QualifiedName('foo'), new Identifier('target'));
+        $joined    = new RelationReference(new QualifiedName('foo'));
+        $joined->setAlias(new Identifier('source'));
+        $condition = new OperatorExpression(
+            '=',
+            new ColumnReference('source', 'id'),
+            new ColumnReference('target', 'id')
+        );
+
+        $this::assertEquals($relation, clone $merge->relation);
+        $this::assertEquals($joined, clone $merge->using);
+        $this::assertEquals($condition, clone $merge->on);
+        $this::assertEquals(new MergeWhenMatched(), clone $merge->when[0]);
+
+        $this::assertSame($factory->getParser(), $merge->getParser());
     }
 
     public function testCreateSelectStatement(): void

@@ -31,7 +31,7 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 /**
  * Represents a list of "WHEN [NOT] MATCHED ..." clauses of MERGE statement
  *
- * @extends NonAssociativeList<MergeWhenClause, iterable<MergeWhenClause>, MergeWhenClause>
+ * @extends NonAssociativeList<MergeWhenClause, iterable<MergeWhenClause|string>|string, MergeWhenClause|string>
  * @implements ElementParseable<MergeWhenClause>
  */
 class MergeWhenList extends NonAssociativeList implements Parseable, ElementParseable
