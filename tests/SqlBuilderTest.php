@@ -55,9 +55,28 @@ class SqlBuilderTest extends TestCase
         $this->builder = new SqlBuilderWalker();
     }
 
+    protected function assertBuiltStatementProducesTheSameAST(string $sql): void
+    {
+        $parsed = $this->parser->parseStatement($sql);
+
+        $built = $parsed->dispatch($this->builder);
+        $this::assertEquals(
+            $parsed,
+            $this->parser->parseStatement($built),
+            'AST of the built statement should be equal to that of the original statement'
+        );
+
+        $unserialized = unserialize(serialize($parsed));
+        $this::assertEquals(
+            $parsed,
+            $unserialized,
+            'AST of unserialized statement should be equal to that of the original'
+        );
+    }
+
     public function testBuildDeleteStatement(): void
     {
-        $parsed = $this->parser->parseStatement(<<<QRY
+        $this->assertBuiltStatementProducesTheSameAST(<<<QRY
 with recursive items (id, title, level, path) as (
     select item_id, item_title, 1,
            array[i.item_id]
@@ -76,24 +95,11 @@ where foo.item_id in (select id from items) and
 returning *
 QRY
         );
-        $built = $parsed->dispatch($this->builder);
-        $this->assertEquals(
-            $parsed,
-            $this->parser->parseStatement($built),
-            'AST of the built statement should be equal to that of the original statement'
-        );
-
-        $unserialized = unserialize(serialize($parsed));
-        $this->assertEquals(
-            $parsed,
-            $unserialized,
-            'AST of unserialized statement should be equal to that of the original'
-        );
     }
 
     public function testBuildInsertStatement(): void
     {
-        $parsed = $this->parser->parseStatement(<<<QRY
+        $this->assertBuiltStatementProducesTheSameAST(<<<QRY
 with foobar as (
     select idfoo, somefoo from foo
     except
@@ -114,24 +120,32 @@ on conflict (id, (name || surname) collate "zz_ZZ" asc nulls last) where not ble
 returning *
 QRY
         );
-        $built = $parsed->dispatch($this->builder);
-        $this->assertEquals(
-            $parsed,
-            $this->parser->parseStatement($built),
-            'AST of the built statement should be equal to that of the original statement'
-        );
+    }
 
-        $unserialized = unserialize(serialize($parsed));
-        $this->assertEquals(
-            $parsed,
-            $unserialized,
-            'AST of unserialized statement should be equal to that of the original'
+    public function testBuildMergeStatement(): void
+    {
+        $this->assertBuiltStatementProducesTheSameAST(<<<'QRY'
+with "null" as (
+    select null as "null", 1 as one
+)
+merge into foo as bar
+using "null"
+on bar.id is not distinct from "null"
+when not matched and one = 2 then
+    insert (baz) overriding system value values ('quux')
+when not matched and two = 1 then
+    insert default values
+when matched and baz <> 'quux' then
+    update set baz = 'xyzzy'
+when matched then 
+    delete
+QRY
         );
     }
 
     public function testBuildSelectStatement(): void
     {
-        $parsed = $this->parser->parseStatement(<<<'QRY'
+        $this->assertBuiltStatementProducesTheSameAST(<<<'QRY'
 with xmlstuff as (
     select xmlelement(name foo, bar, 'content'), xmlelement(name blah, xmlattributes(baz, quux as xyzzy), 'content'),
        xmlexists('//foo[text() = ''bar'']' passing by ref '<blah><foo>bar</foo></blah>'),
@@ -234,25 +248,11 @@ offset :foo
 for no key update of quux, xyzzy for share of anothertable skip locked
 QRY
         );
-
-        $built = $parsed->dispatch($this->builder);
-        $this->assertEquals(
-            $parsed,
-            $this->parser->parseStatement($built),
-            'AST of the built statement should be equal to that of the original statement'
-        );
-
-        $unserialized = unserialize(serialize($parsed));
-        $this->assertEquals(
-            $parsed,
-            $unserialized,
-            'AST of unserialized statement should be equal to that of the original'
-        );
     }
 
     public function testBuildUpdateStatement(): void
     {
-        $parsed = $this->parser->parseStatement(<<<QRY
+        $this->assertBuiltStatementProducesTheSameAST(<<<QRY
 with foo as (
     select somefoo from basefoo
 )
@@ -263,19 +263,6 @@ where baz.id = baralias.baz_id and
       baz.foovalue in (select somefoo from foo)
 returning *
 QRY
-        );
-        $built = $parsed->dispatch($this->builder);
-        $this->assertEquals(
-            $parsed,
-            $this->parser->parseStatement($built),
-            'AST of the built statement should be equal to that of the original statement'
-        );
-
-        $unserialized = unserialize(serialize($parsed));
-        $this->assertEquals(
-            $parsed,
-            $unserialized,
-            'AST of unserialized statement should be equal to that of the original'
         );
     }
 

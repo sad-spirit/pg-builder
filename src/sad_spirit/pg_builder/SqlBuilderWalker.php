@@ -1813,6 +1813,91 @@ class SqlBuilderWalker implements StatementToStringWalker
         return $plan->name->dispatch($this);
     }
 
+    public function walkMergeStatement(Merge $statement): string
+    {
+        $clauses = [];
+        if (0 < count($statement->with)) {
+            $clauses[] = $statement->with->dispatch($this);
+        }
+
+        $indent = $this->getIndent();
+        $this->indentLevel++;
+
+        $clauses[] = $indent . 'merge into ' . $statement->relation->dispatch($this);
+        $clauses[] = $indent . 'using ' . $statement->using->dispatch($this);
+        $clauses[] = $indent . 'on ' . $statement->on->dispatch($this);
+
+        foreach ($statement->when as $when) {
+            $clauses[] = $indent . $when->dispatch($this);
+        }
+
+        $this->indentLevel--;
+
+        return implode($this->options['linebreak'] ?: ' ', $clauses);
+    }
+
+    public function walkMergeDelete(nodes\merge\MergeDelete $clause): string
+    {
+        return $this->getIndent() . 'delete';
+    }
+
+    public function walkMergeInsert(nodes\merge\MergeInsert $clause): string
+    {
+        if (null === $clause->values) {
+            return $this->getIndent() . 'insert default values';
+        }
+
+        $lines = [
+            (
+                0 === count($clause->cols)
+                ? $this->getIndent() . 'insert'
+                : $this->implode($this->getIndent() . 'insert (', $clause->cols->dispatch($this)) . ')'
+            )
+            . (null === $clause->overriding ? '' : ' overriding ' . $clause->overriding . ' value')
+        ];
+        $lines[] = $clause->values->dispatch($this);
+
+        return implode($this->options['linebreak'] ?: ' ', $lines);
+    }
+
+    public function walkMergeUpdate(nodes\merge\MergeUpdate $clause): string
+    {
+        return $this->implode($this->getIndent() . 'update set ', $clause->set->dispatch($this));
+    }
+
+    public function walkMergeValues(nodes\merge\MergeValues $clause): string
+    {
+        return $this->implode($this->getIndent() . 'values (', $this->walkGenericNodeList($clause)) . ')';
+    }
+
+    public function walkMergeWhenMatched(nodes\merge\MergeWhenMatched $clause): string
+    {
+        $lines = [
+            'when matched'
+            . (null === $clause->condition ? '' : ' and ' . $clause->condition->dispatch($this))
+            . ' then'
+        ];
+        $lines[] = null === $clause->action
+                   ? $this->getIndent() . 'do nothing'
+                   : $clause->action->dispatch($this);
+
+        return implode($this->options['linebreak'] ?: ' ', $lines);
+    }
+
+    public function walkMergeWhenNotMatched(nodes\merge\MergeWhenNotMatched $clause): string
+    {
+        $lines = [
+            'when not matched'
+            . (null === $clause->condition ? '' : ' and ' . $clause->condition->dispatch($this))
+            . ' then'
+        ];
+        $lines[] = null === $clause->action
+                   ? $this->getIndent() . 'do nothing'
+                   : $clause->action->dispatch($this);
+
+        return implode($this->options['linebreak'] ?: ' ', $lines);
+    }
+
     /**
      * Returns an array of code points corresponding to characters in UTF-8 string
      *
