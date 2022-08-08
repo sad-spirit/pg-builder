@@ -73,7 +73,8 @@ use sad_spirit\pg_builder\nodes\range\json\{
     JsonTableDefaultPlan,
     JsonTableParentChildPlan,
     JsonTablePlan,
-    JsonTableSimplePlan};
+    JsonTableSimplePlan
+};
 use sad_spirit\pg_builder\nodes\lists\{
     ExpressionList,
     FromList,

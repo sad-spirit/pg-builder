@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+* Support for new syntax of PostgreSQL 15:
+  * SQL/JSON functions and expressions
+  * `MERGE` statement
+
 ## [2.0.1] - 2022-06-17
 
 ### Fixed
@@ -262,3 +269,4 @@ Initial release on GitHub
 [2.0.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v1.0.2...v2.0.0-beta
 [2.0.0]: https://github.com/sad-spirit/pg-builder/compare/v2.0.0-beta...v2.0.0
 [2.0.1]: https://github.com/sad-spirit/pg-builder/compare/v2.0.0...v2.0.1
+[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v2.0.1...HEAD
