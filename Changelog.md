@@ -3,9 +3,19 @@
 ## [Unreleased]
 
 ### Added
-* Support for new syntax of PostgreSQL 15:
-  * SQL/JSON functions and expressions
-  * `MERGE` statement
+Support for new syntax of PostgreSQL 15:
+* `MERGE` statement
+  * `Merge` class and `StatementFactory::merge()` helper method
+* SQL/JSON functions and expressions
+  * `IS JSON` predicate represented by `nodes\expressions\IsJsonExpression`;
+  * Constructor functions `json()`, `json_scalar()`, `json_array()`, `json_object()` represented by
+    `nodes\json\JsonConstructor`, `nodes\json\JsonScalar`, `nodes\json\JsonArray`, `nodes\json\JsonObject`
+    classes respectively;
+  * Aggregate functions `json_arrayagg()` and `json_objectagg()` represented by `nodes\json\JsonArrayAgg` and
+    `nodes\json\JsonObjectAgg`;
+  * Query functions `json_exists()`, `json_value()`, `json_query()` represented by `nodes\json\JsonExists`,
+    `nodes\json\JsonValue`, `nodes\json\JsonQuery`;
+  * `json_table()` expression appearing in `FROM` clause represented by `nodes\range\JsonTable`.
 
 ## [2.0.1] - 2022-06-17
 
