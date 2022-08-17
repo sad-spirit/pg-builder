@@ -1,5 +1,22 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+Support for new syntax of PostgreSQL 15:
+* `MERGE` statement
+  * `Merge` class and `StatementFactory::merge()` helper method
+* SQL/JSON functions and expressions
+  * `IS JSON` predicate represented by `nodes\expressions\IsJsonExpression`;
+  * Constructor functions `json()`, `json_scalar()`, `json_array()`, `json_object()` represented by
+    `nodes\json\JsonConstructor`, `nodes\json\JsonScalar`, `nodes\json\JsonArray`, `nodes\json\JsonObject`
+    classes respectively;
+  * Aggregate functions `json_arrayagg()` and `json_objectagg()` represented by `nodes\json\JsonArrayAgg` and
+    `nodes\json\JsonObjectAgg`;
+  * Query functions `json_exists()`, `json_value()`, `json_query()` represented by `nodes\json\JsonExists`,
+    `nodes\json\JsonValue`, `nodes\json\JsonQuery`;
+  * `json_table()` expression appearing in `FROM` clause represented by `nodes\range\JsonTable`.
+
 ## [2.0.1] - 2022-06-17
 
 ### Fixed
@@ -262,3 +279,4 @@ Initial release on GitHub
 [2.0.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v1.0.2...v2.0.0-beta
 [2.0.0]: https://github.com/sad-spirit/pg-builder/compare/v2.0.0-beta...v2.0.0
 [2.0.1]: https://github.com/sad-spirit/pg-builder/compare/v2.0.0...v2.0.1
+[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v2.0.1...HEAD
