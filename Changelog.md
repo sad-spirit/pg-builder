@@ -17,6 +17,10 @@ Support for new syntax of PostgreSQL 15:
     `nodes\json\JsonValue`, `nodes\json\JsonQuery`;
   * `json_table()` expression appearing in `FROM` clause represented by `nodes\range\JsonTable`.
 
+### Changed
+Reject numeric literals and positional parameters with trailing non-digits: previously `SELECT 123abc` was parsed as
+`SELECT 123 AS abc`, now it will throw a `SyntaxException`. This follows the changes to lexer done in Postgres 15.
+
 ## [2.0.1] - 2022-06-17
 
 ### Fixed

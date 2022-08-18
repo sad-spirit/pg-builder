@@ -43,7 +43,7 @@ class LexerTest extends TestCase
 
     public function testTokenTypes(): void
     {
-        $stream = $this->lexer->tokenize("sElEcT 'select' \"select\", FOO + 1.2, 3 ! <> :foo, $1::integer");
+        $stream = $this->lexer->tokenize("sElEcT 'select' \"select\", FOO + 1.2 - 3., 4 ! <> :foo, $1::integer");
 
         $stream->expect(Token::TYPE_KEYWORD, 'select');
         $stream->expect(Token::TYPE_STRING, 'select');
@@ -52,8 +52,10 @@ class LexerTest extends TestCase
         $stream->expect(Token::TYPE_IDENTIFIER, 'foo');
         $stream->expect(Token::TYPE_SPECIAL_CHAR, '+');
         $stream->expect(Token::TYPE_FLOAT, '1.2');
+        $stream->expect(Token::TYPE_SPECIAL_CHAR, '-');
+        $stream->expect(Token::TYPE_FLOAT, '3.');
         $stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
-        $stream->expect(Token::TYPE_INTEGER, '3');
+        $stream->expect(Token::TYPE_INTEGER, '4');
         $stream->expect(Token::TYPE_OPERATOR, '!');
         $stream->expect(Token::TYPE_INEQUALITY, '<>');
         $stream->expect(Token::TYPE_NAMED_PARAM, 'foo');
@@ -322,6 +324,33 @@ QRY
         $this->lexer->tokenize($sql);
     }
 
+    /**
+     * @param string $sql
+     * @dataProvider trailingJunkAfterNumericLiteralProvider
+     */
+    public function testDisallowJunkAfterNumericLiterals(string $sql): void
+    {
+        $this::expectException(SyntaxException::class);
+        $this::expectExceptionMessage("Trailing junk");
+        $this->lexer->tokenize($sql);
+
+        echo "Failing SQL: " . $sql . "\r\n";
+    }
+
+    public function testDisallowJunkAfterPositionalParameters(): void
+    {
+        $this::expectException(SyntaxException::class);
+        $this::expectExceptionMessage("Trailing junk");
+        $this->lexer->tokenize('$1a');
+    }
+
+    public function testNumberAndDoubleDot(): void
+    {
+        $this::expectException(SyntaxException::class);
+        $this::expectExceptionMessage("Unexpected '..'");
+        $this->lexer->tokenize('1..2');
+    }
+
     public function validCStyleEscapesProvider(): array
     {
         return [
@@ -391,6 +420,21 @@ QRY
             [':' . chr(240)],
             ['"ident' . chr(240) . 'ifier"'],
             ['ident' . chr(240) . 'ifier']
+        ];
+    }
+
+    public function trailingJunkAfterNumericLiteralProvider(): array
+    {
+        return [
+            ['123abc'],
+            ['0x0o'],
+            ['1_2_3'],
+            ['0.a'],
+            ['0.0a'],
+            ['.0a'],
+            ['0.0e1a'],
+            ['0.0e'],
+            ['0.0e+a']
         ];
     }
 }
