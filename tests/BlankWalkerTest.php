@@ -23,7 +23,8 @@ namespace sad_spirit\pg_builder\tests;
 use sad_spirit\pg_builder\{
     Lexer,
     Node,
-    Parser
+    Parser,
+    Statement
 };
 use PHPUnit\Framework\TestCase;
 
@@ -32,8 +33,9 @@ use PHPUnit\Framework\TestCase;
  */
 class BlankWalkerTest extends TestCase
 {
-    /** @var string */
-    private $sql = <<<'QRY'
+    /** @var string[] */
+    private $sql = [
+        <<<'QRY'
 with recursive w1 (w2, w3) as (
     select s1, s2, array[s3], false
     from s4 as s5
@@ -86,17 +88,6 @@ w9 as (
 w10 as materialized (
     select f1.f2(variadic f3), f4.f5(f6, variadic f7), f8.f9(f10, b := f11, binary := f12)
     from f13(1, f14) as f15 (f16)
-),
-w18 as (
-    merge into m1 as m2
-    using m3
-    on m4.m5 is not distinct from m6
-    when not matched and m7 = 2 then
-        insert (m8) overriding system value values (m9)
-    when matched and m10 <> 'quux' then
-        update set m11 = 'xyzzy'
-    when matched then 
-        delete     
 )
 select distinct on (e1) e2.e3, e4.e5[e6], (e7.e8).e9, $1.e10, array[[e11,2],[3,e12]], row(e13,:foo),
        1 + e14 * 3, (1 + e15) * 3, e16 between e17 and e18,
@@ -144,7 +135,19 @@ order by 1 using operator(e56.>>>) nulls first, e57 desc
 limit e58
 offset e59
 for no key update of s77, s78 for share of s79 skip locked
-QRY;
+QRY
+        , <<<'QRY'
+merge into m1 as m2
+using m3
+on m4.m5 is not distinct from m6
+when not matched and m7 = 2 then
+    insert (m8) overriding system value values (m9)
+when matched and m10 <> 'quux' then
+    update set m11 = 'xyzzy'
+when matched then 
+    delete     
+QRY
+    ];
 
 
     /**
@@ -184,7 +187,7 @@ QRY;
         return $nodes;
     }
 
-    private function assertAllNodeSubClassesAreUsed(Node $ast): void
+    private function assertAllNodeSubClassesAreUsed(Statement ...$ast): void
     {
         preg_match_all('{"(sad_spirit\\\\pg_builder\\\\[^"]+)"}', serialize($ast), $m);
 
@@ -207,15 +210,19 @@ QRY;
      */
     public function testBlankWalkerVisitsEverything(): void
     {
-        $parser    = new Parser(new Lexer());
-        $statement = $parser->parseStatement($this->sql);
+        $parser     = new Parser(new Lexer());
+        // https://github.com/vimeo/psalm/issues/5667
+        /** @psalm-suppress InvalidArgument */
+        $statements = array_map([$parser, 'parseStatement'], $this->sql);
 
-        $this->assertAllNodeSubClassesAreUsed($statement);
+        $this->assertAllNodeSubClassesAreUsed(...$statements);
 
         $walker = new BlankWalkerImplementation();
-        $statement->dispatch($walker);
+        array_map(function ($statement) use ($walker) {
+            $statement->dispatch($walker);
+        }, $statements);
 
-        preg_match_all('{' . $walker::IDENTIFIER_MASK . '}', $this->sql, $m);
+        preg_match_all('{' . $walker::IDENTIFIER_MASK . '}', implode(" ", $this->sql), $m);
         $notFound = array_diff($m[0], array_keys($walker->identifiers));
 
         $this::assertEmpty(

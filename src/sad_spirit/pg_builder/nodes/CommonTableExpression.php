@@ -20,13 +20,17 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes;
 
+use sad_spirit\pg_builder\{
+    Merge,
+    Statement,
+    TreeWalker
+};
 use sad_spirit\pg_builder\nodes\{
     cte\CycleClause,
     cte\SearchClause,
     lists\IdentifierList
 };
-use sad_spirit\pg_builder\Statement;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * AST node representing a CTE
@@ -66,6 +70,10 @@ class CommonTableExpression extends GenericNode
         ?SearchClause $search = null,
         ?CycleClause $cycle = null
     ) {
+        if ($statement instanceof Merge) {
+            throw new InvalidArgumentException("MERGE not supported in WITH query");
+        }
+
         $this->generatePropertyNames();
         $this->p_statement = $statement;
         $this->p_statement->setParentNode($this);
@@ -90,6 +98,10 @@ class CommonTableExpression extends GenericNode
 
     public function setStatement(Statement $statement): void
     {
+        if ($statement instanceof Merge) {
+            throw new InvalidArgumentException("MERGE not supported in WITH query");
+        }
+
         $this->setRequiredProperty($this->p_statement, $statement);
     }
 
