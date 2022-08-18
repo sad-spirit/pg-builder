@@ -114,20 +114,20 @@ class Lexer
     "   |                           # double-quoted identifier
     ([bBeEnNxX])' |                 # string literal with prefix, group 1
 
-    # positional parameter or dollar-quoted string, groups 2, 3
-    \\$(?: ( \d+ ) | ( (?: [A-Za-z\\x80-\\xFF_][A-Za-z\\x80-\\xFF_0-9]*)? )\\$ ) |
+    # positional parameter or dollar-quoted string, groups 2, 3 (junk test), 4
+    \\$(?: ( \d+ ) ( [A-Za-z\\x80-\\xFF_] )? | ( (?: [A-Za-z\\x80-\\xFF_][A-Za-z\\x80-\\xFF_0-9]*)? )\\$ ) |
 
-    # typecast, named function argument or named parameter, group 4 
+    # typecast, named function argument or named parameter, group 5 
     : (?: = | : | ( [A-Za-z\\x80-\\xFF_][A-Za-z\\x80-\\xFF_0-9]* ) ) |
 
-    # numeric constant, group 5
-    ( (?: \d+ (?: \.\d+|\.(?!.))? | \.\d+) (?: [eE][+-]\d+ )? ) |
+    # numeric constant, groups 6, 7 (junk test)
+    ( (?: \d+ (?: \.\d+|\.(?!\.))? | \.\d+) (?: [eE][+-]\d+ )? ( [A-Za-z\\x80-\\xFF_] )? ) |
 
     [uU]&["'] |                     # string/identifier with unicode escapes
     \.\. |                          # double dot (error outside of PL/PgSQL)
-    ([{$quotedSpecialChars}]) |     # everything that looks, well, special, group 6
+    ([{$quotedSpecialChars}]) |     # everything that looks, well, special, group 8
     
-    ( [A-Za-z\\x80-\\xff_][A-Za-z\\x80-\\xff_0-9$]* ) # identifier, obviously, group 7
+    ( [A-Za-z\\x80-\\xff_][A-Za-z\\x80-\\xff_0-9$]* ) # identifier, obviously, group 9
 }Ax
 REGEXP;
     }
@@ -186,39 +186,53 @@ REGEXP;
             }
 
             // check for found subpatterns first
-            if (isset($m[7])) {
+            if (isset($m[9])) {
                 // ASCII-only downcasing
-                $lowCase = strtr($m[7], 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
+                $lowCase = strtr($m[9], 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
                 if (isset(Keywords::LIST[$lowCase])) {
                     $this->tokens[] = new Token(Keywords::LIST[$lowCase][0], $lowCase, $this->position);
                 } else {
                     $this->tokens[] = new Token(Token::TYPE_IDENTIFIER, $lowCase, $this->position);
                 }
-                $this->position += strlen($m[7]);
+                $this->position += strlen($m[9]);
 
-            } elseif (isset($m[6])) {
-                if (isset($this->operatorCharHash[$m[6]])) {
+            } elseif (isset($m[8])) {
+                if (isset($this->operatorCharHash[$m[8]])) {
                     $this->lexOperator();
                 } else {
-                    $this->tokens[] = new Token(Token::TYPE_SPECIAL_CHAR, $m[6], $this->position++);
+                    $this->tokens[] = new Token(Token::TYPE_SPECIAL_CHAR, $m[8], $this->position++);
                 }
 
-            } elseif (isset($m[5])) {
+            } elseif (isset($m[6])) {
+                if (isset($m[7])) {
+                    throw exceptions\SyntaxException::atPosition(
+                        "Trailing junk after numeric literal: '$m[0]'",
+                        $this->source,
+                        $this->position
+                    );
+                }
                 $this->tokens[] = new Token(
-                    ctype_digit($m[5]) ? Token::TYPE_INTEGER : Token::TYPE_FLOAT,
-                    $m[5],
+                    ctype_digit($m[6]) ? Token::TYPE_INTEGER : Token::TYPE_FLOAT,
+                    $m[6],
                     $this->position
                 );
-                $this->position += strlen($m[5]);
+                $this->position += strlen($m[6]);
 
-            } elseif (isset($m[4])) {
-                $this->tokens[] = new Token(Token::TYPE_NAMED_PARAM, $m[4], $this->position);
+            } elseif (isset($m[5])) {
+                $this->tokens[] = new Token(Token::TYPE_NAMED_PARAM, $m[5], $this->position);
                 $this->position += strlen($m[0]);
 
-            } elseif (isset($m[3])) {
+            } elseif (isset($m[4])) {
                 $this->lexDollarQuoted($m[0]);
 
             } elseif (isset($m[2])) {
+                if (isset($m[3])) {
+                    throw exceptions\SyntaxException::atPosition(
+                        "Trailing junk after positional parameter: '$m[0]'",
+                        $this->source,
+                        $this->position
+                    );
+                }
                 $this->tokens[] = new Token(Token::TYPE_POSITIONAL_PARAM, $m[2], $this->position);
                 $this->position += strlen($m[0]);
 
