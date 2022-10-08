@@ -333,8 +333,6 @@ QRY
         $this::expectException(SyntaxException::class);
         $this::expectExceptionMessage("Trailing junk");
         $this->lexer->tokenize($sql);
-
-        echo "Failing SQL: " . $sql . "\r\n";
     }
 
     public function testDisallowJunkAfterPositionalParameters(): void

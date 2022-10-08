@@ -1488,7 +1488,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkIsJsonExpression(nodes\expressions\IsJsonExpression $expression): string
     {
-        return $expression->argument->dispatch($this)
+        return $this->optionalParentheses($expression->argument, $expression)
                . ' is ' . ($expression->not ? 'not ' : '') . 'json'
                . (null === $expression->type ? '' : ' ' . $expression->type)
                . (
