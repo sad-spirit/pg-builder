@@ -1,11 +1,5 @@
 parameters:
 	ignoreErrors:
-		# Looks like a bug in phpstan, protected $parentNode is defined in common base class
-		-
-			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\SetTargetList\\:\\:\\$parentNode\\.$#"
-			count: 1
-			path: src/sad_spirit/pg_builder/Insert.php
-
 		# For some reason "treatPhpDocTypesAsCertain: false" did not help here
 		-
 			message: "#^Result of && is always false\\.$#"
@@ -17,36 +11,6 @@ parameters:
 			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
 			count: 1
 			path: src/sad_spirit/pg_builder/Select.php
-
-		# https://github.com/phpstan/phpstan/issues/4492
-		-
-			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\LockList\\:\\:\\$parentNode\\.$#"
-			count: 1
-			path: src/sad_spirit/pg_builder/SelectCommon.php
-
-		# https://github.com/phpstan/phpstan/issues/4492
-		-
-			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\Identifier\\|sad_spirit\\\\pg_builder\\\\nodes\\\\Star\\:\\:\\$parentNode\\.$#"
-			count: 2
-			path: src/sad_spirit/pg_builder/nodes/ColumnReference.php
-
-		# https://github.com/phpstan/phpstan/issues/4492
-		-
-			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\Identifier\\:\\:\\$parentNode\\.$#"
-			count: 2
-			path: src/sad_spirit/pg_builder/nodes/ColumnReference.php
-
-		# https://github.com/phpstan/phpstan/issues/4492
-		-
-			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\Identifier\\:\\:\\$parentNode\\.$#"
-			count: 3
-			path: src/sad_spirit/pg_builder/nodes/QualifiedName.php
-
-		# https://github.com/phpstan/phpstan/issues/4492
-		-
-			message: "#^Access to protected property sad_spirit\\\\pg_builder\\\\nodes\\\\Identifier\\:\\:\\$parentNode\\.$#"
-			count: 1
-			path: src/sad_spirit/pg_builder/nodes/QualifiedOperator.php
 
 		# Looks like a bug with memoizing the result of stream->matches(...) call
 		-
