@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Removed
+Support for SQL/JSON syntax as it was removed in [PostgreSQL 15 beta 4](https://www.postgresql.org/about/news/postgresql-15-beta-4-released-2507/)
+
 ## [2.1.0-beta] - 2022-08-18
 
 ### Added
@@ -284,3 +289,4 @@ Initial release on GitHub
 [2.0.0]: https://github.com/sad-spirit/pg-builder/compare/v2.0.0-beta...v2.0.0
 [2.0.1]: https://github.com/sad-spirit/pg-builder/compare/v2.0.0...v2.0.1
 [2.1.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v2.0.1...v2.1.0-beta
+[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v2.1.0-beta...HEAD

@@ -1,20 +1,20 @@
 # sad_spirit/pg_builder
 
-[![Build Status](https://github.com/sad-spirit/pg-builder/workflows/Continuous%20Integration/badge.svg?branch=master)](https://github.com/sad-spirit/pg-builder/actions?query=branch%3Amaster+workflow%3A%22Continuous+Integration%22)
+[![Build Status](https://github.com/sad-spirit/pg-builder/workflows/Continuous%20Integration/badge.svg?branch=2.x)](https://github.com/sad-spirit/pg-builder/actions?query=2.x%3Amaster+workflow%3A%22Continuous+Integration%22)
 
-[![Static Analysis](https://github.com/sad-spirit/pg-builder/workflows/Static%20Analysis/badge.svg?branch=master)](https://github.com/sad-spirit/pg-builder/actions?query=branch%3Amaster+workflow%3A%22Static+Analysis%22)
+[![Static Analysis](https://github.com/sad-spirit/pg-builder/workflows/Static%20Analysis/badge.svg?branch=2.x)](https://github.com/sad-spirit/pg-builder/actions?query=branch%3A2.x+workflow%3A%22Static+Analysis%22)
 
 This is a query builder for Postgres with a twist: it contains a partial<sup>[1](#footnote1)</sup> reimplementation of PostgreSQL's own
 query parser. This sets it aside from the usual breed of "write-only" query builders:
 
-* Almost all syntax available for `SELECT` (and `VALUES`) / `INSERT` / `UPDATE` / `DELETE` / `MERGE` in PostgreSQL 15
-  is supported, query being built is automatically checked for correct syntax.
 * Query is represented as an Abstract Syntax Tree quite similar to PostgreSQL's internal representation.
 * Query parts can be added to the AST either as objects or as strings (that will be processed by Parser).
 * Nodes can be removed and replaced in AST.
 * AST can be analyzed and transformed, the package takes advantage of this to allow named parameters like
   `:foo` instead of standard PostgreSQL's positional parameters `$1` and to infer parameters' types
   from SQL typecasts.
+* Almost all syntax available for `SELECT` (and `VALUES`) / `INSERT` / `UPDATE` / `DELETE` / `MERGE` in PostgreSQL 15
+  is supported, query being built is automatically checked for correct syntax.
 
 Substantial effort was made to optimise parsing, but not parsing is faster anyway, so there are means to cache parts 
 of AST and the resultant query.
