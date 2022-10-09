@@ -1,6 +1,6 @@
 # sad_spirit/pg_builder
 
-[![Build Status](https://github.com/sad-spirit/pg-builder/workflows/Continuous%20Integration/badge.svg?branch=2.x)](https://github.com/sad-spirit/pg-builder/actions?query=2.x%3Amaster+workflow%3A%22Continuous+Integration%22)
+[![Build Status](https://github.com/sad-spirit/pg-builder/workflows/Continuous%20Integration/badge.svg?branch=2.x)](https://github.com/sad-spirit/pg-builder/actions?query=branch%3A2.x+workflow%3A%22Continuous+Integration%22)
 
 [![Static Analysis](https://github.com/sad-spirit/pg-builder/workflows/Static%20Analysis/badge.svg?branch=2.x)](https://github.com/sad-spirit/pg-builder/actions?query=branch%3A2.x+workflow%3A%22Static+Analysis%22)
 
