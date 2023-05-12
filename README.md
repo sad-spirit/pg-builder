@@ -25,9 +25,12 @@ of AST and the resultant query.
 use sad_spirit\pg_builder\{
     Select,
     StatementFactory,
-    converters\ParserAwareTypeConverterFactory
+    converters\BuilderSupportDecorator
 };
-use sad_spirit\pg_wrapper\Connection;
+use sad_spirit\pg_wrapper\{
+    Connection,
+    converters\DefaultTypeConverterFactory
+};
 
 $wantPDO = false;
 
@@ -36,13 +39,16 @@ if ($wantPDO) {
     // Uses DB connection properties to set up parsing and building of SQL 
     $factory   = StatementFactory::forPDO($pdo);
     // NB: This still requires sad_spirit/pg_wrapper for type conversion code
-    $converter = new ParserAwareTypeConverterFactory($factory->getParser());
+    $converter = new BuilderSupportDecorator(new DefaultTypeConverterFactory(), $factory->getParser());
 } else {
     $connection = new Connection('host=localhost user=username dbname=cms');
     // Uses DB connection properties to set up parsing and building of SQL 
     $factory    = StatementFactory::forConnection($connection);
     // Needed for handling type info extracted from query
-    $connection->setTypeConverterFactory(new ParserAwareTypeConverterFactory($factory->getParser()));
+    $connection->setTypeConverterFactory(new BuilderSupportDecorator(
+        $connection->getTypeConverterFactory(),
+        $factory->getParser()
+    ));
 }
 
 // latest 5 news
