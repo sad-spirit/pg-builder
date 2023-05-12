@@ -10,7 +10,7 @@
  * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
  *
  * @package   sad_spirit\pg_builder
- * @copyright 2014-2022 Alexey Borzov
+ * @copyright 2014-2023 Alexey Borzov
  * @author    Alexey Borzov <avb@php.net>
  * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
  * @link      https://github.com/sad-spirit/pg-builder
@@ -25,6 +25,7 @@ use sad_spirit\pg_builder\{
     Lexer,
     NativeStatement,
     Parser,
+    converters\BuilderSupportDecorator,
     converters\ParserAwareTypeConverterFactory,
     exceptions\InvalidArgumentException,
     nodes\QualifiedName,
@@ -46,7 +47,7 @@ use sad_spirit\pg_wrapper\converters\{
  */
 class ParserAwareTypeConverterFactoryTest extends TestCase
 {
-    /** @var ParserAwareTypeConverterFactory */
+    /** @var BuilderSupportDecorator|ParserAwareTypeConverterFactory */
     protected $factory;
 
     protected function setUp(): void
