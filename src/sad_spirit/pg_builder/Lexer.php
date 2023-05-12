@@ -190,6 +190,7 @@ REGEXP;
                 // ASCII-only downcasing
                 $lowCase = strtr($m[9], 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
                 if (isset(Keywords::LIST[$lowCase])) {
+                    // @phpstan-ignore-next-line
                     $this->tokens[] = new Token(Keywords::LIST[$lowCase][0], $lowCase, $this->position);
                 } else {
                     $this->tokens[] = new Token(Token::TYPE_IDENTIFIER, $lowCase, $this->position);

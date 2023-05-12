@@ -1,17 +1,5 @@
 parameters:
 	ignoreErrors:
-		# For some reason "treatPhpDocTypesAsCertain: false" did not help here
-		-
-			message: "#^Result of && is always false\\.$#"
-			count: 1
-			path: src/sad_spirit/pg_builder/Select.php
-
-		# For some reason "treatPhpDocTypesAsCertain: false" did not help here
-		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
-			count: 1
-			path: src/sad_spirit/pg_builder/Select.php
-
 		# Looks like a bug with memoizing the result of stream->matches(...) call
 		-
 			message: "#^If condition is always false\\.$#"
