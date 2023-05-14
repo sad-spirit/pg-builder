@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.2.0] - 2023-05-14
+
+### Added
+
+* `TypeNameNodeHandler` interface extending `TypeConverterFactory` from `pg_wrapper` package: designed
+  for factories that know how to process `TypeName` nodes. Its methods were defined previously in 
+  `ParserAwareTypeConverterFactory` class which is now an implementation of the interface. 
+* `BuilderSupportDecorator` class implementing `TypeNameNodeHandler` and working as a decorator around
+  `DefaultTypeConverterFactory`.
+
+### Deprecated
+
+`ParserAwareTypeConverterFactory` is now deprecated, `BuilderSupportDecorator` should be used instead.
+
+
 ## [2.1.0] - 2022-11-04
 
 A stable release following release of Postgres 15. No code changes since beta 2. 
@@ -295,3 +310,4 @@ Initial release on GitHub
 [2.1.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v2.0.1...v2.1.0-beta
 [2.1.0-beta.2]: https://github.com/sad-spirit/pg-builder/compare/v2.1.0-beta...v2.1.0-beta.2
 [2.1.0]: https://github.com/sad-spirit/pg-builder/compare/v2.1.0-beta.2...v2.1.0
+[2.2.0]: https://github.com/sad-spirit/pg-builder/compare/v2.1.0...v2.2.0
