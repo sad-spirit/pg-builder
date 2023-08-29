@@ -58,17 +58,17 @@ use sad_spirit\pg_builder\nodes\expressions\{
     TrimExpression
 };
 use sad_spirit\pg_builder\nodes\json\{
-    JsonArray,
     JsonArrayAgg,
-    JsonConstructor,
+    JsonArraySubselect,
+    JsonArrayValueList,
     JsonFormat,
+    JsonFormattedValue,
+    JsonFormattedValueList,
     JsonKeyValue,
     JsonKeyValueList,
     JsonObject,
     JsonObjectAgg,
-    JsonReturning,
-    JsonFormattedValue,
-    JsonFormattedValueList
+    JsonReturning
 };
 use sad_spirit\pg_builder\nodes\lists\{
     ExpressionList,
@@ -668,16 +668,16 @@ QRY
 
         $this::assertEquals(
             new ExpressionList([
-                new JsonArray(),
-                new JsonArray(null, null, new JsonReturning(new TypeName(new QualifiedName('jsonb')))),
-                new JsonArray(new JsonFormattedValueList([
+                new JsonArrayValueList(),
+                new JsonArrayValueList(null, null, new JsonReturning(new TypeName(new QualifiedName('jsonb')))),
+                new JsonArrayValueList(new JsonFormattedValueList([
                     new JsonFormattedValue(new ColumnReference('one'), new JsonFormat()),
                     new JsonFormattedValue(new ColumnReference('two'))
                 ]), false),
-                new JsonArray(new JsonFormattedValueList([new JsonFormattedValue(
+                new JsonArrayValueList(new JsonFormattedValueList([new JsonFormattedValue(
                     new OperatorExpression('+', new ColumnReference('foo'), new ColumnReference('bar'))
                 )])),
-                new JsonArray($values, null, new JsonReturning(new TypeName(new QualifiedName('bytea'))))
+                new JsonArraySubselect($values, null, new JsonReturning(new TypeName(new QualifiedName('bytea'))))
             ]),
             $list
         );

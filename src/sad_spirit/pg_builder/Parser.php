@@ -4459,19 +4459,24 @@ class Parser
 
     public function JsonArrayConstructor(): nodes\json\JsonArray
     {
-        $arguments = $absentOnNull = null;
-
         if (self::PARENTHESES_SELECT === $this->checkContentsOfParentheses(-1)) {
-            $arguments = $this->SelectStatement();
+            return new nodes\json\JsonArraySubselect(
+                $this->SelectStatement(),
+                $this->JsonFormat(),
+                $this->JsonReturningClause()
+            );
         } elseif (
-            !$this->stream->matchesKeyword('returning')
-            && !$this->stream->matchesSpecialChar(')')
+            $this->stream->matchesKeyword('returning')
+            || $this->stream->matchesSpecialChar(')')
         ) {
-            $arguments    = $this->JsonFormattedValueList();
-            $absentOnNull = $this->JsonNullClause();
+            return new nodes\json\JsonArrayValueList(null, null, $this->JsonReturningClause());
         }
 
-        return new nodes\json\JsonArray($arguments, $absentOnNull, $this->JsonReturningClause());
+        return new nodes\json\JsonArrayValueList(
+            $this->JsonFormattedValueList(),
+            $this->JsonNullClause(),
+            $this->JsonReturningClause()
+        );
     }
 
     public function JsonObjectConstructor(): nodes\FunctionLike

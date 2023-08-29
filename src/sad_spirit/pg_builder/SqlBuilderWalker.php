@@ -1642,21 +1642,24 @@ class SqlBuilderWalker implements StatementToStringWalker
                . $this->walkCommonJsonAggregateFields($expression);
     }
 
-    public function walkJsonArray(nodes\json\JsonArray $expression): string
+    public function walkJsonArrayValueList(nodes\json\JsonArrayValueList $expression): string
     {
-        if (null === $expression->arguments) {
-            $arguments = '';
-        } elseif ($expression->arguments instanceof SelectCommon) {
-            $arguments = $expression->arguments->dispatch($this);
-        } else {
-            $arguments = $this->implode(', ', $expression->arguments->dispatch($this));
-        }
-        return 'json_array(' . $arguments
+        return 'json_array('
+               . $this->implode(', ', $expression->arguments->dispatch($this))
                . (
                    null === $expression->absentOnNull
                        ? ''
                        : ($expression->absentOnNull ? ' absent' : ' null') . ' on null'
                )
+               . (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
+               . ')';
+    }
+
+    public function walkJsonArraySubselect(nodes\json\JsonArraySubselect $expression): string
+    {
+        return 'json_array('
+               . $expression->query->dispatch($this)
+               . (null === $expression->format ? '' : ' ' . $expression->format->dispatch($this))
                . (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
                . ')';
     }

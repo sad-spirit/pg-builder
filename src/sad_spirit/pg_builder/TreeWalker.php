@@ -1033,13 +1033,22 @@ interface TreeWalker
     public function walkJsonObjectAgg(nodes\json\JsonObjectAgg $expression);
 
     /**
-     * Visits the node representing json_array() expression
+     * Visits the node representing json_array() expression with a list of expressions as argument
      *
-     * @param nodes\json\JsonArray $expression
+     * @param nodes\json\JsonArrayValueList $expression
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
-    public function walkJsonArray(nodes\json\JsonArray $expression);
+    public function walkJsonArrayValueList(nodes\json\JsonArrayValueList $expression);
+
+    /**
+     * Visits the node representing json_array() expression with a subselect as argument
+     *
+     * @param nodes\json\JsonArraySubselect $expression
+     * @return mixed
+     * @since 2.3.0
+     */
+    public function walkJsonArraySubselect(nodes\json\JsonArraySubselect $expression);
 
     /**
      * Visits the node representing json_object() expression

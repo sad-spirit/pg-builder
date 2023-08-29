@@ -985,10 +985,20 @@ abstract class BlankWalker implements TreeWalker
         return null;
     }
 
-    public function walkJsonArray(nodes\json\JsonArray $expression)
+    public function walkJsonArrayValueList(nodes\json\JsonArrayValueList $expression)
     {
-        if (null !== $expression->arguments) {
-            $expression->arguments->dispatch($this);
+        $expression->arguments->dispatch($this);
+        if (null !== $expression->returning) {
+            $expression->returning->dispatch($this);
+        }
+        return null;
+    }
+
+    public function walkJsonArraySubselect(nodes\json\JsonArraySubselect $expression)
+    {
+        $expression->query->dispatch($this);
+        if (null !== $expression->format) {
+            $expression->format->dispatch($this);
         }
         if (null !== $expression->returning) {
             $expression->returning->dispatch($this);
