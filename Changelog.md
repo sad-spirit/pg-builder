@@ -1,5 +1,18 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+Support new syntax of PostgreSQL 16 (as of beta 3)
+ * SQL/JSON functions and expressions:
+   * `IS JSON` predicate represented by `nodes\expressions\IsJsonExpression`;
+   * Aggregate functions `json_arrayagg()` and `json_objectagg()` represented by `nodes\json\JsonArrayAgg` and
+     `nodes\json\JsonObjectAgg`;
+   * Constructor functions `json_array()` and `json_object()` represented by
+     `nodes\json\JsonArrayValueList`, `nodes\json\JsonArraySubselect`, `nodes\json\JsonObject` classes.
+
+
 ## [2.2.0] - 2023-05-14
 
 ### Added
@@ -311,3 +324,4 @@ Initial release on GitHub
 [2.1.0-beta.2]: https://github.com/sad-spirit/pg-builder/compare/v2.1.0-beta...v2.1.0-beta.2
 [2.1.0]: https://github.com/sad-spirit/pg-builder/compare/v2.1.0-beta.2...v2.1.0
 [2.2.0]: https://github.com/sad-spirit/pg-builder/compare/v2.1.0...v2.2.0
+[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v2.2.0...HEAD
