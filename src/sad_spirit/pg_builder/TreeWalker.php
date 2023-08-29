@@ -974,7 +974,7 @@ interface TreeWalker
      *
      * @param nodes\expressions\IsJsonExpression $expression
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
     public function walkIsJsonExpression(nodes\expressions\IsJsonExpression $expression);
 
@@ -983,7 +983,7 @@ interface TreeWalker
      *
      * @param nodes\json\JsonFormat $clause
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
     public function walkJsonFormat(nodes\json\JsonFormat $clause);
 
@@ -992,7 +992,7 @@ interface TreeWalker
      *
      * @param nodes\json\JsonReturning $clause
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
     public function walkJsonReturning(nodes\json\JsonReturning $clause);
 
@@ -1001,7 +1001,7 @@ interface TreeWalker
      *
      * @param nodes\json\JsonFormattedValue $clause
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
     public function walkJsonFormattedValue(nodes\json\JsonFormattedValue $clause);
 
@@ -1010,7 +1010,7 @@ interface TreeWalker
      *
      * @param nodes\json\JsonKeyValue $clause
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
     public function walkJsonKeyValue(nodes\json\JsonKeyValue $clause);
 
@@ -1019,7 +1019,7 @@ interface TreeWalker
      *
      * @param nodes\json\JsonArrayAgg $expression
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
     public function walkJsonArrayAgg(nodes\json\JsonArrayAgg $expression);
 
@@ -1028,7 +1028,7 @@ interface TreeWalker
      *
      * @param nodes\json\JsonObjectAgg $expression
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
     public function walkJsonObjectAgg(nodes\json\JsonObjectAgg $expression);
 
@@ -1055,7 +1055,7 @@ interface TreeWalker
      *
      * @param nodes\json\JsonObject $expression
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
     public function walkJsonObject(nodes\json\JsonObject $expression);
 }
