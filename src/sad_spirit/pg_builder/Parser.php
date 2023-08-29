@@ -3582,17 +3582,11 @@ class Parser
 
     protected function RangeSubselect(): nodes\range\Subselect
     {
-        $token     = $this->stream->getCurrent();
         $reference = new nodes\range\Subselect($this->SelectWithParentheses());
 
-        if (!($alias = $this->OptionalAliasClause())) {
-            throw exceptions\SyntaxException::atPosition(
-                'Subselects in FROM clause should have an alias',
-                $this->stream->getSource(),
-                $token->getPosition()
-            );
+        if (null !== ($alias = $this->OptionalAliasClause())) {
+            $reference->setAlias($alias[0], $alias[1]);
         }
-        $reference->setAlias($alias[0], $alias[1]);
 
         return $reference;
     }

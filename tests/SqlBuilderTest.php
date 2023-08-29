@@ -198,6 +198,7 @@ from quux, xyzzy left join (atable as one left join anothertable as two using (c
                 as three on xyzzy.id = three.xyzzy_id,
      some_function(1, 'two', array[3, 4]) with ordinality as sf (id integer, name text collate somecollation),
      (select five, six, seven from yetanothertable where id = $2) as ya,
+     (select * from unaliased),
      rows from (generate_series(1,5), generate_series(1,10) as (gs integer)) with ordinality,
      xyzzy as a (b,c) tablesample bernoulli (50) repeatable (seed),
      LATERAL XMLTABLE(

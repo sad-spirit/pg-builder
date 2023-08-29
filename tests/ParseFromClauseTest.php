@@ -28,13 +28,13 @@ use sad_spirit\pg_builder\{
 };
 use sad_spirit\pg_builder\exceptions\SyntaxException;
 use sad_spirit\pg_builder\nodes\{
+    Star,
     TargetElement,
     FunctionCall,
     ColumnReference,
     Identifier,
     TypeName,
-    QualifiedName
-};
+    QualifiedName};
 use sad_spirit\pg_builder\nodes\expressions\{
     KeywordConstant,
     NumericConstant,
@@ -90,12 +90,16 @@ class ParseFromClauseTest extends TestCase
     public function testBasicItems(): void
     {
         $list = $this->parser->parseFromList(<<<QRY
-    foo.bar, baz(1, 'string'), (select 'quux') as quux
+    foo.bar, baz(1, 'string'), (select 'quux') as quux, (select * from unaliased)
 QRY
         );
         $select = new Select(new TargetList([new TargetElement(new StringConstant('quux'))]));
         $subselect = new Subselect($select);
         $subselect->setAlias(new Identifier('quux'));
+
+        $select = new Select(new TargetList([new Star()]));
+        $select->from[] = new RelationReference(new QualifiedName('unaliased'));
+        $unaliased = new Subselect($select);
 
         $this->assertEquals(
             new FromList([
@@ -104,7 +108,8 @@ QRY
                     new QualifiedName('baz'),
                     new FunctionArgumentList([new NumericConstant('1'), new StringConstant('string')])
                 )),
-                $subselect
+                $subselect,
+                $unaliased
             ]),
             $list
         );
@@ -245,13 +250,6 @@ QRY
         $this->expectException(SyntaxException::class);
         $this->expectExceptionMessage('Too many dots');
         $this->parser->parseFromList('foo.bar.baz.quux');
-    }
-
-    public function testSubselectsRequireAnAlias(): void
-    {
-        $this->expectException(SyntaxException::class);
-        $this->expectExceptionMessage('should have an alias');
-        $this->parser->parseFromList("(select 'foo')");
     }
 
     public function testWithOrdinality(): void

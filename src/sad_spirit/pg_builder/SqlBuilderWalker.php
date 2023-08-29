@@ -1166,6 +1166,9 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     protected function getFromItemAliases(nodes\range\FromElement $rangeItem): string
     {
+        if (null === $rangeItem->tableAlias && null === $rangeItem->columnAliases) {
+            return '';
+        }
         return ' as'
                . (null !== $rangeItem->tableAlias ? ' ' . $rangeItem->tableAlias->dispatch($this) : '')
                . (
@@ -1179,11 +1182,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     {
         return ($rangeItem->lateral ? 'lateral ' : '') . $rangeItem->function->dispatch($this)
                . ($rangeItem->withOrdinality ? ' with ordinality' : '')
-               . (
-                    null !== $rangeItem->tableAlias || null !== $rangeItem->columnAliases
-                    ? $this->getFromItemAliases($rangeItem)
-                    : ''
-               );
+               . $this->getFromItemAliases($rangeItem);
     }
 
     public function walkRowsFrom(nodes\range\RowsFrom $rangeItem): string
@@ -1191,11 +1190,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         return ($rangeItem->lateral ? 'lateral ' : '') . 'rows from('
                . implode(', ', $rangeItem->functions->dispatch($this)) . ')'
                . ($rangeItem->withOrdinality ? ' with ordinality' : '')
-               . (
-                    null !== $rangeItem->tableAlias || null !== $rangeItem->columnAliases
-                    ? $this->getFromItemAliases($rangeItem)
-                    : ''
-               );
+               . $this->getFromItemAliases($rangeItem);
     }
 
     public function walkRowsFromElement(nodes\range\RowsFromElement $node): string
@@ -1226,9 +1221,8 @@ class SqlBuilderWalker implements StatementToStringWalker
             $sql .= ' ' . $rangeItem->using->dispatch($this);
         }
 
-        return null !== $rangeItem->tableAlias || null !== $rangeItem->columnAliases
-               ? '(' . $sql . ')' . $this->getFromItemAliases($rangeItem)
-               : $sql;
+        $alias = $this->getFromItemAliases($rangeItem);
+        return '' === $alias ? $sql : '(' . $sql . ')' . $alias;
     }
 
     public function walkRelationReference(nodes\range\RelationReference $rangeItem): string
@@ -1236,11 +1230,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         return (false === $rangeItem->inherit ? 'only ' : '')
                . $rangeItem->name->dispatch($this)
                . (true === $rangeItem->inherit ? ' *' : '')
-               . (
-                   null !== $rangeItem->tableAlias || null !== $rangeItem->columnAliases
-                   ? $this->getFromItemAliases($rangeItem)
-                   : ''
-               );
+               . $this->getFromItemAliases($rangeItem);
     }
 
     public function walkRangeSubselect(nodes\range\Subselect $rangeItem): string
@@ -1354,13 +1344,10 @@ class SqlBuilderWalker implements StatementToStringWalker
         $lines[] = $this->getIndent() . 'columns ' . implode($glue, $this->walkGenericNodeList($table->columns));
 
         $this->indentLevel--;
-        $sql = implode($this->options['linebreak'] ?: ' ', $lines)
-               . $this->options['linebreak'] . $this->getIndent() . ')';
-        if ($table->tableAlias || $table->columnAliases) {
-            $sql .= $this->getFromItemAliases($table);
-        }
 
-        return $sql;
+        return implode($this->options['linebreak'] ?: ' ', $lines)
+               . $this->options['linebreak'] . $this->getIndent() . ')'
+               . $this->getFromItemAliases($table);
     }
 
     public function walkXmlTypedColumnDefinition(nodes\xml\XmlTypedColumnDefinition $column): string

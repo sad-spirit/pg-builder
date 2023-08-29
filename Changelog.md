@@ -4,13 +4,14 @@
 
 ### Added
 
-Support new syntax of PostgreSQL 16 (as of beta 3)
+Support for new syntax of PostgreSQL 16 (as of beta 3)
  * SQL/JSON functions and expressions:
    * `IS JSON` predicate represented by `nodes\expressions\IsJsonExpression`;
    * Aggregate functions `json_arrayagg()` and `json_objectagg()` represented by `nodes\json\JsonArrayAgg` and
      `nodes\json\JsonObjectAgg`;
    * Constructor functions `json_array()` and `json_object()` represented by
      `nodes\json\JsonArrayValueList`, `nodes\json\JsonArraySubselect`, `nodes\json\JsonObject` classes.
+ * Aliases for subqueries in `FROM` are now optional.
  * `SYSTEM_USER` server variable backed by `nodes\expressions\SQLValueFunction`.
  * `[NO] INDENT` option for `XMLSERIALIZE()` expression.
 
