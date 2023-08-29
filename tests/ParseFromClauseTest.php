@@ -28,13 +28,14 @@ use sad_spirit\pg_builder\{
 };
 use sad_spirit\pg_builder\exceptions\SyntaxException;
 use sad_spirit\pg_builder\nodes\{
+    ColumnReference,
+    FunctionCall,
+    Identifier,
+    QualifiedName,
     Star,
     TargetElement,
-    FunctionCall,
-    ColumnReference,
-    Identifier,
-    TypeName,
-    QualifiedName};
+    TypeName
+};
 use sad_spirit\pg_builder\nodes\expressions\{
     KeywordConstant,
     NumericConstant,
