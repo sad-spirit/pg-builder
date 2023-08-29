@@ -11,6 +11,7 @@ Support new syntax of PostgreSQL 16 (as of beta 3)
      `nodes\json\JsonObjectAgg`;
    * Constructor functions `json_array()` and `json_object()` represented by
      `nodes\json\JsonArrayValueList`, `nodes\json\JsonArraySubselect`, `nodes\json\JsonObject` classes.
+ * `SYSTEM_USER` server variable backed by `nodes\expressions\SQLValueFunction`.
 
 
 ## [2.2.0] - 2023-05-14

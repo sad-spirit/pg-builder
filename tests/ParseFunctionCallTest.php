@@ -105,7 +105,7 @@ class ParseFunctionCallTest extends TestCase
     public function testNoParenthesesFunctions(): void
     {
         $list = $this->parser->parseExpressionList($input = <<<QRY
-    current_date, current_role, current_user, session_user, user, current_catalog, current_schema
+    current_date, current_role, current_user, session_user, user, current_catalog, current_schema, system_user
 QRY
         );
         $expected = [];
