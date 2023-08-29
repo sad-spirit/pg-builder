@@ -153,7 +153,7 @@ with xmlstuff as (
        xmlparse(document xml.doc preserve whitespace),
        xmlpi(name php, 'echo ''Hello world!'';'),
        xmlroot(doc, version '1.2', standalone yes),
-       xmlserialize(document foo as pg_catalog.text)
+       xmlserialize(document foo as pg_catalog.text indent)
 ),
 fnstuff as materialized (
     select s.num,

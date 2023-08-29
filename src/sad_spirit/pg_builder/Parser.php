@@ -2805,7 +2805,13 @@ class Parser
                 $value        = $this->Expression();
                 $this->stream->expect(Token::TYPE_KEYWORD, 'as');
                 $typeName     = $this->SimpleTypeName();
-                $funcNode     = new nodes\xml\XmlSerialize($docOrContent, $value, $typeName);
+                $indent       = null;
+                if ($this->stream->matchesKeyword(['no', 'indent'])) {
+                    if (!($indent = ('indent' === $this->stream->next()->getValue()))) {
+                        $this->stream->expect(Token::TYPE_KEYWORD, 'indent');
+                    }
+                }
+                $funcNode     = new nodes\xml\XmlSerialize($docOrContent, $value, $typeName, $indent);
                 break;
 
             case 'normalize':

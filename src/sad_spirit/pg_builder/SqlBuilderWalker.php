@@ -1327,7 +1327,8 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkXmlSerialize(nodes\xml\XmlSerialize $xml): string
     {
         return 'xmlserialize(' . $xml->documentOrContent . ' ' . $xml->argument->dispatch($this)
-               . ' as ' . $xml->type->dispatch($this) . ')';
+               . ' as ' . $xml->type->dispatch($this)
+               . (null === $xml->indent ? '' : ($xml->indent ? ' indent' : ' no indent')) . ')';
     }
 
     public function walkXmlTable(nodes\range\XmlTable $table): string

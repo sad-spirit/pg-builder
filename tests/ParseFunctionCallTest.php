@@ -379,9 +379,10 @@ QRY
             new XmlSerialize(
                 'document',
                 new ColumnReference('foo'),
-                new TypeName(new QualifiedName('pg_catalog', 'text'))
+                new TypeName(new QualifiedName('pg_catalog', 'text')),
+                true
             ),
-            $this->parser->parseExpression('xmlserialize(document foo as pg_catalog.text)')
+            $this->parser->parseExpression('xmlserialize(document foo as pg_catalog.text indent)')
         );
     }
 
