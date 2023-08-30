@@ -21,10 +21,16 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\tests;
 
 use PHPUnit\Framework\TestCase;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\Token;
-use sad_spirit\pg_builder\exceptions\SyntaxException;
+use sad_spirit\pg_builder\{
+    Lexer,
+    Token,
+    exceptions\InvalidArgumentException,
+    exceptions\SyntaxException
+};
+use sad_spirit\pg_builder\nodes\expressions\{
+    Constant,
+    NumericConstant
+};
 
 /**
  * Unit test for query lexer
@@ -356,7 +362,10 @@ QRY
     public function testAllowNonDecimalNumericLiteralsAndUnderscores(string $sql): void
     {
         $stream = $this->lexer->tokenize($sql);
-        $this::assertContains($stream->next()->getType(), [Token::TYPE_INTEGER, Token::TYPE_FLOAT]);
+        $this::assertInstanceOf(
+            NumericConstant::class,
+            Constant::createFromToken($stream->next())
+        );
     }
 
     public function validCStyleEscapesProvider(): array

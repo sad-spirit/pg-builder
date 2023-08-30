@@ -11,6 +11,7 @@ Support for new syntax of PostgreSQL 16 (as of beta 3)
      `nodes\json\JsonObjectAgg`;
    * Constructor functions `json_array()` and `json_object()` represented by
      `nodes\json\JsonArrayValueList`, `nodes\json\JsonArraySubselect`, `nodes\json\JsonObject` classes.
+ * Allow non-decimal integer literals and underscores as separators in numeric literals.
  * Aliases for subqueries in `FROM` are now optional.
  * `SYSTEM_USER` server variable backed by `nodes\expressions\SQLValueFunction`.
  * `[NO] INDENT` option for `XMLSERIALIZE()` expression.

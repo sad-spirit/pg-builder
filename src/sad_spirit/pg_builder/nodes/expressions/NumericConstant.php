@@ -28,9 +28,24 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class NumericConstant extends Constant
 {
+    private const REGEXP = <<<'REGEXP'
+{^
+    -?                                                                          # allow unary minus
+    (?> 
+        0[bB](?: _?[01] )+ | 0[oO](?: _?[0-7] )+ | 0[xX](?: _?[0-9a-fA-F] )+ |  # non-decimal integer literals 
+        (?: \d(?: _?\d )* (?: \. (?: \d(?: _?\d )* )? )? | \.\d(?: _?\d )*)     # decimal literal
+        (?: [Ee][-+]?\d(?: _? \d)* )?                                           # followed by possible exponent
+    )
+$}x
+REGEXP;
+
+
     public function __construct(string $value)
     {
-        if (!is_numeric($value)) {
+        if (
+            !\is_numeric($value)
+            && !\preg_match(self::REGEXP, $value)
+        ) {
             throw new InvalidArgumentException(__CLASS__ . " expects a numeric string");
         }
         $this->p_value = $value;
