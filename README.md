@@ -13,7 +13,7 @@ query parser. This sets it aside from the usual breed of "write-only" query buil
 * AST can be analyzed and transformed, the package takes advantage of this to allow named parameters like
   `:foo` instead of standard PostgreSQL's positional parameters `$1` and to infer parameters' types
   from SQL typecasts.
-* Almost all syntax available for `SELECT` (and `VALUES`) / `INSERT` / `UPDATE` / `DELETE` / `MERGE` in PostgreSQL 15
+* Almost all syntax available for `SELECT` (and `VALUES`) / `INSERT` / `UPDATE` / `DELETE` / `MERGE` in PostgreSQL 16
   is supported, query being built is automatically checked for correct syntax.
 
 Substantial effort was made to optimise parsing, but not parsing is faster anyway, so there are means to cache parts 
