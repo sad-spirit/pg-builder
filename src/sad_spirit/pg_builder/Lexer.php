@@ -121,11 +121,18 @@ class Lexer
     : (?: = | : | ( [A-Za-z\\x80-\\xFF_][A-Za-z\\x80-\\xFF_0-9]* ) ) |
 
     # numeric constant, groups 6, 7 (junk test)
-    ( (?: \d+ (?: \.\d+|\.(?!\.))? | \.\d+) (?: [eE][+-]\d+ )? ( [A-Za-z\\x80-\\xFF_] )? ) |
+    (
+        (?> 
+            0[bB](?: _?[01] )+ | 0[oO](?: _?[0-7] )+ | 0[xX](?: _?[0-9a-fA-F] )+ |      # non-decimal integer literals 
+            (?: \d(?: _?\d )* (?: \. (?!\.) (?: \d(?: _?\d )* )? )? | \.\d(?: _?\d )*)  # decimal literal
+            (?: [Ee][-+]?\d(?: _? \d)* )?                                               # followed by possible exponent
+        )
+        ( [A-Za-z\\x80-\\xFF_] )? 
+    ) |
 
     [uU]&["'] |                     # string/identifier with unicode escapes
     \.\. |                          # double dot (error outside of PL/PgSQL)
-    ([{$quotedSpecialChars}]) |     # everything that looks, well, special, group 8
+    ([$quotedSpecialChars]) |     # everything that looks, well, special, group 8
     
     ( [A-Za-z\\x80-\\xff_][A-Za-z\\x80-\\xff_0-9$]* ) # identifier, obviously, group 9
 }Ax
