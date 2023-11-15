@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1] - 2023-11-15
+
+### Fixed
+ * It is now possible to generate SQL suitable for `PDO::prepare()` even if a query does
+   not contain placeholders, see [issue #15](https://github.com/sad-spirit/pg-builder/issues/15).
+   Enabled by a new `$forcePDOPrepareCompatibility` argument to `StatementFactory::createFromAST()`.
+
 ## [2.3.0] - 2023-09-15
 
 A stable release following release of Postgres 16. No code changes since beta.
@@ -334,3 +341,4 @@ Initial release on GitHub
 [2.2.0]: https://github.com/sad-spirit/pg-builder/compare/v2.1.0...v2.2.0
 [2.3.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v2.2.0...v2.3.0-beta
 [2.3.0]: https://github.com/sad-spirit/pg-builder/compare/v2.3.0-beta...v2.3.0
+[2.3.1]: https://github.com/sad-spirit/pg-builder/compare/v2.3.0...v2.3.1
