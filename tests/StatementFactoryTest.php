@@ -292,4 +292,46 @@ BLAH
 
         $this->assertStringsEqualIgnoringWhitespace($stmt2Source, $factory->createFromAST($stmt2)->getSql());
     }
+
+    /**
+     * @noinspection SqlNoDataSourceInspection
+     * @noinspection SqlResolve
+     * @link https://github.com/sad-spirit/pg-builder/issues/15
+     */
+    public function testForcePDOPrepareCompatibility(): void
+    {
+        $factories = [
+            new StatementFactory(),
+            new StatementFactory(null, null, true)
+        ];
+
+        /** @var StatementFactory $factory */
+        foreach ($factories as $factory) {
+            $stmt = $factory->createFromString(<<<'BLAH'
+select * 
+from foo 
+where bar = $$O'really? \ Yes, really$$ 
+      and baz ? :whatever
+BLAH
+            );
+
+            $this->assertStringsEqualIgnoringWhitespace(
+                "select * from foo where bar = e'O\\'really? \\\\ Yes, really' and baz ?? :whatever",
+                $factory->createFromAST($stmt, true)->getSql()
+            );
+
+            $stmt2 = $factory->createFromString($stmt2Source = <<<'BLAH'
+select * 
+from foo 
+where bar = $$O'really? \ Yes, really$$ 
+      and baz ? 'whatever'
+BLAH
+            );
+
+            $this->assertStringsEqualIgnoringWhitespace(
+                "select * from foo where bar = e'O\\'really? \\\\ Yes, really' and baz ?? 'whatever'",
+                $factory->createFromAST($stmt2, true)->getSql()
+            );
+        }
+    }
 }

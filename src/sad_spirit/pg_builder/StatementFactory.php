@@ -181,15 +181,21 @@ class StatementFactory
      * Creates an object containing SQL statement string and parameter mappings from AST
      *
      * @param Statement $ast
+     * @param bool $forcePDOPrepareCompatibility Whether generated SQL should be compatible with \PDO::prepare()
+     *             even if {@see $PDOCompatible} was not set or the query does not contain placeholders,
+     *             {@see https://github.com/sad-spirit/pg-builder/issues/15 issue #15}
      * @return NativeStatement
      */
-    public function createFromAST(Statement $ast): NativeStatement
+    public function createFromAST(Statement $ast, bool $forcePDOPrepareCompatibility = false): NativeStatement
     {
-        $pw = new ParameterWalker($this->PDOCompatible);
+        $pw = new ParameterWalker($this->PDOCompatible || $forcePDOPrepareCompatibility);
         $ast->dispatch($pw);
 
         $builder = $this->getBuilder();
-        $builder->enablePDOPrepareCompatibility($this->PDOCompatible && [] !== $pw->getParameterTypes());
+        $builder->enablePDOPrepareCompatibility(
+            $this->PDOCompatible && [] !== $pw->getParameterTypes()
+            || $forcePDOPrepareCompatibility
+        );
 
         return new NativeStatement($ast->dispatch($builder), $pw->getParameterTypes(), $pw->getNamedParameterMap());
     }
