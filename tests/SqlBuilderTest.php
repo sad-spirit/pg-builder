@@ -270,7 +270,7 @@ QRY
         $builder = new SqlBuilderWalker(['escape_unicode' => true]);
         $built   = $ast->dispatch($builder);
 
-        $this::assertNotRegExp('/[\\x80-\\xff]/', $built, 'Built SQL should not contain non-ASCII symbols');
+        $this::assertDoesNotMatchRegularExpression('/[\\x80-\\xff]/', $built, 'Built SQL should not contain non-ASCII symbols');
         $this::assertEquals($ast, $this->parser->parseStatement($built));
     }
 

@@ -185,7 +185,7 @@ QRY
         $walker    = new ParameterWalker(true);
         $statement->dispatch($walker);
 
-        $this::assertNotRegExp('!\\$\\d!', $statement->dispatch($this->builder));
+        $this::assertDoesNotMatchRegularExpression('!\\$\\d!', $statement->dispatch($this->builder));
         $map   = $walker->getNamedParameterMap();
         $types = $walker->getParameterTypes();
 

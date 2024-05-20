@@ -23,7 +23,7 @@ namespace sad_spirit\pg_builder;
 use sad_spirit\pg_wrapper\{
     Connection,
     PreparedStatement,
-    ResultSet,
+    Result,
     exceptions\ServerException
 };
 
@@ -165,7 +165,7 @@ class NativeStatement
      * @param mixed[]    $paramTypes  Parameter types (keys can be either names or positions), types from this
      *                                array take precedence over types from $parameterTypes property
      * @param mixed[]    $resultTypes Result types to pass to ResultSet (keys can be either names or positions)
-     * @return ResultSet
+     * @return Result
      * @throws ServerException
      * @throws exceptions\InvalidArgumentException
      */
@@ -174,7 +174,7 @@ class NativeStatement
         array $params,
         array $paramTypes = [],
         array $resultTypes = []
-    ): ResultSet {
+    ): Result {
         if (empty($this->namedParameterMap)) {
             return $connection->executeParams(
                 $this->sql,
@@ -211,11 +211,11 @@ class NativeStatement
      *
      * @param mixed[] $params      Parameters (keys are treated as names unless $namedParameterMap is empty)
      * @param mixed[] $resultTypes Result types to pass to ResultSet (keys can be either names or positions)
-     * @return ResultSet
+     * @return Result
      * @throws exceptions\RuntimeException
      * @throws ServerException
      */
-    public function executePrepared(array $params = [], array $resultTypes = []): ResultSet
+    public function executePrepared(array $params = [], array $resultTypes = []): Result
     {
         if (null === $this->preparedStatement) {
             throw new exceptions\RuntimeException(__METHOD__ . '(): prepare() should be called first');

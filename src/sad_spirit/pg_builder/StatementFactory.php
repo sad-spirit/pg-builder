@@ -91,7 +91,7 @@ class StatementFactory
      */
     public static function forConnection(Connection $connection): self
     {
-        $serverVersion = pg_parameter_status($connection->getResource(), 'server_version');
+        $serverVersion = pg_parameter_status($connection->getNative(), 'server_version');
         if (version_compare($serverVersion, '9.5', '<')) {
             throw new exceptions\RuntimeException(
                 'PostgreSQL versions earlier than 9.5 are no longer supported, '
@@ -102,7 +102,7 @@ class StatementFactory
         $column       = $connection->execute('show standard_conforming_strings')->fetchColumn(0);
         $lexerOptions = ['standard_conforming_strings' => 'on' === $column[0]];
 
-        $clientEncoding = pg_parameter_status($connection->getResource(), 'client_encoding');
+        $clientEncoding = pg_parameter_status($connection->getNative(), 'client_encoding');
         $builderOptions = ['escape_unicode' => 'UTF8' !== $clientEncoding];
 
         return new self(

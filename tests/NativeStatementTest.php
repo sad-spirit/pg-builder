@@ -24,15 +24,16 @@ namespace sad_spirit\pg_builder\tests;
 
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_wrapper\{
+    Connection,
     PreparedStatement,
-    Connection
+    converters\DefaultTypeConverterFactory
 };
 use sad_spirit\pg_builder\{
     NativeStatement,
     StatementFactory,
     exceptions\InvalidArgumentException,
     exceptions\RuntimeException,
-    converters\ParserAwareTypeConverterFactory
+    converters\BuilderSupportDecorator
 };
 
 class NativeStatementTest extends TestCase
@@ -54,9 +55,11 @@ class NativeStatementTest extends TestCase
         }
 
         $this->connection = new Connection(TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING);
-        $this->connection->setTypeConverterFactory(new ParserAwareTypeConverterFactory());
-
         $this->factory    = StatementFactory::forConnection($this->connection);
+        $this->connection->setTypeConverterFactory(new BuilderSupportDecorator(
+            new DefaultTypeConverterFactory(),
+            $this->factory->getParser()
+        ));
     }
 
     public function testNamedParameters(): void
