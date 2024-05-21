@@ -1,5 +1,25 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+ * `NativeStatement::executePrepared()` now uses `pg_wrapper`'s `PreparedStatement::executeParams()` under the hood,
+   all parameter values should be passed in the `$params` argument. This was already the case when
+   `NativeStatement` was built from a statement initially containing named parameters, but not with positional ones.
+ * `NativeStatement::prepare()` will fetch info on parameter types from the DB if some types are not given explicitly
+   either in `$paramTypes` argument or via typecasts in the query itself. Previously these types were inferred from
+   the types of parameter values on PHP side.
+ * No longer use names deprecated in `pg_wrapper` 2.4.0: `ResultSet` -> `Result`, `Connection::getResource()` ->
+  `Connection::getNative()`.
+
+### Added
+`NativeStatement::prepare()` now accepts `$resultTypes` argument that will be passed on to `Result` instances
+returned by the created `PreparedStatement` instance.
+
+### Deprecated
+`$resultTypes` argument for `NativeStatement::executePrepared()` method, the types should be passed to `prepare()`.
+
+
 ## [2.3.1] - 2023-11-15
 
 ### Fixed
@@ -342,3 +362,4 @@ Initial release on GitHub
 [2.3.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v2.2.0...v2.3.0-beta
 [2.3.0]: https://github.com/sad-spirit/pg-builder/compare/v2.3.0-beta...v2.3.0
 [2.3.1]: https://github.com/sad-spirit/pg-builder/compare/v2.3.0...v2.3.1
+[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v2.3.1...HEAD
