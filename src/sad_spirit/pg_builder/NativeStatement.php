@@ -195,19 +195,34 @@ class NativeStatement
     /**
      * Prepares the query for execution.
      *
-     * @param Connection $connection DB connection
-     * @param mixed[]    $paramTypes Parameter types (keys can be either names or positions), types from this
-     *                               array take precedence over types from $parameterTypes property
+     * @param Connection $connection  DB connection
+     * @param array      $paramTypes  Parameter types (keys can be either names or positions), types from this
+     *                                array take precedence over types from $parameterTypes property
+     * @param array      $resultTypes Result types to pass to Result instances
      * @return PreparedStatement
      */
-    public function prepare(Connection $connection, array $paramTypes = []): PreparedStatement
+    public function prepare(Connection $connection, array $paramTypes = [], array $resultTypes = []): PreparedStatement
     {
-        $this->preparedStatement = $connection->prepare($this->sql, $this->mergeParameterTypes($paramTypes));
-        return $this->preparedStatement;
+        $mergedTypes = $this->mergeParameterTypes($paramTypes);
+        $hasUnknown  = false !== \array_search(null, $mergedTypes, true);
+        $autoFetch   = PreparedStatement::getAutoFetchParameterTypes();
+
+        try {
+            PreparedStatement::setAutoFetchParameterTypes($hasUnknown);
+            $this->preparedStatement = $connection->prepare($this->sql, $mergedTypes, $resultTypes);
+
+            if (!$hasUnknown) {
+                $this->preparedStatement->setNumberOfParameters(\count($this->parameterTypes));
+            }
+
+            return $this->preparedStatement;
+        } finally {
+            PreparedStatement::setAutoFetchParameterTypes($autoFetch);
+        }
     }
 
     /**
-     * Executes the prepared statement (requires prepare() to be called first)
+     * Executes the prepared statement using only the given parameters (requires prepare() to be called first)
      *
      * @param mixed[] $params      Parameters (keys are treated as names unless $namedParameterMap is empty)
      * @param mixed[] $resultTypes Result types to pass to ResultSet (keys can be either names or positions)
@@ -220,10 +235,16 @@ class NativeStatement
         if (null === $this->preparedStatement) {
             throw new exceptions\RuntimeException(__METHOD__ . '(): prepare() should be called first');
         }
-        if (empty($this->namedParameterMap)) {
-            return $this->preparedStatement->execute($params, $resultTypes);
-        } else {
-            return $this->preparedStatement->execute($this->mapNamedParameters($params), $resultTypes);
+        if ([] !== $resultTypes) {
+            @\trigger_error(
+                'Passing $resultTypes to NativeStatement::executePrepared() is deprecated since release 2.4.0. '
+                . 'Set these up in prepare() method.',
+                \E_USER_DEPRECATED
+            );
+            $this->preparedStatement->setResultTypes($resultTypes);
         }
+        return $this->preparedStatement->executeParams(
+            [] === $this->namedParameterMap ? $params : $this->mapNamedParameters($params)
+        );
     }
 }
