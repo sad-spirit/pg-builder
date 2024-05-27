@@ -1,11 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [2.4.0] - 2024-05-27
 
 ### Changed
  * `NativeStatement::executePrepared()` now uses `pg_wrapper`'s `PreparedStatement::executeParams()` under the hood,
    all parameter values should be passed in the `$params` argument. This was already the case when
-   `NativeStatement` was built from a statement initially containing named parameters, but not with positional ones.
+   `NativeStatement` was built from a statement initially containing named parameters, but not positional ones.
  * `NativeStatement::prepare()` will fetch info on parameter types from the DB if some types are not given explicitly
    either in `$paramTypes` argument or via typecasts in the query itself. Previously these types were inferred from
    the types of parameter values on PHP side.
@@ -362,4 +362,4 @@ Initial release on GitHub
 [2.3.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v2.2.0...v2.3.0-beta
 [2.3.0]: https://github.com/sad-spirit/pg-builder/compare/v2.3.0-beta...v2.3.0
 [2.3.1]: https://github.com/sad-spirit/pg-builder/compare/v2.3.0...v2.3.1
-[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v2.3.1...HEAD
+[2.4.0]: https://github.com/sad-spirit/pg-builder/compare/v2.3.1...v2.4.0
