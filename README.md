@@ -1,8 +1,8 @@
 # sad_spirit/pg_builder
 
-[![Build Status](https://github.com/sad-spirit/pg-builder/workflows/Continuous%20Integration/badge.svg?branch=master)](https://github.com/sad-spirit/pg-builder/actions?query=branch%3Amaster+workflow%3A%22Continuous+Integration%22)
+[![Continuous Integration](https://github.com/sad-spirit/pg-builder/actions/workflows/continuous-integration.yml/badge.svg?branch=master)](https://github.com/sad-spirit/pg-builder/actions/workflows/continuous-integration.yml)
 
-[![Static Analysis](https://github.com/sad-spirit/pg-builder/workflows/Static%20Analysis/badge.svg?branch=master)](https://github.com/sad-spirit/pg-builder/actions?query=branch%3Amaster+workflow%3A%22Static+Analysis%22)
+[![Static Analysis](https://github.com/sad-spirit/pg-builder/actions/workflows/static-analysis.yml/badge.svg?branch=master)](https://github.com/sad-spirit/pg-builder/actions/workflows/static-analysis.yml)
 
 > Note: master branch is being upgraded for PHP 8.2+ and new syntax of Postgres 17.
 > [Branch 2.x](../../tree/2.x) contains the stable version supporting PHP 7.2+ and Postgres 16.
