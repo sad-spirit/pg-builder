@@ -21,10 +21,16 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\tests;
 
 use PHPUnit\Framework\TestCase;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\Lexer;
-use sad_spirit\pg_builder\Token;
-use sad_spirit\pg_builder\exceptions\SyntaxException;
+use sad_spirit\pg_builder\{
+    Lexer,
+    Token,
+    exceptions\InvalidArgumentException,
+    exceptions\SyntaxException
+};
+use sad_spirit\pg_builder\nodes\expressions\{
+    Constant,
+    NumericConstant
+};
 
 /**
  * Unit test for query lexer
@@ -326,7 +332,7 @@ QRY
 
     /**
      * @param string $sql
-     * @dataProvider trailingJunkAfterNumericLiteralProvider
+     * @dataProvider invalidNumericLiteralProvider
      */
     public function testDisallowJunkAfterNumericLiterals(string $sql): void
     {
@@ -347,6 +353,19 @@ QRY
         $this::expectException(SyntaxException::class);
         $this::expectExceptionMessage("Unexpected '..'");
         $this->lexer->tokenize('1..2');
+    }
+
+    /**
+     * @param string $sql
+     * @dataProvider validNumericLiteralProvider
+     */
+    public function testAllowNonDecimalNumericLiteralsAndUnderscores(string $sql): void
+    {
+        $stream = $this->lexer->tokenize($sql);
+        $this::assertInstanceOf(
+            NumericConstant::class,
+            Constant::createFromToken($stream->next())
+        );
     }
 
     public function validCStyleEscapesProvider(): array
@@ -421,18 +440,63 @@ QRY
         ];
     }
 
-    public function trailingJunkAfterNumericLiteralProvider(): array
+    /**
+     * From src\test\regress\sql\numerology.sql
+     * @return array
+     */
+    public function invalidNumericLiteralProvider(): array
     {
         return [
             ['123abc'],
             ['0x0o'],
-            ['1_2_3'],
             ['0.a'],
             ['0.0a'],
             ['.0a'],
             ['0.0e1a'],
             ['0.0e'],
-            ['0.0e+a']
+            ['0.0e+a'],
+
+            ['0b'],
+            ['1b'],
+            ['0b0x'],
+
+            ['0o'],
+            ['1o'],
+            ['0o0x'],
+
+            ['0x'],
+            ['1x'],
+            ['0x0y'],
+            ['100_'],
+            ['100__000'],
+
+            ['1_000_.5'],
+            ['1_000._5'],
+            ['1_000.5_'],
+            ['1_000.5e_1']
+        ];
+    }
+
+    /**
+     * From src\test\regress\sql\numerology.sql
+     * @return array
+     */
+    public function validNumericLiteralProvider(): array
+    {
+        return [
+            ['0b100101'],
+            ['0o273'],
+            ['0x42F'],
+            ['1_000_000'],
+            ['1_2_3'],
+            ['0x1EEE_FFFF'],
+            ['0o2_73'],
+            ['0b_10_0101'],
+
+            ['1_000.000_005'],
+            ['1_000.'],
+            ['.000_005'],
+            ['1_000.5e0_1']
         ];
     }
 }

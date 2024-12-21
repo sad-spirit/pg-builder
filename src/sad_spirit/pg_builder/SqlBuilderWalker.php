@@ -1166,6 +1166,9 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     protected function getFromItemAliases(nodes\range\FromElement $rangeItem): string
     {
+        if (null === $rangeItem->tableAlias && null === $rangeItem->columnAliases) {
+            return '';
+        }
         return ' as'
                . (null !== $rangeItem->tableAlias ? ' ' . $rangeItem->tableAlias->dispatch($this) : '')
                . (
@@ -1179,11 +1182,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     {
         return ($rangeItem->lateral ? 'lateral ' : '') . $rangeItem->function->dispatch($this)
                . ($rangeItem->withOrdinality ? ' with ordinality' : '')
-               . (
-                    null !== $rangeItem->tableAlias || null !== $rangeItem->columnAliases
-                    ? $this->getFromItemAliases($rangeItem)
-                    : ''
-               );
+               . $this->getFromItemAliases($rangeItem);
     }
 
     public function walkRowsFrom(nodes\range\RowsFrom $rangeItem): string
@@ -1191,11 +1190,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         return ($rangeItem->lateral ? 'lateral ' : '') . 'rows from('
                . implode(', ', $rangeItem->functions->dispatch($this)) . ')'
                . ($rangeItem->withOrdinality ? ' with ordinality' : '')
-               . (
-                    null !== $rangeItem->tableAlias || null !== $rangeItem->columnAliases
-                    ? $this->getFromItemAliases($rangeItem)
-                    : ''
-               );
+               . $this->getFromItemAliases($rangeItem);
     }
 
     public function walkRowsFromElement(nodes\range\RowsFromElement $node): string
@@ -1226,9 +1221,8 @@ class SqlBuilderWalker implements StatementToStringWalker
             $sql .= ' ' . $rangeItem->using->dispatch($this);
         }
 
-        return null !== $rangeItem->tableAlias || null !== $rangeItem->columnAliases
-               ? '(' . $sql . ')' . $this->getFromItemAliases($rangeItem)
-               : $sql;
+        $alias = $this->getFromItemAliases($rangeItem);
+        return '' === $alias ? $sql : '(' . $sql . ')' . $alias;
     }
 
     public function walkRelationReference(nodes\range\RelationReference $rangeItem): string
@@ -1236,11 +1230,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         return (false === $rangeItem->inherit ? 'only ' : '')
                . $rangeItem->name->dispatch($this)
                . (true === $rangeItem->inherit ? ' *' : '')
-               . (
-                   null !== $rangeItem->tableAlias || null !== $rangeItem->columnAliases
-                   ? $this->getFromItemAliases($rangeItem)
-                   : ''
-               );
+               . $this->getFromItemAliases($rangeItem);
     }
 
     public function walkRangeSubselect(nodes\range\Subselect $rangeItem): string
@@ -1327,7 +1317,8 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkXmlSerialize(nodes\xml\XmlSerialize $xml): string
     {
         return 'xmlserialize(' . $xml->documentOrContent . ' ' . $xml->argument->dispatch($this)
-               . ' as ' . $xml->type->dispatch($this) . ')';
+               . ' as ' . $xml->type->dispatch($this)
+               . (null === $xml->indent ? '' : ($xml->indent ? ' indent' : ' no indent')) . ')';
     }
 
     public function walkXmlTable(nodes\range\XmlTable $table): string
@@ -1353,13 +1344,10 @@ class SqlBuilderWalker implements StatementToStringWalker
         $lines[] = $this->getIndent() . 'columns ' . implode($glue, $this->walkGenericNodeList($table->columns));
 
         $this->indentLevel--;
-        $sql = implode($this->options['linebreak'] ?: ' ', $lines)
-               . $this->options['linebreak'] . $this->getIndent() . ')';
-        if ($table->tableAlias || $table->columnAliases) {
-            $sql .= $this->getFromItemAliases($table);
-        }
 
-        return $sql;
+        return implode($this->options['linebreak'] ?: ' ', $lines)
+               . $this->options['linebreak'] . $this->getIndent() . ')'
+               . $this->getFromItemAliases($table);
     }
 
     public function walkXmlTypedColumnDefinition(nodes\xml\XmlTypedColumnDefinition $column): string
@@ -1486,333 +1474,6 @@ class SqlBuilderWalker implements StatementToStringWalker
                . (null === $clause->alias ? '' : ' as ' . $clause->alias->dispatch($this));
     }
 
-    public function walkIsJsonExpression(nodes\expressions\IsJsonExpression $expression): string
-    {
-        return $this->optionalParentheses($expression->argument, $expression)
-               . ' is ' . ($expression->not ? 'not ' : '') . 'json'
-               . (null === $expression->type ? '' : ' ' . $expression->type)
-               . (
-                   null === $expression->uniqueKeys
-                   ? ''
-                   : ($expression->uniqueKeys ? ' with' : ' without') . ' unique keys'
-               );
-    }
-
-    public function walkJsonFormat(nodes\json\JsonFormat $clause): string
-    {
-        return 'format ' . $clause->format
-               . (null === $clause->encoding ? '' : ' encoding ' . $clause->encoding);
-    }
-
-    public function walkJsonReturning(nodes\json\JsonReturning $clause): string
-    {
-        return 'returning ' . $clause->type->dispatch($this)
-               . (null === $clause->format ? '' : ' ' . $clause->format->dispatch($this));
-    }
-
-    public function walkJsonFormattedValue(nodes\json\JsonFormattedValue $clause): string
-    {
-        return $clause->expression->dispatch($this)
-               . (null === $clause->format ? '' : ' ' . $clause->format->dispatch($this));
-    }
-
-    public function walkJsonKeyValue(nodes\json\JsonKeyValue $clause): string
-    {
-        return $clause->key->dispatch($this) . ' : ' . $clause->value->dispatch($this);
-    }
-
-    protected function walkCommonJsonAggregateFields(nodes\json\JsonAggregate $expression): string
-    {
-        return $this->jsonReturningClause($expression->returning)
-               . ')'
-               . (null === $expression->filter ? '' : ' filter (where ' . $expression->filter->dispatch($this) . ')')
-               . (null === $expression->over ? '' : ' over ' . $expression->over->dispatch($this));
-    }
-
-    protected function jsonReturningClause(?nodes\GenericNode $returning): string
-    {
-        if ($returning instanceof nodes\TypeName) {
-            return ' returning ' . $returning->dispatch($this);
-        } elseif ($returning instanceof nodes\json\JsonReturning) {
-            return ' ' . $returning->dispatch($this);
-        } else {
-            return '';
-        }
-    }
-
-    protected function jsonOnNullClause(?bool $absentOnNull): string
-    {
-        if (null === $absentOnNull) {
-            return '';
-        } else {
-            return ($absentOnNull ? ' absent' : ' null') . ' on null';
-        }
-    }
-
-    protected function jsonUniqueKeysClause(?bool $uniqueKeys): string
-    {
-        if (null === $uniqueKeys) {
-            return '';
-        } else {
-            return ($uniqueKeys ? ' with' : ' without') . ' unique keys';
-        }
-    }
-
-    public function walkJsonArrayAgg(nodes\json\JsonArrayAgg $expression): string
-    {
-        return 'json_arrayagg(' . $expression->value->dispatch($this)
-               . (null === $expression->order ? '' : ' order by ' . implode(', ', $expression->order->dispatch($this)))
-               . $this->jsonOnNullClause($expression->absentOnNull)
-               . $this->walkCommonJsonAggregateFields($expression);
-    }
-
-    public function walkJsonObjectAgg(nodes\json\JsonObjectAgg $expression): string
-    {
-        return 'json_objectagg(' . $expression->keyValue->dispatch($this)
-               . $this->jsonOnNullClause($expression->absentOnNull)
-               . $this->jsonUniqueKeysClause($expression->uniqueKeys)
-               . $this->walkCommonJsonAggregateFields($expression);
-    }
-
-    public function walkJsonArray(nodes\json\JsonArray $expression): string
-    {
-        if (null === $expression->arguments) {
-            $arguments = '';
-        } elseif ($expression->arguments instanceof SelectCommon) {
-            $arguments = $expression->arguments->dispatch($this);
-        } else {
-            $arguments = implode(', ', $expression->arguments->dispatch($this));
-        }
-        return 'json_array(' . $arguments
-               . $this->jsonOnNullClause($expression->absentOnNull)
-               . $this->jsonReturningClause($expression->returning)
-               . ')';
-    }
-
-    public function walkJsonObject(nodes\json\JsonObject $expression): string
-    {
-        return 'json_object(' . implode(', ', $expression->arguments->dispatch($this))
-               . $this->jsonOnNullClause($expression->absentOnNull)
-               . $this->jsonUniqueKeysClause($expression->uniqueKeys)
-               . $this->jsonReturningClause($expression->returning)
-               . ')';
-    }
-
-    public function walkJsonConstructor(nodes\json\JsonConstructor $expression): string
-    {
-        return 'json(' . $expression->expression->dispatch($this)
-               . $this->jsonUniqueKeysClause($expression->uniqueKeys)
-               . $this->jsonReturningClause($expression->returning)
-               . ')';
-    }
-
-    public function walkJsonScalar(nodes\json\JsonScalar $expression): string
-    {
-        return 'json_scalar(' . $expression->expression->dispatch($this)
-               . $this->jsonReturningClause($expression->returning)
-               . ')';
-    }
-
-    public function walkJsonSerialize(nodes\json\JsonSerialize $expression): string
-    {
-        return 'json_serialize(' . $expression->expression->dispatch($this)
-               . $this->jsonReturningClause($expression->returning)
-               . ')';
-    }
-
-    public function walkJsonArgument(nodes\json\JsonArgument $clause): string
-    {
-        return $clause->value->dispatch($this) . ' as ' . $clause->alias->dispatch($this);
-    }
-
-    protected function walkCommonJsonQueryFields(nodes\json\JsonQueryCommon $expression): string
-    {
-        return $expression->context->dispatch($this)
-               . ', ' . $expression->path->dispatch($this)
-               . (
-                   0 === count($expression->passing)
-                   ? ''
-                   : ' passing ' . implode(', ', $expression->passing->dispatch($this))
-               );
-    }
-
-    protected function jsonQueryBehaviours(nodes\GenericNode $expression): string
-    {
-        $result = '';
-        if (!empty($expression->onEmpty)) {
-            if ($expression->onEmpty instanceof nodes\ScalarExpression) {
-                $result .= ' default ' . $expression->onEmpty->dispatch($this) . ' on empty';
-            } else {
-                $result .= ' ' . $expression->onEmpty . ' on empty';
-            }
-        }
-        if (!empty($expression->onError)) {
-            if ($expression->onError instanceof nodes\ScalarExpression) {
-                $result .= ' default ' . $expression->onError->dispatch($this) . ' on error';
-            } else {
-                $result .= ' ' . $expression->onError . ' on error';
-            }
-        }
-        return $result;
-    }
-
-    public function walkJsonExists(nodes\json\JsonExists $expression): string
-    {
-        return 'json_exists(' . $this->walkCommonJsonQueryFields($expression)
-               . $this->jsonReturningClause($expression->returning)
-               . $this->jsonQueryBehaviours($expression)
-               . ')';
-    }
-
-    public function walkJsonValue(nodes\json\JsonValue $expression): string
-    {
-        return 'json_value(' . $this->walkCommonJsonQueryFields($expression)
-               . $this->jsonReturningClause($expression->returning)
-               . $this->jsonQueryBehaviours($expression)
-               . ')';
-    }
-
-    public function walkJsonQuery(nodes\json\JsonQuery $expression): string
-    {
-        return 'json_query(' . $this->walkCommonJsonQueryFields($expression)
-               . $this->jsonReturningClause($expression->returning)
-               . (null === $expression->wrapper ? '' : ' ' . $expression->wrapper . ' wrapper')
-               . (null === $expression->keepQuotes ? '' : ' ' . ($expression->keepQuotes ? 'keep' : 'omit') . ' quotes')
-               . $this->jsonQueryBehaviours($expression)
-               . ')';
-    }
-
-    public function walkJsonTable(nodes\range\JsonTable $rangeItem): string
-    {
-        $this->indentLevel++;
-        $lines = [($rangeItem->lateral ? 'lateral ' : '') . 'json_table('];
-
-        $lines[] = $this->getIndent() . $rangeItem->context->dispatch($this)
-                   . ', ' . $rangeItem->path->dispatch($this)
-                   . (null === $rangeItem->pathName ? '' : ' as ' . $rangeItem->pathName->dispatch($this));
-
-        if (0 < count($rangeItem->passing)) {
-            $lines[] = $this->implode($this->getIndent() . 'passing ', $rangeItem->passing->dispatch($this), ',');
-        }
-
-        $lines[] = $this->getIndent() . 'columns (';
-        $lines[] = $this->walkJsonColumnDefinitionList($rangeItem->columns);
-        $lines[] = $this->getIndent() . ')';
-
-        if (null !== $rangeItem->plan) {
-            $lines[] = $this->getIndent()
-                       . (
-                            $rangeItem->plan instanceof nodes\range\json\JsonTableDefaultPlan
-                            ? $rangeItem->plan->dispatch($this)
-                            : 'plan (' . $rangeItem->plan->dispatch($this) . ')'
-                       );
-        }
-        if (null !== $rangeItem->onError) {
-            $lines[] = $this->getIndent() . $rangeItem->onError . ' on error';
-        }
-
-        $this->indentLevel--;
-
-        $sql = implode($this->options['linebreak'] ?: ' ', $lines)
-               . $this->options['linebreak'] . $this->getIndent() . ')';
-        if ($rangeItem->tableAlias || $rangeItem->columnAliases) {
-            $sql .= $this->getFromItemAliases($rangeItem);
-        }
-
-        return $sql;
-    }
-
-    protected function walkJsonColumnDefinitionList(nodes\range\json\JsonColumnDefinitionList $columns): string
-    {
-        $this->indentLevel++;
-        $glue = $this->options['linebreak']
-                ? ',' . $this->options['linebreak'] . $this->getIndent()
-                : ', ';
-        $result = $this->getIndent() . implode($glue, $this->walkGenericNodeList($columns));
-        $this->indentLevel--;
-
-        return $result;
-    }
-
-    public function walkJsonExistsColumnDefinition(nodes\range\json\JsonExistsColumnDefinition $column): string
-    {
-        return $column->name->dispatch($this) . ' ' . $column->type->dispatch($this)
-               . ' exists' . (null === $column->path ? '' : ' path ' . $column->path->dispatch($this))
-               .  $this->jsonQueryBehaviours($column);
-    }
-
-    public function walkJsonFormattedColumnDefinition(nodes\range\json\JsonFormattedColumnDefinition $column): string
-    {
-        return $column->name->dispatch($this) . ' ' . $column->type->dispatch($this)
-               . ' '  . $column->format->dispatch($this)
-               . (null === $column->path ? '' : ' path ' . $column->path->dispatch($this))
-               . (null === $column->wrapper ? '' : ' ' . $column->wrapper . ' wrapper')
-               . (null === $column->keepQuotes ? '' : ' ' . ($column->keepQuotes ? 'keep' : 'omit') . ' quotes')
-               . $this->jsonQueryBehaviours($column);
-    }
-
-    public function walkJsonOrdinalityColumnDefinition(nodes\range\json\JsonOrdinalityColumnDefinition $column): string
-    {
-        return $column->name->dispatch($this) . ' for ordinality';
-    }
-
-    public function walkJsonRegularColumnDefinition(nodes\range\json\JsonRegularColumnDefinition $column): string
-    {
-        return $column->name->dispatch($this) . ' ' . $column->type->dispatch($this)
-               . (null === $column->path ? '' : ' path ' . $column->path->dispatch($this))
-               . (null === $column->wrapper ? '' : ' ' . $column->wrapper . ' wrapper')
-               . (null === $column->keepQuotes ? '' : ' ' . ($column->keepQuotes ? 'keep' : 'omit') . ' quotes')
-               . $this->jsonQueryBehaviours($column);
-    }
-
-    public function walkJsonNestedColumns(nodes\range\json\JsonNestedColumns $column): string
-    {
-        $lines = [
-            'nested path ' . $column->path->dispatch($this)
-            . (null === $column->pathName ? '' : ' as ' . $column->pathName->dispatch($this))
-            . ' columns ('
-        ];
-        $lines[] = $this->walkJsonColumnDefinitionList($column->columns);
-        $lines[] = $this->getIndent() . ')';
-
-        return implode($this->options['linebreak'] ?: ' ', $lines);
-    }
-
-    public function walkJsonTableDefaultPlan(nodes\range\json\JsonTableDefaultPlan $plan): string
-    {
-        $parts = [];
-        if (null !== $plan->parentChild) {
-            $parts[] = $plan->parentChild;
-        }
-        if (null !== $plan->sibling) {
-            $parts[] = $plan->sibling;
-        }
-
-        return 'plan default (' . implode(', ', $parts) . ')';
-    }
-
-    public function walkJsonTableParentChildPlan(nodes\range\json\JsonTableParentChildPlan $plan): string
-    {
-        $right = $plan->right->dispatch($this);
-        return $plan->left->dispatch($this)
-               . ' ' . $plan->type
-               . ' ' . ($plan->right instanceof nodes\range\json\JsonTableSimplePlan ? $right : '(' . $right . ')');
-    }
-
-    public function walkJsonTableSiblingPlan(nodes\range\json\JsonTableSiblingPlan $plan): string
-    {
-        $left  = $plan->left->dispatch($this);
-        $right = $plan->right->dispatch($this);
-        return ($plan->left instanceof nodes\range\json\JsonTableSimplePlan ? $left : '(' . $left . ')')
-               . ' ' . $plan->type
-               . ' ' . ($plan->right instanceof nodes\range\json\JsonTableSimplePlan ? $right : '(' . $right . ')');
-    }
-
-    public function walkJsonTableSimplePlan(nodes\range\json\JsonTableSimplePlan $plan): string
-    {
-        return $plan->name->dispatch($this);
-    }
-
     public function walkMergeStatement(Merge $statement): string
     {
         $clauses = [];
@@ -1896,6 +1557,334 @@ class SqlBuilderWalker implements StatementToStringWalker
                    : $clause->action->dispatch($this);
 
         return implode($this->options['linebreak'] ?: ' ', $lines);
+    }
+
+    public function walkIsJsonExpression(nodes\expressions\IsJsonExpression $expression): string
+    {
+        return $this->optionalParentheses($expression->argument, $expression)
+               . ' is ' . ($expression->not ? 'not ' : '') . 'json'
+               . (null === $expression->type ? '' : ' ' . $expression->type)
+               . (
+                   null === $expression->uniqueKeys
+                   ? ''
+                   : ($expression->uniqueKeys ? ' with' : ' without') . ' unique keys'
+               );
+    }
+
+    public function walkJsonFormat(nodes\json\JsonFormat $clause): string
+    {
+        return 'format ' . $clause->format
+               . (null === $clause->encoding ? '' : ' encoding ' . $clause->encoding);
+    }
+
+    public function walkJsonReturning(nodes\json\JsonReturning $clause): string
+    {
+        return 'returning ' . $clause->type->dispatch($this)
+               . (null === $clause->format ? '' : ' ' . $clause->format->dispatch($this));
+    }
+
+    public function walkJsonFormattedValue(nodes\json\JsonFormattedValue $clause): string
+    {
+        return $clause->expression->dispatch($this)
+               . (null === $clause->format ? '' : ' ' . $clause->format->dispatch($this));
+    }
+
+    public function walkJsonKeyValue(nodes\json\JsonKeyValue $clause): string
+    {
+        return $clause->key->dispatch($this) . ' : ' . $clause->value->dispatch($this);
+    }
+
+    protected function walkCommonJsonAggregateFields(nodes\json\JsonAggregate $expression): string
+    {
+        return (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
+               . ')'
+               . (null === $expression->filter ? '' : ' filter (where ' . $expression->filter->dispatch($this) . ')')
+               . (null === $expression->over ? '' : ' over ' . $expression->over->dispatch($this));
+    }
+
+    protected function jsonReturningClause(?nodes\GenericNode $returning): string
+    {
+        if ($returning instanceof nodes\TypeName) {
+            return ' returning ' . $returning->dispatch($this);
+        } elseif ($returning instanceof nodes\json\JsonReturning) {
+            return ' ' . $returning->dispatch($this);
+        } else {
+            return '';
+        }
+    }
+
+    protected function jsonOnNullClause(?bool $absentOnNull): string
+    {
+        if (null === $absentOnNull) {
+            return '';
+        } else {
+            return ($absentOnNull ? ' absent' : ' null') . ' on null';
+        }
+    }
+
+    protected function jsonUniqueKeysClause(?bool $uniqueKeys): string
+    {
+        if (null === $uniqueKeys) {
+            return '';
+        } else {
+            return ($uniqueKeys ? ' with' : ' without') . ' unique keys';
+        }
+    }
+
+
+    public function walkJsonArrayAgg(nodes\json\JsonArrayAgg $expression): string
+    {
+        return 'json_arrayagg(' . $expression->value->dispatch($this)
+            . (null === $expression->order ? '' : ' order by ' . implode(', ', $expression->order->dispatch($this)))
+            . $this->jsonOnNullClause($expression->absentOnNull)
+            . $this->walkCommonJsonAggregateFields($expression);
+    }
+
+    public function walkJsonObjectAgg(nodes\json\JsonObjectAgg $expression): string
+    {
+        return 'json_objectagg(' . $expression->keyValue->dispatch($this)
+            . $this->jsonOnNullClause($expression->absentOnNull)
+            . $this->jsonUniqueKeysClause($expression->uniqueKeys)
+            . $this->walkCommonJsonAggregateFields($expression);
+    }
+
+    public function walkJsonArray(nodes\json\JsonArray $expression): string
+    {
+        if (null === $expression->arguments) {
+            $arguments = '';
+        } elseif ($expression->arguments instanceof SelectCommon) {
+            $arguments = $expression->arguments->dispatch($this);
+        } else {
+            $arguments = implode(', ', $expression->arguments->dispatch($this));
+        }
+        return 'json_array(' . $arguments
+            . $this->jsonOnNullClause($expression->absentOnNull)
+            . $this->jsonReturningClause($expression->returning)
+            . ')';
+    }
+
+    public function walkJsonObject(nodes\json\JsonObject $expression): string
+    {
+        return 'json_object(' . implode(', ', $expression->arguments->dispatch($this))
+            . $this->jsonOnNullClause($expression->absentOnNull)
+            . $this->jsonUniqueKeysClause($expression->uniqueKeys)
+            . $this->jsonReturningClause($expression->returning)
+            . ')';
+    }
+
+    public function walkJsonConstructor(nodes\json\JsonConstructor $expression): string
+    {
+        return 'json(' . $expression->expression->dispatch($this)
+            . $this->jsonUniqueKeysClause($expression->uniqueKeys)
+            . $this->jsonReturningClause($expression->returning)
+            . ')';
+    }
+
+    public function walkJsonScalar(nodes\json\JsonScalar $expression): string
+    {
+        return 'json_scalar(' . $expression->expression->dispatch($this)
+            . $this->jsonReturningClause($expression->returning)
+            . ')';
+    }
+
+    public function walkJsonSerialize(nodes\json\JsonSerialize $expression): string
+    {
+        return 'json_serialize(' . $expression->expression->dispatch($this)
+            . $this->jsonReturningClause($expression->returning)
+            . ')';
+    }
+
+    public function walkJsonArgument(nodes\json\JsonArgument $clause): string
+    {
+        return $clause->value->dispatch($this) . ' as ' . $clause->alias->dispatch($this);
+    }
+
+    protected function walkCommonJsonQueryFields(nodes\json\JsonQueryCommon $expression): string
+    {
+        return $expression->context->dispatch($this)
+            . ', ' . $expression->path->dispatch($this)
+            . (
+            0 === count($expression->passing)
+                ? ''
+                : ' passing ' . implode(', ', $expression->passing->dispatch($this))
+            );
+    }
+
+    protected function jsonQueryBehaviours(nodes\GenericNode $expression): string
+    {
+        $result = '';
+        if (!empty($expression->onEmpty)) {
+            if ($expression->onEmpty instanceof nodes\ScalarExpression) {
+                $result .= ' default ' . $expression->onEmpty->dispatch($this) . ' on empty';
+            } else {
+                $result .= ' ' . $expression->onEmpty . ' on empty';
+            }
+        }
+        if (!empty($expression->onError)) {
+            if ($expression->onError instanceof nodes\ScalarExpression) {
+                $result .= ' default ' . $expression->onError->dispatch($this) . ' on error';
+            } else {
+                $result .= ' ' . $expression->onError . ' on error';
+            }
+        }
+        return $result;
+    }
+
+    public function walkJsonExists(nodes\json\JsonExists $expression): string
+    {
+        return 'json_exists(' . $this->walkCommonJsonQueryFields($expression)
+            . $this->jsonReturningClause($expression->returning)
+            . $this->jsonQueryBehaviours($expression)
+            . ')';
+    }
+
+    public function walkJsonValue(nodes\json\JsonValue $expression): string
+    {
+        return 'json_value(' . $this->walkCommonJsonQueryFields($expression)
+            . $this->jsonReturningClause($expression->returning)
+            . $this->jsonQueryBehaviours($expression)
+            . ')';
+    }
+
+    public function walkJsonQuery(nodes\json\JsonQuery $expression): string
+    {
+        return 'json_query(' . $this->walkCommonJsonQueryFields($expression)
+            . $this->jsonReturningClause($expression->returning)
+            . (null === $expression->wrapper ? '' : ' ' . $expression->wrapper . ' wrapper')
+            . (null === $expression->keepQuotes ? '' : ' ' . ($expression->keepQuotes ? 'keep' : 'omit') . ' quotes')
+            . $this->jsonQueryBehaviours($expression)
+            . ')';
+    }
+
+    public function walkJsonTable(nodes\range\JsonTable $rangeItem): string
+    {
+        $this->indentLevel++;
+        $lines = [($rangeItem->lateral ? 'lateral ' : '') . 'json_table('];
+
+        $lines[] = $this->getIndent() . $rangeItem->context->dispatch($this)
+            . ', ' . $rangeItem->path->dispatch($this)
+            . (null === $rangeItem->pathName ? '' : ' as ' . $rangeItem->pathName->dispatch($this));
+
+        if (0 < count($rangeItem->passing)) {
+            $lines[] = $this->implode($this->getIndent() . 'passing ', $rangeItem->passing->dispatch($this), ',');
+        }
+
+        $lines[] = $this->getIndent() . 'columns (';
+        $lines[] = $this->walkJsonColumnDefinitionList($rangeItem->columns);
+        $lines[] = $this->getIndent() . ')';
+
+        if (null !== $rangeItem->plan) {
+            $lines[] = $this->getIndent()
+                . (
+                $rangeItem->plan instanceof nodes\range\json\JsonTableDefaultPlan
+                    ? $rangeItem->plan->dispatch($this)
+                    : 'plan (' . $rangeItem->plan->dispatch($this) . ')'
+                );
+        }
+        if (null !== $rangeItem->onError) {
+            $lines[] = $this->getIndent() . $rangeItem->onError . ' on error';
+        }
+
+        $this->indentLevel--;
+
+        $sql = implode($this->options['linebreak'] ?: ' ', $lines)
+            . $this->options['linebreak'] . $this->getIndent() . ')';
+        if ($rangeItem->tableAlias || $rangeItem->columnAliases) {
+            $sql .= $this->getFromItemAliases($rangeItem);
+        }
+
+        return $sql;
+    }
+
+    protected function walkJsonColumnDefinitionList(nodes\range\json\JsonColumnDefinitionList $columns): string
+    {
+        $this->indentLevel++;
+        $glue = $this->options['linebreak']
+            ? ',' . $this->options['linebreak'] . $this->getIndent()
+            : ', ';
+        $result = $this->getIndent() . implode($glue, $this->walkGenericNodeList($columns));
+        $this->indentLevel--;
+
+        return $result;
+    }
+
+    public function walkJsonExistsColumnDefinition(nodes\range\json\JsonExistsColumnDefinition $column): string
+    {
+        return $column->name->dispatch($this) . ' ' . $column->type->dispatch($this)
+            . ' exists' . (null === $column->path ? '' : ' path ' . $column->path->dispatch($this))
+            .  $this->jsonQueryBehaviours($column);
+    }
+
+    public function walkJsonFormattedColumnDefinition(nodes\range\json\JsonFormattedColumnDefinition $column): string
+    {
+        return $column->name->dispatch($this) . ' ' . $column->type->dispatch($this)
+            . ' '  . $column->format->dispatch($this)
+            . (null === $column->path ? '' : ' path ' . $column->path->dispatch($this))
+            . (null === $column->wrapper ? '' : ' ' . $column->wrapper . ' wrapper')
+            . (null === $column->keepQuotes ? '' : ' ' . ($column->keepQuotes ? 'keep' : 'omit') . ' quotes')
+            . $this->jsonQueryBehaviours($column);
+    }
+
+    public function walkJsonOrdinalityColumnDefinition(nodes\range\json\JsonOrdinalityColumnDefinition $column): string
+    {
+        return $column->name->dispatch($this) . ' for ordinality';
+    }
+
+    public function walkJsonRegularColumnDefinition(nodes\range\json\JsonRegularColumnDefinition $column): string
+    {
+        return $column->name->dispatch($this) . ' ' . $column->type->dispatch($this)
+            . (null === $column->path ? '' : ' path ' . $column->path->dispatch($this))
+            . (null === $column->wrapper ? '' : ' ' . $column->wrapper . ' wrapper')
+            . (null === $column->keepQuotes ? '' : ' ' . ($column->keepQuotes ? 'keep' : 'omit') . ' quotes')
+            . $this->jsonQueryBehaviours($column);
+    }
+
+    public function walkJsonNestedColumns(nodes\range\json\JsonNestedColumns $column): string
+    {
+        $lines = [
+            'nested path ' . $column->path->dispatch($this)
+            . (null === $column->pathName ? '' : ' as ' . $column->pathName->dispatch($this))
+            . ' columns ('
+        ];
+        $lines[] = $this->walkJsonColumnDefinitionList($column->columns);
+        $lines[] = $this->getIndent() . ')';
+
+        return implode($this->options['linebreak'] ?: ' ', $lines);
+    }
+
+    public function walkJsonTableDefaultPlan(nodes\range\json\JsonTableDefaultPlan $plan): string
+    {
+        $parts = [];
+        if (null !== $plan->parentChild) {
+            $parts[] = $plan->parentChild;
+        }
+        if (null !== $plan->sibling) {
+            $parts[] = $plan->sibling;
+        }
+
+        return 'plan default (' . implode(', ', $parts) . ')';
+    }
+
+    public function walkJsonTableParentChildPlan(nodes\range\json\JsonTableParentChildPlan $plan): string
+    {
+        $right = $plan->right->dispatch($this);
+        return $plan->left->dispatch($this)
+            . ' ' . $plan->type
+            . ' ' . ($plan->right instanceof nodes\range\json\JsonTableSimplePlan ? $right : '(' . $right . ')');
+    }
+
+    public function walkJsonTableSiblingPlan(nodes\range\json\JsonTableSiblingPlan $plan): string
+    {
+        $left  = $plan->left->dispatch($this);
+        $right = $plan->right->dispatch($this);
+        return ($plan->left instanceof nodes\range\json\JsonTableSimplePlan ? $left : '(' . $left . ')')
+            . ' ' . $plan->type
+            . ' ' . ($plan->right instanceof nodes\range\json\JsonTableSimplePlan ? $right : '(' . $right . ')');
+    }
+
+    public function walkJsonTableSimplePlan(nodes\range\json\JsonTableSimplePlan $plan): string
+    {
+        return $plan->name->dispatch($this);
     }
 
     /**

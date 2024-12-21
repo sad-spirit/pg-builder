@@ -24,15 +24,16 @@ namespace sad_spirit\pg_builder\tests;
 
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_wrapper\{
+    Connection,
     PreparedStatement,
-    Connection
+    converters\DefaultTypeConverterFactory
 };
 use sad_spirit\pg_builder\{
     NativeStatement,
     StatementFactory,
     exceptions\InvalidArgumentException,
     exceptions\RuntimeException,
-    converters\ParserAwareTypeConverterFactory
+    converters\BuilderSupportDecorator
 };
 
 class NativeStatementTest extends TestCase
@@ -54,10 +55,25 @@ class NativeStatementTest extends TestCase
         }
 
         $this->connection = new Connection(TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING);
-        $this->connection->setTypeConverterFactory(new ParserAwareTypeConverterFactory());
-
         $this->factory    = StatementFactory::forConnection($this->connection);
+        $this->connection->setTypeConverterFactory(new BuilderSupportDecorator(
+            new DefaultTypeConverterFactory(),
+            $this->factory->getParser()
+        ));
+
+        \set_error_handler(
+            static function (int $errno, string $errstr) {
+                throw new \ErrorException($errstr, $errno);
+            },
+            \E_USER_DEPRECATED
+        );
     }
+
+    protected function tearDown(): void
+    {
+        \restore_error_handler();
+    }
+
 
     public function testNamedParameters(): void
     {
@@ -165,5 +181,30 @@ class NativeStatementTest extends TestCase
         /* @var $native2 NativeStatement */
         $native2 = unserialize(serialize($native));
         $native2->executePrepared(['oid' => 23]);
+    }
+
+    public function testPrepareWithResultTypes(): void
+    {
+        $native = $this->factory->createFromAST($this->factory->createFromString(
+            'select row(typname, typbyval, typcategory) as needstype from pg_catalog.pg_type where oid = :oid'
+        ));
+        $native->prepare($this->connection, [], ['needstype' => ['text', 'bool', 'text']]);
+        $result = $native->executePrepared(['oid' => 23]);
+        $this->assertEquals(
+            ['int4', true, 'N'],
+            $result[0]['needstype']
+        );
+    }
+
+    public function testPassingResultTypesToExecutePreparedIsDeprecated(): void
+    {
+        $this::expectException(\ErrorException::class);
+        $this::expectExceptionMessage('$resultTypes');
+
+        $native = $this->factory->createFromAST($this->factory->createFromString(
+            'select row(typname, typbyval, typcategory) as needstype from pg_catalog.pg_type where oid = :oid'
+        ));
+        $native->prepare($this->connection);
+        $native->executePrepared(['oid' => 23], ['needstype' => ['text', 'bool', 'text']]);
     }
 }

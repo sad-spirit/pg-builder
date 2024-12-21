@@ -36,6 +36,7 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  * @property-read string           $documentOrContent
  * @property      ScalarExpression $argument
  * @property-read TypeName         $type
+ * @property      bool|null        $indent
  */
 class XmlSerialize extends GenericNode implements ScalarExpression, FunctionLike
 {
@@ -55,9 +56,15 @@ class XmlSerialize extends GenericNode implements ScalarExpression, FunctionLike
     protected $p_argument;
     /** @var TypeName */
     protected $p_type;
+    /** @var bool|null */
+    protected $p_indent;
 
-    public function __construct(string $documentOrContent, ScalarExpression $argument, TypeName $typeName)
-    {
+    public function __construct(
+        string $documentOrContent,
+        ScalarExpression $argument,
+        TypeName $typeName,
+        ?bool $indent = null
+    ) {
         if (!isset(self::ALLOWED_TYPES[$documentOrContent])) {
             throw new InvalidArgumentException(
                 "Either 'document' or 'content' option required, '{$documentOrContent}' given"
@@ -72,11 +79,18 @@ class XmlSerialize extends GenericNode implements ScalarExpression, FunctionLike
 
         $this->p_type = $typeName;
         $this->p_type->setParentNode($this);
+
+        $this->p_indent = $indent;
     }
 
     public function setArgument(ScalarExpression $argument): void
     {
         $this->setRequiredProperty($this->p_argument, $argument);
+    }
+
+    public function setIndent(?bool $indent): void
+    {
+        $this->p_indent = $indent;
     }
 
     public function dispatch(TreeWalker $walker)

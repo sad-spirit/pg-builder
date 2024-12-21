@@ -2822,7 +2822,13 @@ class Parser
                 $value        = $this->Expression();
                 $this->stream->expect(Token::TYPE_KEYWORD, 'as');
                 $typeName     = $this->SimpleTypeName();
-                $funcNode     = new nodes\xml\XmlSerialize($docOrContent, $value, $typeName);
+                $indent       = null;
+                if ($this->stream->matchesKeyword(['no', 'indent'])) {
+                    if (!($indent = ('indent' === $this->stream->next()->getValue()))) {
+                        $this->stream->expect(Token::TYPE_KEYWORD, 'indent');
+                    }
+                }
+                $funcNode     = new nodes\xml\XmlSerialize($docOrContent, $value, $typeName, $indent);
                 break;
 
             case 'normalize':
@@ -3620,17 +3626,11 @@ class Parser
 
     protected function RangeSubselect(): nodes\range\Subselect
     {
-        $token     = $this->stream->getCurrent();
         $reference = new nodes\range\Subselect($this->SelectWithParentheses());
 
-        if (!($alias = $this->OptionalAliasClause())) {
-            throw exceptions\SyntaxException::atPosition(
-                'Subselects in FROM clause should have an alias',
-                $this->stream->getSource(),
-                $token->getPosition()
-            );
+        if (null !== ($alias = $this->OptionalAliasClause())) {
+            $reference->setAlias($alias[0], $alias[1]);
         }
-        $reference->setAlias($alias[0], $alias[1]);
 
         return $reference;
     }
@@ -4246,6 +4246,120 @@ class Parser
         return new nodes\xml\XmlTypedColumnDefinition($name, $type, $path, $nullable, $default);
     }
 
+    protected function MergeStatement(): Merge
+    {
+        if ($this->stream->matchesKeyword('with')) {
+            $withClause = $this->WithClause();
+        }
+
+        $this->stream->expect(Token::TYPE_KEYWORD, 'merge');
+        $this->stream->expect(Token::TYPE_KEYWORD, 'into');
+        $relation = $this->UpdateOrDeleteTarget(self::RELATION_FORMAT_DELETE);
+
+        $this->stream->expect(Token::TYPE_KEYWORD, 'using');
+        $using = $this->FromElement();
+
+        $this->stream->expect(Token::TYPE_KEYWORD, 'on');
+
+        $merge = new Merge($relation, $using, $this->Expression(), $this->MergeWhenList());
+        if (!empty($withClause)) {
+            $merge->with = $withClause;
+        }
+        return $merge;
+    }
+
+    protected function MergeWhenList(): nodes\merge\MergeWhenList
+    {
+        $list = new nodes\merge\MergeWhenList([$this->MergeWhenClause()]);
+        while ($this->stream->matchesKeyword('when')) {
+            $list[] = $this->MergeWhenClause();
+        }
+        return $list;
+    }
+
+    protected function MergeWhenClause(): nodes\merge\MergeWhenClause
+    {
+        $this->stream->expect(Token::TYPE_KEYWORD, 'when');
+        if (!$this->stream->matches(Token::TYPE_KEYWORD, 'not')) {
+            $matched = true;
+        } else {
+            $matched = false;
+            $this->stream->next();
+        }
+        $this->stream->expect(Token::TYPE_KEYWORD, 'matched');
+
+        if (!$this->stream->matches(Token::TYPE_KEYWORD, 'and')) {
+            $condition = null;
+        } else {
+            $this->stream->next();
+            $condition = $this->Expression();
+        }
+
+        $this->stream->expect(Token::TYPE_KEYWORD, 'then');
+        return $matched
+            ? new nodes\merge\MergeWhenMatched($condition, $this->MergeWhenMatchedAction())
+            : new nodes\merge\MergeWhenNotMatched($condition, $this->MergeWhenNotMatchedAction());
+    }
+
+    protected function MergeWhenMatchedAction(): ?Node
+    {
+        $keyword = $this->stream->expect(Token::TYPE_KEYWORD, ['do', 'delete', 'update'])->getValue();
+        switch ($keyword) {
+            case 'do':
+                $this->stream->expect(Token::TYPE_KEYWORD, 'nothing');
+                return null;
+
+            case 'delete':
+                return new nodes\merge\MergeDelete();
+
+            case 'update':
+            default:
+                $this->stream->expect(Token::TYPE_KEYWORD, 'set');
+                return new nodes\merge\MergeUpdate($this->SetClauseList());
+        }
+    }
+
+    protected function MergeWhenNotMatchedAction(): ?nodes\merge\MergeInsert
+    {
+        if ('do' === $this->stream->expect(Token::TYPE_KEYWORD, ['do', 'insert'])->getValue()) {
+            $this->stream->expect(Token::TYPE_KEYWORD, 'nothing');
+            return null;
+        }
+
+        if ($this->stream->matchesKeywordSequence('default', 'values')) {
+            $this->stream->skip(2);
+            return new nodes\merge\MergeInsert();
+        }
+
+        if (!$this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+            $cols = null;
+        } else {
+            $this->stream->next();
+            $cols = $this->InsertTargetList();
+            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        }
+
+        if (!$this->stream->matches(Token::TYPE_KEYWORD, 'overriding')) {
+            $overriding = null;
+        } else {
+            $this->stream->next();
+            $overriding = $this->stream->expect(Token::TYPE_KEYWORD, ['user', 'system'])->getValue();
+            $this->stream->expect(Token::TYPE_KEYWORD, 'value');
+        }
+
+        return new nodes\merge\MergeInsert($cols, $this->MergeValues(), $overriding);
+    }
+
+    protected function MergeValues(): nodes\merge\MergeValues
+    {
+        $this->stream->expect(Token::TYPE_KEYWORD, 'values');
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $list = $this->ExpressionListWithDefault();
+        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+
+        return new nodes\merge\MergeValues($list);
+    }
+
     protected function JsonUniquenessConstraint(): ?bool
     {
         if (!$this->stream->matchesKeyword(['with', 'without'])) {
@@ -4420,19 +4534,24 @@ class Parser
 
     public function JsonArrayConstructor(): nodes\json\JsonArray
     {
-        $arguments = $absentOnNull = null;
-
         if (self::PARENTHESES_SELECT === $this->checkContentsOfParentheses(-1)) {
-            $arguments = $this->SelectStatement();
+            return new nodes\json\JsonArraySubselect(
+                $this->SelectStatement(),
+                $this->JsonFormat(),
+                $this->JsonReturningClause()
+            );
         } elseif (
-            !$this->stream->matchesKeyword('returning')
-            && !$this->stream->matchesSpecialChar(')')
+            $this->stream->matchesKeyword('returning')
+            || $this->stream->matchesSpecialChar(')')
         ) {
-            $arguments    = $this->JsonFormattedValueList();
-            $absentOnNull = $this->JsonNullClause();
+            return new nodes\json\JsonArrayValueList(null, null, $this->JsonReturningClause());
         }
 
-        return new nodes\json\JsonArray($arguments, $absentOnNull, $this->JsonReturningClause());
+        return new nodes\json\JsonArrayValueList(
+            $this->JsonFormattedValueList(),
+            $this->JsonNullClause(),
+            $this->JsonReturningClause()
+        );
     }
 
     public function JsonObjectConstructor(): nodes\FunctionLike
@@ -4486,6 +4605,7 @@ class Parser
             );
         }
     }
+
 
     public function JsonQueryFunction(string $funcName): nodes\json\JsonQueryCommon
     {
@@ -4883,119 +5003,5 @@ class Parser
         $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
 
         return $plan;
-    }
-
-    protected function MergeStatement(): Merge
-    {
-        if ($this->stream->matchesKeyword('with')) {
-            $withClause = $this->WithClause();
-        }
-
-        $this->stream->expect(Token::TYPE_KEYWORD, 'merge');
-        $this->stream->expect(Token::TYPE_KEYWORD, 'into');
-        $relation = $this->UpdateOrDeleteTarget(self::RELATION_FORMAT_DELETE);
-
-        $this->stream->expect(Token::TYPE_KEYWORD, 'using');
-        $using = $this->FromElement();
-
-        $this->stream->expect(Token::TYPE_KEYWORD, 'on');
-
-        $merge = new Merge($relation, $using, $this->Expression(), $this->MergeWhenList());
-        if (!empty($withClause)) {
-            $merge->with = $withClause;
-        }
-        return $merge;
-    }
-
-    protected function MergeWhenList(): nodes\merge\MergeWhenList
-    {
-        $list = new nodes\merge\MergeWhenList([$this->MergeWhenClause()]);
-        while ($this->stream->matchesKeyword('when')) {
-            $list[] = $this->MergeWhenClause();
-        }
-        return $list;
-    }
-
-    protected function MergeWhenClause(): nodes\merge\MergeWhenClause
-    {
-        $this->stream->expect(Token::TYPE_KEYWORD, 'when');
-        if (!$this->stream->matches(Token::TYPE_KEYWORD, 'not')) {
-            $matched = true;
-        } else {
-            $matched = false;
-            $this->stream->next();
-        }
-        $this->stream->expect(Token::TYPE_KEYWORD, 'matched');
-
-        if (!$this->stream->matches(Token::TYPE_KEYWORD, 'and')) {
-            $condition = null;
-        } else {
-            $this->stream->next();
-            $condition = $this->Expression();
-        }
-
-        $this->stream->expect(Token::TYPE_KEYWORD, 'then');
-        return $matched
-               ? new nodes\merge\MergeWhenMatched($condition, $this->MergeWhenMatchedAction())
-               : new nodes\merge\MergeWhenNotMatched($condition, $this->MergeWhenNotMatchedAction());
-    }
-
-    protected function MergeWhenMatchedAction(): ?Node
-    {
-        $keyword = $this->stream->expect(Token::TYPE_KEYWORD, ['do', 'delete', 'update'])->getValue();
-        switch ($keyword) {
-            case 'do':
-                $this->stream->expect(Token::TYPE_KEYWORD, 'nothing');
-                return null;
-
-            case 'delete':
-                return new nodes\merge\MergeDelete();
-
-            case 'update':
-            default:
-                $this->stream->expect(Token::TYPE_KEYWORD, 'set');
-                return new nodes\merge\MergeUpdate($this->SetClauseList());
-        }
-    }
-
-    protected function MergeWhenNotMatchedAction(): ?nodes\merge\MergeInsert
-    {
-        if ('do' === $this->stream->expect(Token::TYPE_KEYWORD, ['do', 'insert'])->getValue()) {
-            $this->stream->expect(Token::TYPE_KEYWORD, 'nothing');
-            return null;
-        }
-
-        if ($this->stream->matchesKeywordSequence('default', 'values')) {
-            $this->stream->skip(2);
-            return new nodes\merge\MergeInsert();
-        }
-
-        if (!$this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
-            $cols = null;
-        } else {
-            $this->stream->next();
-            $cols = $this->InsertTargetList();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-        }
-
-        if (!$this->stream->matches(Token::TYPE_KEYWORD, 'overriding')) {
-            $overriding = null;
-        } else {
-            $this->stream->next();
-            $overriding = $this->stream->expect(Token::TYPE_KEYWORD, ['user', 'system'])->getValue();
-            $this->stream->expect(Token::TYPE_KEYWORD, 'value');
-        }
-
-        return new nodes\merge\MergeInsert($cols, $this->MergeValues(), $overriding);
-    }
-
-    protected function MergeValues(): nodes\merge\MergeValues
-    {
-        $this->stream->expect(Token::TYPE_KEYWORD, 'values');
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-        $list = $this->ExpressionListWithDefault();
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-
-        return new nodes\merge\MergeValues($list);
     }
 }

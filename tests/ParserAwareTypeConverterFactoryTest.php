@@ -25,6 +25,7 @@ use sad_spirit\pg_builder\{
     Lexer,
     NativeStatement,
     Parser,
+    converters\BuilderSupportDecorator,
     converters\ParserAwareTypeConverterFactory,
     exceptions\InvalidArgumentException,
     nodes\QualifiedName,
@@ -46,7 +47,7 @@ use sad_spirit\pg_wrapper\converters\{
  */
 class ParserAwareTypeConverterFactoryTest extends TestCase
 {
-    /** @var ParserAwareTypeConverterFactory */
+    /** @var BuilderSupportDecorator|ParserAwareTypeConverterFactory */
     protected $factory;
 
     protected function setUp(): void

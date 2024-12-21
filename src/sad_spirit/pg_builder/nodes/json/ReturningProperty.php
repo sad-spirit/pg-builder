@@ -21,7 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\json;
 
 /**
- * Adds $returning property that maps to "RETURNING ... [FORMAT ...]" clause used in JSON expressions
+ * Adds $returning property that maps to "RETURNING ..." clause used in JSON expressions
  *
  * @property JsonReturning|null $returning
  */

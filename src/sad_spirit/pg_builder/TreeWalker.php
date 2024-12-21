@@ -907,11 +907,74 @@ interface TreeWalker
     public function walkUsingClause(nodes\range\UsingClause $clause);
 
     /**
+     * Visits the node representing a complete MERGE statement
+     *
+     * @param Merge $statement
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkMergeStatement(Merge $statement);
+
+    /**
+     * Visits the node representing the DELETE action of MERGE statement
+     *
+     * @param nodes\merge\MergeDelete $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkMergeDelete(nodes\merge\MergeDelete $clause);
+
+    /**
+     * Visits the node representing the INSERT action of MERGE statement
+     *
+     * @param nodes\merge\MergeInsert $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkMergeInsert(nodes\merge\MergeInsert $clause);
+
+    /**
+     * Visits the node representing the UPDATE action of MERGE statement
+     *
+     * @param nodes\merge\MergeUpdate $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkMergeUpdate(nodes\merge\MergeUpdate $clause);
+
+    /**
+     * Visits the node representing VALUES part of INSERT action for MERGE statement
+     *
+     * @param nodes\merge\MergeValues $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkMergeValues(nodes\merge\MergeValues $clause);
+
+    /**
+     * Visits the node representing "WHEN MATCHED ..." clause of MERGE statement
+     *
+     * @param nodes\merge\MergeWhenMatched $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkMergeWhenMatched(nodes\merge\MergeWhenMatched $clause);
+
+    /**
+     * Visits the node representing "WHEN NOT MATCHED ..." clause of MERGE statement
+     *
+     * @param nodes\merge\MergeWhenNotMatched $clause
+     * @return mixed
+     * @since 2.1.0
+     */
+    public function walkMergeWhenNotMatched(nodes\merge\MergeWhenNotMatched $clause);
+
+    /**
      * Visits the node representing "foo ... IS [NOT] JSON ..." expression
      *
      * @param nodes\expressions\IsJsonExpression $expression
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
     public function walkIsJsonExpression(nodes\expressions\IsJsonExpression $expression);
 
@@ -920,7 +983,7 @@ interface TreeWalker
      *
      * @param nodes\json\JsonFormat $clause
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
     public function walkJsonFormat(nodes\json\JsonFormat $clause);
 
@@ -929,7 +992,7 @@ interface TreeWalker
      *
      * @param nodes\json\JsonReturning $clause
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
     public function walkJsonReturning(nodes\json\JsonReturning $clause);
 
@@ -938,7 +1001,7 @@ interface TreeWalker
      *
      * @param nodes\json\JsonFormattedValue $clause
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
     public function walkJsonFormattedValue(nodes\json\JsonFormattedValue $clause);
 
@@ -947,7 +1010,7 @@ interface TreeWalker
      *
      * @param nodes\json\JsonKeyValue $clause
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
     public function walkJsonKeyValue(nodes\json\JsonKeyValue $clause);
 
@@ -956,7 +1019,7 @@ interface TreeWalker
      *
      * @param nodes\json\JsonArrayAgg $expression
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
     public function walkJsonArrayAgg(nodes\json\JsonArrayAgg $expression);
 
@@ -965,27 +1028,37 @@ interface TreeWalker
      *
      * @param nodes\json\JsonObjectAgg $expression
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
     public function walkJsonObjectAgg(nodes\json\JsonObjectAgg $expression);
 
     /**
-     * Visits the node representing json_array() expression
+     * Visits the node representing json_array() expression with a list of expressions as argument
      *
-     * @param nodes\json\JsonArray $expression
+     * @param nodes\json\JsonArrayValueList $expression
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
-    public function walkJsonArray(nodes\json\JsonArray $expression);
+    public function walkJsonArrayValueList(nodes\json\JsonArrayValueList $expression);
+
+    /**
+     * Visits the node representing json_array() expression with a subselect as argument
+     *
+     * @param nodes\json\JsonArraySubselect $expression
+     * @return mixed
+     * @since 2.3.0
+     */
+    public function walkJsonArraySubselect(nodes\json\JsonArraySubselect $expression);
 
     /**
      * Visits the node representing json_object() expression
      *
      * @param nodes\json\JsonObject $expression
      * @return mixed
-     * @since 2.1.0
+     * @since 2.3.0
      */
     public function walkJsonObject(nodes\json\JsonObject $expression);
+
 
     /**
      * Visits the node representing json() expression
@@ -1141,67 +1214,4 @@ interface TreeWalker
      * @since 2.1.0
      */
     public function walkJsonTableSimplePlan(nodes\range\json\JsonTableSimplePlan $plan);
-
-    /**
-     * Visits the node representing a complete MERGE statement
-     *
-     * @param Merge $statement
-     * @return mixed
-     * @since 2.1.0
-     */
-    public function walkMergeStatement(Merge $statement);
-
-    /**
-     * Visits the node representing the DELETE action of MERGE statement
-     *
-     * @param nodes\merge\MergeDelete $clause
-     * @return mixed
-     * @since 2.1.0
-     */
-    public function walkMergeDelete(nodes\merge\MergeDelete $clause);
-
-    /**
-     * Visits the node representing the INSERT action of MERGE statement
-     *
-     * @param nodes\merge\MergeInsert $clause
-     * @return mixed
-     * @since 2.1.0
-     */
-    public function walkMergeInsert(nodes\merge\MergeInsert $clause);
-
-    /**
-     * Visits the node representing the UPDATE action of MERGE statement
-     *
-     * @param nodes\merge\MergeUpdate $clause
-     * @return mixed
-     * @since 2.1.0
-     */
-    public function walkMergeUpdate(nodes\merge\MergeUpdate $clause);
-
-    /**
-     * Visits the node representing VALUES part of INSERT action for MERGE statement
-     *
-     * @param nodes\merge\MergeValues $clause
-     * @return mixed
-     * @since 2.1.0
-     */
-    public function walkMergeValues(nodes\merge\MergeValues $clause);
-
-    /**
-     * Visits the node representing "WHEN MATCHED ..." clause of MERGE statement
-     *
-     * @param nodes\merge\MergeWhenMatched $clause
-     * @return mixed
-     * @since 2.1.0
-     */
-    public function walkMergeWhenMatched(nodes\merge\MergeWhenMatched $clause);
-
-    /**
-     * Visits the node representing "WHEN NOT MATCHED ..." clause of MERGE statement
-     *
-     * @param nodes\merge\MergeWhenNotMatched $clause
-     * @return mixed
-     * @since 2.1.0
-     */
-    public function walkMergeWhenNotMatched(nodes\merge\MergeWhenNotMatched $clause);
 }

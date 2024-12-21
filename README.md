@@ -4,22 +4,17 @@
 
 [![Static Analysis](https://github.com/sad-spirit/pg-builder/workflows/Static%20Analysis/badge.svg?branch=master)](https://github.com/sad-spirit/pg-builder/actions?query=branch%3Amaster+workflow%3A%22Static+Analysis%22)
 
-> Note: master branch contains support for SQL/JSON syntax that was 
-> [expected in PostgreSQL 15](https://www.postgresql.org/about/news/postgresql-15-beta-1-released-2453/) 
-> but later [removed in PostgreSQL 15 Beta 4](https://www.postgresql.org/about/news/postgresql-15-beta-4-released-2507/).
-> [Branch 2.x](../../tree/2.x) has code corresponding to current supported syntax of Postgres 15.
-
 This is a query builder for Postgres with a twist: it contains a partial<sup>[1](#footnote1)</sup> reimplementation of PostgreSQL's own
 query parser. This sets it aside from the usual breed of "write-only" query builders:
 
-* Almost all syntax available for `SELECT` (and `VALUES`) / `INSERT` / `UPDATE` / `DELETE` / `MERGE` in PostgreSQL 15
-  is supported, query being built is automatically checked for correct syntax.
 * Query is represented as an Abstract Syntax Tree quite similar to PostgreSQL's internal representation.
 * Query parts can be added to the AST either as objects or as strings (that will be processed by Parser).
 * Nodes can be removed and replaced in AST.
 * AST can be analyzed and transformed, the package takes advantage of this to allow named parameters like
   `:foo` instead of standard PostgreSQL's positional parameters `$1` and to infer parameters' types
   from SQL typecasts.
+* Almost all syntax available for `SELECT` (and `VALUES`) / `INSERT` / `UPDATE` / `DELETE` / `MERGE` in PostgreSQL 16
+  is supported, query being built is automatically checked for correct syntax.
 
 Substantial effort was made to optimise parsing, but not parsing is faster anyway, so there are means to cache parts 
 of AST and the resultant query.
@@ -30,9 +25,12 @@ of AST and the resultant query.
 use sad_spirit\pg_builder\{
     Select,
     StatementFactory,
-    converters\ParserAwareTypeConverterFactory
+    converters\BuilderSupportDecorator
 };
-use sad_spirit\pg_wrapper\Connection;
+use sad_spirit\pg_wrapper\{
+    Connection,
+    converters\DefaultTypeConverterFactory
+};
 
 $wantPDO = false;
 
@@ -41,13 +39,16 @@ if ($wantPDO) {
     // Uses DB connection properties to set up parsing and building of SQL 
     $factory   = StatementFactory::forPDO($pdo);
     // NB: This still requires sad_spirit/pg_wrapper for type conversion code
-    $converter = new ParserAwareTypeConverterFactory($factory->getParser());
+    $converter = new BuilderSupportDecorator(new DefaultTypeConverterFactory(), $factory->getParser());
 } else {
     $connection = new Connection('host=localhost user=username dbname=cms');
     // Uses DB connection properties to set up parsing and building of SQL 
     $factory    = StatementFactory::forConnection($connection);
     // Needed for handling type info extracted from query
-    $connection->setTypeConverterFactory(new ParserAwareTypeConverterFactory($factory->getParser()));
+    $connection->setTypeConverterFactory(new BuilderSupportDecorator(
+        $connection->getTypeConverterFactory(),
+        $factory->getParser()
+    ));
 }
 
 // latest 5 news

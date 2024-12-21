@@ -91,7 +91,7 @@ class StatementFactory
      */
     public static function forConnection(Connection $connection): self
     {
-        $serverVersion = pg_parameter_status($connection->getResource(), 'server_version');
+        $serverVersion = pg_parameter_status($connection->getNative(), 'server_version');
         if (version_compare($serverVersion, '9.5', '<')) {
             throw new exceptions\RuntimeException(
                 'PostgreSQL versions earlier than 9.5 are no longer supported, '
@@ -102,7 +102,7 @@ class StatementFactory
         $column       = $connection->execute('show standard_conforming_strings')->fetchColumn(0);
         $lexerOptions = ['standard_conforming_strings' => 'on' === $column[0]];
 
-        $clientEncoding = pg_parameter_status($connection->getResource(), 'client_encoding');
+        $clientEncoding = pg_parameter_status($connection->getNative(), 'client_encoding');
         $builderOptions = ['escape_unicode' => 'UTF8' !== $clientEncoding];
 
         return new self(
@@ -181,15 +181,21 @@ class StatementFactory
      * Creates an object containing SQL statement string and parameter mappings from AST
      *
      * @param Statement $ast
+     * @param bool $forcePDOPrepareCompatibility Whether generated SQL should be compatible with \PDO::prepare()
+     *             even if {@see $PDOCompatible} was not set or the query does not contain placeholders,
+     *             {@see https://github.com/sad-spirit/pg-builder/issues/15 issue #15}
      * @return NativeStatement
      */
-    public function createFromAST(Statement $ast): NativeStatement
+    public function createFromAST(Statement $ast, bool $forcePDOPrepareCompatibility = false): NativeStatement
     {
-        $pw = new ParameterWalker($this->PDOCompatible);
+        $pw = new ParameterWalker($this->PDOCompatible || $forcePDOPrepareCompatibility);
         $ast->dispatch($pw);
 
         $builder = $this->getBuilder();
-        $builder->enablePDOPrepareCompatibility($this->PDOCompatible && [] !== $pw->getParameterTypes());
+        $builder->enablePDOPrepareCompatibility(
+            $this->PDOCompatible && [] !== $pw->getParameterTypes()
+            || $forcePDOPrepareCompatibility
+        );
 
         return new NativeStatement($ast->dispatch($builder), $pw->getParameterTypes(), $pw->getNamedParameterMap());
     }

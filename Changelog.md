@@ -1,5 +1,77 @@
 # Changelog
 
+## [2.4.0] - 2024-05-27
+
+### Changed
+ * `NativeStatement::executePrepared()` now uses `pg_wrapper`'s `PreparedStatement::executeParams()` under the hood,
+   all parameter values should be passed in the `$params` argument. This was already the case when
+   `NativeStatement` was built from a statement initially containing named parameters, but not positional ones.
+ * `NativeStatement::prepare()` will fetch info on parameter types from the DB if some types are not given explicitly
+   either in `$paramTypes` argument or via typecasts in the query itself. Previously these types were inferred from
+   the types of parameter values on PHP side.
+ * No longer use names deprecated in `pg_wrapper` 2.4.0: `ResultSet` -> `Result`, `Connection::getResource()` ->
+  `Connection::getNative()`.
+
+### Added
+`NativeStatement::prepare()` now accepts `$resultTypes` argument that will be passed on to `Result` instances
+returned by the created `PreparedStatement` instance.
+
+### Deprecated
+`$resultTypes` argument for `NativeStatement::executePrepared()` method, the types should be passed to `prepare()`.
+
+
+## [2.3.1] - 2023-11-15
+
+### Fixed
+ * It is now possible to generate SQL suitable for `PDO::prepare()` even if a query does
+   not contain placeholders, see [issue #15](https://github.com/sad-spirit/pg-builder/issues/15).
+   Enabled by a new `$forcePDOPrepareCompatibility` argument to `StatementFactory::createFromAST()`.
+
+## [2.3.0] - 2023-09-15
+
+A stable release following release of Postgres 16. No code changes since beta.
+
+## [2.3.0-beta] - 2023-08-30
+
+### Added
+
+Support for new syntax of PostgreSQL 16 (as of beta 3)
+ * SQL/JSON functions and expressions:
+   * `IS JSON` predicate represented by `nodes\expressions\IsJsonExpression`;
+   * Aggregate functions `json_arrayagg()` and `json_objectagg()` represented by `nodes\json\JsonArrayAgg` and
+     `nodes\json\JsonObjectAgg`;
+   * Constructor functions `json_array()` and `json_object()` represented by
+     `nodes\json\JsonArrayValueList`, `nodes\json\JsonArraySubselect`, `nodes\json\JsonObject` classes.
+ * Allow non-decimal integer literals and underscores as separators in numeric literals.
+ * Aliases for subqueries in `FROM` are now optional.
+ * `SYSTEM_USER` server variable backed by `nodes\expressions\SQLValueFunction`.
+ * `[NO] INDENT` option for `XMLSERIALIZE()` expression.
+
+
+## [2.2.0] - 2023-05-14
+
+### Added
+
+* `TypeNameNodeHandler` interface extending `TypeConverterFactory` from `pg_wrapper` package: designed
+  for factories that know how to process `TypeName` nodes. Its methods were defined previously in 
+  `ParserAwareTypeConverterFactory` class which is now an implementation of the interface. 
+* `BuilderSupportDecorator` class implementing `TypeNameNodeHandler` and working as a decorator around
+  `DefaultTypeConverterFactory`.
+
+### Deprecated
+
+`ParserAwareTypeConverterFactory` is now deprecated, `BuilderSupportDecorator` should be used instead.
+
+
+## [2.1.0] - 2022-11-04
+
+A stable release following release of Postgres 15. No code changes since beta 2. 
+
+## [2.1.0-beta.2] - 2022-10-09
+
+### Removed
+Support for SQL/JSON syntax as it was removed in [PostgreSQL 15 beta 4](https://www.postgresql.org/about/news/postgresql-15-beta-4-released-2507/)
+
 ## [2.1.0-beta] - 2022-08-18
 
 ### Added
@@ -284,3 +356,10 @@ Initial release on GitHub
 [2.0.0]: https://github.com/sad-spirit/pg-builder/compare/v2.0.0-beta...v2.0.0
 [2.0.1]: https://github.com/sad-spirit/pg-builder/compare/v2.0.0...v2.0.1
 [2.1.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v2.0.1...v2.1.0-beta
+[2.1.0-beta.2]: https://github.com/sad-spirit/pg-builder/compare/v2.1.0-beta...v2.1.0-beta.2
+[2.1.0]: https://github.com/sad-spirit/pg-builder/compare/v2.1.0-beta.2...v2.1.0
+[2.2.0]: https://github.com/sad-spirit/pg-builder/compare/v2.1.0...v2.2.0
+[2.3.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v2.2.0...v2.3.0-beta
+[2.3.0]: https://github.com/sad-spirit/pg-builder/compare/v2.3.0-beta...v2.3.0
+[2.3.1]: https://github.com/sad-spirit/pg-builder/compare/v2.3.0...v2.3.1
+[2.4.0]: https://github.com/sad-spirit/pg-builder/compare/v2.3.1...v2.4.0

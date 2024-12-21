@@ -51,6 +51,7 @@ class SQLValueFunction extends GenericNode implements FunctionLike, ScalarExpres
     public const USER              = 'user';
     public const CURRENT_CATALOG   = 'current_catalog';
     public const CURRENT_SCHEMA    = 'current_schema';
+    public const SYSTEM_USER       = 'system_user';
 
     public const CURRENT_TIME      = 'current_time';
     public const CURRENT_TIMESTAMP = 'current_timestamp';
@@ -67,7 +68,8 @@ class SQLValueFunction extends GenericNode implements FunctionLike, ScalarExpres
         self::SESSION_USER,
         self::USER,
         self::CURRENT_CATALOG,
-        self::CURRENT_SCHEMA
+        self::CURRENT_SCHEMA,
+        self::SYSTEM_USER
     ];
 
     /**

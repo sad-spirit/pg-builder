@@ -18,23 +18,25 @@
 
 declare(strict_types=1);
 
-namespace sad_spirit\pg_builder\nodes\expressions;
+namespace sad_spirit\pg_builder\tests;
 
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\{
+    Lexer,
+    Parser,
+    converters\BuilderSupportDecorator
+};
+use sad_spirit\pg_wrapper\converters\DefaultTypeConverterFactory;
 
 /**
- * Base class for expressions that can have negative forms using NOT keyword: NOT IN, IS NOT DISTINCT FROM, etc
- *
- * @property bool $not If true, the expression should have a NOT keyword
+ * This intentionally reuses test for ParserAwareTypeConverterFactory as BuilderSupportDecorator is a replacement
  */
-abstract class NegatableExpression extends GenericNode implements ScalarExpression
+class BuilderSupportDecoratorTest extends ParserAwareTypeConverterFactoryTest
 {
-    /** @var bool */
-    protected $p_not = false;
-
-    public function setNot(bool $not): void
+    protected function setUp(): void
     {
-        $this->p_not = $not;
+        $this->factory = new BuilderSupportDecorator(
+            new DefaultTypeConverterFactory(),
+            new Parser(new Lexer())
+        );
     }
 }

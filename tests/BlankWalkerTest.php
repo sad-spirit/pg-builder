@@ -120,7 +120,8 @@ select distinct on (e1) e2.e3, e4.e5[e6], (e7.e8).e9, $1.e10, array[[e11,2],[3,e
        json_serialize(f57 returning f58),
        json_exists(f59, f60 passing f61 as f62 returning f63),
        json_value(f64, f65 passing f66 as f67 returning f68 default f69 on empty default f70 on error),
-       json_query(f71, f72 passing f73 as f74 returning f75 default f76 on empty default f77 on error) 
+       json_query(f71, f72 passing f73 as f74 returning f75 default f76 on empty default f77 on error),
+       json_array(select f78 returning f79) 
 from s34, s35 left join (s36 as s37 left join s38 as s39 using (s40))
                 as s41 on s42.s43 = s44.s45,
      s46(s47, 'two', array[3, s48]) with ordinality as s49 (s50 integer, s51 s52 collate s53),

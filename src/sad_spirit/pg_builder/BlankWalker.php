@@ -861,6 +861,64 @@ abstract class BlankWalker implements TreeWalker
         return null;
     }
 
+    public function walkMergeStatement(Merge $statement)
+    {
+        $statement->with->dispatch($this);
+        $statement->relation->dispatch($this);
+        $statement->using->dispatch($this);
+        $statement->on->dispatch($this);
+        $statement->when->dispatch($this);
+        return null;
+    }
+
+    public function walkMergeDelete(nodes\merge\MergeDelete $clause)
+    {
+        return null;
+    }
+
+    public function walkMergeInsert(nodes\merge\MergeInsert $clause)
+    {
+        $clause->cols->dispatch($this);
+        if (null !== $clause->values) {
+            $clause->values->dispatch($this);
+        }
+        return null;
+    }
+
+    public function walkMergeUpdate(nodes\merge\MergeUpdate $clause)
+    {
+        $clause->set->dispatch($this);
+        return null;
+    }
+
+    public function walkMergeValues(nodes\merge\MergeValues $clause)
+    {
+        $this->walkGenericNodeList($clause);
+        return null;
+    }
+
+    public function walkMergeWhenMatched(nodes\merge\MergeWhenMatched $clause)
+    {
+        if (null !== $clause->condition) {
+            $clause->condition->dispatch($this);
+        }
+        if (null !== $clause->action) {
+            $clause->action->dispatch($this);
+        }
+        return null;
+    }
+
+    public function walkMergeWhenNotMatched(nodes\merge\MergeWhenNotMatched $clause)
+    {
+        if (null !== $clause->condition) {
+            $clause->condition->dispatch($this);
+        }
+        if (null !== $clause->action) {
+            $clause->action->dispatch($this);
+        }
+        return null;
+    }
+
     public function walkIsJsonExpression(nodes\expressions\IsJsonExpression $expression)
     {
         $expression->argument->dispatch($this);
@@ -927,10 +985,20 @@ abstract class BlankWalker implements TreeWalker
         return null;
     }
 
-    public function walkJsonArray(nodes\json\JsonArray $expression)
+    public function walkJsonArrayValueList(nodes\json\JsonArrayValueList $expression)
     {
-        if (null !== $expression->arguments) {
-            $expression->arguments->dispatch($this);
+        $expression->arguments->dispatch($this);
+        if (null !== $expression->returning) {
+            $expression->returning->dispatch($this);
+        }
+        return null;
+    }
+
+    public function walkJsonArraySubselect(nodes\json\JsonArraySubselect $expression)
+    {
+        $expression->query->dispatch($this);
+        if (null !== $expression->format) {
+            $expression->format->dispatch($this);
         }
         if (null !== $expression->returning) {
             $expression->returning->dispatch($this);
@@ -1122,64 +1190,6 @@ abstract class BlankWalker implements TreeWalker
     public function walkJsonTableSimplePlan(nodes\range\json\JsonTableSimplePlan $plan)
     {
         $plan->name->dispatch($this);
-        return null;
-    }
-
-    public function walkMergeStatement(Merge $statement)
-    {
-        $statement->with->dispatch($this);
-        $statement->relation->dispatch($this);
-        $statement->using->dispatch($this);
-        $statement->on->dispatch($this);
-        $statement->when->dispatch($this);
-        return null;
-    }
-
-    public function walkMergeDelete(nodes\merge\MergeDelete $clause)
-    {
-        return null;
-    }
-
-    public function walkMergeInsert(nodes\merge\MergeInsert $clause)
-    {
-        $clause->cols->dispatch($this);
-        if (null !== $clause->values) {
-            $clause->values->dispatch($this);
-        }
-        return null;
-    }
-
-    public function walkMergeUpdate(nodes\merge\MergeUpdate $clause)
-    {
-        $clause->set->dispatch($this);
-        return null;
-    }
-
-    public function walkMergeValues(nodes\merge\MergeValues $clause)
-    {
-        $this->walkGenericNodeList($clause);
-        return null;
-    }
-
-    public function walkMergeWhenMatched(nodes\merge\MergeWhenMatched $clause)
-    {
-        if (null !== $clause->condition) {
-            $clause->condition->dispatch($this);
-        }
-        if (null !== $clause->action) {
-            $clause->action->dispatch($this);
-        }
-        return null;
-    }
-
-    public function walkMergeWhenNotMatched(nodes\merge\MergeWhenNotMatched $clause)
-    {
-        if (null !== $clause->condition) {
-            $clause->condition->dispatch($this);
-        }
-        if (null !== $clause->action) {
-            $clause->action->dispatch($this);
-        }
         return null;
     }
 }

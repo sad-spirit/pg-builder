@@ -65,8 +65,9 @@ use sad_spirit\pg_builder\nodes\expressions\{
 use sad_spirit\pg_builder\nodes\json\{
     JsonArgument,
     JsonArgumentList,
-    JsonArray,
     JsonArrayAgg,
+    JsonArraySubselect,
+    JsonArrayValueList,
     JsonConstructor,
     JsonExists,
     JsonFormat,
@@ -118,7 +119,7 @@ class ParseFunctionCallTest extends TestCase
     public function testNoParenthesesFunctions(): void
     {
         $list = $this->parser->parseExpressionList($input = <<<QRY
-    current_date, current_role, current_user, session_user, user, current_catalog, current_schema
+    current_date, current_role, current_user, session_user, user, current_catalog, current_schema, system_user
 QRY
         );
         $expected = [];
@@ -392,9 +393,10 @@ QRY
             new XmlSerialize(
                 'document',
                 new ColumnReference('foo'),
-                new TypeName(new QualifiedName('pg_catalog', 'text'))
+                new TypeName(new QualifiedName('pg_catalog', 'text')),
+                true
             ),
-            $this->parser->parseExpression('xmlserialize(document foo as pg_catalog.text)')
+            $this->parser->parseExpression('xmlserialize(document foo as pg_catalog.text indent)')
         );
     }
 
@@ -681,16 +683,16 @@ QRY
 
         $this::assertEquals(
             new ExpressionList([
-                new JsonArray(),
-                new JsonArray(null, null, new JsonReturning(new TypeName(new QualifiedName('jsonb')))),
-                new JsonArray(new JsonFormattedValueList([
+                new JsonArrayValueList(),
+                new JsonArrayValueList(null, null, new JsonReturning(new TypeName(new QualifiedName('jsonb')))),
+                new JsonArrayValueList(new JsonFormattedValueList([
                     new JsonFormattedValue(new ColumnReference('one'), new JsonFormat()),
                     new JsonFormattedValue(new ColumnReference('two'))
                 ]), false),
-                new JsonArray(new JsonFormattedValueList([new JsonFormattedValue(
+                new JsonArrayValueList(new JsonFormattedValueList([new JsonFormattedValue(
                     new OperatorExpression('+', new ColumnReference('foo'), new ColumnReference('bar'))
                 )])),
-                new JsonArray($values, null, new JsonReturning(new TypeName(new QualifiedName('bytea'))))
+                new JsonArraySubselect($values, null, new JsonReturning(new TypeName(new QualifiedName('bytea'))))
             ]),
             $list
         );
@@ -849,7 +851,6 @@ QRY
             ]
         ];
     }
-
     public function testWindowFunctionCalls(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
