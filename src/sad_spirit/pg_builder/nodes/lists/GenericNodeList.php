@@ -93,30 +93,11 @@ abstract class GenericNodeList extends GenericNode implements NodeList
 
     /**
      * GenericNodeList only serializes its $offsets property by default
-     * @return string
-     */
-    public function serialize(): string
-    {
-        return serialize($this->offsets);
-    }
-
-    /**
-     * GenericNodeList only serializes its $offsets property by default
      * @return array
      */
     public function __serialize(): array
     {
         return $this->offsets;
-    }
-
-    /**
-     * GenericNodeList only unserializes its $offsets property by default
-     * @param string $serialized
-     */
-    public function unserialize($serialized)
-    {
-        $this->offsets = unserialize($serialized);
-        $this->updateParentNodeOnOffsets();
     }
 
     /**

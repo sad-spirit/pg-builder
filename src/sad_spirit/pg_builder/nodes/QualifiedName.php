@@ -109,13 +109,6 @@ class QualifiedName extends GenericNode
         }
     }
 
-    public function serialize(): string
-    {
-        return serialize(array_map(function ($prop) {
-            return $this->$prop instanceof Identifier ? $this->$prop->value : $this->$prop;
-        }, $this->propertyNames));
-    }
-
     public function __serialize(): array
     {
         return array_map(

@@ -29,7 +29,7 @@ use sad_spirit\pg_builder\{
 /**
  * Base class for AST nodes
  */
-abstract class GenericNode implements Node, \Serializable
+abstract class GenericNode implements Node
 {
     /**
      * Mapping ["class name" => ["magic property" => "actual protected property"]]
@@ -123,29 +123,11 @@ abstract class GenericNode implements Node, \Serializable
 
     /**
      * GenericNode only serializes its magic properties by default
-     * @return string
-     */
-    public function serialize(): string
-    {
-        return serialize($this->collectProperties());
-    }
-
-    /**
-     * GenericNode only serializes its magic properties by default
      * @return array
      */
     public function __serialize(): array
     {
         return $this->collectProperties();
-    }
-
-    /**
-     * GenericNode only unserializes its magic properties by default
-     * @param string $serialized
-     */
-    public function unserialize($serialized)
-    {
-        $this->unserializeProperties(unserialize($serialized));
     }
 
     /**

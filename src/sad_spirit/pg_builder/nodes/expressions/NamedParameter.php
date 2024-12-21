@@ -46,19 +46,9 @@ class NamedParameter extends Parameter
         return $walker->walkNamedParameter($this);
     }
 
-    public function serialize(): string
-    {
-        return $this->p_name;
-    }
-
     public function __serialize(): array
     {
         return [$this->p_name];
-    }
-
-    public function unserialize($serialized)
-    {
-        $this->p_name = $serialized;
     }
 
     public function __unserialize(array $data): void

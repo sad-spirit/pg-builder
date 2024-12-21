@@ -63,19 +63,9 @@ class StringConstant extends Constant
         return $walker->walkStringConstant($this);
     }
 
-    public function serialize(): string
-    {
-        return serialize([$this->p_type, $this->p_value]);
-    }
-
     public function __serialize(): array
     {
         return [$this->p_type, $this->p_value];
-    }
-
-    public function unserialize($serialized)
-    {
-        [$this->p_type, $this->p_value] = unserialize($serialized);
     }
 
     public function __unserialize(array $data): void
