@@ -1129,7 +1129,7 @@ class SqlBuilderWalker implements StatementToStringWalker
      * {@inheritDoc}
      * @return string[]
      */
-    public function walkGenericNodeList(NodeList $list): array
+    public function walkGenericNodeList(\Traversable $list): array
     {
         $items = [];
         /* @var Node $item */

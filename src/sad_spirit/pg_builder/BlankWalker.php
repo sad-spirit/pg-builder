@@ -576,7 +576,7 @@ abstract class BlankWalker implements TreeWalker
         return null;
     }
 
-    public function walkGenericNodeList(NodeList $list)
+    public function walkGenericNodeList(\Traversable $list)
     {
         /** @var Node $item */
         foreach ($list as $item) {

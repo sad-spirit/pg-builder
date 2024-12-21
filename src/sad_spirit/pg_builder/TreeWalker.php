@@ -606,13 +606,11 @@ interface TreeWalker
     /**
      * Most of the lists do not have any additional features and may be handled by a generic method
      *
-     * @template T of Node
-     * @template TListInput
-     * @param NodeList<int, T, TListInput> $list
+     * @param \Traversable<Node> $list
      * @return mixed
      * @since 0.1.0
      */
-    public function walkGenericNodeList(NodeList $list);
+    public function walkGenericNodeList(\Traversable $list);
 
     /**
      * Visits the node representing a list of function arguments
