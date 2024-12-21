@@ -50,10 +50,10 @@ class WindowDefinition extends GenericNode
     protected $p_frame = null;
 
     public function __construct(
-        Identifier $refName = null,
-        ExpressionList $partition = null,
-        OrderByList $order = null,
-        WindowFrameClause $frame = null
+        ?Identifier $refName = null,
+        ?ExpressionList $partition = null,
+        ?OrderByList $order = null,
+        ?WindowFrameClause $frame = null
     ) {
         $this->generatePropertyNames();
 
@@ -74,7 +74,7 @@ class WindowDefinition extends GenericNode
         }
     }
 
-    public function setName(Identifier $name = null): void
+    public function setName(?Identifier $name = null): void
     {
         $this->setProperty($this->p_name, $name);
     }

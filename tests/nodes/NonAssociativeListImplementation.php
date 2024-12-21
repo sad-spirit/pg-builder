@@ -45,7 +45,7 @@ class NonAssociativeListImplementation extends NonAssociativeList implements Par
     /** @var Parser|null */
     private $parser;
 
-    public function __construct($list = null, Parser $parser = null)
+    public function __construct($list = null, ?Parser $parser = null)
     {
         $this->parser = $parser;
         parent::__construct($list);

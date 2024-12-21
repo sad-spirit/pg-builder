@@ -47,7 +47,7 @@ class ColumnDefinition extends GenericNode
     /** @var QualifiedName|null */
     protected $p_collation = null;
 
-    public function __construct(Identifier $colId, TypeName $type, QualifiedName $collation = null)
+    public function __construct(Identifier $colId, TypeName $type, ?QualifiedName $collation = null)
     {
         $this->generatePropertyNames();
 

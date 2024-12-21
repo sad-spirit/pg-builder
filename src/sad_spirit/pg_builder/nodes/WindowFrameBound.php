@@ -46,7 +46,7 @@ class WindowFrameBound extends GenericNode
     /** @var ScalarExpression|null */
     protected $p_value = null;
 
-    public function __construct(string $direction, ScalarExpression $value = null)
+    public function __construct(string $direction, ?ScalarExpression $value = null)
     {
         if (!isset(self::ALLOWED_DIRECTIONS[$direction])) {
             throw new InvalidArgumentException("Unknown window frame direction '{$direction}'");
@@ -57,7 +57,7 @@ class WindowFrameBound extends GenericNode
         $this->setValue($value);
     }
 
-    public function setValue(ScalarExpression $value = null): void
+    public function setValue(?ScalarExpression $value = null): void
     {
         if (!is_null($value) && !in_array($this->p_direction, [self::PRECEDING, self::FOLLOWING])) {
             throw new InvalidArgumentException("Value can only be set for PRECEDING or FOLLOWING direction");

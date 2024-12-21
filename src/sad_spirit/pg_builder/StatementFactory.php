@@ -73,8 +73,8 @@ class StatementFactory
      *                                                    will not be replaced by positional ones
      */
     public function __construct(
-        Parser $parser = null,
-        StatementToStringWalker $builder = null,
+        ?Parser $parser = null,
+        ?StatementToStringWalker $builder = null,
         bool $PDOCompatible = false
     ) {
         $this->parser        = $parser ?? new Parser(new Lexer());

@@ -75,8 +75,8 @@ class IndexElement extends GenericNode
      */
     public function __construct(
         Node $expression,
-        QualifiedName $collation = null,
-        QualifiedName $opClass = null,
+        ?QualifiedName $collation = null,
+        ?QualifiedName $opClass = null,
         ?string $direction = null,
         ?string $nullsOrder = null
     ) {

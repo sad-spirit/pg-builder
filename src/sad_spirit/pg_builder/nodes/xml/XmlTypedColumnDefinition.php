@@ -50,9 +50,9 @@ class XmlTypedColumnDefinition extends XmlColumnDefinition
     public function __construct(
         Identifier $name,
         TypeName $type,
-        ScalarExpression $path = null,
+        ?ScalarExpression $path = null,
         ?bool $nullable = null,
-        ScalarExpression $default = null
+        ?ScalarExpression $default = null
     ) {
         if (null !== $path && $path === $default) {
             throw new InvalidArgumentException("Cannot use the same Node for path and default arguments");
@@ -81,7 +81,7 @@ class XmlTypedColumnDefinition extends XmlColumnDefinition
         $this->setRequiredProperty($this->p_type, $type);
     }
 
-    public function setPath(ScalarExpression $path = null): void
+    public function setPath(?ScalarExpression $path = null): void
     {
         $this->setProperty($this->p_path, $path);
     }
@@ -91,7 +91,7 @@ class XmlTypedColumnDefinition extends XmlColumnDefinition
         $this->p_nullable = $nullable;
     }
 
-    public function setDefault(ScalarExpression $default = null): void
+    public function setDefault(?ScalarExpression $default = null): void
     {
         $this->setProperty($this->p_default, $default);
     }

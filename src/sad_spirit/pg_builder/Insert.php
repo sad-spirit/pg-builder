@@ -80,7 +80,7 @@ class Insert extends Statement
         $this->p_returning->parentNode = $this;
     }
 
-    public function setValues(SelectCommon $values = null): void
+    public function setValues(?SelectCommon $values = null): void
     {
         $this->setProperty($this->p_values, $values);
     }

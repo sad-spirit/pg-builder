@@ -93,7 +93,7 @@ class SQLValueFunction extends GenericNode implements FunctionLike, ScalarExpres
     /** @var NumericConstant|null */
     protected $p_modifier;
 
-    public function __construct(string $name, NumericConstant $modifier = null)
+    public function __construct(string $name, ?NumericConstant $modifier = null)
     {
         if (null === self::$nameCheck) {
             self::$nameCheck = array_flip(array_merge(self::NO_MODIFIERS, self::OPTIONAL_MODIFIERS));

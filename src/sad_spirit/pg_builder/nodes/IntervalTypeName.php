@@ -57,7 +57,7 @@ class IntervalTypeName extends TypeName
     /** @var string */
     protected $p_mask = '';
 
-    public function __construct(TypeModifierList $typeModifiers = null)
+    public function __construct(?TypeModifierList $typeModifiers = null)
     {
         parent::__construct(new QualifiedName('pg_catalog', 'interval'), $typeModifiers);
     }

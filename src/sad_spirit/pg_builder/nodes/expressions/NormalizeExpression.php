@@ -60,7 +60,7 @@ class NormalizeExpression extends GenericNode implements ScalarExpression, Funct
     /** @var string|null */
     protected $p_form;
 
-    public function __construct(ScalarExpression $argument, string $form = null)
+    public function __construct(ScalarExpression $argument, ?string $form = null)
     {
         if (null !== $form && !in_array($form, self::FORMS, true)) {
             throw new InvalidArgumentException("Unknown normalization form '$form' in NormalizeExpression");

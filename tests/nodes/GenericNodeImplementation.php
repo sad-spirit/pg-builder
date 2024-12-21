@@ -42,7 +42,7 @@ class GenericNodeImplementation extends GenericNode
     /** @var Node|null */
     protected $p_readonly;
 
-    public function __construct(Node $readonly = null)
+    public function __construct(?Node $readonly = null)
     {
         $this->generatePropertyNames();
         $this->setProperty($this->p_readonly, $readonly);
@@ -53,7 +53,7 @@ class GenericNodeImplementation extends GenericNode
         throw new NotImplementedException('Under heavy construction [insert picture of man digging]');
     }
 
-    public function setChild(Node $child = null): void
+    public function setChild(?Node $child = null): void
     {
         $this->setChildCalled++;
 

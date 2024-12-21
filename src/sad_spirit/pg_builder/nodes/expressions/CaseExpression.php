@@ -60,8 +60,8 @@ class CaseExpression extends NonAssociativeList implements ScalarExpression
      */
     public function __construct(
         iterable $whenClauses,
-        ScalarExpression $elseClause = null,
-        ScalarExpression $argument = null
+        ?ScalarExpression $elseClause = null,
+        ?ScalarExpression $argument = null
     ) {
         if (null !== $elseClause && $elseClause === $argument) {
             throw new InvalidArgumentException("Cannot use the same Node for CASE argument and ELSE clause");
@@ -83,12 +83,12 @@ class CaseExpression extends NonAssociativeList implements ScalarExpression
         }
     }
 
-    public function setArgument(ScalarExpression $argument = null): void
+    public function setArgument(?ScalarExpression $argument = null): void
     {
         $this->setProperty($this->p_argument, $argument);
     }
 
-    public function setElse(ScalarExpression $elseClause = null): void
+    public function setElse(?ScalarExpression $elseClause = null): void
     {
         $this->setProperty($this->p_else, $elseClause);
     }

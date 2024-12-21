@@ -46,7 +46,7 @@ class InsertTarget extends GenericNode
     /** @var Identifier|null */
     protected $p_alias = null;
 
-    public function __construct(QualifiedName $relation, Identifier $alias = null)
+    public function __construct(QualifiedName $relation, ?Identifier $alias = null)
     {
         $this->generatePropertyNames();
 

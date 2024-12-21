@@ -71,8 +71,8 @@ class CycleClause extends GenericNode
         $trackColumns,
         $markColumn,
         $pathColumn,
-        ScalarExpression $markValue = null,
-        ScalarExpression $markDefault = null
+        ?ScalarExpression $markValue = null,
+        ?ScalarExpression $markDefault = null
     ) {
         $this->generatePropertyNames();
         $this->setTrackColumns($trackColumns);
@@ -89,22 +89,14 @@ class CycleClause extends GenericNode
     /**
      * Sets the list of columns to track for cycles
      *
-     * @param iterable<Identifier>|string $columns
+     * @param string|iterable<Identifier> $columns
      */
-    public function setTrackColumns($columns): void
+    public function setTrackColumns(string|iterable $columns): void
     {
-        if (!$columns instanceof IdentifierList) {
-            if (is_string($columns)) {
-                $columns = $this->getParserOrFail('a column list for a CYCLE clause')->parseColIdList($columns);
-            } elseif (is_iterable($columns)) {
-                $columns = new IdentifierList($columns);
-            } else {
-                throw new InvalidArgumentException(sprintf(
-                    '%s requires an SQL string, an array of identifiers or an instance of IdentifierList, %s given',
-                    __METHOD__,
-                    is_object($columns) ? 'object(' . get_class($columns) . ')' : gettype($columns)
-                ));
-            }
+        if (is_string($columns)) {
+            $columns = $this->getParserOrFail('a column list for a CYCLE clause')->parseColIdList($columns);
+        } elseif (!$columns instanceof IdentifierList) {
+            $columns = new IdentifierList($columns);
         }
         if (!empty($this->p_trackColumns)) {
             $this->setRequiredProperty($this->p_trackColumns, $columns);

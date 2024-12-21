@@ -41,7 +41,7 @@ interface Node
      *
      * @throws exceptions\InvalidArgumentException When trying to set a child of a Node as its parent
      */
-    public function setParentNode(Node $parent = null): void;
+    public function setParentNode(?Node $parent = null): void;
 
     /**
      * Returns the node containing current one

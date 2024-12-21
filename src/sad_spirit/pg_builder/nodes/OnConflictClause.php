@@ -64,9 +64,9 @@ class OnConflictClause extends GenericNode
      */
     public function __construct(
         string $action,
-        Node $target = null,
-        SetClauseList $set = null,
-        ScalarExpression $condition = null
+        ?Node $target = null,
+        ?SetClauseList $set = null,
+        ?ScalarExpression $condition = null
     ) {
         $this->generatePropertyNames();
         $this->setAction($action);
@@ -92,7 +92,7 @@ class OnConflictClause extends GenericNode
      *
      * @param IndexParameters|Identifier|null $target
      */
-    public function setTarget(Node $target = null): void
+    public function setTarget(?Node $target = null): void
     {
         if (self::UPDATE === $this->p_action && null === $target) {
             throw new InvalidArgumentException("Target must be provided for ON CONFLICT ... DO UPDATE clause");

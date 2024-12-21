@@ -40,7 +40,7 @@ class XmlNamespace extends GenericNode
     /** @var Identifier|null */
     protected $p_alias = null;
 
-    public function __construct(ScalarExpression $value, Identifier $alias = null)
+    public function __construct(ScalarExpression $value, ?Identifier $alias = null)
     {
         $this->generatePropertyNames();
 
@@ -58,7 +58,7 @@ class XmlNamespace extends GenericNode
         $this->setRequiredProperty($this->p_value, $value);
     }
 
-    public function setAlias(Identifier $alias = null): void
+    public function setAlias(?Identifier $alias = null): void
     {
         $this->setProperty($this->p_alias, $alias);
     }

@@ -258,7 +258,7 @@ abstract class BlankWalker implements TreeWalker
     public function walkSetTargetElement(nodes\SetTargetElement $node)
     {
         $node->name->dispatch($this);
-        /** @var Node $item */
+        /** @var nodes\Identifier|nodes\ArrayIndexes $item */
         foreach ($node as $item) {
             $item->dispatch($this);
         }
@@ -587,7 +587,7 @@ abstract class BlankWalker implements TreeWalker
 
     public function walkFunctionArgumentList(nodes\lists\FunctionArgumentList $list)
     {
-        /** @var Node $item */
+        /** @var nodes\ScalarExpression $item */
         foreach ($list as $item) {
             $item->dispatch($this);
         }

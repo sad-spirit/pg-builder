@@ -65,7 +65,7 @@ class WindowFrameClause extends GenericNode
     public function __construct(
         string $type,
         WindowFrameBound $start,
-        WindowFrameBound $end = null,
+        ?WindowFrameBound $end = null,
         ?string $exclusion = null
     ) {
         $this->generatePropertyNames();

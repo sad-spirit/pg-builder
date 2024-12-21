@@ -58,7 +58,7 @@ class OverlayExpression extends GenericNode implements ScalarExpression, Functio
         ScalarExpression $string,
         ScalarExpression $newSubstring,
         ScalarExpression $start,
-        ScalarExpression $count = null
+        ?ScalarExpression $count = null
     ) {
         $this->generatePropertyNames();
 

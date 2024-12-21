@@ -40,8 +40,8 @@ class ArrayIndexes extends GenericNode
     protected $p_isSlice;
 
     public function __construct(
-        ScalarExpression $lower = null,
-        ScalarExpression $upper = null,
+        ?ScalarExpression $lower = null,
+        ?ScalarExpression $upper = null,
         bool $isSlice = false
     ) {
         $this->generatePropertyNames();
@@ -54,7 +54,7 @@ class ArrayIndexes extends GenericNode
         $this->setLower($lower);
     }
 
-    public function setLower(ScalarExpression $lower = null): void
+    public function setLower(?ScalarExpression $lower = null): void
     {
         if (!$this->p_isSlice && null !== $lower) {
             throw new InvalidArgumentException("Lower bound should be omitted for non-slice ArrayIndexes");
@@ -62,7 +62,7 @@ class ArrayIndexes extends GenericNode
         $this->setProperty($this->p_lower, $lower);
     }
 
-    public function setUpper(ScalarExpression $upper = null): void
+    public function setUpper(?ScalarExpression $upper = null): void
     {
         if (!$this->p_isSlice && null === $upper) {
             throw new InvalidArgumentException("Upper bound is required for non-slice ArrayIndexes");

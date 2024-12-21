@@ -611,7 +611,7 @@ class Parser
      * @param Lexer                       $lexer
      * @param CacheItemPoolInterface|null $cache
      */
-    public function __construct(Lexer $lexer, CacheItemPoolInterface $cache = null)
+    public function __construct(Lexer $lexer, ?CacheItemPoolInterface $cache = null)
     {
         $this->lexer = $lexer;
         $this->cache = $cache;
@@ -2131,7 +2131,7 @@ class Parser
     }
 
     protected function IntervalWithPossibleTrailingTypeModifiers(
-        nodes\lists\TypeModifierList $modifiers = null
+        ?nodes\lists\TypeModifierList $modifiers = null
     ): nodes\IntervalTypeName {
         if (
             null === $modifiers
@@ -4970,7 +4970,7 @@ class Parser
     }
 
     protected function JsonTablePlanSibling(
-        nodes\range\json\JsonTableSpecificPlan $left = null
+        ?nodes\range\json\JsonTableSpecificPlan $left = null
     ): nodes\range\json\JsonTableSiblingPlan {
         if (null === $left) {
             $left = $this->JsonTablePlanPrimary();

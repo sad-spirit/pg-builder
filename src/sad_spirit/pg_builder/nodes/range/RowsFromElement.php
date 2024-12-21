@@ -44,7 +44,7 @@ class RowsFromElement extends GenericNode
     /** @var ColumnDefinitionList */
     protected $p_columnAliases;
 
-    public function __construct(FunctionLike $function, ColumnDefinitionList $columnAliases = null)
+    public function __construct(FunctionLike $function, ?ColumnDefinitionList $columnAliases = null)
     {
         $this->generatePropertyNames();
 

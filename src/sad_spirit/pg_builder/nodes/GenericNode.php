@@ -194,7 +194,7 @@ abstract class GenericNode implements Node
     /**
      * {@inheritDoc}
      */
-    public function setParentNode(Node $parent = null): void
+    public function setParentNode(?Node $parent = null): void
     {
         // no-op? recursion?
         if ($parent === $this->parentNode || $this->settingParentNode) {

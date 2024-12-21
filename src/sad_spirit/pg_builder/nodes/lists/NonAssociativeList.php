@@ -40,13 +40,14 @@ abstract class NonAssociativeList extends GenericNodeList
      */
     public function offsetSet($offset, $value): void
     {
-        if (null !== $offset && (!is_int($offset) || $offset < 0)) {
-            if (!is_int($offset) && ctype_digit((string)$offset)) {
-                $offset = (int)$offset;
-            } else {
+        if (null !== $offset) {
+            $intOffset = (int)$offset;
+
+            if ((string)$intOffset !== (string)$offset || $intOffset < 0) {
                 throw new InvalidArgumentException("Non-negative integer offsets expected, '{$offset}' given");
             }
         }
+
         parent::offsetSet($offset, $value);
     }
 

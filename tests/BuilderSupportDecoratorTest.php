@@ -66,6 +66,7 @@ class BuilderSupportDecoratorTest extends TestCase
         }
 
         $connection = new Connection(TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING);
+        /** @psalm-suppress PossiblyNullArgument */
         $connection->setTypeConverterFactory($this->factory);
 
         $this->assertEquals(

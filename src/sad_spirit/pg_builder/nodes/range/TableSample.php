@@ -54,7 +54,7 @@ class TableSample extends FromElement
         RelationReference $relation,
         QualifiedName $method,
         ExpressionList $arguments,
-        ScalarExpression $repeatable = null
+        ?ScalarExpression $repeatable = null
     ) {
         $this->generatePropertyNames();
 
@@ -78,12 +78,12 @@ class TableSample extends FromElement
         $this->setRequiredProperty($this->p_method, $method);
     }
 
-    public function setRepeatable(ScalarExpression $repeatable = null): void
+    public function setRepeatable(?ScalarExpression $repeatable = null): void
     {
         $this->setProperty($this->p_repeatable, $repeatable);
     }
 
-    public function setAlias(Identifier $tableAlias = null, NodeList $columnAliases = null): void
+    public function setAlias(?Identifier $tableAlias = null, ?NodeList $columnAliases = null): void
     {
         $this->p_relation->setAlias($tableAlias, $columnAliases);
     }

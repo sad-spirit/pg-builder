@@ -35,7 +35,7 @@ class TargetElement extends GenericNode
     /** @var Identifier|null */
     protected $p_alias;
 
-    public function __construct(ScalarExpression $expression, Identifier $alias = null)
+    public function __construct(ScalarExpression $expression, ?Identifier $alias = null)
     {
         $this->generatePropertyNames();
 

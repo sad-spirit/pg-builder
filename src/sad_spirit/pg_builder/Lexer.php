@@ -80,7 +80,7 @@ class Lexer
     private $specialCharHash;
     /** @var array<string, int> */
     private $nonStandardCharHash;
-    /** @var string */
+    /** @psalm-var non-empty-string */
     private $baseRegexp;
 
     /**

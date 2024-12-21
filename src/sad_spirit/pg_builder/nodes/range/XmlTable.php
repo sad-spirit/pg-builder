@@ -56,7 +56,7 @@ class XmlTable extends LateralFromElement
         ScalarExpression $rowExpression,
         ScalarExpression $documentExpression,
         XmlColumnList $columns,
-        XmlNamespaceList $namespaces = null
+        ?XmlNamespaceList $namespaces = null
     ) {
         if ($rowExpression === $documentExpression) {
             throw new InvalidArgumentException("Cannot use the same Node for row and document expressions");

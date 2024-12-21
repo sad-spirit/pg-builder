@@ -53,8 +53,8 @@ class SubstringFromExpression extends GenericNode implements ScalarExpression, F
 
     public function __construct(
         ScalarExpression $string,
-        ScalarExpression $from = null,
-        ScalarExpression $for = null
+        ?ScalarExpression $from = null,
+        ?ScalarExpression $for = null
     ) {
         if (null === $from && null === $for) {
             throw new InvalidArgumentException("At least one of FROM and FOR arguments is required");

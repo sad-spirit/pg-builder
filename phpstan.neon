@@ -11,5 +11,7 @@ parameters:
   dynamicConstantNames:
     - TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING
     - TESTS_SAD_SPIRIT_PG_BUILDER_PDO_DSN
+  ignoreErrors:
+    -
+      identifier: missingType.iterableValue
   treatPhpDocTypesAsCertain: false
-  checkMissingIterableValueType: false

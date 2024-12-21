@@ -63,7 +63,7 @@ class PatternMatchingExpression extends NegatableExpression
         ScalarExpression $pattern,
         string $operator = self::LIKE,
         bool $not = false,
-        ScalarExpression $escape = null
+        ?ScalarExpression $escape = null
     ) {
         if (!isset(self::ALLOWED_OPERATORS[$operator])) {
             throw new InvalidArgumentException("Unknown operator '{$operator}' for pattern matching expression");
@@ -99,7 +99,7 @@ class PatternMatchingExpression extends NegatableExpression
         $this->setRequiredProperty($this->p_pattern, $pattern);
     }
 
-    public function setEscape(ScalarExpression $escape = null): void
+    public function setEscape(?ScalarExpression $escape = null): void
     {
         $this->setProperty($this->p_escape, $escape);
     }

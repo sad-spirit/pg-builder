@@ -65,7 +65,7 @@ class CommonTableExpression extends GenericNode
     public function __construct(
         Statement $statement,
         Identifier $alias,
-        IdentifierList $columnAliases = null,
+        ?IdentifierList $columnAliases = null,
         ?bool $materialized = null,
         ?SearchClause $search = null,
         ?CycleClause $cycle = null

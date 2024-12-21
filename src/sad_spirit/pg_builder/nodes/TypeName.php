@@ -52,7 +52,7 @@ class TypeName extends GenericNode
     /** @var TypeModifierList */
     protected $p_modifiers;
 
-    public function __construct(QualifiedName $typeName, TypeModifierList $typeModifiers = null)
+    public function __construct(QualifiedName $typeName, ?TypeModifierList $typeModifiers = null)
     {
         $this->generatePropertyNames();
 
@@ -100,7 +100,7 @@ class TypeName extends GenericNode
         return $walker->walkTypeName($this);
     }
 
-    public function setParentNode(Node $parent = null): void
+    public function setParentNode(?Node $parent = null): void
     {
         if (
             $parent instanceof ConstantTypecastExpression

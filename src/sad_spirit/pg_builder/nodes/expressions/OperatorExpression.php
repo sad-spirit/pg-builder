@@ -116,7 +116,7 @@ class OperatorExpression extends GenericNode implements ScalarExpression
         }
     }
 
-    public function setLeft(ScalarExpression $left = null): void
+    public function setLeft(?ScalarExpression $left = null): void
     {
         $this->setProperty($this->p_left, $left);
     }

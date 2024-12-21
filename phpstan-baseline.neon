@@ -17,3 +17,9 @@ parameters:
 			message: "#^PHPDoc type sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\ColumnDefinitionList\\|sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\IdentifierList\\|null of property sad_spirit\\\\pg_builder\\\\nodes\\\\range\\\\FunctionFromElement\\:\\:\\$p_columnAliases is not covariant with PHPDoc type sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\IdentifierList\\|null of overridden property sad_spirit\\\\pg_builder\\\\nodes\\\\range\\\\FromElement\\:\\:\\$p_columnAliases\\.$#"
 			count: 1
 			path: src/sad_spirit/pg_builder/nodes/range/FunctionFromElement.php
+
+        # Specifying @param-out does not seem to work, so just silence that
+		-
+			message: "#^Parameter &\\$property by-ref type of method sad_spirit\\\\pg_builder\\\\nodes\\\\GenericNode::setRequiredProperty\\(\\)#"
+			count: 1
+			path: src/sad_spirit/pg_builder/nodes/GenericNode.php

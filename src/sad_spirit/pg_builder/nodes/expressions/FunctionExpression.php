@@ -67,10 +67,10 @@ class FunctionExpression extends FunctionCall implements ScalarExpression
         $arguments = null,
         bool $distinct = false,
         bool $variadic = false,
-        OrderByList $orderBy = null,
+        ?OrderByList $orderBy = null,
         bool $withinGroup = false,
-        ScalarExpression $filter = null,
-        WindowDefinition $over = null
+        ?ScalarExpression $filter = null,
+        ?WindowDefinition $over = null
     ) {
         parent::__construct($funcName, $arguments, $distinct, $variadic, $orderBy);
         $this->p_withinGroup = $withinGroup;

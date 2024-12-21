@@ -148,7 +148,7 @@ class BuilderSupportDecorator implements TypeNameNodeHandler, TypeOIDMapperAware
     /**
      * Registers a converter for a known named type
      *
-     * @param class-string|callable|TypeConverter $converter
+     * @param class-string<TypeConverter>|callable|TypeConverter $converter
      * @param string|string[]                     $type
      * @param string                              $schema
      * @throws InvalidArgumentException

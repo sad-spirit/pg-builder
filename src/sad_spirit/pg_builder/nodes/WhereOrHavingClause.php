@@ -34,7 +34,7 @@ class WhereOrHavingClause extends GenericNode
     /** @var ScalarExpression|null */
     protected $p_condition;
 
-    public function __construct(ScalarExpression $condition = null)
+    public function __construct(?ScalarExpression $condition = null)
     {
         $this->generatePropertyNames();
         $this->setCondition($condition);
@@ -43,24 +43,17 @@ class WhereOrHavingClause extends GenericNode
     /**
      * Sanity checks for $condition argument to various methods
      *
-     * @param string|null|ScalarExpression|WhereOrHavingClause $condition
-     * @param string                                           $method    for Exception message
-     * @return ScalarExpression|null
      * @throws InvalidArgumentException
      */
-    private function normalizeCondition($condition, string $method): ?ScalarExpression
+    private function normalizeCondition(string|null|self|ScalarExpression $condition): ?ScalarExpression
     {
-        if (is_string($condition)) {
-            $condition = $this->getParserOrFail('an expression')->parseExpression($condition);
+        if ($condition instanceof self) {
+            return $condition->p_condition;
+        } elseif (is_string($condition)) {
+            return $this->getParserOrFail('an expression')->parseExpression($condition);
+        } else {
+            return $condition;
         }
-        if (null !== $condition && !$condition instanceof ScalarExpression && !$condition instanceof self) {
-            throw new InvalidArgumentException(sprintf(
-                '%s requires an SQL string or an instance of ScalarExpression or WhereOrHavingClause, %s given',
-                $method,
-                is_object($condition) ? 'object(' . get_class($condition) . ')' : gettype($condition)
-            ));
-        }
-        return $condition instanceof self ? $condition->condition : $condition;
     }
 
     /**
@@ -71,7 +64,7 @@ class WhereOrHavingClause extends GenericNode
      */
     public function setCondition($condition = null): self
     {
-        $this->setProperty($this->p_condition, $this->normalizeCondition($condition, __METHOD__));
+        $this->setProperty($this->p_condition, $this->normalizeCondition($condition));
         return $this;
     }
 
@@ -84,7 +77,7 @@ class WhereOrHavingClause extends GenericNode
     public function and($condition): self
     {
         $nested = $condition instanceof self;
-        if (null === ($condition = $this->normalizeCondition($condition, __METHOD__))) {
+        if (null === ($condition = $this->normalizeCondition($condition))) {
             return $this;
         }
 
@@ -138,7 +131,7 @@ class WhereOrHavingClause extends GenericNode
      */
     public function or($condition): self
     {
-        if (null === ($condition = $this->normalizeCondition($condition, __METHOD__))) {
+        if (null === ($condition = $this->normalizeCondition($condition))) {
             return $this;
         }
 
@@ -182,7 +175,7 @@ class WhereOrHavingClause extends GenericNode
      */
     public function nested($condition): self
     {
-        $condition = new self($this->normalizeCondition($condition, __METHOD__));
+        $condition = new self($this->normalizeCondition($condition));
         // $condition should have access to a Parser instance
         $condition->parentNode = $this;
 

@@ -115,7 +115,7 @@ class JoinExpression extends FromElement
      *
      * @param null|string|iterable<Identifier>|UsingClause $using
      */
-    public function setUsing($using = null): void
+    public function setUsing(null|string|iterable|UsingClause $using = null): void
     {
         if (null !== $using) {
             if (self::CROSS === $this->p_type) {
@@ -126,14 +126,8 @@ class JoinExpression extends FromElement
             if (!$using instanceof UsingClause) {
                 if (is_string($using)) {
                     $using = UsingClause::createFromString($this->getParserOrFail('a USING clause'), $using);
-                } elseif (is_iterable($using)) {
-                    $using = new UsingClause($using);
                 } else {
-                    throw new InvalidArgumentException(sprintf(
-                        '%s requires an SQL string, an array of identifiers, or an instance of UsingClause, %s given',
-                        __METHOD__,
-                        is_object($using) ? 'object(' . get_class($using) . ')' : gettype($using)
-                    ));
+                    $using = new UsingClause($using);
                 }
             }
         }

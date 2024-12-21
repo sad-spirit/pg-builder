@@ -81,7 +81,7 @@ abstract class Statement extends GenericNode
         return $this->parser;
     }
 
-    public function setParentNode(Node $parent = null): void
+    public function setParentNode(?Node $parent = null): void
     {
         parent::setParentNode($parent);
         if (

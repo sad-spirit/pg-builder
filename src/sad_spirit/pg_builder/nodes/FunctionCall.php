@@ -69,7 +69,7 @@ class FunctionCall extends GenericNode implements FunctionLike
         $arguments = null,
         bool $distinct = false,
         bool $variadic = false,
-        OrderByList $orderBy = null
+        ?OrderByList $orderBy = null
     ) {
         if (is_string($funcName)) {
             // If we just create QualifiedName from $funcName the result will not be what user expects:
