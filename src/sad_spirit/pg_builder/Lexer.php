@@ -151,12 +151,6 @@ REGEXP;
      */
     public function tokenize(string $sql): TokenStream
     {
-        if (extension_loaded('mbstring') && (2 & (int)ini_get('mbstring.func_overload'))) {
-            throw new exceptions\RuntimeException(
-                'Multibyte function overloading must be disabled for correct parser operation'
-            );
-        }
-
         $this->source   = $sql;
         $this->position = strspn($this->source, " \r\n\t\f", 0);
         $this->length   = strlen($sql);
