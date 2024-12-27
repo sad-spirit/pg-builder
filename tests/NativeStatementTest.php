@@ -60,20 +60,7 @@ class NativeStatementTest extends TestCase
             new DefaultTypeConverterFactory(),
             $this->factory->getParser()
         ));
-
-        \set_error_handler(
-            static function (int $errno, string $errstr) {
-                throw new \ErrorException($errstr, $errno);
-            },
-            \E_USER_DEPRECATED
-        );
     }
-
-    protected function tearDown(): void
-    {
-        \restore_error_handler();
-    }
-
 
     public function testNamedParameters(): void
     {
@@ -194,17 +181,5 @@ class NativeStatementTest extends TestCase
             ['int4', true, 'N'],
             $result[0]['needstype']
         );
-    }
-
-    public function testPassingResultTypesToExecutePreparedIsDeprecated(): void
-    {
-        $this::expectException(\ErrorException::class);
-        $this::expectExceptionMessage('$resultTypes');
-
-        $native = $this->factory->createFromAST($this->factory->createFromString(
-            'select row(typname, typbyval, typcategory) as needstype from pg_catalog.pg_type where oid = :oid'
-        ));
-        $native->prepare($this->connection);
-        $native->executePrepared(['oid' => 23], ['needstype' => ['text', 'bool', 'text']]);
     }
 }

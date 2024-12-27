@@ -225,23 +225,14 @@ class NativeStatement
      * Executes the prepared statement using only the given parameters (requires prepare() to be called first)
      *
      * @param mixed[] $params      Parameters (keys are treated as names unless $namedParameterMap is empty)
-     * @param mixed[] $resultTypes Result types to pass to ResultSet (keys can be either names or positions)
      * @return Result
      * @throws exceptions\RuntimeException
      * @throws ServerException
      */
-    public function executePrepared(array $params = [], array $resultTypes = []): Result
+    public function executePrepared(array $params = []): Result
     {
         if (null === $this->preparedStatement) {
             throw new exceptions\RuntimeException(__METHOD__ . '(): prepare() should be called first');
-        }
-        if ([] !== $resultTypes) {
-            @\trigger_error(
-                'Passing $resultTypes to NativeStatement::executePrepared() is deprecated since release 2.4.0. '
-                . 'Set these up in prepare() method.',
-                \E_USER_DEPRECATED
-            );
-            $this->preparedStatement->setResultTypes($resultTypes);
         }
         return $this->preparedStatement->executeParams(
             [] === $this->namedParameterMap ? $params : $this->mapNamedParameters($params)
