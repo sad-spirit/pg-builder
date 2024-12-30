@@ -31,7 +31,7 @@ class Lexer
     public const CHARS_OPERATOR = '~!@#^&|`?+-*/%<>=';
 
     /**
-     * Characters that should be returned as Token::TYPE_SPECIAL_CHAR
+     * Characters that should be returned as TokenType::SPECIAL_CHAR
      */
     private const CHARS_SPECIAL  = ',()[].;:+-*/%^<>=';
 
@@ -159,7 +159,7 @@ REGEXP;
 
         $this->doTokenize();
 
-        $this->tokens[] = new Token(Token::TYPE_EOF, '', $this->position);
+        $this->tokens[] = new Token(TokenType::EOF, '', $this->position);
 
         if (!$this->unescape) {
             return new TokenStream($this->tokens, $this->source);
@@ -190,11 +190,10 @@ REGEXP;
             if (isset($m[9])) {
                 // ASCII-only downcasing
                 $lowCase = strtr($m[9], 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
-                if (isset(Keywords::LIST[$lowCase])) {
-                    // @phpstan-ignore-next-line
-                    $this->tokens[] = new Token(Keywords::LIST[$lowCase][0], $lowCase, $this->position);
+                if (null !== $keyword = Keyword::tryFrom($lowCase)) {
+                    $this->tokens[] = new Token($keyword->getType(), $keyword->value, $this->position);
                 } else {
-                    $this->tokens[] = new Token(Token::TYPE_IDENTIFIER, $lowCase, $this->position);
+                    $this->tokens[] = new Token(TokenType::IDENTIFIER, $lowCase, $this->position);
                 }
                 $this->position += strlen($m[9]);
 
@@ -202,7 +201,7 @@ REGEXP;
                 if (isset($this->operatorCharHash[$m[8]])) {
                     $this->lexOperator();
                 } else {
-                    $this->tokens[] = new Token(Token::TYPE_SPECIAL_CHAR, $m[8], $this->position++);
+                    $this->tokens[] = new Token(TokenType::SPECIAL_CHAR, $m[8], $this->position++);
                 }
 
             } elseif (isset($m[6])) {
@@ -214,14 +213,14 @@ REGEXP;
                     );
                 }
                 $this->tokens[] = new Token(
-                    ctype_digit($m[6]) ? Token::TYPE_INTEGER : Token::TYPE_FLOAT,
+                    ctype_digit($m[6]) ? TokenType::INTEGER : TokenType::FLOAT,
                     $m[6],
                     $this->position
                 );
                 $this->position += strlen($m[6]);
 
             } elseif (isset($m[5])) {
-                $this->tokens[] = new Token(Token::TYPE_NAMED_PARAM, $m[5], $this->position);
+                $this->tokens[] = new Token(TokenType::NAMED_PARAM, $m[5], $this->position);
                 $this->position += strlen($m[0]);
 
             } elseif (isset($m[4])) {
@@ -235,7 +234,7 @@ REGEXP;
                         $this->position
                     );
                 }
-                $this->tokens[] = new Token(Token::TYPE_POSITIONAL_PARAM, $m[2], $this->position);
+                $this->tokens[] = new Token(TokenType::POSITIONAL_PARAM, $m[2], $this->position);
                 $this->position += strlen($m[0]);
 
             } elseif (isset($m[1])) {
@@ -278,12 +277,12 @@ REGEXP;
                         break;
 
                     case '::':
-                        $this->tokens[] = new Token(Token::TYPE_TYPECAST, '::', $this->position);
+                        $this->tokens[] = new Token(TokenType::TYPECAST, '::', $this->position);
                         $this->position += 2;
                         break;
 
                     case ':=':
-                        $this->tokens[] = new Token(Token::TYPE_COLON_EQUALS, ':=', $this->position);
+                        $this->tokens[] = new Token(TokenType::COLON_EQUALS, ':=', $this->position);
                         $this->position += 2;
                         break;
 
@@ -352,7 +351,7 @@ REGEXP;
             );
         }
         $this->tokens[] = new Token(
-            $unicode ? Token::TYPE_UNICODE_IDENTIFIER : Token::TYPE_IDENTIFIER,
+            $unicode ? TokenType::UNICODE_IDENTIFIER : TokenType::IDENTIFIER,
             strtr($m[1], ['""' => '"']),
             $this->position
         );
@@ -376,7 +375,7 @@ REGEXP;
             );
         }
         $this->tokens[] = new Token(
-            Token::TYPE_STRING,
+            TokenType::STRING,
             substr($this->source, $this->position + $delimiterLength, $pos - $this->position - $delimiterLength),
             $this->position
         );
@@ -392,13 +391,13 @@ REGEXP;
     private function lexString(string $prefix = ''): void
     {
         $realPosition   = $this->position;
-        $type           = Token::TYPE_STRING;
+        $type           = TokenType::STRING;
         $regexNoQuotes  = "'[^']*'";
         $regexSlashes   = "' ( (?>[^'\\\\]+ | '' | \\\\.)* ) '";
         $regexNoSlashes = "' ( (?>[^']+ | '')* ) '";
         switch ($prefix) {
             case 'b':
-                $type  = Token::TYPE_BINARY_STRING;
+                $type  = TokenType::BINARY_STRING;
                 $regex = $regexNoQuotes;
                 break;
 
@@ -408,17 +407,17 @@ REGEXP;
 
             case 'x':
                 $regex = $regexNoQuotes;
-                $type  = Token::TYPE_HEX_STRING;
+                $type  = TokenType::HEX_STRING;
                 break;
 
             case 'u&':
                 $regex = $regexNoSlashes;
-                $type  = Token::TYPE_UNICODE_STRING;
+                $type  = TokenType::UNICODE_STRING;
                 break;
 
             /** @noinspection PhpMissingBreakStatementInspection */
             case 'n':
-                $type  = Token::TYPE_NCHAR_STRING;
+                $type  = TokenType::NCHAR_STRING;
                 // fall-through is intentional here
 
             default:
@@ -586,12 +585,12 @@ REGEXP;
 
         $operator = substr($operator, 0, $length);
         if (1 === $length && isset($this->specialCharHash[$operator])) {
-            $this->tokens[] = new Token(Token::TYPE_SPECIAL_CHAR, $operator, $this->position++);
+            $this->tokens[] = new Token(TokenType::SPECIAL_CHAR, $operator, $this->position++);
             return;
         }
         if (2 === $length) {
             if ('=' === $operator[0] && '>' === $operator[1]) {
-                $this->tokens[] = new Token(Token::TYPE_EQUALS_GREATER, '=>', $this->position);
+                $this->tokens[] = new Token(TokenType::EQUALS_GREATER, '=>', $this->position);
                 $this->position += 2;
                 return;
             }
@@ -599,13 +598,13 @@ REGEXP;
                 '=' === $operator[1] && ('<' === $operator[0] || '>' === $operator[0] || '!' === $operator[0])
                 || '>' === $operator[1] && '<' === $operator[0]
             ) {
-                $this->tokens[] = new Token(Token::TYPE_INEQUALITY, $operator, $this->position);
+                $this->tokens[] = new Token(TokenType::INEQUALITY, $operator, $this->position);
                 $this->position += 2;
                 return;
             }
         }
 
-        $this->tokens[] = new Token(Token::TYPE_OPERATOR, $operator, $this->position);
+        $this->tokens[] = new Token(TokenType::OPERATOR, $operator, $this->position);
         $this->position += $length;
     }
 
@@ -620,14 +619,14 @@ REGEXP;
     {
         for ($i = 0, $tokenCount = count($this->tokens); $i < $tokenCount; $i++) {
             $tokenType = $this->tokens[$i]->getType();
-            if (Token::TYPE_UNICODE_STRING !== $tokenType && Token::TYPE_UNICODE_IDENTIFIER !== $tokenType) {
+            if (TokenType::UNICODE_STRING !== $tokenType && TokenType::UNICODE_IDENTIFIER !== $tokenType) {
                 continue;
             }
 
-            if (!($hasUescape = $this->tokens[$i + 1]->matches(Token::TYPE_KEYWORD, 'uescape'))) {
+            if (!($hasUescape = $this->tokens[$i + 1]->matches(TokenType::KEYWORD, 'uescape'))) {
                 $newValue = $this->unescapeUnicode($this->tokens[$i]);
             } else {
-                if (Token::TYPE_STRING !== $this->tokens[$i + 2]->getType()) {
+                if (TokenType::STRING !== $this->tokens[$i + 2]->getType()) {
                     throw exceptions\SyntaxException::atPosition(
                         'UESCAPE must be followed by a simple string literal',
                         $this->source,
@@ -653,7 +652,7 @@ REGEXP;
             }
 
             $this->tokens[$i] = new Token(
-                Token::TYPE_UNICODE_STRING === $tokenType ? Token::TYPE_STRING : Token::TYPE_IDENTIFIER,
+                TokenType::UNICODE_STRING === $tokenType ? TokenType::STRING : TokenType::IDENTIFIER,
                 $newValue,
                 $this->tokens[$i]->getPosition()
             );

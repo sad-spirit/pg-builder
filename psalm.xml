@@ -37,6 +37,13 @@
             </errorLevel>
         </InvalidCatch>
 
+        <InvalidEnumCaseValue>
+            <errorLevel type="suppress">
+                <file name="src/sad_spirit/pg_builder/TokenType.php"/>
+                <referencedClass name="\sad_spirit\pg_builder\TokenType"/>
+            </errorLevel>
+        </InvalidEnumCaseValue>
+
         <InvalidPropertyAssignmentValue>
             <errorLevel type="suppress">
                 <!-- 

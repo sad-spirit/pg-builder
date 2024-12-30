@@ -257,16 +257,18 @@ class Parser
     /**
      * A bit mask of Token types that are checked first in {@link ExpressionAtom()}
      */
-    private const ATOM_SPECIAL_TYPES = Token::TYPE_SPECIAL | Token::TYPE_PARAMETER | Token::TYPE_LITERAL;
+    private const ATOM_SPECIAL_TYPES = TokenType::SPECIAL->value
+        | TokenType::PARAMETER->value
+        | TokenType::LITERAL->value;
 
     /**
      * Token types that can appear as the first part of an Identifier in {@link NamedExpressionAtom()}
      */
     private const ATOM_IDENTIFIER_TYPES = [
-        Token::TYPE_TYPE_FUNC_NAME_KEYWORD => true,
-        Token::TYPE_COL_NAME_KEYWORD       => true,
-        Token::TYPE_UNRESERVED_KEYWORD     => true,
-        Token::TYPE_IDENTIFIER             => true
+        TokenType::TYPE_FUNC_NAME_KEYWORD,
+        TokenType::COL_NAME_KEYWORD,
+        TokenType::UNRESERVED_KEYWORD,
+        TokenType::IDENTIFIER
     ];
 
     /**
@@ -347,14 +349,14 @@ class Parser
     private function checkContentsOfParentheses(int $lookIdx = 0): ?string
     {
         $openParens = [];
-        while ($this->stream->look($lookIdx)->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+        while ($this->stream->look($lookIdx)->matches(TokenType::SPECIAL_CHAR, '(')) {
             $openParens[] = $lookIdx++;
         }
         if (0 === $lookIdx && [] === $openParens) {
             return null;
         }
 
-        if (!$this->stream->look($lookIdx)->matches(Token::TYPE_KEYWORD, ['values', 'select', 'with'])) {
+        if (!$this->stream->look($lookIdx)->matches(TokenType::KEYWORD, ['values', 'select', 'with'])) {
             $selectLevel = false;
         } elseif (1 === ($selectLevel = count($openParens))) {
             return self::PARENTHESES_SELECT;
@@ -363,12 +365,12 @@ class Parser
         do {
             $token = $this->stream->look(++$lookIdx);
             if (
-                (Token::TYPE_COLON_EQUALS === $token->getType() || Token::TYPE_EQUALS_GREATER == $token->getType())
+                (TokenType::COLON_EQUALS === $token->getType() || TokenType::EQUALS_GREATER == $token->getType())
                 && 1 === count($openParens) && !$selectLevel
             ) {
                 return self::PARENTHESES_ARGS;
             }
-            if (!$token->matches(Token::TYPE_SPECIAL_CHAR)) {
+            if (!$token->matches(TokenType::SPECIAL_CHAR)) {
                 continue;
             }
             switch ($token->getValue()) {
@@ -390,11 +392,11 @@ class Parser
                     if (1 < count($openParens) && $selectLevel === count($openParens)) {
                         if (
                             $this->stream->look($lookIdx + 1)->matches(
-                                Token::TYPE_KEYWORD,
+                                TokenType::KEYWORD,
                                 ['union', 'intersect', 'except', 'order', 'limit', 'offset',
                                     'for' /* ...update */, 'fetch' /* SQL:2008 limit */]
                             )
-                            || $this->stream->look($lookIdx + 1)->matches(Token::TYPE_SPECIAL_CHAR, ')')
+                            || $this->stream->look($lookIdx + 1)->matches(TokenType::SPECIAL_CHAR, ')')
                         ) {
                             // this addresses stuff like ((select 1) order by 1)
                             $selectLevel--;
@@ -404,7 +406,7 @@ class Parser
                     }
                     array_pop($openParens);
             }
-        } while (!empty($openParens) && !$token->matches(Token::TYPE_EOF));
+        } while (!empty($openParens) && !$token->matches(TokenType::EOF));
 
         if (!empty($openParens)) {
             $token = $this->stream->look(array_shift($openParens));
@@ -434,14 +436,14 @@ class Parser
         do {
             $token = $this->stream->look(++$lookIdx);
             switch ($token->getType()) {
-                case Token::TYPE_SPECIAL_CHAR:
+                case TokenType::SPECIAL_CHAR:
                     if ($token->getValue() === ($square ? '[' : '(')) {
                         $openParens++;
                     } elseif ($token->getValue() === ($square ? ']' : ')')) {
                         $openParens--;
                     }
                     break;
-                case Token::TYPE_EOF:
+                case TokenType::EOF:
                     break 2;
             }
         } while ($openParens > 0);
@@ -466,9 +468,9 @@ class Parser
      */
     private function matchesOperator(): bool
     {
-        return $this->stream->matches(Token::TYPE_OPERATOR)
+        return $this->stream->matches(TokenType::OPERATOR)
                || $this->stream->matchesKeyword('operator')
-                  && $this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, '(');
+                  && $this->stream->look(1)->matches(TokenType::SPECIAL_CHAR, '(');
     }
 
 
@@ -483,20 +485,20 @@ class Parser
     private function matchesFuncName()
     {
         $firstType = $this->stream->getCurrent()->getType();
-        if (!isset(self::ATOM_IDENTIFIER_TYPES[$firstType])) {
+        if (!\in_array($firstType, self::ATOM_IDENTIFIER_TYPES, true)) {
             return false;
         }
         $idx = 1;
         while (
-            $this->stream->look($idx)->matches(Token::TYPE_SPECIAL_CHAR, '.')
-            && ($this->stream->look($idx + 1)->matches(Token::TYPE_IDENTIFIER)
-                || $this->stream->look($idx + 1)->matches(Token::TYPE_KEYWORD))
+            $this->stream->look($idx)->matches(TokenType::SPECIAL_CHAR, '.')
+            && ($this->stream->look($idx + 1)->matches(TokenType::IDENTIFIER)
+                || $this->stream->look($idx + 1)->matches(TokenType::KEYWORD))
         ) {
             $idx += 2;
         }
         if (
-            Token::TYPE_TYPE_FUNC_NAME_KEYWORD === $firstType && 1 < $idx
-            || Token::TYPE_COL_NAME_KEYWORD === $firstType && 1 === $idx
+            TokenType::TYPE_FUNC_NAME_KEYWORD === $firstType && 1 < $idx
+            || TokenType::COL_NAME_KEYWORD === $firstType && 1 === $idx
         ) {
             // does not match func_name production
             return false;
@@ -523,12 +525,12 @@ class Parser
         return $this->stream->matchesKeyword($dontCheckParens) // function-like stuff that doesn't need parentheses
                // known system functions that require parentheses
                || ($this->stream->matchesKeyword(self::SYSTEM_FUNCTIONS)
-                   && $this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, '('))
+                   && $this->stream->look(1)->matches(TokenType::SPECIAL_CHAR, '('))
                || ($this->stream->matchesKeywordSequence('collation', 'for') // COLLATION FOR (...)
-                   && $this->stream->look(2)->matches(Token::TYPE_SPECIAL_CHAR, '('))
+                   && $this->stream->look(2)->matches(TokenType::SPECIAL_CHAR, '('))
                // these are handled somewhat separately
                || ($this->stream->matchesKeyword(['json_objectagg', 'json_arrayagg'])
-                   && $this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, '('));
+                   && $this->stream->look(1)->matches(TokenType::SPECIAL_CHAR, '('));
     }
 
     /**
@@ -540,7 +542,7 @@ class Parser
     {
         return $this->matchesSpecialFunctionCall()
                || false !== ($idx = $this->matchesFuncName())
-                  && $this->stream->look($idx)->matches(Token::TYPE_SPECIAL_CHAR, '(');
+                  && $this->stream->look($idx)->matches(TokenType::SPECIAL_CHAR, '(');
     }
 
     /**
@@ -573,33 +575,33 @@ class Parser
 
         if (
             isset(self::STANDARD_DOUBLE_WORD_TYPES[$base])
-            && !$this->stream->look($idx++)->matches(Token::TYPE_KEYWORD, self::STANDARD_DOUBLE_WORD_TYPES[$base])
+            && !$this->stream->look($idx++)->matches(TokenType::KEYWORD, self::STANDARD_DOUBLE_WORD_TYPES[$base])
         ) {
             return false;
         }
 
         if (
             isset(self::STANDARD_TYPES_OPT_VARYING[$base])
-            && $this->stream->look($idx)->matches(Token::TYPE_KEYWORD, 'varying')
+            && $this->stream->look($idx)->matches(TokenType::KEYWORD, 'varying')
         ) {
             $idx++;
         }
 
         if (
             !isset(self::STANDARD_TYPES_NO_MODIFIERS[$base])
-            && $this->stream->look($idx)->matches(Token::TYPE_SPECIAL_CHAR, '(')
+            && $this->stream->look($idx)->matches(TokenType::SPECIAL_CHAR, '(')
         ) {
             $idx = $this->skipParentheses($idx);
         }
 
         if (
             isset($trailingTimezone[$base])
-            && $this->stream->look($idx)->matches(Token::TYPE_KEYWORD, ['with', 'without'])
+            && $this->stream->look($idx)->matches(TokenType::KEYWORD, ['with', 'without'])
         ) {
             $idx += 3;
         }
 
-        return $this->stream->look($idx)->matches(Token::TYPE_STRING);
+        return $this->stream->look($idx)->matches(TokenType::STRING);
     }
 
     /**
@@ -670,7 +672,7 @@ class Parser
 
         if (!$this->stream->isEOF()) {
             throw exceptions\SyntaxException::expectationFailed(
-                Token::TYPE_EOF,
+                TokenType::EOF,
                 null,
                 $this->stream->getCurrent(),
                 $this->stream->getSource()
@@ -793,8 +795,8 @@ class Parser
         if ($this->stream->matchesKeyword('with')) {
             $withClause = $this->WithClause();
         }
-        $this->stream->expect(Token::TYPE_KEYWORD, 'insert');
-        $this->stream->expect(Token::TYPE_KEYWORD, 'into');
+        $this->stream->expect(TokenType::KEYWORD, 'insert');
+        $this->stream->expect(TokenType::KEYWORD, 'into');
 
         $stmt = new Insert($this->InsertTarget());
         if (!empty($withClause)) {
@@ -810,14 +812,14 @@ class Parser
             ) {
                 $this->stream->next();
                 $stmt->cols->replace($this->InsertTargetList());
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+                $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
             }
             if ($this->stream->matchesKeyword('overriding')) {
                 $this->stream->next();
                 $stmt->setOverriding(
-                    $this->stream->expect(Token::TYPE_KEYWORD, ['user', 'system'])->getValue()
+                    $this->stream->expect(TokenType::KEYWORD, ['user', 'system'])->getValue()
                 );
-                $this->stream->expect(Token::TYPE_KEYWORD, 'value');
+                $this->stream->expect(TokenType::KEYWORD, 'value');
             }
             $stmt->values = $this->SelectStatement();
         }
@@ -841,9 +843,9 @@ class Parser
             $withClause = $this->WithClause();
         }
 
-        $this->stream->expect(Token::TYPE_KEYWORD, 'update');
+        $this->stream->expect(TokenType::KEYWORD, 'update');
         $relation = $this->UpdateOrDeleteTarget();
-        $this->stream->expect(Token::TYPE_KEYWORD, 'set');
+        $this->stream->expect(TokenType::KEYWORD, 'set');
 
         $stmt = new Update($relation, $this->SetClauseList());
 
@@ -875,8 +877,8 @@ class Parser
         if ($this->stream->matchesKeyword('with')) {
             $withClause = $this->WithClause();
         }
-        $this->stream->expect(Token::TYPE_KEYWORD, 'delete');
-        $this->stream->expect(Token::TYPE_KEYWORD, 'from');
+        $this->stream->expect(TokenType::KEYWORD, 'delete');
+        $this->stream->expect(TokenType::KEYWORD, 'from');
 
         $stmt = new Delete($this->UpdateOrDeleteTarget(self::RELATION_FORMAT_DELETE));
 
@@ -905,7 +907,7 @@ class Parser
 
     protected function WithClause(): nodes\WithClause
     {
-        $this->stream->expect(Token::TYPE_KEYWORD, 'with');
+        $this->stream->expect(TokenType::KEYWORD, 'with');
         if ($recursive = $this->stream->matchesKeyword('recursive')) {
             $this->stream->next();
         }
@@ -931,9 +933,9 @@ class Parser
                 $this->stream->next();
                 $columnAliases[] = $this->ColId();
             } while ($this->stream->matchesSpecialChar(','));
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         }
-        $this->stream->expect(Token::TYPE_KEYWORD, 'as');
+        $this->stream->expect(TokenType::KEYWORD, 'as');
 
         if ($this->stream->matchesKeyword('materialized')) {
             $materialized = true;
@@ -941,12 +943,12 @@ class Parser
         } elseif ($this->stream->matchesKeyword('not')) {
             $materialized = false;
             $this->stream->next();
-            $this->stream->expect(Token::TYPE_KEYWORD, 'materialized');
+            $this->stream->expect(TokenType::KEYWORD, 'materialized');
         }
 
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
         $statement = $this->Statement();
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         if ($this->stream->matchesKeyword('search')) {
             $search = $this->SearchClause();
@@ -960,14 +962,14 @@ class Parser
 
     public function SearchClause(): nodes\cte\SearchClause
     {
-        $this->stream->expect(Token::TYPE_KEYWORD, 'search');
-        $first = $this->stream->expect(Token::TYPE_KEYWORD, ['breadth', 'depth']);
-        $this->stream->expect(Token::TYPE_KEYWORD, 'first');
+        $this->stream->expect(TokenType::KEYWORD, 'search');
+        $first = $this->stream->expect(TokenType::KEYWORD, ['breadth', 'depth']);
+        $this->stream->expect(TokenType::KEYWORD, 'first');
 
-        $this->stream->expect(Token::TYPE_KEYWORD, 'by');
+        $this->stream->expect(TokenType::KEYWORD, 'by');
         $trackColumns = $this->ColIdList();
 
-        $this->stream->expect(Token::TYPE_KEYWORD, 'set');
+        $this->stream->expect(TokenType::KEYWORD, 'set');
         $sequenceColumn = $this->ColId();
 
         return new nodes\cte\SearchClause('breadth' === $first->getValue(), $trackColumns, $sequenceColumn);
@@ -975,10 +977,10 @@ class Parser
 
     public function CycleClause(): nodes\cte\CycleClause
     {
-        $this->stream->expect(Token::TYPE_KEYWORD, 'cycle');
+        $this->stream->expect(TokenType::KEYWORD, 'cycle');
         $trackColumns = $this->ColIdList();
 
-        $this->stream->expect(Token::TYPE_KEYWORD, 'set');
+        $this->stream->expect(TokenType::KEYWORD, 'set');
         $markColumn = $this->ColId();
 
         $markValue   = null;
@@ -986,11 +988,11 @@ class Parser
         if ($this->stream->matchesKeyword('to')) {
             $this->stream->next();
             $markValue = $this->ConstantExpression();
-            $this->stream->expect(Token::TYPE_KEYWORD, 'default');
+            $this->stream->expect(TokenType::KEYWORD, 'default');
             $markDefault = $this->ConstantExpression();
         }
 
-        $this->stream->expect(Token::TYPE_KEYWORD, 'using');
+        $this->stream->expect(TokenType::KEYWORD, 'using');
         $pathColumn = $this->ColId();
 
         return new nodes\cte\CycleClause($trackColumns, $markColumn, $pathColumn, $markValue, $markDefault);
@@ -1029,17 +1031,17 @@ class Parser
 
     protected function LockingElement(): nodes\LockingElement
     {
-        $this->stream->expect(Token::TYPE_KEYWORD, 'for');
+        $this->stream->expect(TokenType::KEYWORD, 'for');
         switch (
-            $strength = $this->stream->expect(Token::TYPE_KEYWORD, ['update', 'no', 'share', 'key'])
+            $strength = $this->stream->expect(TokenType::KEYWORD, ['update', 'no', 'share', 'key'])
                     ->getValue()
         ) {
             case 'no':
-                $strength .= ' ' . $this->stream->expect(Token::TYPE_KEYWORD, 'key')->getValue()
-                         . ' ' . $this->stream->expect(Token::TYPE_KEYWORD, 'update')->getValue();
+                $strength .= ' ' . $this->stream->expect(TokenType::KEYWORD, 'key')->getValue()
+                         . ' ' . $this->stream->expect(TokenType::KEYWORD, 'update')->getValue();
                 break;
             case 'key':
-                $strength .= ' ' . $this->stream->expect(Token::TYPE_KEYWORD, 'share')->getValue();
+                $strength .= ' ' . $this->stream->expect(TokenType::KEYWORD, 'share')->getValue();
         }
 
         $relations  = [];
@@ -1102,8 +1104,8 @@ class Parser
 
         } else {
             // SQL:2008 syntax
-            $this->stream->expect(Token::TYPE_KEYWORD, 'fetch');
-            $this->stream->expect(Token::TYPE_KEYWORD, ['first', 'next']);
+            $this->stream->expect(TokenType::KEYWORD, 'fetch');
+            $this->stream->expect(TokenType::KEYWORD, ['first', 'next']);
 
             if ($this->stream->matchesKeyword(['row', 'rows'])) {
                 // no limit specified -> 1 row
@@ -1111,10 +1113,10 @@ class Parser
             } elseif ($this->stream->matchesSpecialChar(['+', '-'])) {
                 // signed numeric constant: that case is not handled by ExpressionAtom()
                 $sign = $this->stream->next();
-                if ($this->stream->matches(Token::TYPE_FLOAT)) {
+                if ($this->stream->matches(TokenType::FLOAT)) {
                     $constantToken = $this->stream->next();
                 } else {
-                    $constantToken = $this->stream->expect(Token::TYPE_INTEGER);
+                    $constantToken = $this->stream->expect(TokenType::INTEGER);
                 }
                 if ('+' === $sign->getValue()) {
                     $stmt->limit = nodes\expressions\Constant::createFromToken($constantToken);
@@ -1129,12 +1131,12 @@ class Parser
                 $stmt->limit = $this->ExpressionAtom();
             }
 
-            $this->stream->expect(Token::TYPE_KEYWORD, ['row', 'rows']);
+            $this->stream->expect(TokenType::KEYWORD, ['row', 'rows']);
             if ($this->stream->matchesKeywordSequence('with', 'ties')) {
                 $stmt->limitWithTies = true;
                 $this->stream->skip(2);
             } else {
-                $this->stream->expect(Token::TYPE_KEYWORD, 'only');
+                $this->stream->expect(TokenType::KEYWORD, 'only');
             }
         }
     }
@@ -1152,7 +1154,7 @@ class Parser
         // allows c_expr (i.e. ExpressionAtom) production if trailed by ROW / ROWS, but full
         // a_expr (i.e. Expression) production in other case. We don't bother to do lookahead
         // here, so allow Expression in either case and treat trailing ROW / ROWS as noise
-        $this->stream->expect(Token::TYPE_KEYWORD, 'offset');
+        $this->stream->expect(TokenType::KEYWORD, 'offset');
         $stmt->offset = $this->Expression();
         if ($this->stream->matchesKeyword(['row', 'rows'])) {
             $this->stream->next();
@@ -1176,7 +1178,7 @@ class Parser
     {
         if (!$this->stream->matchesSpecialChar('(')) {
             $column = $this->SetTargetElement();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '=');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '=');
             $value  = $this->ExpressionWithDefault();
 
             return new nodes\SingleSetClause($column, $value);
@@ -1189,9 +1191,9 @@ class Parser
                 $this->stream->next();
                 $columns[] = $this->SetTargetElement();
             }
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '=');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '=');
 
             $token = $this->stream->getCurrent();
 
@@ -1260,9 +1262,9 @@ class Parser
 
     protected function SelectWithParentheses(): SelectCommon
     {
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
         $select = $this->SelectStatement();
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         return $select;
     }
@@ -1292,7 +1294,7 @@ class Parser
             return $this->SelectWithParentheses(); // select_with_parens grammar production
         }
 
-        $token = $this->stream->expect(Token::TYPE_KEYWORD, ['select', 'values']);
+        $token = $this->stream->expect(TokenType::KEYWORD, ['select', 'values']);
         if ('values' === $token->getValue()) {
             return new Values($this->RowList());
         }
@@ -1308,9 +1310,9 @@ class Parser
                 $distinctClause = true;
             } else {
                 $this->stream->next();
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+                $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
                 $distinctClause = $this->ExpressionList();
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+                $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
             }
         }
 
@@ -1380,7 +1382,7 @@ class Parser
     protected function WindowDefinition(): nodes\WindowDefinition
     {
         $name    = $this->ColId();
-        $this->stream->expect(Token::TYPE_KEYWORD, 'as');
+        $this->stream->expect(TokenType::KEYWORD, 'as');
         $spec    = $this->WindowSpecification();
         $spec->setName($name);
 
@@ -1390,10 +1392,10 @@ class Parser
     protected function WindowSpecification(): nodes\WindowDefinition
     {
         $refName = $partition = $frame = $order = null;
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
         if (
-            $this->stream->matchesAnyType(Token::TYPE_IDENTIFIER, Token::TYPE_COL_NAME_KEYWORD)
-            || ($this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
+            $this->stream->matchesAnyType(TokenType::IDENTIFIER, TokenType::COL_NAME_KEYWORD)
+            || ($this->stream->matches(TokenType::UNRESERVED_KEYWORD)
                 // See comment for opt_existing_window_name production in gram.y
                 && !in_array($this->stream->getCurrent()->getValue(), ['partition', 'range', 'rows', 'groups']))
         ) {
@@ -1411,38 +1413,38 @@ class Parser
             $frame = $this->WindowFrameClause();
         }
 
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         return new nodes\WindowDefinition($refName, $partition, $order, $frame);
     }
 
     protected function WindowFrameClause(): nodes\WindowFrameClause
     {
-        $frameType  = $this->stream->expect(Token::TYPE_KEYWORD, ['range', 'rows', 'groups']);
+        $frameType  = $this->stream->expect(TokenType::KEYWORD, ['range', 'rows', 'groups']);
         $tokenStart = $this->stream->getCurrent();
         $exclusion  = null;
-        if (!$tokenStart->matches(Token::TYPE_KEYWORD, 'between')) {
+        if (!$tokenStart->matches(TokenType::KEYWORD, 'between')) {
             $start = $this->WindowFrameBound();
             $end   = null;
 
         } else {
             $this->stream->next();
             $start = $this->WindowFrameBound();
-            $this->stream->expect(Token::TYPE_KEYWORD, 'and');
+            $this->stream->expect(TokenType::KEYWORD, 'and');
             $end   = $this->WindowFrameBound();
         }
 
         // opt_window_exclusion_clause from gram.y
         if ($this->stream->matchesKeyword('exclude')) {
             $this->stream->next();
-            $first = $this->stream->expect(Token::TYPE_KEYWORD, ['current', 'group', 'ties', 'no']);
+            $first = $this->stream->expect(TokenType::KEYWORD, ['current', 'group', 'ties', 'no']);
             switch ($first->getValue()) {
                 case 'current':
-                    $this->stream->expect(Token::TYPE_KEYWORD, 'row');
+                    $this->stream->expect(TokenType::KEYWORD, 'row');
                     $exclusion = 'current row';
                     break;
                 case 'no':
-                    $this->stream->expect(Token::TYPE_KEYWORD, 'others');
+                    $this->stream->expect(TokenType::KEYWORD, 'others');
                     // EXCLUDE NO OTHERS is noise
                     break;
                 default:
@@ -1473,7 +1475,7 @@ class Parser
         }
 
         $value     = $this->Expression();
-        $direction = $this->stream->expect(Token::TYPE_KEYWORD, ['preceding', 'following'])->getValue();
+        $direction = $this->stream->expect(TokenType::KEYWORD, ['preceding', 'following'])->getValue();
         return new nodes\WindowFrameBound($direction, $value);
     }
 
@@ -1546,7 +1548,7 @@ class Parser
 
         if (
             $this->stream->matchesSpecialChar(['<', '>', '='])
-            || $this->stream->matches(Token::TYPE_INEQUALITY)
+            || $this->stream->matches(TokenType::INEQUALITY)
         ) {
             return new nodes\expressions\OperatorExpression(
                 $this->stream->next()->getValue(),
@@ -1605,16 +1607,16 @@ class Parser
 
     protected function SubqueryExpression(): nodes\ScalarExpression
     {
-        $type  = $this->stream->expect(Token::TYPE_KEYWORD, self::SUBQUERY_EXPRESSIONS)->getValue();
+        $type  = $this->stream->expect(TokenType::KEYWORD, self::SUBQUERY_EXPRESSIONS)->getValue();
         $check = $this->checkContentsOfParentheses();
 
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
         if (self::PARENTHESES_SELECT === $check) {
             $result = new nodes\expressions\SubselectExpression($this->SelectStatement(), $type);
         } else {
             $result = new nodes\expressions\ArrayComparisonExpression($type, $this->Expression());
         }
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         return $result;
     }
@@ -1670,7 +1672,7 @@ class Parser
         if ('between' === ($this->stream->getCurrent()->getValue())) {
             $negated = false;
             $this->stream->next();
-        } elseif (!$this->stream->look(1)->matches(Token::TYPE_KEYWORD, 'between')) {
+        } elseif (!$this->stream->look(1)->matches(TokenType::KEYWORD, 'between')) {
             return $value;
         } else {
             $negated = true;
@@ -1682,7 +1684,7 @@ class Parser
         }
 
         $left  = $this->GenericOperatorExpression(true);
-        $this->stream->expect(Token::TYPE_KEYWORD, 'and');
+        $this->stream->expect(TokenType::KEYWORD, 'and');
         // right argument of BETWEEN is defined as 'b_expr' in pre-9.5 grammar and as 'a_expr' afterwards
         $right = $this->GenericOperatorExpression(false);
 
@@ -1713,7 +1715,7 @@ class Parser
             if ('in' === $this->stream->getCurrent()->getValue()) {
                 $negated = false;
                 $this->stream->next();
-            } elseif (!$this->stream->look(1)->matches(Token::TYPE_KEYWORD, 'in')) {
+            } elseif (!$this->stream->look(1)->matches(TokenType::KEYWORD, 'in')) {
                 break;
             } else {
                 $negated = true;
@@ -1721,9 +1723,9 @@ class Parser
             }
 
             $check = $this->checkContentsOfParentheses();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
             $right = self::PARENTHESES_SELECT === $check ? $this->SelectStatement() : $this->ExpressionList();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
             $left = new nodes\expressions\InExpression($left, $right, $negated);
         }
@@ -1744,8 +1746,8 @@ class Parser
 
         while (
             ($op = $this->matchesOperator())
-               || $this->stream->matches(Token::TYPE_SPECIAL, self::MATH_OPERATORS)
-                   && $this->stream->look(1)->matches(Token::TYPE_KEYWORD, self::SUBQUERY_EXPRESSIONS)
+               || $this->stream->matches(TokenType::SPECIAL, self::MATH_OPERATORS)
+                   && $this->stream->look(1)->matches(TokenType::KEYWORD, self::SUBQUERY_EXPRESSIONS)
         ) {
             $operator = $op ? $this->Operator() : $this->stream->next()->getValue();
             if (!$op || $this->stream->matchesKeyword(self::SUBQUERY_EXPRESSIONS)) {
@@ -1791,32 +1793,32 @@ class Parser
     protected function Operator(bool $all = false)
     {
         if (
-            $this->stream->matches(Token::TYPE_OPERATOR)
-            || $all && $this->stream->matches(Token::TYPE_SPECIAL, self::MATH_OPERATORS)
+            $this->stream->matches(TokenType::OPERATOR)
+            || $all && $this->stream->matches(TokenType::SPECIAL, self::MATH_OPERATORS)
         ) {
             return $this->stream->next()->getValue();
         }
 
-        $this->stream->expect(Token::TYPE_KEYWORD, 'operator');
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(TokenType::KEYWORD, 'operator');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
         $parts = [];
         while (
             $this->stream->matchesAnyType(
-                Token::TYPE_IDENTIFIER,
-                Token::TYPE_UNRESERVED_KEYWORD,
-                Token::TYPE_COL_NAME_KEYWORD
+                TokenType::IDENTIFIER,
+                TokenType::UNRESERVED_KEYWORD,
+                TokenType::COL_NAME_KEYWORD
             )
         ) {
             // ColId
             $parts[] = nodes\Identifier::createFromToken($this->stream->next());
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '.');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '.');
         }
-        if ($this->stream->matches(Token::TYPE_SPECIAL, self::MATH_OPERATORS)) {
+        if ($this->stream->matches(TokenType::SPECIAL, self::MATH_OPERATORS)) {
             $parts[] = $this->stream->next()->getValue();
         } else {
-            $parts[] = $this->stream->expect(Token::TYPE_OPERATOR)->getValue();
+            $parts[] = $this->stream->expect(TokenType::OPERATOR)->getValue();
         }
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         return new nodes\QualifiedOperator(...$parts);
     }
@@ -1903,15 +1905,15 @@ class Parser
                 $bounds[] = -1;
             } else {
                 $this->stream->next();
-                $bounds[] = $this->stream->expect(Token::TYPE_INTEGER)->getValue();
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ']');
+                $bounds[] = $this->stream->expect(TokenType::INTEGER)->getValue();
+                $this->stream->expect(TokenType::SPECIAL_CHAR, ']');
             }
 
         } else {
             while ($this->stream->matchesSpecialChar('[')) {
                 $this->stream->next();
-                $bounds[] = $this->stream->matches(Token::TYPE_INTEGER) ? $this->stream->next()->getValue() : -1;
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ']');
+                $bounds[] = $this->stream->matches(TokenType::INTEGER) ? $this->stream->next()->getValue() : -1;
+                $this->stream->expect(TokenType::SPECIAL_CHAR, ']');
             }
         }
         $typeName->setBounds($bounds);
@@ -1945,7 +1947,7 @@ class Parser
         if (
             !$this->stream->matchesKeyword(self::STANDARD_TYPES_NUMERIC)
             || ('double' === $this->stream->getCurrent()->getValue()
-                && !$this->stream->look()->matches(Token::TYPE_KEYWORD, 'precision'))
+                && !$this->stream->look()->matches(TokenType::KEYWORD, 'precision'))
         ) {
             return null;
         }
@@ -1960,7 +1962,7 @@ class Parser
             $floatName = 'float8';
             if ($this->stream->matchesSpecialChar('(')) {
                 $this->stream->next();
-                $precisionToken = $this->stream->expect(Token::TYPE_INTEGER);
+                $precisionToken = $this->stream->expect(TokenType::INTEGER);
                 $precision      = $precisionToken->getValue();
                 if ($precision < 1) {
                     throw exceptions\SyntaxException::atPosition(
@@ -1979,7 +1981,7 @@ class Parser
                         $precisionToken->getPosition()
                     );
                 }
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+                $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
             }
             return new nodes\TypeName(new nodes\QualifiedName('pg_catalog', $floatName));
 
@@ -1991,15 +1993,15 @@ class Parser
             if ($this->stream->matchesSpecialChar('(')) {
                 $this->stream->next();
                 $modifiers = new nodes\lists\TypeModifierList([
-                    nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_INTEGER))
+                    nodes\expressions\Constant::createFromToken($this->stream->expect(TokenType::INTEGER))
                 ]);
                 if ($this->stream->matchesSpecialChar(',')) {
                     $this->stream->next();
                     $modifiers[] = nodes\expressions\Constant::createFromToken(
-                        $this->stream->expect(Token::TYPE_INTEGER)
+                        $this->stream->expect(TokenType::INTEGER)
                     );
                 }
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+                $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
             }
         }
 
@@ -2024,9 +2026,9 @@ class Parser
         if ($this->stream->matchesSpecialChar('(')) {
             $this->stream->next();
             $modifiers = new nodes\lists\TypeModifierList([
-                nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_INTEGER))
+                nodes\expressions\Constant::createFromToken($this->stream->expect(TokenType::INTEGER))
             ]);
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         }
         // BIT translates to bit(1) *unless* this is a leading typecast
         // where it translates to "any length" (with no modifiers)
@@ -2044,7 +2046,7 @@ class Parser
         if (
             !$this->stream->matchesKeyword(self::STANDARD_TYPES_CHARACTER)
             || ('national' === $this->stream->getCurrent()->getValue()
-                && !$this->stream->look(1)->matches(Token::TYPE_KEYWORD, ['character', 'char']))
+                && !$this->stream->look(1)->matches(TokenType::KEYWORD, ['character', 'char']))
         ) {
             return null;
         }
@@ -2062,9 +2064,9 @@ class Parser
         if ($this->stream->matchesSpecialChar('(')) {
             $this->stream->next();
             $modifiers = new nodes\lists\TypeModifierList([
-                nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_INTEGER))
+                nodes\expressions\Constant::createFromToken($this->stream->expect(TokenType::INTEGER))
             ]);
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         }
         // CHAR translates to char(1) *unless* this is a leading typecast
         // where it translates to "any length" (with no modifiers)
@@ -2089,9 +2091,9 @@ class Parser
         if ($this->stream->matchesSpecialChar('(')) {
             $this->stream->next();
             $modifiers = new nodes\lists\TypeModifierList([
-                nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_INTEGER))
+                nodes\expressions\Constant::createFromToken($this->stream->expect(TokenType::INTEGER))
             ]);
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         }
 
         if ($this->stream->matchesKeywordSequence(['with', 'without'], 'time', 'zone')) {
@@ -2124,7 +2126,7 @@ class Parser
         $this->stream->next();
 
         $modifiers = $this->IntervalTypeModifiers();
-        $operand   = nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_STRING));
+        $operand   = nodes\expressions\Constant::createFromToken($this->stream->expect(TokenType::STRING));
         $typeNode  = $this->IntervalWithPossibleTrailingTypeModifiers($modifiers);
 
         return new nodes\expressions\TypecastExpression($operand, $typeNode);
@@ -2143,13 +2145,13 @@ class Parser
                 $toToken    = $this->stream->next();
                 $trailing[] = 'to';
                 if ('year' === $trailing[0]) {
-                    $end = $this->stream->expect(Token::TYPE_KEYWORD, 'month');
+                    $end = $this->stream->expect(TokenType::KEYWORD, 'month');
                 } elseif ('day' === $trailing[0]) {
-                    $end = $this->stream->expect(Token::TYPE_KEYWORD, ['hour', 'minute', 'second']);
+                    $end = $this->stream->expect(TokenType::KEYWORD, ['hour', 'minute', 'second']);
                 } elseif ('hour' === $trailing[0]) {
-                    $end = $this->stream->expect(Token::TYPE_KEYWORD, ['minute', 'second']);
+                    $end = $this->stream->expect(TokenType::KEYWORD, ['minute', 'second']);
                 } elseif ('minute' === $trailing[0]) {
-                    $end = $this->stream->expect(Token::TYPE_KEYWORD, 'second');
+                    $end = $this->stream->expect(TokenType::KEYWORD, 'second');
                 } else {
                     throw new exceptions\SyntaxException('Unexpected ' . $toToken);
                 }
@@ -2176,9 +2178,9 @@ class Parser
         } else {
             $this->stream->next();
             $modifiers = new nodes\lists\TypeModifierList([
-                nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_INTEGER))
+                nodes\expressions\Constant::createFromToken($this->stream->expect(TokenType::INTEGER))
             ]);
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         }
         return $modifiers;
     }
@@ -2196,9 +2198,9 @@ class Parser
     {
         if (
             !$this->stream->matchesAnyType(
-                Token::TYPE_IDENTIFIER,
-                Token::TYPE_UNRESERVED_KEYWORD,
-                Token::TYPE_TYPE_FUNC_NAME_KEYWORD
+                TokenType::IDENTIFIER,
+                TokenType::UNRESERVED_KEYWORD,
+                TokenType::TYPE_FUNC_NAME_KEYWORD
             )
         ) {
             return null;
@@ -2207,11 +2209,11 @@ class Parser
         $typeName = [nodes\Identifier::createFromToken($this->stream->next())];
         while ($this->stream->matchesSpecialChar('.')) {
             $this->stream->next();
-            if ($this->stream->matches(Token::TYPE_IDENTIFIER)) {
+            if ($this->stream->matches(TokenType::IDENTIFIER)) {
                 $typeName[] = nodes\Identifier::createFromToken($this->stream->next());
             } else {
                 // any keyword goes, see ColLabel
-                $typeName[] = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_KEYWORD));
+                $typeName[] = nodes\Identifier::createFromToken($this->stream->expect(TokenType::KEYWORD));
             }
         }
 
@@ -2230,7 +2232,7 @@ class Parser
             $this->stream->next();
             $modifiers[] = $this->GenericTypeModifier();
         }
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         return $modifiers;
     }
 
@@ -2246,14 +2248,14 @@ class Parser
     protected function GenericTypeModifier()
     {
         // Let's keep most common case at the top
-        if ($this->stream->matchesAnyType(Token::TYPE_INTEGER, Token::TYPE_FLOAT, Token::TYPE_STRING)) {
+        if ($this->stream->matchesAnyType(TokenType::INTEGER, TokenType::FLOAT, TokenType::STRING)) {
             return nodes\expressions\Constant::createFromToken($this->stream->next());
 
         } elseif (
             $this->stream->matchesAnyType(
-                Token::TYPE_IDENTIFIER,
-                Token::TYPE_UNRESERVED_KEYWORD,
-                Token::TYPE_TYPE_FUNC_NAME_KEYWORD
+                TokenType::IDENTIFIER,
+                TokenType::UNRESERVED_KEYWORD,
+                TokenType::TYPE_FUNC_NAME_KEYWORD
             )
         ) {
             // allows ColId
@@ -2358,7 +2360,7 @@ class Parser
     {
         $left = $this->ExpressionAtom();
 
-        while ($this->stream->matches(Token::TYPE_TYPECAST)) {
+        while ($this->stream->matches(TokenType::TYPECAST)) {
             $this->stream->next();
             $left = new nodes\expressions\TypecastExpression($left, $this->TypeName());
         }
@@ -2372,7 +2374,7 @@ class Parser
         if ($this->stream->matchesKeyword(self::ATOM_KEYWORDS)) {
             switch ($token->getValue()) {
                 case 'row':
-                    if ($this->stream->look()->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+                    if ($this->stream->look()->matches(TokenType::SPECIAL_CHAR, '(')) {
                         return $this->RowConstructor();
                     }
                     break;
@@ -2396,8 +2398,8 @@ class Parser
                     return nodes\expressions\Constant::createFromToken($this->stream->next());
             }
 
-        } elseif (0 !== ($token->getType() & self::ATOM_SPECIAL_TYPES)) {
-            if ($token->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+        } elseif (0 !== ($token->getType()->value & self::ATOM_SPECIAL_TYPES)) {
+            if ($token->matches(TokenType::SPECIAL_CHAR, '(')) {
                 switch ($this->checkContentsOfParentheses()) {
                     case self::PARENTHESES_ROW:
                         return $this->RowConstructor();
@@ -2410,13 +2412,13 @@ class Parser
                     default:
                         $this->stream->next();
                         $atom = $this->Expression();
-                        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+                        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
                 }
 
-            } elseif ($token->matches(Token::TYPE_PARAMETER)) {
+            } elseif ($token->matches(TokenType::PARAMETER)) {
                 $atom = nodes\expressions\Parameter::createFromToken($this->stream->next());
 
-            } elseif ($token->matches(Token::TYPE_LITERAL)) {
+            } elseif ($token->matches(TokenType::LITERAL)) {
                 return nodes\expressions\Constant::createFromToken($this->stream->next());
             }
         }
@@ -2456,7 +2458,7 @@ class Parser
     {
         if (
             $this->stream->matchesKeyword(['true', 'false', 'null'])
-            || $this->stream->matches(Token::TYPE_LITERAL)
+            || $this->stream->matches(TokenType::LITERAL)
         ) {
             return nodes\expressions\Constant::createFromToken($this->stream->next());
         }
@@ -2483,16 +2485,16 @@ class Parser
         $firstType   = $token->getType();
 
         // This will throw an Exception if current token in stream cannot start a name
-        if (!isset(self::ATOM_IDENTIFIER_TYPES[$firstType])) {
-            $this->stream->expect(Token::TYPE_IDENTIFIER);
+        if (!\in_array($firstType, self::ATOM_IDENTIFIER_TYPES)) {
+            $this->stream->expect(TokenType::IDENTIFIER);
         }
 
         $identifiers = [nodes\Identifier::createFromToken($token)];
 
         $lookIdx = 1;
-        while ($this->stream->look($lookIdx)->matches(Token::TYPE_SPECIAL_CHAR, '.')) {
+        while ($this->stream->look($lookIdx)->matches(TokenType::SPECIAL_CHAR, '.')) {
             $token = $this->stream->look($lookIdx + 1);
-            if (!$token->matches(Token::TYPE_IDENTIFIER) && !$token->matches(Token::TYPE_KEYWORD)) {
+            if (!$token->matches(TokenType::IDENTIFIER) && !$token->matches(TokenType::KEYWORD)) {
                 break;
             }
             $identifiers[]  = nodes\Identifier::createFromToken($token);
@@ -2501,19 +2503,19 @@ class Parser
 
         if (
             // check that whatever we got looks like func_name production
-            !(1 === count($identifiers) && Token::TYPE_COL_NAME_KEYWORD === $firstType
-              || 1 < count($identifiers) && Token::TYPE_TYPE_FUNC_NAME_KEYWORD === $firstType)
+            !(1 === count($identifiers) && TokenType::COL_NAME_KEYWORD === $firstType
+              || 1 < count($identifiers) && TokenType::TYPE_FUNC_NAME_KEYWORD === $firstType)
         ) {
-            if ($this->stream->look($lookIdx)->matches(Token::TYPE_STRING)) {
+            if ($this->stream->look($lookIdx)->matches(TokenType::STRING)) {
                 $this->stream->skip($lookIdx);
                 return $this->GenericLeadingTypecast($identifiers);
-            } elseif ($this->stream->look($lookIdx)->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+            } elseif ($this->stream->look($lookIdx)->matches(TokenType::SPECIAL_CHAR, '(')) {
                 $this->stream->skip($lookIdx);
-                if ($this->stream->look(1)->matches(Token::TYPE_SPECIAL_CHAR, ')')) {
+                if ($this->stream->look(1)->matches(TokenType::SPECIAL_CHAR, ')')) {
                     return $this->FunctionExpression($identifiers);
                 } else {
                     $beyond = $this->skipParentheses(0);
-                    return $this->stream->look($beyond)->matches(Token::TYPE_STRING)
+                    return $this->stream->look($beyond)->matches(TokenType::STRING)
                            ? $this->GenericLeadingTypecast($identifiers)
                            : $this->FunctionExpression($identifiers);
                 }
@@ -2521,8 +2523,8 @@ class Parser
         }
 
         // This will throw an exception if matched name is an invalid ColumnReference
-        if (Token::TYPE_TYPE_FUNC_NAME_KEYWORD === $firstType) {
-            $this->stream->expect(Token::TYPE_IDENTIFIER);
+        if (TokenType::TYPE_FUNC_NAME_KEYWORD === $firstType) {
+            $this->stream->expect(TokenType::IDENTIFIER);
         }
 
         $this->stream->skip($lookIdx);
@@ -2547,7 +2549,7 @@ class Parser
         // ROW() is only possible with the keyword, 'VALUES ()' is a syntax error
         if (
             $this->stream->matchesSpecialChar('(')
-            && $this->stream->look()->matches(Token::TYPE_SPECIAL_CHAR, ')')
+            && $this->stream->look()->matches(TokenType::SPECIAL_CHAR, ')')
         ) {
             $this->stream->skip(2);
             return new nodes\expressions\RowExpression([]);
@@ -2558,9 +2560,9 @@ class Parser
 
     protected function RowConstructorNoKeyword(): nodes\expressions\RowExpression
     {
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
         $fields = $this->ExpressionListWithDefault();
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         return new nodes\expressions\RowExpression($fields);
     }
@@ -2570,10 +2572,10 @@ class Parser
      */
     protected function ArrayConstructor(): nodes\ScalarExpression
     {
-        $this->stream->expect(Token::TYPE_KEYWORD, 'array');
+        $this->stream->expect(TokenType::KEYWORD, 'array');
         if (!$this->stream->matchesSpecialChar(['[', '('])) {
             throw exceptions\SyntaxException::expectationFailed(
-                Token::TYPE_SPECIAL_CHAR,
+                TokenType::SPECIAL_CHAR,
                 ['[', '('],
                 $this->stream->getCurrent(),
                 $this->stream->getSource()
@@ -2589,7 +2591,7 @@ class Parser
 
     protected function ArrayExpression(): nodes\expressions\ArrayExpression
     {
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '[');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '[');
         if ($this->stream->matchesSpecialChar(']')) {
             $this->stream->next();
             return new nodes\expressions\ArrayExpression();
@@ -2605,7 +2607,7 @@ class Parser
                 $array[] = $this->ArrayExpression();
             }
         }
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ']');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ']');
 
         return $array;
     }
@@ -2616,7 +2618,7 @@ class Parser
         $whenClauses = [];
         $elseClause  = null;
 
-        $this->stream->expect(Token::TYPE_KEYWORD, 'case');
+        $this->stream->expect(TokenType::KEYWORD, 'case');
         // "simple" variant?
         if (!$this->stream->matchesKeyword('when')) {
             $argument = $this->Expression();
@@ -2624,9 +2626,9 @@ class Parser
 
         // requires at least one WHEN clause
         do {
-            $this->stream->expect(Token::TYPE_KEYWORD, 'when');
+            $this->stream->expect(TokenType::KEYWORD, 'when');
             $when = $this->Expression();
-            $this->stream->expect(Token::TYPE_KEYWORD, 'then');
+            $this->stream->expect(TokenType::KEYWORD, 'then');
             $then = $this->Expression();
             $whenClauses[] = new nodes\expressions\WhenExpression($when, $then);
         } while ($this->stream->matchesKeyword('when'));
@@ -2636,17 +2638,17 @@ class Parser
             $this->stream->next();
             $elseClause = $this->Expression();
         }
-        $this->stream->expect(Token::TYPE_KEYWORD, 'end');
+        $this->stream->expect(TokenType::KEYWORD, 'end');
 
         return new nodes\expressions\CaseExpression($whenClauses, $elseClause, $argument);
     }
 
     protected function GroupingExpression(): nodes\expressions\GroupingExpression
     {
-        $this->stream->expect(Token::TYPE_KEYWORD, 'grouping');
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(TokenType::KEYWORD, 'grouping');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
         $expression = new nodes\expressions\GroupingExpression($this->ExpressionList());
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         return $expression;
     }
@@ -2666,7 +2668,7 @@ class Parser
 
         if (null !== $typeName) {
             return new nodes\expressions\TypecastExpression(
-                nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_STRING)),
+                nodes\expressions\Constant::createFromToken($this->stream->expect(TokenType::STRING)),
                 $typeName
             );
         }
@@ -2678,7 +2680,7 @@ class Parser
     {
         $modifiers = $this->GenericTypeModifierList();
         return new nodes\expressions\TypecastExpression(
-            nodes\expressions\Constant::createFromToken($this->stream->expect(Token::TYPE_STRING)),
+            nodes\expressions\Constant::createFromToken($this->stream->expect(TokenType::STRING)),
             new nodes\TypeName(new nodes\QualifiedName(...$identifiers), $modifiers)
         );
     }
@@ -2703,9 +2705,9 @@ class Parser
         if ($this->stream->matchesSpecialChar('(')) {
             $this->stream->next();
             $modifier = new nodes\expressions\NumericConstant(
-                $this->stream->expect(Token::TYPE_INTEGER)->getValue()
+                $this->stream->expect(TokenType::INTEGER)->getValue()
             );
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         }
 
         return new nodes\expressions\SQLValueFunction($funcName, $modifier);
@@ -2717,7 +2719,7 @@ class Parser
             return null;
         }
         $funcName = $this->stream->next()->getValue();
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
 
         switch ($funcName) {
             case 'treat':
@@ -2728,20 +2730,20 @@ class Parser
 
             case 'cast':
                 $value = $this->Expression();
-                $this->stream->expect(Token::TYPE_KEYWORD, 'as');
+                $this->stream->expect(TokenType::KEYWORD, 'as');
                 $funcNode = new nodes\expressions\TypecastExpression($value, $this->TypeName());
                 break;
 
             case 'extract':
                 if (
                     $this->stream->matchesKeyword(nodes\expressions\ExtractExpression::KEYWORDS)
-                    || $this->stream->matches(Token::TYPE_STRING)
+                    || $this->stream->matches(TokenType::STRING)
                 ) {
                     $field = $this->stream->next()->getValue();
                 } else {
-                    $field = $this->stream->expect(Token::TYPE_IDENTIFIER)->getValue();
+                    $field = $this->stream->expect(TokenType::IDENTIFIER)->getValue();
                 }
-                $this->stream->expect(Token::TYPE_KEYWORD, 'from');
+                $this->stream->expect(TokenType::KEYWORD, 'from');
                 $funcNode = new nodes\expressions\ExtractExpression($field, $this->Expression());
                 break;
 
@@ -2751,7 +2753,7 @@ class Parser
 
             case 'position':
                 $substring = $this->RestrictedExpression();
-                $this->stream->expect(Token::TYPE_KEYWORD, 'in');
+                $this->stream->expect(TokenType::KEYWORD, 'in');
                 $funcNode = new nodes\expressions\PositionExpression($substring, $this->RestrictedExpression());
                 break;
 
@@ -2765,7 +2767,7 @@ class Parser
 
             case 'nullif': // only two arguments, so don't use ExpressionList()
                 $first    = $this->Expression();
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
+                $this->stream->expect(TokenType::SPECIAL_CHAR, ',');
                 $second   = $this->Expression();
                 $funcNode = new nodes\expressions\NullIfExpression($first, $second);
                 break;
@@ -2783,7 +2785,7 @@ class Parser
                 break;
 
             case 'xmlparse':
-                $docOrContent = $this->stream->expect(Token::TYPE_KEYWORD, ['document', 'content'])->getValue();
+                $docOrContent = $this->stream->expect(TokenType::KEYWORD, ['document', 'content'])->getValue();
                 $value        = $this->Expression();
                 $preserve     = false;
                 if ($this->stream->matchesKeywordSequence('preserve', 'whitespace')) {
@@ -2798,11 +2800,11 @@ class Parser
                 break;
 
             case 'xmlpi':
-                $this->stream->expect(Token::TYPE_KEYWORD, 'name');
-                if ($this->stream->matches(Token::TYPE_KEYWORD)) {
+                $this->stream->expect(TokenType::KEYWORD, 'name');
+                if ($this->stream->matches(TokenType::KEYWORD)) {
                     $name = nodes\Identifier::createFromToken($this->stream->next());
                 } else {
-                    $name = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
+                    $name = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
                 }
                 $content = null;
                 if ($this->stream->matchesSpecialChar(',')) {
@@ -2818,14 +2820,14 @@ class Parser
                 break;
 
             case 'xmlserialize':
-                $docOrContent = $this->stream->expect(Token::TYPE_KEYWORD, ['document', 'content'])->getValue();
+                $docOrContent = $this->stream->expect(TokenType::KEYWORD, ['document', 'content'])->getValue();
                 $value        = $this->Expression();
-                $this->stream->expect(Token::TYPE_KEYWORD, 'as');
+                $this->stream->expect(TokenType::KEYWORD, 'as');
                 $typeName     = $this->SimpleTypeName();
                 $indent       = null;
                 if ($this->stream->matchesKeyword(['no', 'indent'])) {
                     if (!($indent = ('indent' === $this->stream->next()->getValue()))) {
-                        $this->stream->expect(Token::TYPE_KEYWORD, 'indent');
+                        $this->stream->expect(TokenType::KEYWORD, 'indent');
                     }
                 }
                 $funcNode     = new nodes\xml\XmlSerialize($docOrContent, $value, $typeName, $indent);
@@ -2836,7 +2838,7 @@ class Parser
                 if ($this->stream->matchesSpecialChar(',')) {
                     $this->stream->skip(1);
                     $form = $this->stream->expect(
-                        Token::TYPE_KEYWORD,
+                        TokenType::KEYWORD,
                         nodes\expressions\NormalizeExpression::FORMS
                     )->getValue();
                 }
@@ -2880,7 +2882,7 @@ class Parser
                 );
         }
 
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         return $funcNode;
     }
 
@@ -2916,7 +2918,7 @@ class Parser
 
     protected function OverlayExpressionFromArguments(): nodes\FunctionLike
     {
-        if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ')')) {
+        if ($this->stream->matches(TokenType::SPECIAL_CHAR, ')')) {
             // This is an invocation of user-defined function named "overlay" with no arguments
             return new nodes\expressions\FunctionExpression(
                 new nodes\QualifiedName('overlay'),
@@ -2935,15 +2937,15 @@ class Parser
             default:
                 // This may be either a user-defined function with a single argument or an SQL-standard one
                 $arguments = [$this->Expression()];
-                if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ')')) {
+                if ($this->stream->matches(TokenType::SPECIAL_CHAR, ')')) {
                     return new nodes\expressions\FunctionExpression(
                         new nodes\QualifiedName('overlay'),
                         new nodes\lists\FunctionArgumentList($arguments)
                     );
                 }
-                $this->stream->expect(Token::TYPE_KEYWORD, 'placing');
+                $this->stream->expect(TokenType::KEYWORD, 'placing');
                 $arguments[] = $this->Expression();
-                $this->stream->expect(Token::TYPE_KEYWORD, 'from');
+                $this->stream->expect(TokenType::KEYWORD, 'from');
                 $arguments[] = $this->Expression();
                 if ($this->stream->matchesKeyword('for')) {
                     $this->stream->next();
@@ -2955,7 +2957,7 @@ class Parser
 
     protected function SubstringExpressionFromArguments(): nodes\FunctionLike
     {
-        if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ')')) {
+        if ($this->stream->matches(TokenType::SPECIAL_CHAR, ')')) {
             // This is an invocation of user-defined function named "substring" with no arguments
             return new nodes\expressions\FunctionExpression(
                 new nodes\QualifiedName('substring'),
@@ -2974,16 +2976,16 @@ class Parser
             default:
                 // This may be either a user-defined function with a single argument or an SQL-standard one
                 $arguments = [$this->Expression()];
-                if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ')')) {
+                if ($this->stream->matches(TokenType::SPECIAL_CHAR, ')')) {
                     return new nodes\expressions\FunctionExpression(
                         new nodes\QualifiedName('substring'),
                         new nodes\lists\FunctionArgumentList($arguments)
                     );
                 }
-                $token = $this->stream->expect(Token::TYPE_KEYWORD, ['from', 'for', 'similar']);
+                $token = $this->stream->expect(TokenType::KEYWORD, ['from', 'for', 'similar']);
                 if ('similar' === $token->getValue()) {
                     $similar = $this->Expression();
-                    $this->stream->expect(Token::TYPE_KEYWORD, 'escape');
+                    $this->stream->expect(TokenType::KEYWORD, 'escape');
                     return new nodes\expressions\SubstringSimilarExpression(
                         $arguments[0],
                         $similar,
@@ -3013,11 +3015,11 @@ class Parser
 
     protected function XmlElementFunction(): nodes\xml\XmlElement
     {
-        $this->stream->expect(Token::TYPE_KEYWORD, 'name');
-        if ($this->stream->matches(Token::TYPE_KEYWORD)) {
+        $this->stream->expect(TokenType::KEYWORD, 'name');
+        if ($this->stream->matches(TokenType::KEYWORD)) {
             $name = nodes\Identifier::createFromToken($this->stream->next());
         } else {
-            $name = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
+            $name = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
         }
         $attributes = $content = null;
         if ($this->stream->matchesSpecialChar(',')) {
@@ -3026,9 +3028,9 @@ class Parser
                 $content = $this->ExpressionList();
             } else {
                 $this->stream->next();
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+                $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
                 $attributes = new nodes\lists\TargetList($this->XmlAttributeList());
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+                $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
                 if ($this->stream->matchesSpecialChar(',')) {
                     $this->stream->next();
                     $content = $this->ExpressionList();
@@ -3041,20 +3043,20 @@ class Parser
     protected function XmlRoot(): nodes\xml\XmlRoot
     {
         $xml = $this->Expression();
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
-        $this->stream->expect(Token::TYPE_KEYWORD, 'version');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ',');
+        $this->stream->expect(TokenType::KEYWORD, 'version');
         $version = $this->stream->matchesKeywordSequence('no', 'value') ? null : $this->Expression();
         if (!$this->stream->matchesSpecialChar(',')) {
             $standalone = null;
         } else {
             $this->stream->next();
-            $this->stream->expect(Token::TYPE_KEYWORD, 'standalone');
+            $this->stream->expect(TokenType::KEYWORD, 'standalone');
             if ($this->stream->matchesKeywordSequence('no', 'value')) {
                 $this->stream->next();
                 $this->stream->next();
                 $standalone = 'no value';
             } else {
-                $standalone = $this->stream->expect(Token::TYPE_KEYWORD, ['yes', 'no'])->getValue();
+                $standalone = $this->stream->expect(TokenType::KEYWORD, ['yes', 'no'])->getValue();
             }
         }
         return new nodes\xml\XmlRoot($xml, $version, $standalone);
@@ -3081,10 +3083,10 @@ class Parser
         $attName = null;
         if ($this->stream->matchesKeyword('as')) {
             $this->stream->next();
-            if ($this->stream->matches(Token::TYPE_KEYWORD)) {
+            if ($this->stream->matches(TokenType::KEYWORD)) {
                 $attName = nodes\Identifier::createFromToken($this->stream->next());
             } else {
-                $attName = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
+                $attName = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
             }
         }
         return new nodes\TargetElement($value, $attName);
@@ -3141,11 +3143,11 @@ class Parser
             }
             $withinGroup = true;
             $this->stream->skip(2);
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-            $this->stream->expect(Token::TYPE_KEYWORD, 'order');
-            $this->stream->expect(Token::TYPE_KEYWORD, 'by');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
+            $this->stream->expect(TokenType::KEYWORD, 'order');
+            $this->stream->expect(TokenType::KEYWORD, 'by');
             $order = $this->OrderByList();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         }
 
         return new nodes\expressions\FunctionExpression(
@@ -3167,10 +3169,10 @@ class Parser
         }
 
         $this->stream->next();
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-        $this->stream->expect(Token::TYPE_KEYWORD, 'where');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
+        $this->stream->expect(TokenType::KEYWORD, 'where');
         $filter = $this->Expression();
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         return $filter;
     }
@@ -3192,9 +3194,9 @@ class Parser
 
         if (null === $funcNode && $this->stream->matchesKeywordSequence('collation', 'for')) {
             $this->stream->skip(2);
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
             $funcNode = new nodes\expressions\CollationForExpression($this->Expression());
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         }
 
         return $funcNode;
@@ -3208,7 +3210,7 @@ class Parser
 
         $funcName = empty($identifiers) ? $this->GenericFunctionName() : new nodes\QualifiedName(...$identifiers);
 
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
         if ($this->stream->matchesSpecialChar('*')) {
             $this->stream->next();
             $positionalArguments = new nodes\Star();
@@ -3254,7 +3256,7 @@ class Parser
                 $orderBy = $this->OrderByList();
             }
         }
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         return new nodes\FunctionCall(
             $funcName,
@@ -3268,25 +3270,25 @@ class Parser
 
     protected function GenericFunctionName(): nodes\QualifiedName
     {
-        if (isset(self::ATOM_IDENTIFIER_TYPES[$this->stream->getCurrent()->getType()])) {
+        if (\in_array($this->stream->getCurrent()->getType(), self::ATOM_IDENTIFIER_TYPES, true)) {
             $firstToken = $this->stream->next();
         } else {
-            $firstToken = $this->stream->expect(Token::TYPE_IDENTIFIER);
+            $firstToken = $this->stream->expect(TokenType::IDENTIFIER);
         }
         $funcName = [nodes\Identifier::createFromToken($firstToken)];
 
         while ($this->stream->matchesSpecialChar('.')) {
             $this->stream->next();
-            if ($this->stream->matches(Token::TYPE_KEYWORD)) {
+            if ($this->stream->matches(TokenType::KEYWORD)) {
                 $funcName[] = nodes\Identifier::createFromToken($this->stream->next());
             } else {
-                $funcName[] = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
+                $funcName[] = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
             }
         }
 
         if (
-            Token::TYPE_TYPE_FUNC_NAME_KEYWORD === $firstToken->getType() && 1 < count($funcName)
-            || Token::TYPE_COL_NAME_KEYWORD === $firstToken->getType() && 1 === count($funcName)
+            TokenType::TYPE_FUNC_NAME_KEYWORD === $firstToken->getType() && 1 < count($funcName)
+            || TokenType::COL_NAME_KEYWORD === $firstToken->getType() && 1 === count($funcName)
         ) {
             throw exceptions\SyntaxException::atPosition(
                 implode('.', $funcName) . ' is not a valid function name',
@@ -3358,13 +3360,13 @@ class Parser
         $name = null;
         // it's the only place this shit can appear in
         if (
-            $this->stream->look(1)->matches(Token::TYPE_COLON_EQUALS)
-            || $this->stream->look(1)->matches(Token::TYPE_EQUALS_GREATER)
+            $this->stream->look(1)->matches(TokenType::COLON_EQUALS)
+            || $this->stream->look(1)->matches(TokenType::EQUALS_GREATER)
         ) {
-            if ($this->stream->matchesAnyType(Token::TYPE_UNRESERVED_KEYWORD, Token::TYPE_TYPE_FUNC_NAME_KEYWORD)) {
+            if ($this->stream->matchesAnyType(TokenType::UNRESERVED_KEYWORD, TokenType::TYPE_FUNC_NAME_KEYWORD)) {
                 $name = nodes\Identifier::createFromToken($this->stream->next());
             } else {
-                $name = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
+                $name = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
             }
             $this->stream->next();
         }
@@ -3403,15 +3405,15 @@ class Parser
                 if ($this->stream->matchesSpecialChar('*')) {
                     if (!$allowStar) {
                         // this will basically trigger an error if '.*' appears in list of fields for INSERT or UPDATE
-                        $this->stream->expect(Token::TYPE_IDENTIFIER);
+                        $this->stream->expect(TokenType::IDENTIFIER);
                     }
                     $this->stream->next();
                     $indirection[] = new nodes\Star();
                     break;
-                } elseif ($this->stream->matches(Token::TYPE_KEYWORD)) {
+                } elseif ($this->stream->matches(TokenType::KEYWORD)) {
                     $indirection[] = nodes\Identifier::createFromToken($this->stream->next());
                 } else {
-                    $indirection[] = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
+                    $indirection[] = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
                 }
 
             } else {
@@ -3428,7 +3430,7 @@ class Parser
                         $upper = $this->Expression();
                     }
                 }
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ']');
+                $this->stream->expect(TokenType::SPECIAL_CHAR, ']');
 
                 $indirection[] = $isSlice
                                  ? new nodes\ArrayIndexes($lower, $upper, true)
@@ -3463,18 +3465,18 @@ class Parser
         }
         $element = $this->Expression();
         if (
-            $this->stream->matches(Token::TYPE_IDENTIFIER)
-            || $this->stream->matches(Token::TYPE_KEYWORD)
-               && Keywords::isBareLabelKeyword($this->stream->getCurrent()->getValue())
+            $this->stream->matches(TokenType::IDENTIFIER)
+            || $this->stream->matches(TokenType::KEYWORD)
+               && Keyword::from($this->stream->getCurrent()->getValue())->isBareLabel()
         ) {
             $alias = nodes\Identifier::createFromToken($this->stream->next());
 
         } elseif ($this->stream->matchesKeyword('as')) {
             $this->stream->next();
-            if ($this->stream->matches(Token::TYPE_KEYWORD)) {
+            if ($this->stream->matches(TokenType::KEYWORD)) {
                 $alias = nodes\Identifier::createFromToken($this->stream->next());
             } else {
-                $alias = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
+                $alias = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
             }
         }
 
@@ -3503,7 +3505,7 @@ class Parser
             // CROSS JOIN needs no join quals
             if ('cross' === $this->stream->getCurrent()->getValue()) {
                 $this->stream->next();
-                $this->stream->expect(Token::TYPE_KEYWORD, 'join');
+                $this->stream->expect(TokenType::KEYWORD, 'join');
                 $left = new nodes\range\JoinExpression($left, $this->TableReference(), 'cross');
                 continue;
             }
@@ -3518,13 +3520,13 @@ class Parser
                 $this->stream->next();
                 $joinType = 'inner';
             } else {
-                $joinType = $this->stream->expect(Token::TYPE_KEYWORD, ['left', 'right', 'full', 'inner'])
+                $joinType = $this->stream->expect(TokenType::KEYWORD, ['left', 'right', 'full', 'inner'])
                                 ->getValue();
                 // noise word
                 if ($this->stream->matchesKeyword('outer')) {
                     $this->stream->next();
                 }
-                $this->stream->expect(Token::TYPE_KEYWORD, 'join');
+                $this->stream->expect(TokenType::KEYWORD, 'join');
             }
             $left = new nodes\range\JoinExpression($left, $this->TableReference(), $joinType);
 
@@ -3532,7 +3534,7 @@ class Parser
                 $left->setNatural(true);
 
             } else {
-                $token = $this->stream->expect(Token::TYPE_KEYWORD, ['on', 'using']);
+                $token = $this->stream->expect(TokenType::KEYWORD, ['on', 'using']);
                 if ('on' === $token->getValue()) {
                     $left->setOn($this->Expression());
                 } else {
@@ -3556,8 +3558,8 @@ class Parser
     protected function UsingClause(bool $parentheses = false): nodes\range\UsingClause
     {
         if ($parentheses) {
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
-        } elseif ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
+        } elseif ($this->stream->matches(TokenType::SPECIAL_CHAR, '(')) {
             $parentheses = true;
             $this->stream->next();
         }
@@ -3566,7 +3568,7 @@ class Parser
         $items = $this->ColIdList();
 
         if ($parentheses) {
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
             if ($this->stream->matchesKeyword('as')) {
                 $this->stream->next();
                 $alias = $this->ColId();
@@ -3599,7 +3601,7 @@ class Parser
             } else {
                 $this->stream->next();
                 $reference = $this->FromElement();
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+                $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
                 if ($alias = $this->OptionalAliasClause()) {
                     $reference->setAlias($alias[0], $alias[1]);
                 }
@@ -3645,13 +3647,13 @@ class Parser
             );
         } else {
             $this->stream->skip(2);
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
             $list = new nodes\lists\RowsFromList([$this->RowsFromElement()]);
             while ($this->stream->matchesSpecialChar(',')) {
                 $this->stream->next();
                 $list[] = $this->RowsFromElement();
             }
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
             $reference = new nodes\range\RowsFrom($list);
         }
@@ -3678,13 +3680,13 @@ class Parser
             $aliases = null;
         } else {
             $this->stream->next();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
             $aliases = new nodes\lists\ColumnDefinitionList([$this->TableFuncElement()]);
             while ($this->stream->matchesSpecialChar(',')) {
                 $this->stream->next();
                 $aliases[] = $this->TableFuncElement();
             }
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         }
         return new nodes\range\RowsFromElement($function, $aliases);
     }
@@ -3729,16 +3731,16 @@ class Parser
         if ($this->stream->matchesKeyword('tablesample')) {
             $this->stream->next();
             $method     = $this->GenericFunctionName();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
             $arguments  = $this->ExpressionList();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
             $repeatable = null;
             if ($this->stream->matchesKeyword('repeatable')) {
                 $this->stream->next();
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+                $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
                 $repeatable = $this->Expression();
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+                $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
             }
 
             $expression = new nodes\range\TableSample($expression, $method, $arguments, $repeatable);
@@ -3779,7 +3781,7 @@ class Parser
         $name = $this->QualifiedName();
 
         if (false === $inherit && $expectParenthesis) {
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         } elseif (null === $inherit && $this->stream->matchesSpecialChar('*')) {
             $this->stream->next();
@@ -3801,8 +3803,8 @@ class Parser
     {
         if (
             $this->stream->matchesKeyword('as')
-            || $this->stream->matchesAnyType(Token::TYPE_IDENTIFIER, Token::TYPE_COL_NAME_KEYWORD)
-            || ($this->stream->matches(Token::TYPE_UNRESERVED_KEYWORD)
+            || $this->stream->matchesAnyType(TokenType::IDENTIFIER, TokenType::COL_NAME_KEYWORD)
+            || ($this->stream->matches(TokenType::UNRESERVED_KEYWORD)
                 && (self::RELATION_FORMAT_UPDATE !== $statementType
                     || 'set' !== $this->stream->getCurrent()->getValue()))
         ) {
@@ -3819,9 +3821,9 @@ class Parser
         if (
             $this->stream->matchesKeyword('as')
             || $this->stream->matchesAnyType(
-                Token::TYPE_IDENTIFIER,
-                Token::TYPE_UNRESERVED_KEYWORD,
-                Token::TYPE_COL_NAME_KEYWORD
+                TokenType::IDENTIFIER,
+                TokenType::UNRESERVED_KEYWORD,
+                TokenType::COL_NAME_KEYWORD
             )
         ) {
             $tableAlias    = null;
@@ -3835,12 +3837,12 @@ class Parser
                 $tableAlias = $this->ColId();
             }
             if (!$tableAlias || $this->stream->matchesSpecialChar('(')) {
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+                $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
 
                 if (
                     $allowFunctionAlias
                     // for TableFuncElement the next position will contain typename
-                    && (!$tableAlias || !$this->stream->look()->matches(Token::TYPE_SPECIAL_CHAR, [')', ',']))
+                    && (!$tableAlias || !$this->stream->look()->matches(TokenType::SPECIAL_CHAR, [')', ',']))
                 ) {
                     $columnAliases = new nodes\lists\ColumnDefinitionList([$this->TableFuncElement()]);
                     while ($this->stream->matchesSpecialChar(',')) {
@@ -3855,7 +3857,7 @@ class Parser
                     }
                 }
 
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+                $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
             }
 
             return [$tableAlias, $columnAliases];
@@ -3891,10 +3893,10 @@ class Parser
      */
     protected function ColId(): nodes\Identifier
     {
-        if ($this->stream->matchesAnyType(Token::TYPE_UNRESERVED_KEYWORD, Token::TYPE_COL_NAME_KEYWORD)) {
+        if ($this->stream->matchesAnyType(TokenType::UNRESERVED_KEYWORD, TokenType::COL_NAME_KEYWORD)) {
             return nodes\Identifier::createFromToken($this->stream->next());
         } else {
-            return nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
+            return nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
         }
     }
 
@@ -3904,10 +3906,10 @@ class Parser
 
         while ($this->stream->matchesSpecialChar('.')) {
             $this->stream->next();
-            if ($this->stream->matches(Token::TYPE_KEYWORD)) {
+            if ($this->stream->matches(TokenType::KEYWORD)) {
                 $parts[] = nodes\Identifier::createFromToken($this->stream->next());
             } else {
-                $parts[] = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
+                $parts[] = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
             }
         }
 
@@ -3937,7 +3939,7 @@ class Parser
         }
         if ($this->stream->matchesKeyword('nulls')) {
             $this->stream->next();
-            $nullsOrder = $this->stream->expect(Token::TYPE_KEYWORD, ['first', 'last'])->getValue();
+            $nullsOrder = $this->stream->expect(TokenType::KEYWORD, ['first', 'last'])->getValue();
         }
 
         return new nodes\OrderByElement($expression, $direction, $nullsOrder, $operator);
@@ -3954,9 +3956,9 @@ class Parser
             $target = $this->IndexParameters();
         }
 
-        $this->stream->expect(Token::TYPE_KEYWORD, 'do');
-        if ('update' === ($action = $this->stream->expect(Token::TYPE_KEYWORD, ['update', 'nothing'])->getValue())) {
-            $this->stream->expect(Token::TYPE_KEYWORD, 'set');
+        $this->stream->expect(TokenType::KEYWORD, 'do');
+        if ('update' === ($action = $this->stream->expect(TokenType::KEYWORD, ['update', 'nothing'])->getValue())) {
+            $this->stream->expect(TokenType::KEYWORD, 'set');
             $set = $this->SetClauseList();
             if ($this->stream->matchesKeyword('where')) {
                 $this->stream->next();
@@ -3969,7 +3971,7 @@ class Parser
 
     protected function IndexParameters(): nodes\IndexParameters
     {
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
 
         $items = new nodes\IndexParameters([$this->IndexElement()]);
         while ($this->stream->matchesSpecialChar(',')) {
@@ -3977,7 +3979,7 @@ class Parser
             $items[] = $this->IndexElement();
         }
 
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         if ($this->stream->matchesKeyword('where')) {
             $this->stream->next();
@@ -3993,7 +3995,7 @@ class Parser
         if ($this->stream->matchesSpecialChar('(')) {
             $this->stream->next();
             $expression = $this->Expression();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         } elseif ($this->matchesFunctionCall()) {
             /** @var nodes\FunctionCall $function */
@@ -4015,9 +4017,9 @@ class Parser
 
         if (
             $this->stream->matchesAnyType(
-                Token::TYPE_IDENTIFIER,
-                Token::TYPE_UNRESERVED_KEYWORD,
-                Token::TYPE_COL_NAME_KEYWORD
+                TokenType::IDENTIFIER,
+                TokenType::UNRESERVED_KEYWORD,
+                TokenType::COL_NAME_KEYWORD
             )
         ) {
             $opClass = $this->QualifiedName();
@@ -4029,7 +4031,7 @@ class Parser
 
         if ($this->stream->matchesKeyword('nulls')) {
             $this->stream->next();
-            $nullsOrder = $this->stream->expect(Token::TYPE_KEYWORD, ['first', 'last'])->getValue();
+            $nullsOrder = $this->stream->expect(TokenType::KEYWORD, ['first', 'last'])->getValue();
         }
 
         return new nodes\IndexElement($expression, $collation, $opClass, $direction, $nullsOrder);
@@ -4060,22 +4062,22 @@ class Parser
     {
         if (
             $this->stream->matchesSpecialChar('(')
-            && $this->stream->look()->matches(Token::TYPE_SPECIAL_CHAR, ')')
+            && $this->stream->look()->matches(TokenType::SPECIAL_CHAR, ')')
         ) {
             $this->stream->skip(2);
             $element = new nodes\group\EmptyGroupingSet();
 
         } elseif ($this->stream->matchesKeyword(['cube', 'rollup'])) {
             $type = $this->stream->next()->getValue();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
             $element = new nodes\group\CubeOrRollupClause($this->ExpressionList(), $type);
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         } elseif ($this->stream->matchesKeywordSequence('grouping', 'sets')) {
             $this->stream->skip(2);
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
             $this->GroupByListElements($element = new nodes\group\GroupingSetsClause());
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         } else {
             $element = $this->Expression();
@@ -4091,15 +4093,15 @@ class Parser
     {
         $arguments = [$this->ExpressionAtom()];
         // 'by ref' is noise in Postgres
-        $this->stream->expect(Token::TYPE_KEYWORD, 'passing');
+        $this->stream->expect(TokenType::KEYWORD, 'passing');
         if ($this->stream->matchesKeyword('by')) {
             $this->stream->next();
-            $this->stream->expect(Token::TYPE_KEYWORD, ['ref', 'value']);
+            $this->stream->expect(TokenType::KEYWORD, ['ref', 'value']);
         }
         $arguments[] = $this->ExpressionAtom();
         if ($this->stream->matchesKeyword('by')) {
             $this->stream->next();
-            $this->stream->expect(Token::TYPE_KEYWORD, ['ref', 'value']);
+            $this->stream->expect(TokenType::KEYWORD, ['ref', 'value']);
         }
 
         return $arguments;
@@ -4107,24 +4109,24 @@ class Parser
 
     protected function XmlTable(): nodes\range\XmlTable
     {
-        $this->stream->expect(Token::TYPE_KEYWORD, 'xmltable');
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(TokenType::KEYWORD, 'xmltable');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
 
         $namespaces = null;
         if ($this->stream->matchesKeyword('xmlnamespaces')) {
             $this->stream->next();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
             $namespaces = $this->XmlNamespaceList();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ',');
         }
         $doc = $this->XmlExistsArguments();
-        $this->stream->expect(Token::TYPE_KEYWORD, 'columns');
+        $this->stream->expect(TokenType::KEYWORD, 'columns');
         $columns = $this->XmlColumnList();
 
         $table = new nodes\range\XmlTable($doc[0], $doc[1], $columns, $namespaces);
 
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         if ($alias = $this->OptionalAliasClause()) {
             $table->setAlias($alias[0], $alias[1]);
@@ -4155,11 +4157,11 @@ class Parser
 
         } else {
             $value = $this->RestrictedExpression();
-            $this->stream->expect(Token::TYPE_KEYWORD, 'as');
-            if ($this->stream->matches(Token::TYPE_KEYWORD)) {
+            $this->stream->expect(TokenType::KEYWORD, 'as');
+            if ($this->stream->matches(TokenType::KEYWORD)) {
                 $alias = nodes\Identifier::createFromToken($this->stream->next());
             } else {
-                $alias = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
+                $alias = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
             }
         }
 
@@ -4225,7 +4227,7 @@ class Parser
 
             } elseif (
                 $this->stream->matchesKeyword('not')
-                      && $this->stream->look(1)->matches(Token::TYPE_KEYWORD, 'null')
+                      && $this->stream->look(1)->matches(TokenType::KEYWORD, 'null')
             ) {
                 if (null !== $nullable) {
                     throw exceptions\SyntaxException::atPosition(
@@ -4252,14 +4254,14 @@ class Parser
             $withClause = $this->WithClause();
         }
 
-        $this->stream->expect(Token::TYPE_KEYWORD, 'merge');
-        $this->stream->expect(Token::TYPE_KEYWORD, 'into');
+        $this->stream->expect(TokenType::KEYWORD, 'merge');
+        $this->stream->expect(TokenType::KEYWORD, 'into');
         $relation = $this->UpdateOrDeleteTarget(self::RELATION_FORMAT_DELETE);
 
-        $this->stream->expect(Token::TYPE_KEYWORD, 'using');
+        $this->stream->expect(TokenType::KEYWORD, 'using');
         $using = $this->FromElement();
 
-        $this->stream->expect(Token::TYPE_KEYWORD, 'on');
+        $this->stream->expect(TokenType::KEYWORD, 'on');
 
         $merge = new Merge($relation, $using, $this->Expression(), $this->MergeWhenList());
         if (!empty($withClause)) {
@@ -4279,23 +4281,23 @@ class Parser
 
     protected function MergeWhenClause(): nodes\merge\MergeWhenClause
     {
-        $this->stream->expect(Token::TYPE_KEYWORD, 'when');
-        if (!$this->stream->matches(Token::TYPE_KEYWORD, 'not')) {
+        $this->stream->expect(TokenType::KEYWORD, 'when');
+        if (!$this->stream->matches(TokenType::KEYWORD, 'not')) {
             $matched = true;
         } else {
             $matched = false;
             $this->stream->next();
         }
-        $this->stream->expect(Token::TYPE_KEYWORD, 'matched');
+        $this->stream->expect(TokenType::KEYWORD, 'matched');
 
-        if (!$this->stream->matches(Token::TYPE_KEYWORD, 'and')) {
+        if (!$this->stream->matches(TokenType::KEYWORD, 'and')) {
             $condition = null;
         } else {
             $this->stream->next();
             $condition = $this->Expression();
         }
 
-        $this->stream->expect(Token::TYPE_KEYWORD, 'then');
+        $this->stream->expect(TokenType::KEYWORD, 'then');
         return $matched
             ? new nodes\merge\MergeWhenMatched($condition, $this->MergeWhenMatchedAction())
             : new nodes\merge\MergeWhenNotMatched($condition, $this->MergeWhenNotMatchedAction());
@@ -4303,10 +4305,10 @@ class Parser
 
     protected function MergeWhenMatchedAction(): ?Node
     {
-        $keyword = $this->stream->expect(Token::TYPE_KEYWORD, ['do', 'delete', 'update'])->getValue();
+        $keyword = $this->stream->expect(TokenType::KEYWORD, ['do', 'delete', 'update'])->getValue();
         switch ($keyword) {
             case 'do':
-                $this->stream->expect(Token::TYPE_KEYWORD, 'nothing');
+                $this->stream->expect(TokenType::KEYWORD, 'nothing');
                 return null;
 
             case 'delete':
@@ -4314,15 +4316,15 @@ class Parser
 
             case 'update':
             default:
-                $this->stream->expect(Token::TYPE_KEYWORD, 'set');
+                $this->stream->expect(TokenType::KEYWORD, 'set');
                 return new nodes\merge\MergeUpdate($this->SetClauseList());
         }
     }
 
     protected function MergeWhenNotMatchedAction(): ?nodes\merge\MergeInsert
     {
-        if ('do' === $this->stream->expect(Token::TYPE_KEYWORD, ['do', 'insert'])->getValue()) {
-            $this->stream->expect(Token::TYPE_KEYWORD, 'nothing');
+        if ('do' === $this->stream->expect(TokenType::KEYWORD, ['do', 'insert'])->getValue()) {
+            $this->stream->expect(TokenType::KEYWORD, 'nothing');
             return null;
         }
 
@@ -4331,20 +4333,20 @@ class Parser
             return new nodes\merge\MergeInsert();
         }
 
-        if (!$this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+        if (!$this->stream->matches(TokenType::SPECIAL_CHAR, '(')) {
             $cols = null;
         } else {
             $this->stream->next();
             $cols = $this->InsertTargetList();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         }
 
-        if (!$this->stream->matches(Token::TYPE_KEYWORD, 'overriding')) {
+        if (!$this->stream->matches(TokenType::KEYWORD, 'overriding')) {
             $overriding = null;
         } else {
             $this->stream->next();
-            $overriding = $this->stream->expect(Token::TYPE_KEYWORD, ['user', 'system'])->getValue();
-            $this->stream->expect(Token::TYPE_KEYWORD, 'value');
+            $overriding = $this->stream->expect(TokenType::KEYWORD, ['user', 'system'])->getValue();
+            $this->stream->expect(TokenType::KEYWORD, 'value');
         }
 
         return new nodes\merge\MergeInsert($cols, $this->MergeValues(), $overriding);
@@ -4352,10 +4354,10 @@ class Parser
 
     protected function MergeValues(): nodes\merge\MergeValues
     {
-        $this->stream->expect(Token::TYPE_KEYWORD, 'values');
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(TokenType::KEYWORD, 'values');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
         $list = $this->ExpressionListWithDefault();
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         return new nodes\merge\MergeValues($list);
     }
@@ -4367,7 +4369,7 @@ class Parser
         }
 
         $uniqueKeys = 'with' === $this->stream->next()->getValue();
-        $this->stream->expect(Token::TYPE_KEYWORD, 'unique');
+        $this->stream->expect(TokenType::KEYWORD, 'unique');
         if ($this->stream->matchesKeyword('keys')) {
             $this->stream->next();
         }
@@ -4381,8 +4383,8 @@ class Parser
             return null;
         }
         $absent = 'absent' === $this->stream->next()->getValue();
-        $this->stream->expect(Token::TYPE_KEYWORD, 'on');
-        $this->stream->expect(Token::TYPE_KEYWORD, 'null');
+        $this->stream->expect(TokenType::KEYWORD, 'on');
+        $this->stream->expect(TokenType::KEYWORD, 'null');
 
         return $absent;
     }
@@ -4394,7 +4396,7 @@ class Parser
         }
 
         $this->stream->next();
-        $this->stream->expect(Token::TYPE_KEYWORD, 'json');
+        $this->stream->expect(TokenType::KEYWORD, 'json');
         if (!$this->stream->matchesKeyword('encoding')) {
             $encoding = null;
         } else {
@@ -4408,7 +4410,7 @@ class Parser
     {
         $key = $this->Expression();
         if (!$this->stream->matchesKeyword('value')) {
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ':');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ':');
         } else {
             $this->stream->next();
         }
@@ -4424,11 +4426,11 @@ class Parser
     protected function JsonArgument(): nodes\json\JsonArgument
     {
         $value = $this->JsonFormattedValue();
-        $this->stream->expect(Token::TYPE_KEYWORD, 'as');
-        if ($this->stream->matches(Token::TYPE_KEYWORD)) {
+        $this->stream->expect(TokenType::KEYWORD, 'as');
+        if ($this->stream->matches(TokenType::KEYWORD)) {
             $alias = nodes\Identifier::createFromToken($this->stream->next());
         } else {
-            $alias = nodes\Identifier::createFromToken($this->stream->expect(Token::TYPE_IDENTIFIER));
+            $alias = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
         }
         return new nodes\json\JsonArgument($value, $alias);
     }
@@ -4506,7 +4508,7 @@ class Parser
         }
 
         $name = $this->stream->next();
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
         if ('json_arrayagg' === $name->getValue()) {
             $expression = new nodes\json\JsonArrayAgg($this->JsonFormattedValue());
             if ($this->stream->matchesKeywordSequence('order', 'by')) {
@@ -4522,7 +4524,7 @@ class Parser
             );
         }
         $expression->returning = $this->JsonReturningClause();
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         if (!$windowless) {
             $expression->filter = $this->FilterClause();
@@ -4565,8 +4567,8 @@ class Parser
         // Now it's getting tricky: all other variants of json_object() should have at least one argument.
         // We need to differentiate between a list of function arguments and a list of key-value pairs
         if (
-            $this->stream->look(1)->matches(Token::TYPE_COLON_EQUALS)
-            || $this->stream->look(1)->matches(Token::TYPE_EQUALS_GREATER)
+            $this->stream->look(1)->matches(TokenType::COLON_EQUALS)
+            || $this->stream->look(1)->matches(TokenType::EQUALS_GREATER)
         ) {
             // If we are seeing this, we are currently at a named function argument
             return new nodes\expressions\FunctionExpression(
@@ -4586,7 +4588,7 @@ class Parser
             return new nodes\expressions\FunctionExpression(new nodes\QualifiedName('json_object'), $arguments);
         } else {
             if (!$this->stream->matchesKeyword('value')) {
-                $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ':');
+                $this->stream->expect(TokenType::SPECIAL_CHAR, ':');
             } else {
                 $this->stream->next();
             }
@@ -4610,7 +4612,7 @@ class Parser
     public function JsonQueryFunction(string $funcName): nodes\json\JsonQueryCommon
     {
         $context = $this->JsonFormattedValue();
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ',');
         $path    = $this->Expression();
         if (!$this->stream->matchesKeyword('passing')) {
             $passing = null;
@@ -4672,7 +4674,7 @@ class Parser
         if ($this->stream->matchesKeyword('array')) {
             $this->stream->next();
         }
-        $this->stream->expect(Token::TYPE_KEYWORD, 'wrapper');
+        $this->stream->expect(TokenType::KEYWORD, 'wrapper');
 
         return $wrapper;
     }
@@ -4684,11 +4686,11 @@ class Parser
         }
 
         $keepQuotes = 'keep' === $this->stream->next()->getValue();
-        $this->stream->expect(Token::TYPE_KEYWORD, 'quotes');
+        $this->stream->expect(TokenType::KEYWORD, 'quotes');
         if ($this->stream->matchesKeyword('on')) {
             $this->stream->next();
-            $this->stream->expect(Token::TYPE_KEYWORD, 'scalar');
-            $this->stream->expect(Token::TYPE_KEYWORD, 'string');
+            $this->stream->expect(TokenType::KEYWORD, 'scalar');
+            $this->stream->expect(TokenType::KEYWORD, 'string');
         }
 
         return $keepQuotes;
@@ -4701,8 +4703,8 @@ class Parser
         }
 
         $onError = $this->stream->next()->getValue();
-        $this->stream->expect(Token::TYPE_KEYWORD, 'on');
-        $this->stream->expect(Token::TYPE_KEYWORD, 'error');
+        $this->stream->expect(TokenType::KEYWORD, 'on');
+        $this->stream->expect(TokenType::KEYWORD, 'error');
 
         return $onError;
     }
@@ -4724,8 +4726,8 @@ class Parser
                 }
             }
 
-            $this->stream->expect(Token::TYPE_KEYWORD, 'on');
-            $onWhat = $this->stream->expect(Token::TYPE_KEYWORD, ['empty', 'error'])->getValue();
+            $this->stream->expect(TokenType::KEYWORD, 'on');
+            $onWhat = $this->stream->expect(TokenType::KEYWORD, ['empty', 'error'])->getValue();
             if ('error' === $onWhat && null === $onError) {
                 $onError = $behaviour;
             } elseif ('empty' === $onWhat && null === $onEmpty && null === $onError) {
@@ -4733,7 +4735,7 @@ class Parser
             } else {
                 // Error should point to the first relevant token rather than to the current one
                 throw exceptions\SyntaxException::expectationFailed(
-                    Token::TYPE_SPECIAL_CHAR,
+                    TokenType::SPECIAL_CHAR,
                     ')',
                     $keyword,
                     $this->stream->getSource()
@@ -4745,11 +4747,11 @@ class Parser
 
     protected function JsonTable(): nodes\range\JsonTable
     {
-        $this->stream->expect(Token::TYPE_KEYWORD, 'json_table');
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(TokenType::KEYWORD, 'json_table');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
 
         $context = $this->JsonFormattedValue();
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ',');
         $path    = $this->Expression();
         if (!$this->stream->matchesKeyword('as')) {
             $pathName = null;
@@ -4769,8 +4771,8 @@ class Parser
             $onError = null;
         } else {
             $onError = $this->stream->next()->getValue();
-            $this->stream->expect(Token::TYPE_KEYWORD, 'on');
-            $this->stream->expect(Token::TYPE_KEYWORD, 'error');
+            $this->stream->expect(TokenType::KEYWORD, 'on');
+            $this->stream->expect(TokenType::KEYWORD, 'error');
         }
 
         $table = new nodes\range\JsonTable(
@@ -4783,7 +4785,7 @@ class Parser
             $onError
         );
 
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         if ($alias = $this->OptionalAliasClause()) {
             $table->setAlias($alias[0], $alias[1]);
         }
@@ -4793,12 +4795,12 @@ class Parser
 
     protected function JsonTableColumnsClause(): nodes\range\json\JsonColumnDefinitionList
     {
-        $this->stream->expect(Token::TYPE_KEYWORD, 'columns');
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+        $this->stream->expect(TokenType::KEYWORD, 'columns');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
 
         $list = $this->JsonColumnDefinitionList();
 
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         return $list;
     }
@@ -4807,7 +4809,7 @@ class Parser
     {
         $list = new nodes\range\json\JsonColumnDefinitionList([$this->JsonColumnDefinition()]);
 
-        while ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
+        while ($this->stream->matches(TokenType::SPECIAL_CHAR, ',')) {
             $this->stream->next();
             $list[] = $this->JsonColumnDefinition();
         }
@@ -4817,7 +4819,7 @@ class Parser
 
     protected function JsonColumnDefinition(): nodes\range\json\JsonColumnDefinition
     {
-        if ($this->stream->matches(Token::TYPE_KEYWORD, 'nested')) {
+        if ($this->stream->matches(TokenType::KEYWORD, 'nested')) {
             return $this->JsonNestedColumns();
         }
 
@@ -4880,16 +4882,16 @@ class Parser
         }
 
         $this->stream->skip(1);
-        return new nodes\expressions\StringConstant($this->stream->expect(Token::TYPE_STRING)->getValue());
+        return new nodes\expressions\StringConstant($this->stream->expect(TokenType::STRING)->getValue());
     }
 
     protected function JsonNestedColumns(): nodes\range\json\JsonNestedColumns
     {
-        $this->stream->expect(Token::TYPE_KEYWORD, 'nested');
+        $this->stream->expect(TokenType::KEYWORD, 'nested');
         if ($this->stream->matchesKeyword('path')) {
             $this->stream->next();
         }
-        $path = new nodes\expressions\StringConstant($this->stream->expect(Token::TYPE_STRING)->getValue());
+        $path = new nodes\expressions\StringConstant($this->stream->expect(TokenType::STRING)->getValue());
         if (!$this->stream->matchesKeyword('as')) {
             $pathName = null;
         } else {
@@ -4909,13 +4911,13 @@ class Parser
         $this->stream->next();
         if ($this->stream->matchesKeyword('default')) {
             $this->stream->next();
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
             $plan = $this->JsonTableDefaultPlan();
         } else {
-            $this->stream->expect(Token::TYPE_SPECIAL_CHAR, '(');
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
             $plan = $this->JsonTableSpecificPlan();
         }
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         return $plan;
     }
@@ -4925,7 +4927,7 @@ class Parser
         $parentChild = null;
         $sibling     = null;
         $value       = $this->stream->expect(
-            Token::TYPE_KEYWORD,
+            TokenType::KEYWORD,
             array_merge(nodes\range\json\JsonTablePlan::PARENT_CHILD, nodes\range\json\JsonTablePlan::SIBLING)
         )
             ->getValue();
@@ -4936,13 +4938,13 @@ class Parser
             $sibling     = $value;
         }
 
-        if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, ',')) {
+        if ($this->stream->matches(TokenType::SPECIAL_CHAR, ',')) {
             $this->stream->next();
             if (null !== $parentChild) {
-                $sibling = $this->stream->expect(Token::TYPE_KEYWORD, nodes\range\json\JsonTablePlan::SIBLING)
+                $sibling = $this->stream->expect(TokenType::KEYWORD, nodes\range\json\JsonTablePlan::SIBLING)
                     ->getValue();
             } else {
-                $parentChild = $this->stream->expect(Token::TYPE_KEYWORD, nodes\range\json\JsonTablePlan::PARENT_CHILD)
+                $parentChild = $this->stream->expect(TokenType::KEYWORD, nodes\range\json\JsonTablePlan::PARENT_CHILD)
                     ->getValue();
             }
         }
@@ -4954,7 +4956,7 @@ class Parser
     {
         // If we are seeing an opening parenthesis here, this can only be json_table_plan_sibling production,
         // e.g. plan (((foo))) will cause an error in Postgres
-        if ($this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+        if ($this->stream->matches(TokenType::SPECIAL_CHAR, '(')) {
             return $this->JsonTablePlanSibling();
         }
 
@@ -4975,7 +4977,7 @@ class Parser
         if (null === $left) {
             $left = $this->JsonTablePlanPrimary();
         }
-        $type = $this->stream->expect(Token::TYPE_KEYWORD, nodes\range\json\JsonTablePlan::SIBLING)
+        $type = $this->stream->expect(TokenType::KEYWORD, nodes\range\json\JsonTablePlan::SIBLING)
             ->getValue();
 
         do {
@@ -4992,7 +4994,7 @@ class Parser
 
     protected function JsonTablePlanPrimary(): nodes\range\json\JsonTableSpecificPlan
     {
-        if (!$this->stream->matches(Token::TYPE_SPECIAL_CHAR, '(')) {
+        if (!$this->stream->matches(TokenType::SPECIAL_CHAR, '(')) {
             // json_table_plan_simple
             return new nodes\range\json\JsonTableSimplePlan($this->ColId());
         }
@@ -5000,7 +5002,7 @@ class Parser
         // parenthesized json_table_plan
         $this->stream->next();
         $plan = $this->JsonTableSpecificPlan();
-        $this->stream->expect(Token::TYPE_SPECIAL_CHAR, ')');
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         return $plan;
     }

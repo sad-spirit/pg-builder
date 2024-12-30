@@ -23,7 +23,7 @@ namespace sad_spirit\pg_builder\tests;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Lexer,
-    Token,
+    TokenType,
     exceptions\InvalidArgumentException,
     exceptions\SyntaxException
 };
@@ -51,24 +51,24 @@ class LexerTest extends TestCase
     {
         $stream = $this->lexer->tokenize("sElEcT 'select' \"select\", FOO + 1.2 - 3., 4 ! <> :foo, $1::integer");
 
-        $stream->expect(Token::TYPE_KEYWORD, 'select');
-        $stream->expect(Token::TYPE_STRING, 'select');
-        $stream->expect(Token::TYPE_IDENTIFIER, 'select');
-        $stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
-        $stream->expect(Token::TYPE_IDENTIFIER, 'foo');
-        $stream->expect(Token::TYPE_SPECIAL_CHAR, '+');
-        $stream->expect(Token::TYPE_FLOAT, '1.2');
-        $stream->expect(Token::TYPE_SPECIAL_CHAR, '-');
-        $stream->expect(Token::TYPE_FLOAT, '3.');
-        $stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
-        $stream->expect(Token::TYPE_INTEGER, '4');
-        $stream->expect(Token::TYPE_OPERATOR, '!');
-        $stream->expect(Token::TYPE_INEQUALITY, '<>');
-        $stream->expect(Token::TYPE_NAMED_PARAM, 'foo');
-        $stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
-        $stream->expect(Token::TYPE_POSITIONAL_PARAM, '1');
-        $stream->expect(Token::TYPE_TYPECAST, '::');
-        $stream->expect(Token::TYPE_KEYWORD, 'integer');
+        $stream->expect(TokenType::KEYWORD, 'select');
+        $stream->expect(TokenType::STRING, 'select');
+        $stream->expect(TokenType::IDENTIFIER, 'select');
+        $stream->expect(TokenType::SPECIAL_CHAR, ',');
+        $stream->expect(TokenType::IDENTIFIER, 'foo');
+        $stream->expect(TokenType::SPECIAL_CHAR, '+');
+        $stream->expect(TokenType::FLOAT, '1.2');
+        $stream->expect(TokenType::SPECIAL_CHAR, '-');
+        $stream->expect(TokenType::FLOAT, '3.');
+        $stream->expect(TokenType::SPECIAL_CHAR, ',');
+        $stream->expect(TokenType::INTEGER, '4');
+        $stream->expect(TokenType::OPERATOR, '!');
+        $stream->expect(TokenType::INEQUALITY, '<>');
+        $stream->expect(TokenType::NAMED_PARAM, 'foo');
+        $stream->expect(TokenType::SPECIAL_CHAR, ',');
+        $stream->expect(TokenType::POSITIONAL_PARAM, '1');
+        $stream->expect(TokenType::TYPECAST, '::');
+        $stream->expect(TokenType::KEYWORD, 'integer');
         $this->assertTrue($stream->isEOF());
     }
 
@@ -82,14 +82,14 @@ this is a /* nested C-style */ comment */
 as quux -- another comment
 QRY
         );
-        $stream->expect(Token::TYPE_KEYWORD, 'select');
-        $stream->expect(Token::TYPE_IDENTIFIER, 'foo');
-        $stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
-        $stream->expect(Token::TYPE_IDENTIFIER, 'bar');
-        $stream->expect(Token::TYPE_SPECIAL_CHAR, ',');
-        $stream->expect(Token::TYPE_IDENTIFIER, 'bA"z');
-        $stream->expect(Token::TYPE_KEYWORD, 'as');
-        $stream->expect(Token::TYPE_IDENTIFIER, 'quux');
+        $stream->expect(TokenType::KEYWORD, 'select');
+        $stream->expect(TokenType::IDENTIFIER, 'foo');
+        $stream->expect(TokenType::SPECIAL_CHAR, ',');
+        $stream->expect(TokenType::IDENTIFIER, 'bar');
+        $stream->expect(TokenType::SPECIAL_CHAR, ',');
+        $stream->expect(TokenType::IDENTIFIER, 'bA"z');
+        $stream->expect(TokenType::KEYWORD, 'as');
+        $stream->expect(TokenType::IDENTIFIER, 'quux');
         $this->assertTrue($stream->isEOF());
     }
 
@@ -153,15 +153,15 @@ QRY
 !=-
 QRY
         );
-        $stream->expect(Token::TYPE_OPERATOR, '#!');
-        $stream->expect(Token::TYPE_SPECIAL_CHAR, '=');
-        $stream->expect(Token::TYPE_SPECIAL_CHAR, '-');
-        $stream->expect(Token::TYPE_OPERATOR, '@+');
-        $stream->expect(Token::TYPE_INEQUALITY, '<=');
-        $stream->expect(Token::TYPE_OPERATOR, '+*');
-        $stream->expect(Token::TYPE_SPECIAL_CHAR, '*');
-        $stream->expect(Token::TYPE_SPECIAL_CHAR, '+');
-        $stream->expect(Token::TYPE_OPERATOR, '!=-');
+        $stream->expect(TokenType::OPERATOR, '#!');
+        $stream->expect(TokenType::SPECIAL_CHAR, '=');
+        $stream->expect(TokenType::SPECIAL_CHAR, '-');
+        $stream->expect(TokenType::OPERATOR, '@+');
+        $stream->expect(TokenType::INEQUALITY, '<=');
+        $stream->expect(TokenType::OPERATOR, '+*');
+        $stream->expect(TokenType::SPECIAL_CHAR, '*');
+        $stream->expect(TokenType::SPECIAL_CHAR, '+');
+        $stream->expect(TokenType::OPERATOR, '!=-');
     }
 
     public function testStandardConformingStrings(): void
@@ -272,10 +272,10 @@ QRY
     {
         $stream = $this->lexer->tokenize('ИмЯ_бЕз_КаВыЧеК "ИмЯ_в_КаВыЧкАх" $ыыы$строка в долларах$ыыы$ :параметр');
 
-        $stream->expect(Token::TYPE_IDENTIFIER, 'ИмЯ_бЕз_КаВыЧеК');
-        $stream->expect(Token::TYPE_IDENTIFIER, 'ИмЯ_в_КаВыЧкАх');
-        $stream->expect(Token::TYPE_STRING, 'строка в долларах');
-        $stream->expect(Token::TYPE_NAMED_PARAM, 'параметр');
+        $stream->expect(TokenType::IDENTIFIER, 'ИмЯ_бЕз_КаВыЧеК');
+        $stream->expect(TokenType::IDENTIFIER, 'ИмЯ_в_КаВыЧкАх');
+        $stream->expect(TokenType::STRING, 'строка в долларах');
+        $stream->expect(TokenType::NAMED_PARAM, 'параметр');
         $this->assertTrue($stream->isEOF());
     }
 
@@ -285,7 +285,7 @@ QRY
 
         // Identifiers should be allowed anyway
         $stream = $lexer->tokenize('U&"allowed"');
-        $stream->expect(Token::TYPE_IDENTIFIER, 'allowed');
+        $stream->expect(TokenType::IDENTIFIER, 'allowed');
         $this::assertTrue($stream->isEOF());
 
         // Strings should fail
@@ -295,12 +295,9 @@ QRY
     }
 
     /**
-     * @param string $sql
-     * @param int $type
-     * @param string $value
      * @dataProvider validUnicodeEscapesProvider
      */
-    public function testValidUnicodeEscapes(string $sql, int $type, string $value): void
+    public function testValidUnicodeEscapes(string $sql, TokenType $type, string $value): void
     {
         $stream = $this->lexer->tokenize($sql);
         $stream->expect($type, $value);
@@ -400,13 +397,13 @@ QRY
     public function validUnicodeEscapesProvider(): array
     {
         return [
-            ["U&'d\\0061t\\+000061'", Token::TYPE_STRING, 'data'],
-            ['U&"d\\0061t\\+000061"', Token::TYPE_IDENTIFIER, 'data'],
-            ["U&'d!0061t\\+000061' UESCAPE '!'", Token::TYPE_STRING, 'dat\\+000061'],
-            ['U&"d*0061t\\+000061" UESCAPE \'*\'', Token::TYPE_IDENTIFIER, 'dat\\+000061'],
-            ["U&'a\\\\b'", Token::TYPE_STRING, 'a\\b'],
-            ["U&' \\' UESCAPE '!'", Token::TYPE_STRING, ' \\'],
-            ["U&'\\D83D\\DE01 \\+00D83D\\+00DE2C'", Token::TYPE_STRING, '😁 😬']
+            ["U&'d\\0061t\\+000061'", TokenType::STRING, 'data'],
+            ['U&"d\\0061t\\+000061"', TokenType::IDENTIFIER, 'data'],
+            ["U&'d!0061t\\+000061' UESCAPE '!'", TokenType::STRING, 'dat\\+000061'],
+            ['U&"d*0061t\\+000061" UESCAPE \'*\'', TokenType::IDENTIFIER, 'dat\\+000061'],
+            ["U&'a\\\\b'", TokenType::STRING, 'a\\b'],
+            ["U&' \\' UESCAPE '!'", TokenType::STRING, ' \\'],
+            ["U&'\\D83D\\DE01 \\+00D83D\\+00DE2C'", TokenType::STRING, '😁 😬']
         ];
     }
 

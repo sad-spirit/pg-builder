@@ -22,7 +22,8 @@ namespace sad_spirit\pg_builder\exceptions;
 
 use sad_spirit\pg_builder\{
     Exception,
-    Token
+    Token,
+    TokenType
 };
 
 /**
@@ -53,18 +54,22 @@ class SyntaxException extends \DomainException implements Exception
     /**
      * Thrown when an actual Token in TokenStream does not match expectations
      *
-     * @param int                  $type
-     * @param string|string[]|null $value
+     * @param TokenType            $expectedType
+     * @param string|string[]|null $expectedValue
      * @param Token                $actual
      * @param string               $source
      * @return SyntaxException
      */
-    public static function expectationFailed(int $type, $value, Token $actual, string $source): self
-    {
+    public static function expectationFailed(
+        TokenType $expectedType,
+        string|array|null $expectedValue,
+        Token $actual,
+        string $source
+    ): self {
         [$line, $fragment] = self::getContext($source, $actual->getPosition());
-        $expected          = Token::typeToString($type);
-        if (null !== $value) {
-            $expected .= " '" . (is_array($value) ? implode("' or '", $value) : $value) . "'";
+        $expected          = $expectedType->toString();
+        if (null !== $expectedValue) {
+            $expected .= " '" . (\implode("' or '", (array)$expectedValue)) . "'";
         }
         return new self("Unexpected {$actual} (line {$line}), expecting {$expected}: {$fragment}");
     }

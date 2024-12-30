@@ -21,8 +21,9 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\{
-    Keywords,
+    Keyword,
     Token,
+    TokenType,
     TreeWalker,
     exceptions\InvalidArgumentException
 };
@@ -65,11 +66,11 @@ class Identifier extends GenericNode
      */
     public static function createFromToken(Token $token): self
     {
-        if (0 === ((Token::TYPE_IDENTIFIER | Token::TYPE_KEYWORD) & $token->getType())) {
+        if (!$token->matches(TokenType::IDENTIFIER) && !$token->matches(TokenType::KEYWORD)) {
             throw new InvalidArgumentException(sprintf(
                 '%s requires an identifier or keyword token, %s given',
                 __CLASS__,
-                Token::typeToString($token->getType())
+                $token->getType()->toString()
             ));
         }
 
@@ -112,8 +113,8 @@ class Identifier extends GenericNode
         $value = $this->p_value;
         // We are likely to see the same identifier again, so cache the check results
         if (!isset(self::$needsQuoting[$value])) {
-            self::$needsQuoting[$value] = !preg_match('/^[a-z_][a-z_0-9\$]*$/D', $value)
-                                          || Keywords::isKeyword($value);
+            self::$needsQuoting[$value] = !preg_match('/^[a-z_][a-z_0-9$]*$/D', $value)
+                                          || (null !== Keyword::tryFrom($value));
         }
         return self::$needsQuoting[$value]
                ? '"' . str_replace('"', '""', $value) . '"'

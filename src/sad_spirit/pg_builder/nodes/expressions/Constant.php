@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\Token;
+use sad_spirit\pg_builder\TokenType;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\nodes\{
     ExpressionAtom,
@@ -48,76 +49,50 @@ abstract class Constant extends GenericNode implements ScalarExpression
 
     /**
      * Creates an instance of proper Constant subclass based on given Token
-     *
-     * @param Token $token
-     * @return self
      */
     public static function createFromToken(Token $token): self
     {
-        if ($token->matches(Token::TYPE_KEYWORD, ['null', 'false', 'true'])) {
+        if ($token->matches(TokenType::KEYWORD, ['null', 'false', 'true'])) {
             return new KeywordConstant($token->getValue());
         }
 
-        if (0 !== (Token::TYPE_LITERAL & $token->getType())) {
-            switch ($token->getType()) {
-                case Token::TYPE_INTEGER:
-                case Token::TYPE_FLOAT:
-                    return new NumericConstant($token->getValue());
-
-                case Token::TYPE_BINARY_STRING:
-                    return new StringConstant($token->getValue(), StringConstant::TYPE_BINARY);
-
-                case Token::TYPE_HEX_STRING:
-                    return new StringConstant($token->getValue(), StringConstant::TYPE_HEXADECIMAL);
-
-                default:
-                    return new StringConstant($token->getValue());
-            }
+        if ($token->matches(TokenType::LITERAL)) {
+            return match ($token->getType()) {
+                TokenType::INTEGER, TokenType::FLOAT => new NumericConstant($token->getValue()),
+                TokenType::BINARY_STRING => new StringConstant($token->getValue(), StringConstant::TYPE_BINARY),
+                TokenType::HEX_STRING => new StringConstant($token->getValue(), StringConstant::TYPE_HEXADECIMAL),
+                default => new StringConstant($token->getValue()),
+            };
         }
 
         throw new InvalidArgumentException(sprintf(
             '%s requires a literal token, %s given',
             __CLASS__,
-            Token::typeToString($token->getType())
+            $token->getType()->toString()
         ));
     }
 
     /**
      * Creates an instance of proper Constant subclass based on PHP value
-     *
-     * @param mixed $value
-     * @return self
      */
-    public static function createFromPHPValue($value): self
+    public static function createFromPHPValue(mixed $value): self
     {
-        switch (gettype($value)) {
-            case 'NULL':
-                return new KeywordConstant(KeywordConstant::NULL);
-
-            case 'boolean':
-                return new KeywordConstant($value ? KeywordConstant::TRUE : KeywordConstant::FALSE);
-
-            case 'integer':
-                return new NumericConstant((string)$value);
-
-            case 'double':
-                return new NumericConstant(str_replace(',', '.', (string)$value));
-
-            case 'string':
-                return new StringConstant($value);
-
-            case 'object':
-                if (method_exists($value, '__toString')) {
-                    return new StringConstant((string)$value);
-                }
-        }
-        throw new InvalidArgumentException(sprintf(
-            '%s() requires a scalar value or an object implementing __toString() method, %s given',
-            __METHOD__,
-            is_object($value)
-                ? 'object(' . get_class($value) . ')'
-                : gettype($value)
-        ));
+        return match (\gettype($value)) {
+            'NULL' => new KeywordConstant(KeywordConstant::NULL),
+            'boolean' => new KeywordConstant($value ? KeywordConstant::TRUE : KeywordConstant::FALSE),
+            'integer' => new NumericConstant((string)$value),
+            'double' => new NumericConstant(\str_replace(',', '.', (string)$value)),
+            'string' => new StringConstant($value),
+            default => \is_object($value) && \method_exists($value, '__toString')
+                ? new StringConstant((string)$value)
+                : throw new InvalidArgumentException(\sprintf(
+                    '%s() requires a scalar value or an object implementing __toString() method, %s given',
+                    __METHOD__,
+                    \is_object($value)
+                        ? 'object(' . \get_class($value) . ')'
+                        : \gettype($value)
+                ))
+        };
     }
 
     public function __clone()

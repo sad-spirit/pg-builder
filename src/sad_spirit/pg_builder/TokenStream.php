@@ -72,7 +72,7 @@ class TokenStream
         if (!isset($this->tokens[++$this->current])) {
             throw new exceptions\SyntaxException('Unexpected end of input');
         }
-        $this->isAtKeyword = $this->tokens[$this->current]->matches(Token::TYPE_KEYWORD);
+        $this->isAtKeyword = $this->tokens[$this->current]->matches(TokenType::KEYWORD);
 
         return $this->tokens[$this->current - 1];
     }
@@ -91,7 +91,7 @@ class TokenStream
         }
 
         $this->current += $number;
-        $this->isAtKeyword = $this->tokens[$this->current]->matches(Token::TYPE_KEYWORD);
+        $this->isAtKeyword = $this->tokens[$this->current]->matches(TokenType::KEYWORD);
     }
 
     /**
@@ -101,7 +101,7 @@ class TokenStream
      */
     public function isEOF(): bool
     {
-        return $this->tokens[$this->current]->getType() === Token::TYPE_EOF;
+        return $this->tokens[$this->current]->getType() === TokenType::EOF;
     }
 
     /**
@@ -136,7 +136,7 @@ class TokenStream
     public function reset(): void
     {
         $this->current     = 0;
-        $this->isAtKeyword = $this->tokens[$this->current]->matches(Token::TYPE_KEYWORD);
+        $this->isAtKeyword = $this->tokens[$this->current]->matches(TokenType::KEYWORD);
     }
 
     /**
@@ -146,11 +146,11 @@ class TokenStream
      * * type and value (or array of possible values)
      * * just type ($type is integer, $values is null)
      *
-     * @param int                  $type
+     * @param TokenType            $type
      * @param string|string[]|null $values
      * @return bool
      */
-    public function matches(int $type, $values = null): bool
+    public function matches(TokenType $type, string|array|null $values = null): bool
     {
         return $this->tokens[$this->current]->matches($type, $values);
     }
@@ -161,9 +161,9 @@ class TokenStream
      * @param string|string[] $keyword
      * @return bool
      */
-    public function matchesKeyword($keyword): bool
+    public function matchesKeyword(string|array $keyword): bool
     {
-        return $this->isAtKeyword && $this->tokens[$this->current]->matches(Token::TYPE_KEYWORD, $keyword);
+        return $this->isAtKeyword && $this->tokens[$this->current]->matches(TokenType::KEYWORD, $keyword);
     }
 
     /**
@@ -172,18 +172,15 @@ class TokenStream
      * @param string|string[] $char
      * @return bool
      */
-    public function matchesSpecialChar($char): bool
+    public function matchesSpecialChar(string|array $char): bool
     {
-        return !$this->isAtKeyword && $this->tokens[$this->current]->matches(Token::TYPE_SPECIAL_CHAR, $char);
+        return !$this->isAtKeyword && $this->tokens[$this->current]->matches(TokenType::SPECIAL_CHAR, $char);
     }
 
     /**
      * Checks whether current token belongs to any type from the given list
-     *
-     * @param int ...$types
-     * @return bool
      */
-    public function matchesAnyType(int ...$types): bool
+    public function matchesAnyType(TokenType ...$types): bool
     {
         foreach ($types as $type) {
             if ($this->tokens[$this->current]->matches($type)) {
@@ -196,17 +193,17 @@ class TokenStream
     /**
      * Checks whether tokens starting from current match the given sequence of keywords
      *
-     * @param mixed ...$keywords
+     * @param string|string[] ...$keywords
      * @return bool
      */
-    public function matchesKeywordSequence(...$keywords): bool
+    public function matchesKeywordSequence(string|array ...$keywords): bool
     {
         if (!$this->isAtKeyword || $this->current + count($keywords) >= count($this->tokens)) {
             return false;
         }
         $index = 0;
         foreach ($keywords as $keyword) {
-            if (!$this->tokens[$this->current + $index++]->matches(Token::TYPE_KEYWORD, $keyword)) {
+            if (!$this->tokens[$this->current + $index++]->matches(TokenType::KEYWORD, $keyword)) {
                 return false;
             }
         }
@@ -218,12 +215,12 @@ class TokenStream
      *
      * Parameters have the same meaning as those for matches()
      *
-     * @param int                  $type
+     * @param TokenType            $type
      * @param string|string[]|null $values
      * @return Token
      * @throws exceptions\SyntaxException
      */
-    public function expect(int $type, $values = null): Token
+    public function expect(TokenType $type, string|array|null $values = null): Token
     {
         $token = $this->tokens[$this->current];
         if (!$token->matches($type, $values)) {

@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\Token;
+use sad_spirit\pg_builder\TokenType;
 use sad_spirit\pg_builder\nodes\{
     ExpressionAtom,
     GenericNode,
@@ -45,15 +46,15 @@ abstract class Parameter extends GenericNode implements ScalarExpression
      */
     public static function createFromToken(Token $token): self
     {
-        if (0 === (Token::TYPE_PARAMETER & $token->getType())) {
+        if (!$token->matches(TokenType::PARAMETER)) {
             throw new InvalidArgumentException(sprintf(
                 '%s expects a parameter token, %s given',
                 __CLASS__,
-                Token::typeToString($token->getType())
+                $token->getType()->toString()
             ));
         }
 
-        if (Token::TYPE_POSITIONAL_PARAM === $token->getType()) {
+        if (TokenType::POSITIONAL_PARAM === $token->getType()) {
             return new PositionalParameter((int)$token->getValue());
         } else {
             return new NamedParameter($token->getValue());

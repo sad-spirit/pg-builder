@@ -21,7 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\Keywords;
+use sad_spirit\pg_builder\Keyword;
 use sad_spirit\pg_builder\nodes\lists\OrderByList;
 use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
 use sad_spirit\pg_builder\TreeWalker;
@@ -74,7 +74,7 @@ class FunctionCall extends GenericNode implements FunctionLike
         if (is_string($funcName)) {
             // If we just create QualifiedName from $funcName the result will not be what user expects:
             // the keyword will appear double-quoted in output
-            if (Keywords::isKeyword($funcName)) {
+            if (null !== Keyword::tryFrom($funcName)) {
                 throw new InvalidArgumentException(
                     __CLASS__ . " no longer accepts SQL keywords for function names ('{$funcName}' given)"
                 );
