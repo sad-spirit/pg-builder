@@ -46,19 +46,15 @@ abstract class Parameter extends GenericNode implements ScalarExpression
      */
     public static function createFromToken(Token $token): self
     {
-        if (!$token->matches(TokenType::PARAMETER)) {
-            throw new InvalidArgumentException(sprintf(
+        return match ($token->getType()) {
+            TokenType::POSITIONAL_PARAM => new PositionalParameter((int)$token->getValue()),
+            TokenType::NAMED_PARAM => new NamedParameter($token->getValue()),
+            default => throw new InvalidArgumentException(\sprintf(
                 '%s expects a parameter token, %s given',
                 __CLASS__,
                 $token->getType()->toString()
-            ));
-        }
-
-        if (TokenType::POSITIONAL_PARAM === $token->getType()) {
-            return new PositionalParameter((int)$token->getValue());
-        } else {
-            return new NamedParameter($token->getValue());
-        }
+            ))
+        };
     }
 
     public function __clone()

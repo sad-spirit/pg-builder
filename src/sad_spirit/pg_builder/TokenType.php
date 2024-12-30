@@ -64,6 +64,13 @@ enum TokenType: int
     /** Signals end of input */
     case EOF                    = 1 << 16;
 
+    private const CHECK_UTF8 = [
+        'STRING'        => true,
+        'NCHAR_STRING'  => true,
+        'NAMED_PARAM'   => true,
+        'IDENTIFIER'    => true
+    ];
+
     /**
      * Returns a human-readable representation for the token type
      */
@@ -90,5 +97,13 @@ enum TokenType: int
                 ? 'keyword'
                 : throw new exceptions\InvalidArgumentException("Unexpected token $this->name")
         };
+    }
+
+    /**
+     * Returns whether Token of this type should be checked for correct UTF-8 encoding
+     */
+    public function needsUtf8Check(): bool
+    {
+        return isset(self::CHECK_UTF8[$this->name]);
     }
 }

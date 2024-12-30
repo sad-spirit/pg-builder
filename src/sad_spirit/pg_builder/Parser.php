@@ -1121,7 +1121,7 @@ class Parser
                 if ('+' === $sign->getValue()) {
                     $stmt->limit = nodes\expressions\Constant::createFromToken($constantToken);
                 } else {
-                    $stmt->limit = nodes\expressions\Constant::createFromToken(new Token(
+                    $stmt->limit = nodes\expressions\Constant::createFromToken(new tokens\StringToken(
                         $constantToken->getType(),
                         '-' . $constantToken->getValue(),
                         $constantToken->getPosition()
