@@ -21,8 +21,12 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\tests;
 
 use PHPUnit\Framework\TestCase;
-use sad_spirit\pg_builder\Node;
-use sad_spirit\pg_builder\SqlBuilderWalker;
+use sad_spirit\pg_builder\{
+    Node,
+    SqlBuilderWalker,
+    enums\ConstantName,
+    enums\IsPredicate
+};
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
     Identifier
@@ -140,7 +144,7 @@ class SqlBuilderParenthesesTest extends TestCase
                         new NumericConstant('2'),
                         new NumericConstant('3')
                     ),
-                    new KeywordConstant(KeywordConstant::TRUE)
+                    new KeywordConstant(ConstantName::TRUE)
                 ),
                 '(2 < 3) = true'
             ]
@@ -154,10 +158,10 @@ class SqlBuilderParenthesesTest extends TestCase
                 new IsExpression(
                     new OperatorExpression(
                         '=',
-                        new KeywordConstant(KeywordConstant::FALSE),
-                        new KeywordConstant(KeywordConstant::TRUE)
+                        new KeywordConstant(ConstantName::FALSE),
+                        new KeywordConstant(ConstantName::TRUE)
                     ),
-                    IsExpression::NULL
+                    IsPredicate::NULL
                 ),
                 'false = true is null'
             ],
@@ -183,7 +187,7 @@ class SqlBuilderParenthesesTest extends TestCase
                         new StringConstant('foo'),
                         new StringConstant('bar')
                     ),
-                    IsExpression::TRUE,
+                    IsPredicate::TRUE,
                     true
                 ),
                 "'foo' like 'bar' is not true"
@@ -192,10 +196,10 @@ class SqlBuilderParenthesesTest extends TestCase
                 new IsExpression(
                     new BetweenExpression(
                         new ColumnReference(new Identifier('foo')),
-                        new KeywordConstant(KeywordConstant::FALSE),
-                        new KeywordConstant(KeywordConstant::TRUE)
+                        new KeywordConstant(ConstantName::FALSE),
+                        new KeywordConstant(ConstantName::TRUE)
                     ),
-                    IsExpression::FALSE,
+                    IsPredicate::FALSE,
                     true
                 ),
                 'foo between false and true is not false'

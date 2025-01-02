@@ -26,6 +26,7 @@ use sad_spirit\pg_builder\nodes\{
     GenericNode,
     ScalarExpression
 };
+use sad_spirit\pg_builder\enums\SQLValueFunctionName;
 use sad_spirit\pg_builder\TreeWalker;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
@@ -37,72 +38,20 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  * Previously these functions were converted either to FunctionCall nodes with corresponding functions from pg_catalog,
  * or to TypecastExpression nodes. Better (and probably more compatible) is to keep them as-is.
  *
- * @property-read string               $name
+ * @property-read SQLValueFunctionName $name
  * @property-read NumericConstant|null $modifier
  */
 class SQLValueFunction extends GenericNode implements FunctionLike, ScalarExpression
 {
     use ExpressionAtom;
 
-    public const CURRENT_DATE      = 'current_date';
-    public const CURRENT_ROLE      = 'current_role';
-    public const CURRENT_USER      = 'current_user';
-    public const SESSION_USER      = 'session_user';
-    public const USER              = 'user';
-    public const CURRENT_CATALOG   = 'current_catalog';
-    public const CURRENT_SCHEMA    = 'current_schema';
-    public const SYSTEM_USER       = 'system_user';
+    protected SQLValueFunctionName $p_name;
+    protected ?NumericConstant $p_modifier;
 
-    public const CURRENT_TIME      = 'current_time';
-    public const CURRENT_TIMESTAMP = 'current_timestamp';
-    public const LOCALTIME         = 'localtime';
-    public const LOCALTIMESTAMP    = 'localtimestamp';
-
-    /**
-     * These can appear only WITHOUT modifiers
-     */
-    public const NO_MODIFIERS = [
-        self::CURRENT_DATE,
-        self::CURRENT_ROLE,
-        self::CURRENT_USER,
-        self::SESSION_USER,
-        self::USER,
-        self::CURRENT_CATALOG,
-        self::CURRENT_SCHEMA,
-        self::SYSTEM_USER
-    ];
-
-    /**
-     * These can have modifiers
-     */
-    public const OPTIONAL_MODIFIERS = [
-        self::CURRENT_TIME,
-        self::CURRENT_TIMESTAMP,
-        self::LOCALTIME,
-        self::LOCALTIMESTAMP
-    ];
-
-    /**
-     * Used for checking incoming $name
-     * @var array<string, mixed>|null
-     */
-    private static $nameCheck;
-
-    /** @var string */
-    protected $p_name;
-    /** @var NumericConstant|null */
-    protected $p_modifier;
-
-    public function __construct(string $name, ?NumericConstant $modifier = null)
+    public function __construct(SQLValueFunctionName $name, ?NumericConstant $modifier = null)
     {
-        if (null === self::$nameCheck) {
-            self::$nameCheck = array_flip(array_merge(self::NO_MODIFIERS, self::OPTIONAL_MODIFIERS));
-        }
-
-        if (!isset(self::$nameCheck[$name])) {
-            throw new InvalidArgumentException("Unknown name '{$name}' for SQLValueFunction");
-        } elseif (null !== $modifier && !in_array($name, self::OPTIONAL_MODIFIERS)) {
-            throw new InvalidArgumentException("SQLValueFunction '{$name}' does not accept modifiers");
+        if (null !== $modifier && !$name->allowsModifiers()) {
+            throw new InvalidArgumentException("SQLValueFunction '$name->value' does not accept modifiers");
         }
 
         $this->generatePropertyNames();

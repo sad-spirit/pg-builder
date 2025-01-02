@@ -26,6 +26,7 @@ use sad_spirit\pg_builder\nodes\{
     GenericNode,
     ScalarExpression
 };
+use sad_spirit\pg_builder\enums\ExtractPart;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -36,25 +37,21 @@ use sad_spirit\pg_builder\TreeWalker;
  * now outputs the original SQL standard form of the expression when generating SQL, we follow the suit by
  * creating a separate Node with SQL standard output.
  *
- * $field property is defined as a simple string here since "extract_arg" grammar production accepts either a string
- * constant, an identifier, or several SQL keywords for that argument. Everything that is not a known keyword
- * from {@see ExtractExpression::KEYWORDS} array will be treated as an identifier when generating SQL.
+ * As "extract_arg" grammar production accepts either a string constant, an identifier, or several SQL keywords
+ * for the first argument, it can be either a string or {@see ExtractPart}. Everything that is not a known keyword
+ * represented by the latter will be treated as an identifier when generating SQL.
  *
- * @property string           $field
- * @property ScalarExpression $source
+ * @property string|ExtractPart $field
+ * @property ScalarExpression   $source
  */
 class ExtractExpression extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
-    public const KEYWORDS = ['year', 'month', 'day', 'hour', 'minute', 'second'];
+    protected string|ExtractPart $p_field;
+    protected ScalarExpression $p_source;
 
-    /** @var string */
-    protected $p_field;
-    /** @var ScalarExpression */
-    protected $p_source;
-
-    public function __construct(string $field, ScalarExpression $source)
+    public function __construct(string|ExtractPart $field, ScalarExpression $source)
     {
         $this->generatePropertyNames();
 
@@ -64,7 +61,7 @@ class ExtractExpression extends GenericNode implements ScalarExpression, Functio
         $this->p_source->setParentNode($this);
     }
 
-    public function setField(string $field): void
+    public function setField(string|ExtractPart $field): void
     {
         $this->p_field = $field;
     }

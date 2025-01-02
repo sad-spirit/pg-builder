@@ -26,6 +26,7 @@ use sad_spirit\pg_builder\nodes\{
     ScalarExpression
 };
 use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\enums\StringConstantType;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
@@ -43,12 +44,12 @@ class ConstantTypecastExpression extends TypecastExpression
 
     public function setArgument(ScalarExpression $argument): void
     {
-        if (!$argument instanceof StringConstant || $argument::TYPE_CHARACTER !== $argument->type) {
+        if (!$argument instanceof StringConstant || StringConstantType::CHARACTER !== $argument->type) {
             throw new InvalidArgumentException(sprintf(
                 "%s only allows a generic string constant as an argument, %s given",
                 __CLASS__,
                 $argument instanceof StringConstant
-                ? ($argument::TYPE_HEXADECIMAL === $argument->type ? 'hexadecimal' : 'binary') . ' string'
+                ? (StringConstantType::HEXADECIMAL === $argument->type ? 'hexadecimal' : 'binary') . ' string'
                 : get_class($argument)
             ));
         }

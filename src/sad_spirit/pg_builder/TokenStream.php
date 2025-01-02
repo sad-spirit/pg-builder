@@ -33,10 +33,9 @@ class TokenStream
     private $source;
 
     /**
-     * A flag to prevent useless calls to Token::matches() from matchesKeyword() and matchesSpecialChar()
-     * @var bool
+     * If stream is at KeywordToken, its keyword property is kept here
      */
-    private $isAtKeyword = false;
+    private ?Keyword $keyword = null;
 
     /**
      * Constructor
@@ -72,7 +71,7 @@ class TokenStream
         if (!isset($this->tokens[++$this->current])) {
             throw new exceptions\SyntaxException('Unexpected end of input');
         }
-        $this->isAtKeyword = $this->tokens[$this->current]->matches(TokenType::KEYWORD);
+        $this->keyword = $this->tokens[$this->current]->getKeyword();
 
         return $this->tokens[$this->current - 1];
     }
@@ -91,7 +90,7 @@ class TokenStream
         }
 
         $this->current += $number;
-        $this->isAtKeyword = $this->tokens[$this->current]->matches(TokenType::KEYWORD);
+        $this->keyword  = $this->tokens[$this->current]->getKeyword();
     }
 
     /**
@@ -135,8 +134,8 @@ class TokenStream
      */
     public function reset(): void
     {
-        $this->current     = 0;
-        $this->isAtKeyword = $this->tokens[$this->current]->matches(TokenType::KEYWORD);
+        $this->current = 0;
+        $this->keyword = $this->tokens[$this->current]->getKeyword();
     }
 
     /**
@@ -163,7 +162,35 @@ class TokenStream
      */
     public function matchesKeyword(string|array $keyword): bool
     {
-        return $this->isAtKeyword && $this->tokens[$this->current]->matches(TokenType::KEYWORD, $keyword);
+        return null !== $this->keyword && $this->tokens[$this->current]->matches(TokenType::KEYWORD, $keyword);
+    }
+
+    /**
+     * Returns Keyword for the current token, if any
+     */
+    public function getKeyword(): ?Keyword
+    {
+        return $this->keyword;
+    }
+
+    /**
+     * Matches the current Keyword against given ones and returns it in case of success
+     *
+     * @param Keyword ...$keywords
+     * @return Keyword|null
+     */
+    public function matchesAnyKeyword(Keyword ...$keywords): ?Keyword
+    {
+        if (null === $this->keyword) {
+            return null;
+        } elseif (
+            [$this->keyword] === $keywords
+            || \in_array($this->keyword, $keywords, true)
+        ) {
+            return $this->keyword;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -174,7 +201,7 @@ class TokenStream
      */
     public function matchesSpecialChar(string|array $char): bool
     {
-        return !$this->isAtKeyword && $this->tokens[$this->current]->matches(TokenType::SPECIAL_CHAR, $char);
+        return null === $this->keyword && $this->tokens[$this->current]->matches(TokenType::SPECIAL_CHAR, $char);
     }
 
     /**
@@ -193,17 +220,21 @@ class TokenStream
     /**
      * Checks whether tokens starting from current match the given sequence of keywords
      *
-     * @param string|string[] ...$keywords
+     * @param Keyword|Keyword[] ...$keywords
      * @return bool
      */
-    public function matchesKeywordSequence(string|array ...$keywords): bool
+    public function matchesKeywordSequence(Keyword|array ...$keywords): bool
     {
-        if (!$this->isAtKeyword || $this->current + count($keywords) >= count($this->tokens)) {
+        if (null === $this->keyword || $this->current + count($keywords) >= count($this->tokens)) {
             return false;
         }
         $index = 0;
         foreach ($keywords as $keyword) {
-            if (!$this->tokens[$this->current + $index++]->matches(TokenType::KEYWORD, $keyword)) {
+            if (
+                $keyword instanceof Keyword
+                ? !$this->tokens[$this->current + $index++]->matchesKeyword($keyword)
+                : !$this->tokens[$this->current + $index++]->matchesKeyword(...$keyword)
+            ) {
                 return false;
             }
         }
@@ -229,6 +260,34 @@ class TokenStream
         $this->next();
 
         return $token;
+    }
+
+    /**
+     * Matches the current Keyword against given ones and returns it or throws a syntax error
+     *
+     * @param Keyword ...$keywords
+     * @return Keyword
+     */
+    public function expectKeyword(Keyword ...$keywords): Keyword
+    {
+        if (
+            null === $this->keyword
+            || (
+                [$this->keyword] !== $keywords
+                && !\in_array($this->keyword, $keywords, true)
+            )
+        ) {
+            throw exceptions\SyntaxException::expectationFailed(
+                TokenType::KEYWORD,
+                \array_map(fn(Keyword $keyword) => $keyword->value, $keywords),
+                $this->tokens[$this->current],
+                $this->source
+            );
+        }
+
+        $keyword = $this->keyword;
+        $this->next();
+        return $keyword;
     }
 
     /**

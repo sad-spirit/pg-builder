@@ -22,7 +22,7 @@ use sad_spirit\pg_builder\TokenType;
  */
 final class KeywordToken extends GenericToken
 {
-    public function __construct(public readonly Keyword $keyword, int $position)
+    public function __construct(private readonly Keyword $keyword, int $position)
     {
         parent::__construct($position);
     }
@@ -35,5 +35,16 @@ final class KeywordToken extends GenericToken
     public function getValue(): string
     {
         return $this->keyword->value;
+    }
+
+    public function getKeyword(): Keyword
+    {
+        return $this->keyword;
+    }
+
+    public function matchesKeyword(Keyword ...$keywords): bool
+    {
+        return [$this->keyword] === $keywords
+            || \in_array($this->keyword, $keywords, true);
     }
 }

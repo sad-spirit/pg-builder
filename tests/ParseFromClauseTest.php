@@ -24,7 +24,8 @@ use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Parser,
     Lexer,
-    Select
+    Select,
+    enums\ConstantName
 };
 use sad_spirit\pg_builder\exceptions\SyntaxException;
 use sad_spirit\pg_builder\nodes\{
@@ -194,7 +195,7 @@ QRY
         ]));
         $blahblah = new RangeFunctionCall(new FunctionCall(
             new QualifiedName('blahblah'),
-            new FunctionArgumentList([new KeywordConstant(KeywordConstant::NULL)])
+            new FunctionArgumentList([new KeywordConstant(ConstantName::NULL)])
         ));
         $blahblah->setAlias(null, new ColumnDefinitionList([
             new ColumnDefinition(
@@ -237,8 +238,8 @@ QRY
         );
         $cd->setOn(new OperatorExpression(
             '=',
-            new KeywordConstant(KeywordConstant::TRUE),
-            new KeywordConstant(KeywordConstant::FALSE)
+            new KeywordConstant(ConstantName::TRUE),
+            new KeywordConstant(ConstantName::FALSE)
         ));
         $cd->setAlias(new Identifier('joinalias'));
 
@@ -255,8 +256,8 @@ QRY
         );
         $fg->setOn(new OperatorExpression(
             '<>',
-            new KeywordConstant(KeywordConstant::FALSE),
-            new KeywordConstant(KeywordConstant::TRUE)
+            new KeywordConstant(ConstantName::FALSE),
+            new KeywordConstant(ConstantName::TRUE)
         ));
 
         $select = new Select(new TargetList([new TargetElement(new StringConstant('blah'))]));

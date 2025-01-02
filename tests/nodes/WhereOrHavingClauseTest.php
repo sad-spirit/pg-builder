@@ -24,7 +24,9 @@ use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Lexer,
     Parser,
-    Select
+    Select,
+    enums\ConstantName,
+    enums\LogicalOperator
 };
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
@@ -50,14 +52,14 @@ class WhereOrHavingClauseTest extends TestCase
             ->and(new LogicalExpression([
                 new ColumnReference('baz'),
                 new ColumnReference('quux')
-            ], 'and'));
+            ], LogicalOperator::AND));
         $this->assertEquals(
             new LogicalExpression([
                 new ColumnReference('foo'),
                 new ColumnReference('bar'),
                 new ColumnReference('baz'),
                 new ColumnReference('quux')
-            ], 'and'),
+            ], LogicalOperator::AND),
             clone $where->condition
         );
     }
@@ -69,14 +71,14 @@ class WhereOrHavingClauseTest extends TestCase
             ->or(new LogicalExpression([
                 new ColumnReference('baz'),
                 new ColumnReference('quux')
-            ], 'or'));
+            ], LogicalOperator::OR));
         $this->assertEquals(
             new LogicalExpression([
                 new ColumnReference('foo'),
                 new ColumnReference('bar'),
                 new ColumnReference('baz'),
                 new ColumnReference('quux')
-            ], 'or'),
+            ], LogicalOperator::OR),
             clone $where->condition
         );
     }
@@ -95,11 +97,11 @@ class WhereOrHavingClauseTest extends TestCase
                             new ColumnReference('foo'),
                             new ColumnReference('bar')
                         ],
-                        'and'
+                        LogicalOperator::AND
                     ),
                     new ColumnReference('baz')
                 ],
-                'or'
+                LogicalOperator::OR
             ),
             clone $where->condition
         );
@@ -122,10 +124,10 @@ class WhereOrHavingClauseTest extends TestCase
                             new ColumnReference('bar'),
                             new ColumnReference('baz')
                         ],
-                        'or'
+                        LogicalOperator::OR
                     )
                 ],
-                'and'
+                LogicalOperator::AND
             ),
             clone $where->condition
         );
@@ -165,11 +167,11 @@ class WhereOrHavingClauseTest extends TestCase
                             new ColumnReference('foo'),
                             new ColumnReference('bar')
                         ],
-                        'or'
+                        LogicalOperator::OR
                     ),
                     new ColumnReference('baz')
                 ],
-                'and'
+                LogicalOperator::AND
             ),
             clone $where->condition
         );
@@ -184,7 +186,7 @@ class WhereOrHavingClauseTest extends TestCase
                 new ColumnReference('bar'),
                 new ColumnReference('baz'),
             ],
-            'or'
+            LogicalOperator::OR
         ));
 
         $this->assertEquals(
@@ -196,10 +198,10 @@ class WhereOrHavingClauseTest extends TestCase
                             new ColumnReference('bar'),
                             new ColumnReference('baz'),
                         ],
-                        'or'
+                        LogicalOperator::OR
                     )
                 ],
-                'and'
+                LogicalOperator::AND
             ),
             clone $where->condition
         );
@@ -210,7 +212,7 @@ class WhereOrHavingClauseTest extends TestCase
                 new ColumnReference('bar'),
                 new ColumnReference('baz'),
             ],
-            'or'
+            LogicalOperator::OR
         ));
         $where->and(new ColumnReference('foo'));
 
@@ -222,11 +224,11 @@ class WhereOrHavingClauseTest extends TestCase
                             new ColumnReference('bar'),
                             new ColumnReference('baz'),
                         ],
-                        'or'
+                        LogicalOperator::OR
                     ),
                     new ColumnReference('foo')
                 ],
-                'and'
+                LogicalOperator::AND
             ),
             clone $where->condition
         );
@@ -234,7 +236,7 @@ class WhereOrHavingClauseTest extends TestCase
 
     public function testAddEmptyWhereClauseWithAndAndOrBug(): void
     {
-        $true  = new KeywordConstant(KeywordConstant::TRUE);
+        $true  = new KeywordConstant(ConstantName::TRUE);
         $whereEmpty = new WhereOrHavingClause();
         $whereTrue  = new WhereOrHavingClause($true);
 
@@ -247,11 +249,11 @@ class WhereOrHavingClauseTest extends TestCase
 
     public function testEmptyLogicalExpressionBug(): void
     {
-        $where = new WhereOrHavingClause(new LogicalExpression([], LogicalExpression::OR));
-        $where->and(new KeywordConstant(KeywordConstant::TRUE));
+        $where = new WhereOrHavingClause(new LogicalExpression([], LogicalOperator::OR));
+        $where->and(new KeywordConstant(ConstantName::TRUE));
 
         $this::assertEquals(
-            new LogicalExpression([new KeywordConstant(KeywordConstant::TRUE)], LogicalExpression::OR),
+            new LogicalExpression([new KeywordConstant(ConstantName::TRUE)], LogicalOperator::OR),
             clone $where->condition
         );
     }

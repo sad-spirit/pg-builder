@@ -30,6 +30,7 @@ use sad_spirit\pg_builder\{
     Parser,
     Select
 };
+use sad_spirit\pg_builder\enums\ConstantName;
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
     CommonTableExpression,
@@ -105,7 +106,7 @@ QRY
 
         $built->with[] = new CommonTableExpression(
             new Select(new TargetList([
-                new TargetElement(new KeywordConstant(KeywordConstant::NULL), new Identifier('null')),
+                new TargetElement(new KeywordConstant(ConstantName::NULL), new Identifier('null')),
                 new TargetElement(new NumericConstant('1'), new Identifier('one'))
             ])),
             new Identifier('null')

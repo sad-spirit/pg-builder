@@ -21,32 +21,23 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
+    TreeWalker,
+    enums\LogicalOperator,
     nodes\HasBothPropsAndOffsets,
-    nodes\ScalarExpression,
-    exceptions\InvalidArgumentException,
-    TreeWalker
+    nodes\ScalarExpression
 };
 use sad_spirit\pg_builder\nodes\lists\ExpressionList;
 
 /**
- * AST node representing a group of expressions combined by AND or OR operators
+ * AST node representing a group of expressions combined by `AND` or `OR` operators
  *
- * @property-read string $operator
+ * @property-read LogicalOperator $operator
  */
 class LogicalExpression extends ExpressionList implements ScalarExpression
 {
     use HasBothPropsAndOffsets;
 
-    public const AND = 'and';
-    public const OR  = 'or';
-
-    private const PRECEDENCES = [
-        self::AND => self::PRECEDENCE_AND,
-        self::OR  => self::PRECEDENCE_OR
-    ];
-
-    /** @var string */
-    protected $p_operator = self::AND;
+    protected LogicalOperator $p_operator;
 
     protected $propertyNames = [
         'operator' => 'p_operator'
@@ -56,13 +47,10 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
      * LogicalExpression constructor
      *
      * @param null|string|iterable<ScalarExpression> $terms
-     * @param string                                 $operator
+     * @param LogicalOperator                        $operator
      */
-    public function __construct($terms = null, string $operator = self::AND)
+    public function __construct($terms = null, LogicalOperator $operator = LogicalOperator::AND)
     {
-        if (!isset(self::PRECEDENCES[$operator])) {
-            throw new InvalidArgumentException("Unknown logical operator '{$operator}'");
-        }
         parent::__construct($terms);
         $this->p_operator = $operator;
     }
@@ -74,7 +62,10 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
 
     public function getPrecedence(): int
     {
-        return self::PRECEDENCES[$this->p_operator];
+        return match ($this->p_operator) {
+            LogicalOperator::AND => self::PRECEDENCE_AND,
+            LogicalOperator::OR => self::PRECEDENCE_OR
+        };
     }
 
     public function getAssociativity(): string

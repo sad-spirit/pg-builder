@@ -25,40 +25,24 @@ use sad_spirit\pg_builder\nodes\{
     GenericNode,
     ScalarExpression
 };
+use sad_spirit\pg_builder\enums\ArrayComparisonConstruct;
 use sad_spirit\pg_builder\TreeWalker;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
- * Represents a keyword ANY / ALL / SOME applied to an array-type expression
+ * Represents ANY / ALL / SOME construct applied to an array-type expression
  *
- * @property string           $keyword
- * @property ScalarExpression $array
+ * @property ArrayComparisonConstruct $keyword
+ * @property ScalarExpression         $array
  */
 class ArrayComparisonExpression extends GenericNode implements ScalarExpression
 {
     use ExpressionAtom;
 
-    public const ANY  = 'any';
-    public const ALL  = 'all';
-    public const SOME = 'some';
+    protected ArrayComparisonConstruct $p_keyword;
+    protected ScalarExpression $p_array;
 
-    private const ALLOWED_KEYWORDS = [
-        self::ANY  => true,
-        self::ALL  => true,
-        self::SOME => true
-    ];
-
-    /** @var string */
-    protected $p_keyword;
-    /** @var ScalarExpression */
-    protected $p_array;
-
-    public function __construct(string $keyword, ScalarExpression $array)
+    public function __construct(ArrayComparisonConstruct $keyword, ScalarExpression $array)
     {
-        if (!isset(self::ALLOWED_KEYWORDS[$keyword])) {
-            throw new InvalidArgumentException("Unknown keyword '{$keyword}' for ArrayComparisonExpression");
-        }
-
         $this->generatePropertyNames();
 
         $this->p_keyword = $keyword;

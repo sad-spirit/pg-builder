@@ -39,6 +39,11 @@ interface Token extends \Stringable
     public function matches(TokenType $type, array|string|null $values = null): bool;
 
     /**
+     * Checks whether current token matches any of the given keywords
+     */
+    public function matchesKeyword(Keyword ...$keywords): bool;
+
+    /**
      * Returns token's position in input string
      */
     public function getPosition(): int;
@@ -47,6 +52,11 @@ interface Token extends \Stringable
      * Returns token's type
      */
     public function getType(): TokenType;
+
+    /**
+     * Returns token's Keyword, if any
+     */
+    public function getKeyword(): ?Keyword;
 
     /**
      * Returns token's value

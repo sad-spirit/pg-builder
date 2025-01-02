@@ -20,7 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\enums\ConstantName;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -28,16 +28,9 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class KeywordConstant extends Constant
 {
-    public const NULL  = 'null';
-    public const TRUE  = 'true';
-    public const FALSE = 'false';
-
-    public function __construct(string $value)
+    public function __construct(ConstantName $value)
     {
-        if (self::NULL !== $value && self::TRUE !== $value && self::FALSE !== $value) {
-            throw new InvalidArgumentException("Unknown keyword '{$value}' for a constant");
-        }
-        $this->p_value = $value;
+        $this->p_value = $value->value;
     }
 
     public function dispatch(TreeWalker $walker)

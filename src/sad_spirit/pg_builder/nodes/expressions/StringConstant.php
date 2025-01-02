@@ -20,37 +20,30 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
+use sad_spirit\pg_builder\enums\StringConstantType;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents a string constant (including bit-strings)
  *
- * @property-read string $type String type, one of TYPE_* constants
+ * @property-read StringConstantType $type
  */
 class StringConstant extends Constant
 {
-    public const TYPE_CHARACTER   = 'c';
-    public const TYPE_BINARY      = 'b';
-    public const TYPE_HEXADECIMAL = 'x';
-
-    /** @var string */
-    protected $p_type;
+    protected StringConstantType $p_type;
 
     protected $propertyNames = [
         'value' => 'p_value',
         'type'  => 'p_type'
     ];
 
-    public function __construct(string $value, string $type = self::TYPE_CHARACTER)
+    public function __construct(string $value, StringConstantType $type = StringConstantType::CHARACTER)
     {
-        if (self::TYPE_CHARACTER !== $type && self::TYPE_BINARY !== $type && self::TYPE_HEXADECIMAL !== $type) {
-            throw new InvalidArgumentException("Unknown string type '{$type}'");
-        }
-        if (self::TYPE_BINARY === $type && preg_match('/[^01]/', $value, $m)) {
+        if (StringConstantType::BINARY === $type && preg_match('/[^01]/', $value, $m)) {
             throw new InvalidArgumentException("Invalid binary digit {$m[0]}");
         }
-        if (self::TYPE_HEXADECIMAL === $type && preg_match('/[^0-9a-fA-F]/', $value, $m)) {
+        if (StringConstantType::HEXADECIMAL === $type && preg_match('/[^0-9a-fA-F]/', $value, $m)) {
             throw new InvalidArgumentException("Invalid hexadecimal digit {$m[0]}");
         }
 

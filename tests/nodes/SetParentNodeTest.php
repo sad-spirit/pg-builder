@@ -29,6 +29,7 @@ use sad_spirit\pg_builder\{
     Update,
     Values
 };
+use sad_spirit\pg_builder\enums\PatternPredicate;
 use sad_spirit\pg_builder\nodes\{
     ArrayIndexes,
     ColumnReference,
@@ -403,7 +404,7 @@ class SetParentNodeTest extends TestCase
         $pattern = new PatternMatchingExpression(
             new ColumnReference('foo'),
             new StringConstant('blah%'),
-            'like',
+            PatternPredicate::LIKE,
             false,
             new StringConstant('!')
         );

@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes;
 
+use sad_spirit\pg_builder\enums\LogicalOperator;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
 use sad_spirit\pg_builder\nodes\expressions\LogicalExpression;
@@ -84,10 +85,10 @@ class WhereOrHavingClause extends GenericNode
         if (!$this->p_condition) {
             if (
                 $nested
-                || ($condition instanceof LogicalExpression && LogicalExpression::AND !== $condition->operator)
+                || ($condition instanceof LogicalExpression && LogicalOperator::AND !== $condition->operator)
             ) {
                 // nested condition, should always wrap in LogicalExpression
-                $this->p_condition = new LogicalExpression([$condition], LogicalExpression::AND);
+                $this->p_condition = new LogicalExpression([$condition], LogicalOperator::AND);
                 $this->p_condition->parentNode = $this;
             } else {
                 $this->p_condition = $condition;
@@ -96,24 +97,24 @@ class WhereOrHavingClause extends GenericNode
 
         } else {
             if (!$this->p_condition instanceof LogicalExpression) {
-                $this->p_condition = new LogicalExpression([$this->p_condition], LogicalExpression::AND);
+                $this->p_condition = new LogicalExpression([$this->p_condition], LogicalOperator::AND);
                 $this->p_condition->parentNode = $this;
             }
             if (
-                LogicalExpression::AND === $this->p_condition->operator
+                LogicalOperator::AND === $this->p_condition->operator
                 || null === ($key = $this->p_condition->lastKey())
             ) {
                 $recipient = $this->p_condition;
             } else {
                 $recipient = $this->p_condition[$key];
-                if (!$recipient instanceof LogicalExpression || LogicalExpression::AND !== $recipient->operator) {
+                if (!$recipient instanceof LogicalExpression || LogicalOperator::AND !== $recipient->operator) {
                     $this->p_condition[$key] = $recipient = new LogicalExpression(
                         [$recipient],
-                        LogicalExpression::AND
+                        LogicalOperator::AND
                     );
                 }
             }
-            if ($condition instanceof LogicalExpression && LogicalExpression::AND === $condition->operator) {
+            if ($condition instanceof LogicalExpression && LogicalOperator::AND === $condition->operator) {
                 $recipient->merge($condition);
             } else {
                 $recipient[] = $condition;
@@ -142,13 +143,13 @@ class WhereOrHavingClause extends GenericNode
         } else {
             if (
                 !$this->p_condition instanceof LogicalExpression
-                || LogicalExpression::OR !== $this->p_condition->operator
+                || LogicalOperator::OR !== $this->p_condition->operator
             ) {
-                $this->p_condition = new LogicalExpression([$this->p_condition], LogicalExpression::OR);
+                $this->p_condition = new LogicalExpression([$this->p_condition], LogicalOperator::OR);
                 $this->p_condition->parentNode = $this;
             }
 
-            if ($condition instanceof LogicalExpression && LogicalExpression::OR === $condition->operator) {
+            if ($condition instanceof LogicalExpression && LogicalOperator::OR === $condition->operator) {
                 $this->p_condition->merge($condition);
             } else {
                 $this->p_condition[] = $condition;

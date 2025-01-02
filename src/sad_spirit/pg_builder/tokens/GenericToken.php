@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tokens;
 
+use sad_spirit\pg_builder\Keyword;
 use sad_spirit\pg_builder\Token;
 use sad_spirit\pg_builder\TokenType;
 
@@ -31,6 +32,11 @@ abstract class GenericToken implements Token
         return $this->position;
     }
 
+    public function getKeyword(): ?Keyword
+    {
+        return null;
+    }
+
     public function matches(TokenType $type, array|string|null $values = null): bool
     {
         if ($type->value !== ($type->value & $this->getType()->value)) {
@@ -41,6 +47,11 @@ abstract class GenericToken implements Token
             return $this->getValue() === $values
                 || (\is_array($values) && \in_array($this->getValue(), $values, true));
         }
+    }
+
+    public function matchesKeyword(Keyword ...$keywords): bool
+    {
+        return false;
     }
 
     public function __toString(): string

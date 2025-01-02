@@ -26,8 +26,8 @@ use sad_spirit\pg_builder\nodes\{
     GenericNode,
     ScalarExpression
 };
+use sad_spirit\pg_builder\enums\NormalizeForm;
 use sad_spirit\pg_builder\TreeWalker;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * AST node representing NORMALIZE(...) function call with special arguments format
@@ -37,35 +37,17 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  * we follow the suit by creating a separate Node with SQL standard output.
  *
  * @property      ScalarExpression $argument
- * @property-read string|null      $form
+ * @property-read ?NormalizeForm   $form
  */
 class NormalizeExpression extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
-    public const NFC  = 'nfc';
-    public const NFD  = 'nfd';
-    public const NFKC = 'nfkc';
-    public const NFKD = 'nfkd';
+    protected ScalarExpression $p_argument;
+    protected ?NormalizeForm $p_form;
 
-    public const FORMS = [
-        self::NFC,
-        self::NFD,
-        self::NFKC,
-        self::NFKD
-    ];
-
-    /** @var ScalarExpression */
-    protected $p_argument;
-    /** @var string|null */
-    protected $p_form;
-
-    public function __construct(ScalarExpression $argument, ?string $form = null)
+    public function __construct(ScalarExpression $argument, ?NormalizeForm $form = null)
     {
-        if (null !== $form && !in_array($form, self::FORMS, true)) {
-            throw new InvalidArgumentException("Unknown normalization form '$form' in NormalizeExpression");
-        }
-
         $this->generatePropertyNames();
 
         $this->p_argument = $argument;

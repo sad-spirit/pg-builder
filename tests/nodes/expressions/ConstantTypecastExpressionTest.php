@@ -32,6 +32,7 @@ use sad_spirit\pg_builder\nodes\{
     expressions\NumericConstant,
     expressions\StringConstant
 };
+use sad_spirit\pg_builder\enums\StringConstantType;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\SqlBuilderWalker;
 
@@ -122,7 +123,7 @@ class ConstantTypecastExpressionTest extends TestCase
         return [
             [new ColumnReference('foo', 'bar')],
             [new NumericConstant('1.2')],
-            [new StringConstant('1010', StringConstant::TYPE_BINARY)]
+            [new StringConstant('1010', StringConstantType::BINARY)]
         ];
     }
 

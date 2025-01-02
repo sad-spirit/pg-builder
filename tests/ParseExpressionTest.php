@@ -26,6 +26,17 @@ use sad_spirit\pg_builder\{
     Lexer,
     Select
 };
+use sad_spirit\pg_builder\enums\{
+    ArrayComparisonConstruct,
+    BetweenPredicate,
+    ConstantName,
+    IsJsonType,
+    IsPredicate,
+    LogicalOperator,
+    PatternPredicate,
+    SQLValueFunctionName,
+    SubselectConstruct
+};
 use sad_spirit\pg_builder\exceptions\SyntaxException;
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
@@ -34,7 +45,6 @@ use sad_spirit\pg_builder\nodes\{
     Identifier,
     Indirection,
     ArrayIndexes,
-    TypeName,
     TargetElement,
     QualifiedName
 };
@@ -107,7 +117,7 @@ QRY
                 new RowExpression([new NumericConstant('3'), new NumericConstant('4')]),
                 new Indirection([new Identifier('blah')], new PositionalParameter(1)),
                 new NamedParameter('foo'),
-                new KeywordConstant(KeywordConstant::NULL),
+                new KeywordConstant(ConstantName::NULL),
                 new GroupingExpression([
                     new ColumnReference(new Identifier('a')),
                     new ColumnReference(new Identifier('b'))
@@ -193,7 +203,7 @@ QRY
                             new ColumnReference(new Identifier('a')),
                             new NotExpression(new ColumnReference(new Identifier('b')))
                         ],
-                        'and'
+                        LogicalOperator::AND
                     ),
                     new LogicalExpression(
                         [
@@ -203,7 +213,7 @@ QRY
                     ),
                     new ColumnReference(new Identifier('e'))
                 ],
-                'or'
+                LogicalOperator::OR
             ),
             $expr
         );
@@ -221,12 +231,12 @@ QRY
                 new PatternMatchingExpression(
                     new StringConstant('foo'),
                     new StringConstant('bar'),
-                    'like'
+                    PatternPredicate::LIKE
                 ),
                 new PatternMatchingExpression(
                     new StringConstant('baz'),
                     new StringConstant('quux'),
-                    'ilike',
+                    PatternPredicate::ILIKE,
                     true,
                     new StringConstant('!')
                 )
@@ -289,11 +299,11 @@ QRY
                         new ColumnReference(new Identifier('foofoo')),
                         new StringConstant('quux'),
                         new StringConstant('xyzzy'),
-                        'between symmetric',
+                        BetweenPredicate::BETWEEN_SYMMETRIC,
                         true
                     )
                 ],
-                'and'
+                LogicalOperator::AND
             ),
             $expression
         );
@@ -319,8 +329,8 @@ QRY
                         ])
                     ),
                     new ExpressionList([
-                        new KeywordConstant(KeywordConstant::TRUE),
-                        new KeywordConstant(KeywordConstant::FALSE)
+                        new KeywordConstant(ConstantName::TRUE),
+                        new KeywordConstant(ConstantName::FALSE)
                     ])
                 ),
                 new InExpression(
@@ -352,18 +362,18 @@ QRY
                 new OperatorExpression(
                     '<',
                     new ColumnReference('foo'),
-                    new SubselectExpression($foo, 'any')
+                    new SubselectExpression($foo, SubselectConstruct::ANY)
                 ),
                 new PatternMatchingExpression(
                     new ColumnReference('bar'),
-                    new SubselectExpression($bar, 'all'),
-                    'like'
+                    new SubselectExpression($bar, SubselectConstruct::ALL),
+                    PatternPredicate::LIKE
                 ),
                 new OperatorExpression(
                     '=',
                     new ColumnReference('baz'),
                     new ArrayComparisonExpression(
-                        'some',
+                        ArrayComparisonConstruct::SOME,
                         new ArrayExpression([new ColumnReference('one'), new ColumnReference('two')])
                     )
                 ),
@@ -373,7 +383,7 @@ QRY
                         '=',
                         new ColumnReference(new Identifier('foo')),
                         new ArrayComparisonExpression(
-                            'any',
+                            ArrayComparisonConstruct::ANY,
                             new ArrayExpression(new ExpressionList([
                                 new ColumnReference(new Identifier('bar')),
                                 new ColumnReference(new Identifier('baz'))
@@ -462,17 +472,17 @@ QRY
                 new IsExpression(
                     new IsExpression(
                         new ColumnReference(new Identifier('foo')),
-                        IsExpression::NULL
+                        IsPredicate::NULL
                     ),
-                    IsExpression::NULL
+                    IsPredicate::NULL
                 ),
                 new IsExpression(
                     new IsExpression(
                         new ColumnReference(new Identifier('bar')),
-                        IsExpression::NULL,
+                        IsPredicate::NULL,
                         true
                     ),
-                    IsExpression::NULL,
+                    IsPredicate::NULL,
                     true
                 ),
                 new IsDistinctFromExpression(
@@ -481,16 +491,16 @@ QRY
                 ),
                 new IsExpression(
                     new StringConstant('xml'),
-                    IsExpression::DOCUMENT,
+                    IsPredicate::DOCUMENT,
                     true
                 ),
                 new IsExpression(
                     new ColumnReference(new Identifier('foobar')),
-                    IsExpression::NORMALIZED
+                    IsPredicate::NORMALIZED
                 ),
                 new IsExpression(
                     new ColumnReference(new Identifier('barbaz')),
-                    IsExpression::NFKC_NORMALIZED,
+                    IsPredicate::NFKC_NORMALIZED,
                     true
                 )
             ]),
@@ -518,12 +528,12 @@ QRY
                 new IsJsonExpression(
                     new ColumnReference(new Identifier('baz')),
                     true,
-                    IsJsonExpression::TYPE_ARRAY
+                    IsJsonType::ARRAY
                 ),
                 new IsJsonExpression(
                     new ColumnReference(new Identifier('quux')),
                     false,
-                    IsJsonExpression::TYPE_OBJECT,
+                    IsJsonType::OBJECT,
                     true
                 )
             ]),
@@ -626,7 +636,7 @@ QRY
             new OperatorExpression(
                 '>=',
                 new ColumnReference('news_expire'),
-                new SQLValueFunction(SQLValueFunction::CURRENT_DATE)
+                new SQLValueFunction(SQLValueFunctionName::CURRENT_DATE)
             ),
             $this->parser->parseExpression('news_expire >= current_date')
         );

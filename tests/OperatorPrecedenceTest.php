@@ -24,9 +24,11 @@ use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Parser,
     Lexer,
-    Node
+    Node,
+    enums\ConstantName,
+    enums\IsPredicate,
+    exceptions\SyntaxException
 };
-use sad_spirit\pg_builder\exceptions\SyntaxException;
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
     Identifier,
@@ -197,10 +199,10 @@ class OperatorPrecedenceTest extends TestCase
                 new IsExpression(
                     new OperatorExpression(
                         '=',
-                        new KeywordConstant(KeywordConstant::FALSE),
-                        new KeywordConstant(KeywordConstant::TRUE)
+                        new KeywordConstant(ConstantName::FALSE),
+                        new KeywordConstant(ConstantName::TRUE)
                     ),
-                    IsExpression::NULL
+                    IsPredicate::NULL
                 )
             ],
             [
@@ -221,7 +223,7 @@ class OperatorPrecedenceTest extends TestCase
                         new StringConstant('foo'),
                         new StringConstant('bar')
                     ),
-                    IsExpression::TRUE,
+                    IsPredicate::TRUE,
                     true
                 )
             ]
@@ -240,10 +242,10 @@ class OperatorPrecedenceTest extends TestCase
                 new IsExpression(
                     new BetweenExpression(
                         new ColumnReference(new Identifier('foo')),
-                        new KeywordConstant(KeywordConstant::FALSE),
-                        new KeywordConstant(KeywordConstant::TRUE)
+                        new KeywordConstant(ConstantName::FALSE),
+                        new KeywordConstant(ConstantName::TRUE)
                     ),
-                    IsExpression::FALSE,
+                    IsPredicate::FALSE,
                     true
                 )
             ]

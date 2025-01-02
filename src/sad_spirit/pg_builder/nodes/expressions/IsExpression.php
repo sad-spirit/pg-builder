@@ -20,11 +20,9 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\{
-    exceptions\InvalidArgumentException,
-    nodes\ScalarExpression,
-    TreeWalker
-};
+use sad_spirit\pg_builder\enums\IsPredicate;
+use sad_spirit\pg_builder\nodes\ScalarExpression;
+use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing "foo IS [NOT] keyword" expression
@@ -32,40 +30,14 @@ use sad_spirit\pg_builder\{
  * Allowed keywords are TRUE / FALSE / NULL / UNKNOWN / DOCUMENT / [NFC|NFD|NFKC|NFKD] NORMALIZED
  *
  * @property ScalarExpression $argument
- * @property string           $what
+ * @property IsPredicate      $what
  */
 class IsExpression extends NegatableExpression
 {
-    public const NULL            = 'null';
-    public const TRUE            = 'true';
-    public const FALSE           = 'false';
-    public const UNKNOWN         = 'unknown';
-    public const DOCUMENT        = 'document';
-    public const NORMALIZED      = 'normalized';
-    public const NFC_NORMALIZED  = 'nfc normalized';
-    public const NFD_NORMALIZED  = 'nfd normalized';
-    public const NFKC_NORMALIZED = 'nfkc normalized';
-    public const NFKD_NORMALIZED = 'nfkd normalized';
+    protected ScalarExpression $p_argument;
+    protected IsPredicate $p_what;
 
-    private const ALLOWED_KEYWORDS = [
-        self::NULL            => true,
-        self::TRUE            => true,
-        self::FALSE           => true,
-        self::UNKNOWN         => true,
-        self::DOCUMENT        => true,
-        self::NORMALIZED      => true,
-        self::NFC_NORMALIZED  => true,
-        self::NFD_NORMALIZED  => true,
-        self::NFKC_NORMALIZED => true,
-        self::NFKD_NORMALIZED => true
-    ];
-
-    /** @var ScalarExpression */
-    protected $p_argument;
-    /** @var string */
-    protected $p_what;
-
-    public function __construct(ScalarExpression $argument, string $what, bool $not = false)
+    public function __construct(ScalarExpression $argument, IsPredicate $what, bool $not = false)
     {
         $this->generatePropertyNames();
 
@@ -82,11 +54,8 @@ class IsExpression extends NegatableExpression
         $this->setRequiredProperty($this->p_argument, $argument);
     }
 
-    public function setWhat(string $what): void
+    public function setWhat(IsPredicate $what): void
     {
-        if (!isset(self::ALLOWED_KEYWORDS[$what])) {
-            throw new InvalidArgumentException("Unknown keyword '{$what}' for right side of IS expression");
-        }
         $this->p_what = $what;
     }
 

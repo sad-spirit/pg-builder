@@ -20,9 +20,14 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\Token;
-use sad_spirit\pg_builder\TokenType;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\{
+    Token,
+    TokenType,
+    enums\ConstantName,
+    enums\StringConstantType,
+    exceptions\InvalidArgumentException,
+    tokens\KeywordToken
+};
 use sad_spirit\pg_builder\nodes\{
     ExpressionAtom,
     GenericNode,
@@ -40,8 +45,7 @@ abstract class Constant extends GenericNode implements ScalarExpression
     use NonRecursiveNode;
     use ExpressionAtom;
 
-    /** @var string */
-    protected $p_value;
+    protected string $p_value;
 
     protected $propertyNames = [
         'value' => 'p_value'
@@ -52,15 +56,18 @@ abstract class Constant extends GenericNode implements ScalarExpression
      */
     public static function createFromToken(Token $token): self
     {
-        if ($token->matches(TokenType::KEYWORD, ['null', 'false', 'true'])) {
-            return new KeywordConstant($token->getValue());
+        if (
+            $token instanceof KeywordToken
+            && (null !== $name = ConstantName::tryFromKeywords($token->getKeyword()))
+        ) {
+            return new KeywordConstant($name);
         }
 
         if ($token->matches(TokenType::LITERAL)) {
             return match ($token->getType()) {
                 TokenType::INTEGER, TokenType::FLOAT => new NumericConstant($token->getValue()),
-                TokenType::BINARY_STRING => new StringConstant($token->getValue(), StringConstant::TYPE_BINARY),
-                TokenType::HEX_STRING => new StringConstant($token->getValue(), StringConstant::TYPE_HEXADECIMAL),
+                TokenType::BINARY_STRING => new StringConstant($token->getValue(), StringConstantType::BINARY),
+                TokenType::HEX_STRING => new StringConstant($token->getValue(), StringConstantType::HEXADECIMAL),
                 default => new StringConstant($token->getValue()),
             };
         }
@@ -78,8 +85,8 @@ abstract class Constant extends GenericNode implements ScalarExpression
     public static function createFromPHPValue(mixed $value): self
     {
         return match (\gettype($value)) {
-            'NULL' => new KeywordConstant(KeywordConstant::NULL),
-            'boolean' => new KeywordConstant($value ? KeywordConstant::TRUE : KeywordConstant::FALSE),
+            'NULL' => new KeywordConstant(ConstantName::NULL),
+            'boolean' => new KeywordConstant($value ? ConstantName::TRUE : ConstantName::FALSE),
             'integer' => new NumericConstant((string)$value),
             'double' => new NumericConstant(\str_replace(',', '.', (string)$value)),
             'string' => new StringConstant($value),

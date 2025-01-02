@@ -27,8 +27,8 @@ use sad_spirit\pg_builder\nodes\{
     lists\ExpressionList,
     ScalarExpression
 };
+use sad_spirit\pg_builder\enums\TrimSide;
 use sad_spirit\pg_builder\TreeWalker;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * AST node representing TRIM(...) function call with special arguments format
@@ -42,36 +42,18 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  * thus Postgres only outputs at most two arguments when generating SQL in src/backend/utils/adt/ruleutils.c
  * Obviously, we cannot  check for function existence, so just pass on all arguments in generated SQL.
  *
- * @psalm-property ExpressionList $arguments
- *
- * @property      ExpressionList|ScalarExpression[] $arguments
- * @property-read string                            $side
+ * @property      ExpressionList $arguments
+ * @property-read TrimSide       $side
  */
 class TrimExpression extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
-    public const LEADING  = 'leading';
-    public const TRAILING = 'trailing';
-    public const BOTH     = 'both';
+    protected ExpressionList $p_arguments;
+    protected TrimSide $p_side;
 
-    public const SIDES = [
-        self::LEADING,
-        self::TRAILING,
-        self::BOTH
-    ];
-
-    /** @var ExpressionList */
-    protected $p_arguments;
-    /** @var string */
-    protected $p_side;
-
-    public function __construct(ExpressionList $arguments, string $side = self::BOTH)
+    public function __construct(ExpressionList $arguments, TrimSide $side = TrimSide::BOTH)
     {
-        if (!in_array($side, self::SIDES, true)) {
-            throw new InvalidArgumentException("Unknown value '{$side}' for \$side parameter of TrimExpression");
-        }
-
         $this->generatePropertyNames();
 
         $this->p_arguments = $arguments;

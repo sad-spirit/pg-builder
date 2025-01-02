@@ -21,9 +21,10 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
-    nodes\ScalarExpression,
+    TreeWalker,
+    enums\PatternPredicate,
     exceptions\InvalidArgumentException,
-    TreeWalker
+    nodes\ScalarExpression
 };
 
 /**
@@ -35,39 +36,22 @@ use sad_spirit\pg_builder\{
  * @property      ScalarExpression      $argument
  * @property      ScalarExpression      $pattern
  * @property      ScalarExpression|null $escape
- * @property-read string                $operator either of 'like' / 'ilike' / 'similar to'
+ * @property-read PatternPredicate      $operator
  */
 class PatternMatchingExpression extends NegatableExpression
 {
-    public const LIKE       = 'like';
-    public const ILIKE      = 'ilike';
-    public const SIMILAR_TO = 'similar to';
-
-    private const ALLOWED_OPERATORS = [
-        self::LIKE           => true,
-        self::ILIKE          => true,
-        self::SIMILAR_TO     => true
-    ];
-
-    /** @var ScalarExpression */
-    protected $p_argument;
-    /** @var ScalarExpression */
-    protected $p_pattern;
-    /** @var ScalarExpression|null */
-    protected $p_escape;
-    /** @var string */
-    protected $p_operator;
+    protected ScalarExpression $p_argument;
+    protected ScalarExpression $p_pattern;
+    protected ?ScalarExpression $p_escape = null;
+    protected PatternPredicate $p_operator;
 
     public function __construct(
         ScalarExpression $argument,
         ScalarExpression $pattern,
-        string $operator = self::LIKE,
+        PatternPredicate $operator = PatternPredicate::LIKE,
         bool $not = false,
         ?ScalarExpression $escape = null
     ) {
-        if (!isset(self::ALLOWED_OPERATORS[$operator])) {
-            throw new InvalidArgumentException("Unknown operator '{$operator}' for pattern matching expression");
-        }
         if ($argument === $pattern || $argument === $escape || $pattern === $escape) {
             throw new InvalidArgumentException("Cannot use the same Node for argument / pattern / escape");
         }

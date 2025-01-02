@@ -26,6 +26,14 @@ use sad_spirit\pg_builder\{
     Parser,
     Values
 };
+use sad_spirit\pg_builder\enums\{
+    ConstantName,
+    ExtractPart,
+    NormalizeForm,
+    SQLValueFunctionName,
+    SystemFunctionName,
+    TrimSide,
+};
 use sad_spirit\pg_builder\exceptions\{
     InvalidArgumentException,
     SyntaxException
@@ -124,7 +132,7 @@ QRY
         );
         $expected = [];
         foreach (array_map('trim', explode(',', $input)) as $item) {
-            $expected[] = new SQLValueFunction($item);
+            $expected[] = new SQLValueFunction(SQLValueFunctionName::from($item));
         }
 
         $this::assertEquals(new ExpressionList($expected), $list);
@@ -139,10 +147,10 @@ QRY
 
         $this::assertEquals(
             new ExpressionList([
-                new SQLValueFunction(SQLValueFunction::CURRENT_TIME),
-                new SQLValueFunction(SQLValueFunction::CURRENT_TIMESTAMP, new NumericConstant('1')),
-                new SQLValueFunction(SQLValueFunction::LOCALTIME, new NumericConstant('2')),
-                new SQLValueFunction(SQLValueFunction::LOCALTIMESTAMP)
+                new SQLValueFunction(SQLValueFunctionName::CURRENT_TIME),
+                new SQLValueFunction(SQLValueFunctionName::CURRENT_TIMESTAMP, new NumericConstant('1')),
+                new SQLValueFunction(SQLValueFunctionName::LOCALTIME, new NumericConstant('2')),
+                new SQLValueFunction(SQLValueFunctionName::LOCALTIMESTAMP)
             ]),
             $list
         );
@@ -161,7 +169,7 @@ QRY
         $this->assertEquals(
             new ExpressionList([
                 new ExtractExpression('epoch', new ColumnReference('foo')),
-                new ExtractExpression('minute', new ColumnReference('bar')),
+                new ExtractExpression(ExtractPart::MINUTE, new ColumnReference('bar')),
                 new ExtractExpression('whatever', new ColumnReference('baz'))
             ]),
             $list
@@ -281,15 +289,15 @@ QRY
                 new TrimExpression(new ExpressionList([new StringConstant(' foo ')])),
                 new TrimExpression(
                     new ExpressionList([new StringConstant('_foo_'), new StringConstant('_')]),
-                    TrimExpression::LEADING
+                    TrimSide::LEADING
                 ),
                 new TrimExpression(
                     new ExpressionList([new StringConstant('foo ')]),
-                    TrimExpression::TRAILING
+                    TrimSide::TRAILING
                 ),
                 new TrimExpression(
                     new ExpressionList([new StringConstant('foo'), new StringConstant('o')]),
-                    TrimExpression::TRAILING
+                    TrimSide::TRAILING
                 ),
                 new TrimExpression(new ExpressionList([
                     new StringConstant('foo'),
@@ -405,7 +413,7 @@ QRY
         $this::assertEquals(
             new ExpressionList([
                 new NormalizeExpression(new ColumnReference('foo')),
-                new NormalizeExpression(new ColumnReference('bar'), NormalizeExpression::NFD)
+                new NormalizeExpression(new ColumnReference('bar'), NormalizeForm::NFD)
             ]),
             $this->parser->parseExpressionList('normalize(foo), normalize(bar, nFd)')
         );
@@ -425,19 +433,19 @@ QRY
         $this->assertEquals(
             new ExpressionList([
                 new SystemFunctionCall(
-                    'coalesce',
+                    SystemFunctionName::COALESCE,
                     new ExpressionList([new ColumnReference('a'), new StringConstant('b')])
                 ),
                 new SystemFunctionCall(
-                    'greatest',
+                    SystemFunctionName::GREATEST,
                     new ExpressionList([new StringConstant('c'), new ColumnReference('d')])
                 ),
                 new SystemFunctionCall(
-                    'least',
+                    SystemFunctionName::LEAST,
                     new ExpressionList([new ColumnReference('e'), new ColumnReference('f')])
                 ),
                 new SystemFunctionCall(
-                    'xmlconcat',
+                    SystemFunctionName::XMLCONCAT,
                     new ExpressionList([
                         new ColumnReference('x'), new ColumnReference('m'), new ColumnReference('l')
                     ])
@@ -711,13 +719,13 @@ QRY
             new ExpressionList([
                 new JsonScalar(new NumericConstant('1')),
                 new JsonScalar(new NumericConstant('2'), new TypeName(new QualifiedName('jsonb'))),
-                new JsonConstructor(new JsonFormattedValue(new KeywordConstant(KeywordConstant::NULL))),
+                new JsonConstructor(new JsonFormattedValue(new KeywordConstant(ConstantName::NULL))),
                 new JsonConstructor(
                     new JsonFormattedValue(new StringConstant('{"foo":1}'), new JsonFormat('json', 'utf8')),
                     false,
                     new TypeName(new QualifiedName('jsonb'))
                 ),
-                new JsonSerialize(new JsonFormattedValue(new KeywordConstant(KeywordConstant::NULL))),
+                new JsonSerialize(new JsonFormattedValue(new KeywordConstant(ConstantName::NULL))),
                 new JsonSerialize(
                     new JsonFormattedValue(new StringConstant('{"foo":"bar"}'), new JsonFormat('json', 'utf8')),
                     new JsonReturning(new TypeName(new QualifiedName('bytea')), new JsonFormat())
@@ -744,7 +752,7 @@ QRY
         $this::assertEquals(
             new ExpressionList([
                 new JsonExists(
-                    new JsonFormattedValue(new KeywordConstant(KeywordConstant::NULL), new JsonFormat()),
+                    new JsonFormattedValue(new KeywordConstant(ConstantName::NULL), new JsonFormat()),
                     new StringConstant('$')
                 ),
                 new JsonExists(
@@ -761,7 +769,7 @@ QRY
                 ),
                 new JsonValue(
                     new JsonFormattedValue(new TypecastExpression(
-                        new KeywordConstant(KeywordConstant::NULL),
+                        new KeywordConstant(ConstantName::NULL),
                         new TypeName(new QualifiedName('jsonb'))
                     )),
                     new StringConstant('$')
@@ -780,7 +788,7 @@ QRY
                     new NumericConstant('-1')
                 ),
                 new JsonQuery(
-                    new JsonFormattedValue(new KeywordConstant(KeywordConstant::NULL), new JsonFormat()),
+                    new JsonFormattedValue(new KeywordConstant(ConstantName::NULL), new JsonFormat()),
                     new StringConstant('$')
                 ),
                 new JsonQuery(

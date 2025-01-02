@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
+    enums\BetweenPredicate,
     nodes\ScalarExpression,
     exceptions\InvalidArgumentException,
     TreeWalker
@@ -32,34 +33,20 @@ use sad_spirit\pg_builder\{
  * @property ScalarExpression $argument
  * @property ScalarExpression $left
  * @property ScalarExpression $right
- * @property string           $operator either of 'between' / 'between symmetric' / 'between asymmetric'
+ * @property BetweenPredicate $operator
  */
 class BetweenExpression extends NegatableExpression
 {
-    public const BETWEEN                = 'between';
-    public const BETWEEN_SYMMETRIC      = 'between symmetric';
-    public const BETWEEN_ASYMMETRIC     = 'between asymmetric';
-
-    private const ALLOWED_OPERATORS = [
-        self::BETWEEN                => true,
-        self::BETWEEN_SYMMETRIC      => true,
-        self::BETWEEN_ASYMMETRIC     => true
-    ];
-
-    /** @var ScalarExpression */
-    protected $p_argument;
-    /** @var ScalarExpression */
-    protected $p_left;
-    /** @var ScalarExpression */
-    protected $p_right;
-    /** @var string */
-    protected $p_operator;
+    protected ScalarExpression $p_argument;
+    protected ScalarExpression $p_left;
+    protected ScalarExpression $p_right;
+    protected BetweenPredicate $p_operator;
 
     public function __construct(
         ScalarExpression $argument,
         ScalarExpression $left,
         ScalarExpression $right,
-        string $operator = self::BETWEEN,
+        BetweenPredicate $operator = BetweenPredicate::BETWEEN,
         bool $not = false
     ) {
         if ($argument === $left || $argument === $right || $left === $right) {
@@ -96,11 +83,8 @@ class BetweenExpression extends NegatableExpression
         $this->setRequiredProperty($this->p_right, $right);
     }
 
-    public function setOperator(string $operator): void
+    public function setOperator(BetweenPredicate $operator): void
     {
-        if (!isset(self::ALLOWED_OPERATORS[$operator])) {
-            throw new InvalidArgumentException("Unknown operator '{$operator}' for BETWEEN-style expression");
-        }
         $this->p_operator = $operator;
     }
 

@@ -21,12 +21,12 @@ use sad_spirit\pg_builder\TokenType;
  */
 class EOFToken extends GenericToken
 {
-    public function getType() : TokenType
+    public function getType(): TokenType
     {
         return TokenType::EOF;
     }
 
-    public function getValue() : string
+    public function getValue(): string
     {
         return '';
     }

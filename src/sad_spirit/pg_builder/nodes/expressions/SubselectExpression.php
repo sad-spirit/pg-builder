@@ -23,7 +23,7 @@ namespace sad_spirit\pg_builder\nodes\expressions;
 use sad_spirit\pg_builder\{
     SelectCommon,
     TreeWalker,
-    exceptions\InvalidArgumentException,
+    enums\SubselectConstruct,
     nodes\ExpressionAtom,
     nodes\GenericNode,
     nodes\ScalarExpression
@@ -32,39 +32,18 @@ use sad_spirit\pg_builder\{
 /**
  * AST node representing a subquery appearing in scalar expressions, possibly with a subquery operator applied
  *
- * @property      SelectCommon $query
- * @property-read string|null  $operator
+ * @property      SelectCommon            $query
+ * @property-read SubselectConstruct|null $operator
  */
 class SubselectExpression extends GenericNode implements ScalarExpression
 {
     use ExpressionAtom;
 
-    public const EXISTS = 'exists';
-    public const ANY    = 'any';
-    public const ALL    = 'all';
-    public const SOME   = 'some';
-    public const ARRAY  = 'array';
+    protected SelectCommon $p_query;
+    protected ?SubselectConstruct $p_operator;
 
-    private const ALLOWED_EXPRESSIONS = [
-        self::EXISTS => true,
-        self::ANY    => true,
-        self::ALL    => true,
-        self::SOME   => true,
-        self::ARRAY  => true
-        // "in" is served by InExpression
-    ];
-
-    /** @var SelectCommon */
-    protected $p_query;
-    /** @var string|null */
-    protected $p_operator;
-
-    public function __construct(SelectCommon $query, ?string $operator = null)
+    public function __construct(SelectCommon $query, ?SubselectConstruct $operator = null)
     {
-        if (null !== $operator && !isset(self::ALLOWED_EXPRESSIONS[$operator])) {
-            throw new InvalidArgumentException("Unknown subquery operator '{$operator}'");
-        }
-
         $this->generatePropertyNames();
         $this->p_query = $query;
         $this->p_query->setParentNode($this);

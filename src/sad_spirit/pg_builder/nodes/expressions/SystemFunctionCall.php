@@ -27,8 +27,8 @@ use sad_spirit\pg_builder\nodes\{
     ScalarExpression,
     lists\ExpressionList
 };
+use sad_spirit\pg_builder\enums\SystemFunctionName;
 use sad_spirit\pg_builder\TreeWalker;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * Node for function calls with special grammar productions
@@ -42,38 +42,18 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  *   - checks whether $name is string or QualifiedName had to be added everywhere
  *   - FunctionCall has several other properties that are invalid for system functions
  *
- * @psalm-property ExpressionList $arguments
- *
- * @property-read string                            $name
- * @property      ExpressionList|ScalarExpression[] $arguments
+ * @property-read SystemFunctionName $name
+ * @property      ExpressionList     $arguments
  */
 class SystemFunctionCall extends GenericNode implements FunctionLike, ScalarExpression
 {
     use ExpressionAtom;
 
-    public const COALESCE  = 'coalesce';
-    public const GREATEST  = 'greatest';
-    public const LEAST     = 'least';
-    public const XMLCONCAT = 'xmlconcat';
+    protected SystemFunctionName $p_name;
+    protected ExpressionList $p_arguments;
 
-    private const ALLOWED_NAMES = [
-        self::COALESCE  => true,
-        self::GREATEST  => true,
-        self::LEAST     => true,
-        self::XMLCONCAT => true
-    ];
-
-    /** @var string */
-    protected $p_name;
-    /** @var ExpressionList */
-    protected $p_arguments;
-
-    public function __construct(string $name, ExpressionList $arguments)
+    public function __construct(SystemFunctionName $name, ExpressionList $arguments)
     {
-        if (!isset(self::ALLOWED_NAMES[$name])) {
-            throw new InvalidArgumentException("Unknown function name '{$name}' for SystemFunctionCall");
-        }
-
         $this->generatePropertyNames();
         $this->p_name = $name;
 

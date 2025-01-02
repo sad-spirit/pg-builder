@@ -514,8 +514,8 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkStringConstant(nodes\expressions\StringConstant $node): string
     {
         // binary and hex strings do not require escaping
-        if ($node::TYPE_CHARACTER !== $node->type) {
-            return "{$node->type}'{$node->value}'";
+        if (enums\StringConstantType::CHARACTER !== $node->type) {
+            return "{$node->type->value}'{$node->value}'";
         }
 
         if ($this->options['escape_unicode'] && preg_match('/[\\x80-\\xff]/', $node->value)) {
@@ -573,12 +573,12 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkSQLValueFunction(nodes\expressions\SQLValueFunction $node): string
     {
-        return $node->name . (null === $node->modifier ? '' : '(' . $node->modifier->dispatch($this) . ')');
+        return $node->name->value . (null === $node->modifier ? '' : '(' . $node->modifier->dispatch($this) . ')');
     }
 
     public function walkSystemFunctionCall(nodes\expressions\SystemFunctionCall $node): string
     {
-        return $node->name . '(' . implode(', ', (array)$node->arguments->dispatch($this)) . ')';
+        return $node->name->value . '(' . implode(', ', (array)$node->arguments->dispatch($this)) . ')';
     }
 
     public function walkIdentifier(nodes\Identifier $node): string
@@ -829,7 +829,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkArrayComparisonExpression(nodes\expressions\ArrayComparisonExpression $expression): string
     {
-        return $expression->keyword . '(' . $expression->array->dispatch($this) . ')';
+        return $expression->keyword->value . '(' . $expression->array->dispatch($this) . ')';
     }
 
     public function walkAtTimeZoneExpression(nodes\expressions\AtTimeZoneExpression $expression): string
@@ -842,7 +842,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkBetweenExpression(nodes\expressions\BetweenExpression $expression): string
     {
         return $this->optionalParentheses($expression->argument, $expression)
-               . ($expression->not ? ' not ' : ' ') . $expression->operator . ' '
+               . ($expression->not ? ' not ' : ' ') . $expression->operator->value . ' '
                . $this->optionalParentheses($expression->left, $expression, true)
                . ' and '
                . $this->optionalParentheses($expression->right, $expression, true);
@@ -880,8 +880,8 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkExtractExpression(nodes\expressions\ExtractExpression $expression): string
     {
-        $field = in_array($expression->field, $expression::KEYWORDS)
-            ? $expression->field
+        $field = $expression->field instanceof enums\ExtractPart
+            ? $expression->field->value
             : (new nodes\Identifier($expression->field))->dispatch($this);
 
         return 'extract(' . $field . ' from ' . $expression->source->dispatch($this) . ')';
@@ -937,7 +937,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkIsExpression(nodes\expressions\IsExpression $expression): string
     {
         return $this->optionalParentheses($expression->argument, $expression, false)
-               . ' is ' . ($expression->not ? 'not ' : '') . $expression->what;
+               . ' is ' . ($expression->not ? 'not ' : '') . $expression->what->value;
     }
 
     public function walkLogicalExpression(nodes\expressions\LogicalExpression $expression): string
@@ -949,8 +949,8 @@ class SqlBuilderWalker implements StatementToStringWalker
 
         $verbose   = $parent instanceof nodes\WhereOrHavingClause;
         $delimiter = $verbose
-                     ? ($this->options['linebreak'] ?: ' ') . $this->getIndent() . $expression->operator . ' '
-                     : ' ' . $expression->operator . ' ';
+                     ? ($this->options['linebreak'] ?: ' ') . $this->getIndent() . $expression->operator->value . ' '
+                     : ' ' . $expression->operator->value . ' ';
 
         $items = [];
         /* @var nodes\ScalarExpression $item */
@@ -973,7 +973,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkNormalizeExpression(nodes\expressions\NormalizeExpression $expression): string
     {
         return 'normalize(' . $expression->argument->dispatch($this)
-            . (null === $expression->form ? '' : ', ' . $expression->form) . ')';
+            . (null === $expression->form ? '' : ', ' . $expression->form->value) . ')';
     }
 
     public function walkNotExpression(nodes\expressions\NotExpression $expression): string
@@ -1019,7 +1019,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkPatternMatchingExpression(nodes\expressions\PatternMatchingExpression $expression): string
     {
         return $this->optionalParentheses($expression->argument, $expression, false)
-               . ($expression->not ? ' not ' : ' ') . $expression->operator . ' '
+               . ($expression->not ? ' not ' : ' ') . $expression->operator->value . ' '
                . $this->optionalParentheses($expression->pattern, $expression, true)
                . (
                     null !== $expression->escape
@@ -1066,7 +1066,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkSubselectExpression(nodes\expressions\SubselectExpression $expression): string
     {
         $this->indentLevel++;
-        $sql = $expression->operator . '(' . $this->options['linebreak']
+        $sql = $expression->operator?->value . '(' . $this->options['linebreak']
                . $expression->query->dispatch($this);
         $this->indentLevel--;
 
@@ -1079,7 +1079,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         $from       = \array_shift($arguments);
         $characters = \array_pop($arguments);
 
-        return 'trim(' . $expression->side
+        return 'trim(' . $expression->side->value
             . (null !== $characters ? ' ' . $characters : '')
             . (null !== $from ? ' from ' . $from : '')
             . (empty($arguments) ? '' : ', ' . \implode(', ', $arguments))
@@ -1563,7 +1563,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     {
         return $this->optionalParentheses($expression->argument, $expression)
                . ' is ' . ($expression->not ? 'not ' : '') . 'json'
-               . (null === $expression->type ? '' : ' ' . $expression->type)
+               . (null === $expression->type ? '' : ' ' . $expression->type->value)
                . (
                    null === $expression->uniqueKeys
                    ? ''

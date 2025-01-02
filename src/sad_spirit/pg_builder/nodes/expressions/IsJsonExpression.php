@@ -20,7 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\enums\IsJsonType;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\TreeWalker;
 
@@ -30,34 +30,19 @@ use sad_spirit\pg_builder\TreeWalker;
  * Cannot be represented by IsExpression due to aforementioned bells and whistles
  *
  * @property ScalarExpression $argument
- * @property ?string          $type
+ * @property ?IsJsonType      $type
  * @property ?bool            $uniqueKeys
  */
 class IsJsonExpression extends NegatableExpression
 {
-    public const TYPE_VALUE  = 'value';
-    public const TYPE_ARRAY  = 'array';
-    public const TYPE_OBJECT = 'object';
-    public const TYPE_SCALAR = 'scalar';
-
-    public const TYPES = [
-        self::TYPE_VALUE,
-        self::TYPE_ARRAY,
-        self::TYPE_OBJECT,
-        self::TYPE_SCALAR
-    ];
-
-    /** @var ScalarExpression */
-    protected $p_argument;
-    /** @var string|null */
-    protected $p_type;
-    /** @var bool|null */
-    protected $p_uniqueKeys;
+    protected ScalarExpression $p_argument;
+    protected ?IsJsonType $p_type;
+    protected ?bool $p_uniqueKeys;
 
     public function __construct(
         ScalarExpression $argument,
         bool $not = false,
-        ?string $type = null,
+        ?IsJsonType $type = null,
         ?bool $unique = null
     ) {
         $this->generatePropertyNames();
@@ -75,11 +60,8 @@ class IsJsonExpression extends NegatableExpression
         $this->setRequiredProperty($this->p_argument, $argument);
     }
 
-    public function setType(?string $type): void
+    public function setType(?IsJsonType $type): void
     {
-        if (null !== $type && !in_array($type, self::TYPES)) {
-            throw new InvalidArgumentException("Unrecognized JSON type '$type'");
-        }
         $this->p_type = $type;
     }
 
