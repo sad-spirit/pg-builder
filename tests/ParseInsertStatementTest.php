@@ -27,7 +27,8 @@ use sad_spirit\pg_builder\{
     Parser,
     Lexer,
     Insert,
-    Select
+    Select,
+    enums\InsertOverriding
 };
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
@@ -104,7 +105,7 @@ QRY
                 [new ArrayIndexes(null, new NumericConstant('1'))]
             )
         ]);
-        $built->overriding = 'system';
+        $built->overriding = InsertOverriding::SYSTEM;
         $built->returning->replace([new Star()]);
         $built->onConflict = new OnConflictClause('nothing');
 

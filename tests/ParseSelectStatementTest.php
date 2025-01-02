@@ -27,7 +27,8 @@ use sad_spirit\pg_builder\{
     Parser,
     Lexer,
     Select,
-    SetOpSelect
+    SetOpSelect,
+    enums\SetOperator
 };
 use sad_spirit\pg_builder\exceptions\{
     SyntaxException,
@@ -160,11 +161,15 @@ QRY
         $baz = new Select(new TargetList([new TargetElement(new StringConstant('baz'))]));
 
         $this->assertEquals(
-            new SetOpSelect($foo, new SetOpSelect($bar, $baz, 'intersect'), 'union'),
+            new SetOpSelect($foo, new SetOpSelect($bar, $baz, SetOperator::INTERSECT), SetOperator::UNION),
             $list1
         );
         $this->assertEquals(
-            new SetOpSelect(new SetOpSelect(clone $foo, clone $bar, 'union'), clone $baz, 'intersect'),
+            new SetOpSelect(
+                new SetOpSelect(clone $foo, clone $bar, SetOperator::UNION),
+                clone $baz,
+                SetOperator::INTERSECT
+            ),
             $list2
         );
     }
@@ -345,7 +350,7 @@ QRY
             new SetOpSelect(
                 new Select(new TargetList([])),
                 new Select(new TargetList([])),
-                SetOpSelect::INTERSECT
+                SetOperator::INTERSECT
             )
         );
         $built->limit = new NumericConstant('1');

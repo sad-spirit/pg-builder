@@ -326,7 +326,7 @@ class SqlBuilderWalker implements StatementToStringWalker
             $parts[] = $statement->left->dispatch($this);
         }
 
-        $parts[] = $indent . $statement->operator;
+        $parts[] = $indent . $statement->operator->value;
 
         if (
             $this->containsCommonClauses($statement->right)
@@ -404,7 +404,7 @@ class SqlBuilderWalker implements StatementToStringWalker
             $clauses[] = $indent . 'default values';
         } else {
             if (null !== $statement->overriding) {
-                $clauses[] = $indent . 'overriding ' . $statement->overriding . ' value';
+                $clauses[] = $indent . 'overriding ' . $statement->overriding->value . ' value';
             }
             $this->indentLevel--;
             $clauses[] = $statement->values->dispatch($this);
@@ -1514,7 +1514,7 @@ class SqlBuilderWalker implements StatementToStringWalker
                 ? $this->getIndent() . 'insert'
                 : $this->implode($this->getIndent() . 'insert (', $clause->cols->dispatch($this)) . ')'
             )
-            . (null === $clause->overriding ? '' : ' overriding ' . $clause->overriding . ' value')
+            . (null === $clause->overriding ? '' : ' overriding ' . $clause->overriding->value . ' value')
         ];
         $lines[] = $clause->values->dispatch($this);
 

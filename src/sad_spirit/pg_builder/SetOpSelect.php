@@ -20,45 +20,24 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder;
 
+use sad_spirit\pg_builder\enums\SetOperator;
+
 /**
  * Represents a set operator (UNION, INTERSECT, EXCEPT) applied to two select statements
  *
  * @property      SelectCommon $left
  * @property      SelectCommon $right
- * @property-read string       $operator
+ * @property-read SetOperator  $operator
  */
 class SetOpSelect extends SelectCommon
 {
-    public const UNION         = 'union';
-    public const UNION_ALL     = 'union all';
-    public const INTERSECT     = 'intersect';
-    public const INTERSECT_ALL = 'intersect all';
-    public const EXCEPT        = 'except';
-    public const EXCEPT_ALL    = 'except all';
+    protected SelectCommon $p_left;
+    protected SelectCommon $p_right;
+    protected SetOperator $p_operator;
 
-    private const PRECEDENCES = [
-        self::UNION         => self::PRECEDENCE_SETOP_UNION,
-        self::UNION_ALL     => self::PRECEDENCE_SETOP_UNION,
-        self::INTERSECT     => self::PRECEDENCE_SETOP_INTERSECT,
-        self::INTERSECT_ALL => self::PRECEDENCE_SETOP_INTERSECT,
-        self::EXCEPT        => self::PRECEDENCE_SETOP_UNION,
-        self::EXCEPT_ALL    => self::PRECEDENCE_SETOP_UNION
-    ];
-
-    /** @var SelectCommon */
-    protected $p_left;
-    /** @var SelectCommon */
-    protected $p_right;
-    /** @var string */
-    protected $p_operator;
-
-    public function __construct(SelectCommon $left, SelectCommon $right, string $operator = self::UNION)
+    public function __construct(SelectCommon $left, SelectCommon $right, SetOperator $operator = SetOperator::UNION)
     {
         parent::__construct();
-
-        if (!isset(self::PRECEDENCES[$operator])) {
-            throw new exceptions\InvalidArgumentException("Unknown set operator '{$operator}'");
-        }
 
         if ($left === $right) {
             throw new exceptions\InvalidArgumentException("Cannot combine a SELECT statement with itself");
@@ -90,6 +69,14 @@ class SetOpSelect extends SelectCommon
 
     public function getPrecedence(): int
     {
-        return self::PRECEDENCES[$this->p_operator];
+        return match ($this->p_operator) {
+            SetOperator::UNION,
+            SetOperator::UNION_ALL,
+            SetOperator::EXCEPT,
+            SetOperator::EXCEPT_ALL => self::PRECEDENCE_SETOP_UNION,
+
+            SetOperator::INTERSECT,
+            SetOperator::INTERSECT_ALL => self::PRECEDENCE_SETOP_INTERSECT
+        };
     }
 }

@@ -20,37 +20,29 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\merge;
 
-use sad_spirit\pg_builder\{
-    Insert,
-    TreeWalker
-};
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\nodes\{
-    GenericNode,
-    SetTargetElement,
-    lists\SetTargetList
-};
+use sad_spirit\pg_builder\enums\InsertOverriding;
+use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\nodes\GenericNode;
+use sad_spirit\pg_builder\nodes\lists\SetTargetList;
 
 /**
  * AST node representing INSERT action for MERGE statements
  *
- * @psalm-property SetTargetList $cols
- *
- * @property SetTargetList|SetTargetElement[] $cols
- * @property MergeValues|null                 $values
- * @property string|null                      $overriding
+ * @property SetTargetList         $cols
+ * @property MergeValues|null      $values
+ * @property InsertOverriding|null $overriding
  */
 class MergeInsert extends GenericNode
 {
-    /** @var SetTargetList */
-    protected $p_cols;
-    /** @var MergeValues|null */
-    protected $p_values = null;
-    /** @var string|null */
-    protected $p_overriding;
+    protected SetTargetList $p_cols;
+    protected ?MergeValues $p_values = null;
+    protected ?InsertOverriding $p_overriding = null;
 
-    public function __construct(?SetTargetList $cols = null, ?MergeValues $values = null, ?string $overriding = null)
-    {
+    public function __construct(
+        ?SetTargetList $cols = null,
+        ?MergeValues $values = null,
+        ?InsertOverriding $overriding = null
+    ) {
         $this->generatePropertyNames();
 
         $this->p_cols = $cols ?? new SetTargetList();
@@ -69,11 +61,8 @@ class MergeInsert extends GenericNode
         $this->setProperty($this->p_values, $values);
     }
 
-    public function setOverriding(?string $overriding = null): void
+    public function setOverriding(?InsertOverriding $overriding): void
     {
-        if (null !== $overriding && !isset(Insert::ALLOWED_OVERRIDING[$overriding])) {
-            throw new InvalidArgumentException("Unknown override kind '{$overriding}'");
-        }
         $this->p_overriding = $overriding;
     }
 

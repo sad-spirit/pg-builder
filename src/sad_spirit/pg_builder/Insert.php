@@ -24,47 +24,28 @@ use sad_spirit\pg_builder\nodes\{
     lists\TargetList,
     lists\SetTargetList,
     range\InsertTarget,
-    OnConflictClause,
-    SetTargetElement,
-    TargetElement
+    OnConflictClause
 };
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\enums\InsertOverriding;
 
 /**
  * AST node representing INSERT statement
  *
- * @psalm-property SetTargetList $cols
- * @psalm-property TargetList    $returning
- *
- * @property-read InsertTarget                     $relation
- * @property      SetTargetList|SetTargetElement[] $cols
- * @property      SelectCommon|null                $values
- * @property      string|null                      $overriding
- * @property      OnConflictClause|null            $onConflict
- * @property      TargetList|TargetElement[]       $returning
+ * @property-read InsertTarget          $relation
+ * @property      SetTargetList         $cols
+ * @property      SelectCommon|null     $values
+ * @property      InsertOverriding|null $overriding
+ * @property      OnConflictClause|null $onConflict
+ * @property      TargetList            $returning
  */
 class Insert extends Statement
 {
-    public const OVERRIDING_USER   = 'user';
-    public const OVERRIDING_SYSTEM = 'system';
-
-    public const ALLOWED_OVERRIDING = [
-        self::OVERRIDING_SYSTEM => true,
-        self::OVERRIDING_USER   => true
-    ];
-
-    /** @var InsertTarget */
-    protected $p_relation;
-    /** @var SetTargetList */
-    protected $p_cols;
-    /** @var SelectCommon|null */
-    protected $p_values;
-    /** @var string|null */
-    protected $p_overriding;
-    /** @var OnConflictClause|null */
-    protected $p_onConflict;
-    /** @var TargetList */
-    protected $p_returning;
+    protected InsertTarget $p_relation;
+    protected SetTargetList $p_cols;
+    protected ?SelectCommon $p_values = null;
+    protected ?InsertOverriding $p_overriding = null;
+    protected ?OnConflictClause $p_onConflict = null;
+    protected TargetList $p_returning;
 
     public function __construct(InsertTarget $relation)
     {
@@ -87,29 +68,17 @@ class Insert extends Statement
 
     /**
      * Sets the Node representing 'ON CONFLICT' clause
-     *
-     * @param string|OnConflictClause|null $onConflict
      */
-    public function setOnConflict($onConflict = null): void
+    public function setOnConflict(string|OnConflictClause|null $onConflict): void
     {
         if (is_string($onConflict)) {
             $onConflict = $this->getParserOrFail('ON CONFLICT clause')->parseOnConflict($onConflict);
         }
-        if (null !== $onConflict && !($onConflict instanceof OnConflictClause)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s expects an instance of OnConflictClause, %s given',
-                __METHOD__,
-                is_object($onConflict) ? 'object(' . get_class($onConflict) . ')' : gettype($onConflict)
-            ));
-        }
         $this->setProperty($this->p_onConflict, $onConflict);
     }
 
-    public function setOverriding(?string $overriding = null): void
+    public function setOverriding(?InsertOverriding $overriding): void
     {
-        if (null !== $overriding && !isset(self::ALLOWED_OVERRIDING[$overriding])) {
-            throw new InvalidArgumentException("Unknown override kind '{$overriding}'");
-        }
         $this->p_overriding = $overriding;
     }
 

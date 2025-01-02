@@ -756,18 +756,22 @@ class Parser
 
     protected function SelectStatement(): SelectCommon
     {
-        if ($this->stream->matchesKeyword('with')) {
+        if ($this->stream->matchesAnyKeyword(Keyword::WITH)) {
             $withClause = $this->WithClause();
         }
 
         $stmt = $this->SelectIntersect();
 
-        while ($this->stream->matchesKeyword(['union', 'except'])) {
-            $setOp = $this->stream->next()->getValue();
-            if ($this->stream->matchesKeyword(['all', 'distinct'])) {
-                $setOp .= ('all' === $this->stream->next()->getValue() ? ' all' : '');
+        while (null !== $base = $this->stream->matchesAnyKeyword(Keyword::UNION, Keyword::EXCEPT)) {
+            $this->stream->next();
+            $setOp = $base->value;
+            if (null !== $mod = $this->stream->matchesAnyKeyword(Keyword::ALL, Keyword::DISTINCT)) {
+                $this->stream->next();
+                if (Keyword::ALL === $mod) {
+                    $setOp .= ' all';
+                }
             }
-            $stmt = new SetOpSelect($stmt, $this->SelectIntersect(), $setOp);
+            $stmt = new SetOpSelect($stmt, $this->SelectIntersect(), enums\SetOperator::from($setOp));
         }
 
         if (!empty($withClause)) {
@@ -816,11 +820,11 @@ class Parser
 
     protected function InsertStatement(): Insert
     {
-        if ($this->stream->matchesKeyword('with')) {
+        if ($this->stream->matchesAnyKeyword(Keyword::WITH)) {
             $withClause = $this->WithClause();
         }
-        $this->stream->expect(TokenType::KEYWORD, 'insert');
-        $this->stream->expect(TokenType::KEYWORD, 'into');
+        $this->stream->expectKeyword(Keyword::INSERT);
+        $this->stream->expectKeyword(Keyword::INTO);
 
         $stmt = new Insert($this->InsertTarget());
         if (!empty($withClause)) {
@@ -838,12 +842,12 @@ class Parser
                 $stmt->cols->replace($this->InsertTargetList());
                 $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
             }
-            if ($this->stream->matchesKeyword('overriding')) {
+            if ($this->stream->matchesAnyKeyword(Keyword::OVERRIDING)) {
                 $this->stream->next();
-                $stmt->setOverriding(
-                    $this->stream->expect(TokenType::KEYWORD, ['user', 'system'])->getValue()
-                );
-                $this->stream->expect(TokenType::KEYWORD, 'value');
+                $stmt->setOverriding(enums\InsertOverriding::fromKeywords(
+                    $this->stream->expectKeyword(Keyword::USER, Keyword::SYSTEM)
+                ));
+                $this->stream->expectKeyword(Keyword::VALUE);
             }
             $stmt->values = $this->SelectStatement();
         }
@@ -853,7 +857,7 @@ class Parser
             $stmt->onConflict = $this->OnConflict();
         }
 
-        if ($this->stream->matchesKeyword('returning')) {
+        if ($this->stream->matchesAnyKeyword(Keyword::RETURNING)) {
             $this->stream->next();
             $stmt->returning->replace($this->TargetList());
         }
@@ -1301,10 +1305,14 @@ class Parser
     {
         $stmt = $this->SimpleSelect();
 
-        while ($this->stream->matchesKeyword('intersect')) {
-            $setOp = $this->stream->next()->getValue();
-            if ($this->stream->matchesKeyword(['all', 'distinct'])) {
-                $setOp .= ('all' === $this->stream->next()->getValue() ? ' all' : '');
+        while ($this->stream->matchesAnyKeyword(Keyword::INTERSECT)) {
+            $this->stream->next();
+            $setOp = enums\SetOperator::INTERSECT;
+            if (null !== $mod = $this->stream->matchesAnyKeyword(Keyword::ALL, Keyword::DISTINCT)) {
+                $this->stream->next();
+                if (Keyword::ALL === $mod) {
+                    $setOp = enums\SetOperator::INTERSECT_ALL;
+                }
             }
             $stmt = new SetOpSelect($stmt, $this->SimpleSelect(), $setOp);
         }
@@ -4373,8 +4381,8 @@ class Parser
 
     protected function MergeWhenNotMatchedAction(): ?nodes\merge\MergeInsert
     {
-        if ('do' === $this->stream->expect(TokenType::KEYWORD, ['do', 'insert'])->getValue()) {
-            $this->stream->expect(TokenType::KEYWORD, 'nothing');
+        if (Keyword::DO === $this->stream->expectKeyword(Keyword::DO, Keyword::INSERT)) {
+            $this->stream->expectKeyword(Keyword::NOTHING);
             return null;
         }
 
@@ -4391,11 +4399,13 @@ class Parser
             $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         }
 
-        if (!$this->stream->matches(TokenType::KEYWORD, 'overriding')) {
+        if (null === $this->stream->matchesAnyKeyword(Keyword::OVERRIDING)) {
             $overriding = null;
         } else {
             $this->stream->next();
-            $overriding = $this->stream->expect(TokenType::KEYWORD, ['user', 'system'])->getValue();
+            $overriding = enums\InsertOverriding::fromKeywords(
+                $this->stream->expectKeyword(Keyword::USER, Keyword::SYSTEM)
+            );
             $this->stream->expect(TokenType::KEYWORD, 'value');
         }
 

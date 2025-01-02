@@ -21,25 +21,20 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_builder\nodes\{
+    ScalarExpression,
     lists\LockList,
-    lists\OrderByList,
-    LockingElement,
-    OrderByElement,
-    ScalarExpression
+    lists\OrderByList
 };
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
+use sad_spirit\pg_builder\enums\SetOperator;
 
 /**
  * Base class for SELECT-type statements
  *
- * @psalm-property OrderByList $order
- * @psalm-property LockList    $locking
- *
- * @property OrderByList|OrderByElement[] $order
- * @property ScalarExpression|null        $limit
- * @property bool                         $limitWithTies
- * @property ScalarExpression|null        $offset
- * @property LockList|LockingElement[]    $locking
+ * @property OrderByList           $order
+ * @property ScalarExpression|null $limit
+ * @property bool                  $limitWithTies
+ * @property ScalarExpression|null $offset
+ * @property LockList              $locking
  */
 abstract class SelectCommon extends Statement
 {
@@ -58,16 +53,11 @@ abstract class SelectCommon extends Statement
      */
     protected const PRECEDENCE_SETOP_SELECT    = 3;
 
-    /** @var OrderByList */
-    protected $p_order;
-    /** @var ScalarExpression|null */
-    protected $p_limit;
-    /** @var bool */
-    protected $p_limitWithTies = false;
-    /** @var ScalarExpression|null */
-    protected $p_offset;
-    /** @var LockList */
-    protected $p_locking;
+    protected OrderByList $p_order;
+    protected ?ScalarExpression $p_limit = null;
+    protected bool $p_limitWithTies = false;
+    protected ?ScalarExpression $p_offset = null;
+    protected LockList $p_locking;
 
     public function __construct()
     {
@@ -82,34 +72,21 @@ abstract class SelectCommon extends Statement
 
     /**
      * Ensures that expression is a ScalarExpression instance, tries to parse the string
-     *
-     * @param string|ScalarExpression|null $expression
-     * @param string                       $method
-     * @return ScalarExpression|null
      */
-    private function normalizeExpression($expression, string $method): ?ScalarExpression
+    private function normalizeExpression(string|ScalarExpression|null $expression): ?ScalarExpression
     {
         if (is_string($expression)) {
             $expression = $this->getParserOrFail('an expression')->parseExpression($expression);
-        }
-        if (!is_null($expression) && !($expression instanceof ScalarExpression)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s requires an SQL string or an instance of ScalarExpression, %s given',
-                $method,
-                is_object($expression) ? 'object(' . get_class($expression) . ')' : gettype($expression)
-            ));
         }
         return $expression;
     }
 
     /**
      * Sets the node representing LIMIT clause
-     *
-     * @param string|ScalarExpression|null $limit
      */
-    public function setLimit($limit = null): void
+    public function setLimit(string|ScalarExpression|null $limit): void
     {
-        $this->setProperty($this->p_limit, $this->normalizeExpression($limit, __METHOD__));
+        $this->setProperty($this->p_limit, $this->normalizeExpression($limit));
     }
 
     public function setLimitWithTies(bool $withTies): void
@@ -119,71 +96,46 @@ abstract class SelectCommon extends Statement
 
     /**
      * Sets the node representing OFFSET clause
-     *
-     * @param string|ScalarExpression|null $offset
      */
-    public function setOffset($offset = null): void
+    public function setOffset(string|ScalarExpression|null $offset): void
     {
-        $this->setProperty($this->p_offset, $this->normalizeExpression($offset, __METHOD__));
+        $this->setProperty($this->p_offset, $this->normalizeExpression($offset));
     }
 
     /**
      * Combines this select statement with another one using UNION [ALL] operator
-     *
-     * @param string|SelectCommon $select
-     * @param bool                $distinct Use UNION (true) or UNION ALL (false) operator
-     * @return SetOpSelect
      */
-    public function union($select, bool $distinct = true): SetOpSelect
+    public function union(string|self $select, bool $distinct = true): SetOpSelect
     {
-        return $this->combineUsingSetOperation($select, $distinct ? SetOpSelect::UNION : SetOpSelect::UNION_ALL);
+        return $this->combineUsingSetOperation($select, $distinct ? SetOperator::UNION : SetOperator::UNION_ALL);
     }
 
     /**
      * Combines this select statement with another one using INTERSECT [ALL] operator
-     *
-     * @param string|SelectCommon $select
-     * @param bool                $distinct Use INTERSECT (true) or INTERSECT ALL (false) operator
-     * @return SetOpSelect
      */
-    public function intersect($select, bool $distinct = true): SetOpSelect
+    public function intersect(string|self $select, bool $distinct = true): SetOpSelect
     {
         return $this->combineUsingSetOperation(
             $select,
-            $distinct ? SetOpSelect::INTERSECT : SetOpSelect::INTERSECT_ALL
+            $distinct ? SetOperator::INTERSECT : SetOperator::INTERSECT_ALL
         );
     }
 
     /**
      * Combines this select statement with another one using EXCEPT [ALL] operator
-     *
-     * @param string|SelectCommon $select
-     * @param bool                $distinct Use EXCEPT (true) or EXCEPT ALL (false) operator
-     * @return SetOpSelect
      */
-    public function except($select, bool $distinct = true): SetOpSelect
+    public function except(string|self $select, bool $distinct = true): SetOpSelect
     {
-        return $this->combineUsingSetOperation($select, $distinct ? SetOpSelect::EXCEPT : SetOpSelect::EXCEPT_ALL);
+        return $this->combineUsingSetOperation($select, $distinct ? SetOperator::EXCEPT : SetOperator::EXCEPT_ALL);
     }
 
     /**
      * Combines this select statement with another one using the given operator
-     *
-     * @param string|SelectCommon $select
-     * @param string              $operator
-     * @return SetOpSelect
      */
-    private function combineUsingSetOperation($select, string $operator): SetOpSelect
+    private function combineUsingSetOperation(string|self $select, SetOperator $operator): SetOpSelect
     {
         if (is_string($select)) {
             $select = $this->getParserOrFail('a SELECT statement')->parseSelectStatement($select);
-        }
-        if (!($select instanceof self)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s requires an SQL string or an instance of SelectCommon, %s given',
-                __METHOD__,
-                is_object($select) ? 'object(' . get_class($select) . ')' : gettype($select)
-            ));
         }
         if (null === $this->parentNode) {
             $setOpSelect = new SetOpSelect($this, $select, $operator);

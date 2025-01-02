@@ -24,13 +24,15 @@ namespace sad_spirit\pg_builder\tests;
 
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
-    Insert,
     Lexer,
     Merge,
     Parser,
     Select
 };
-use sad_spirit\pg_builder\enums\ConstantName;
+use sad_spirit\pg_builder\enums\{
+    ConstantName,
+    InsertOverriding
+};
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
     CommonTableExpression,
@@ -117,7 +119,7 @@ QRY
             new MergeInsert(
                 new SetTargetList([new SetTargetElement('baz')]),
                 new MergeValues([new StringConstant('quux')]),
-                Insert::OVERRIDING_SYSTEM
+                InsertOverriding::SYSTEM
             )
         );
 
