@@ -140,36 +140,52 @@ class Parser
     /**
      * Checks for SQL standard date and time type names
      */
-    private const STANDARD_TYPES_DATETIME  = ['time', 'timestamp'];
+    private const STANDARD_TYPES_DATETIME  = [Keyword::TIME, Keyword::TIMESTAMP];
 
     /**
      * Checks for SQL standard character type names
      */
-    private const STANDARD_TYPES_CHARACTER = ['character', 'char', 'varchar', 'nchar', 'national'];
+    private const STANDARD_TYPES_CHARACTER = [
+        Keyword::CHARACTER,
+        Keyword::CHAR,
+        Keyword::VARCHAR,
+        Keyword::NCHAR,
+        Keyword::NATIONAL
+    ];
 
     /**
      * Checks for SQL standard bit type name(s)
      */
-    private const STANDARD_TYPES_BIT       = 'bit';
+    private const STANDARD_TYPES_BIT       = Keyword::BIT;
 
     /**
      * Checks for SQL standard numeric type name(s)
      */
     private const STANDARD_TYPES_NUMERIC   = [
-        'int', 'integer', 'smallint', 'bigint', 'real', 'float', 'decimal', 'dec', 'numeric', 'boolean', 'double'
+        Keyword::INT,
+        Keyword::INTEGER,
+        Keyword::SMALLINT,
+        Keyword::BIGINT,
+        Keyword::REAL,
+        Keyword::FLOAT,
+        Keyword::DECIMAL,
+        Keyword::DEC,
+        Keyword::NUMERIC,
+        Keyword::BOOLEAN,
+        Keyword::DOUBLE
     ];
 
     /**
      * Checks for SQL standard JSON type name
      */
-    private const STANDARD_TYPES_JSON      = 'json';
+    private const STANDARD_TYPES_JSON      = Keyword::JSON;
 
     /**
      * Two-word names for SQL standard types
      */
     private const STANDARD_DOUBLE_WORD_TYPES = [
-        'double'   => 'precision',
-        'national' => ['character', 'char']
+        'double'   => [Keyword::PRECISION],
+        'national' => [Keyword::CHARACTER, Keyword::CHAR]
     ];
 
     /**
@@ -251,7 +267,8 @@ class Parser
      * Keywords that can appear in {@link ExpressionAtom()} on their own right
      */
     private const ATOM_KEYWORDS = [
-        'row', 'array', 'exists', 'case', 'grouping', 'true', 'false', 'null'
+        Keyword::ROW, Keyword::ARRAY, Keyword::EXISTS, Keyword::CASE, Keyword::GROUPING,
+        Keyword::TRUE, Keyword::FALSE, Keyword::NULL
     ];
 
     /**
@@ -515,19 +532,27 @@ class Parser
     private function matchesSpecialFunctionCall(): bool
     {
         static $dontCheckParens = null;
+        static $allNames = null;
 
         if (null === $dontCheckParens) {
             $dontCheckParens = enums\SQLValueFunctionName::toKeywords();
+            $allNames = \array_merge(
+                $dontCheckParens,
+                self::SYSTEM_FUNCTIONS,
+                [Keyword::COLLATION, Keyword::JSON_OBJECTAGG, Keyword::JSON_ARRAYAGG]
+            );
         }
-        return $this->stream->matchesAnyKeyword(...$dontCheckParens)
-               // known system functions that require parentheses
-               || ($this->stream->matchesAnyKeyword(...self::SYSTEM_FUNCTIONS)
-                   && $this->stream->look(1)->matches(TokenType::SPECIAL_CHAR, '('))
-               || ($this->stream->matchesKeywordSequence(Keyword::COLLATION, Keyword::FOR) // COLLATION FOR (...)
-                   && $this->stream->look(2)->matches(TokenType::SPECIAL_CHAR, '('))
-               // these are handled somewhat separately
-               || ($this->stream->matchesKeyword(['json_objectagg', 'json_arrayagg'])
-                   && $this->stream->look(1)->matches(TokenType::SPECIAL_CHAR, '('));
+
+        if (null === $keyword = $this->stream->matchesAnyKeyword(...$allNames)) {
+            return false;
+        } elseif (\in_array($keyword, $dontCheckParens, true)) {
+            return true;
+        } elseif (Keyword::COLLATION === $keyword) {
+            return $this->stream->look()->matchesKeyword(Keyword::FOR)
+                && $this->stream->look(2)->matches(TokenType::SPECIAL_CHAR, '(');
+        } else {
+            return $this->stream->look()->matches(TokenType::SPECIAL_CHAR, '(');
+        }
     }
 
     /**
@@ -559,41 +584,43 @@ class Parser
                 self::STANDARD_TYPES_CHARACTER,
                 self::STANDARD_TYPES_NUMERIC,
                 self::STANDARD_TYPES_DATETIME,
-                [self::STANDARD_TYPES_BIT, self::STANDARD_TYPES_JSON, 'interval']
+                [self::STANDARD_TYPES_BIT, self::STANDARD_TYPES_JSON, Keyword::INTERVAL]
             );
-            $trailingTimezone = array_flip(self::STANDARD_TYPES_DATETIME);
+            $trailingTimezone = array_flip(array_map(
+                fn (Keyword $keyword): string => $keyword->value,
+                self::STANDARD_TYPES_DATETIME
+            ));
         }
 
-        if (!$this->stream->matchesKeyword($constNames)) {
+        if (null === $base = $this->stream->matchesAnyKeyword(...$constNames)) {
             return false;
         }
-        $base = $this->stream->getCurrent()->getValue();
-        $idx  = 1;
 
+        $idx  = 1;
         if (
-            isset(self::STANDARD_DOUBLE_WORD_TYPES[$base])
-            && !$this->stream->look($idx++)->matches(TokenType::KEYWORD, self::STANDARD_DOUBLE_WORD_TYPES[$base])
+            isset(self::STANDARD_DOUBLE_WORD_TYPES[$base->value])
+            && !$this->stream->look($idx++)->matchesKeyword(...self::STANDARD_DOUBLE_WORD_TYPES[$base->value])
         ) {
             return false;
         }
 
         if (
-            isset(self::STANDARD_TYPES_OPT_VARYING[$base])
-            && $this->stream->look($idx)->matches(TokenType::KEYWORD, 'varying')
+            isset(self::STANDARD_TYPES_OPT_VARYING[$base->value])
+            && $this->stream->look($idx)->matchesKeyword(Keyword::VARYING)
         ) {
             $idx++;
         }
 
         if (
-            !isset(self::STANDARD_TYPES_NO_MODIFIERS[$base])
+            !isset(self::STANDARD_TYPES_NO_MODIFIERS[$base->value])
             && $this->stream->look($idx)->matches(TokenType::SPECIAL_CHAR, '(')
         ) {
             $idx = $this->skipParentheses($idx);
         }
 
         if (
-            isset($trailingTimezone[$base])
-            && $this->stream->look($idx)->matches(TokenType::KEYWORD, ['with', 'without'])
+            isset($trailingTimezone[$base->value])
+            && $this->stream->look($idx)->matchesKeyword(Keyword::WITH, Keyword::WITHOUT)
         ) {
             $idx += 3;
         }
@@ -1962,20 +1989,20 @@ class Parser
     protected function NumericTypeName(): ?nodes\TypeName
     {
         if (
-            !$this->stream->matchesKeyword(self::STANDARD_TYPES_NUMERIC)
-            || ('double' === $this->stream->getCurrent()->getValue()
-                && !$this->stream->look()->matches(TokenType::KEYWORD, 'precision'))
+            (null === $keyword = $this->stream->matchesAnyKeyword(...self::STANDARD_TYPES_NUMERIC))
+            || (Keyword::DOUBLE === $keyword
+                && !$this->stream->look()->matchesKeyword(Keyword::PRECISION))
         ) {
             return null;
         }
 
-        $typeName  = $this->stream->next()->getValue();
+        $this->stream->next();
         $modifiers = null;
-        if ('double' === $typeName) {
-            // "double precision"
-            $typeName .= ' ' . $this->stream->next()->getValue();
+        if (Keyword::DOUBLE === $keyword) {
+            $this->stream->next();
+            $typeName = 'double precision';
 
-        } elseif ('float' === $typeName) {
+        } elseif (Keyword::FLOAT === $keyword) {
             $floatName = 'float8';
             if ($this->stream->matchesSpecialChar('(')) {
                 $this->stream->next();
@@ -1989,9 +2016,7 @@ class Parser
                     );
                 } elseif ($precision <= 24) {
                     $floatName = 'float4';
-                } elseif ($precision <= 53) {
-                    $floatName = 'float8';
-                } else {
+                } elseif ($precision >= 54) {
                     throw exceptions\SyntaxException::atPosition(
                         'Precision for type float must be less than 54 bits',
                         $this->stream->getSource(),
@@ -2002,7 +2027,7 @@ class Parser
             }
             return new nodes\TypeName(new nodes\QualifiedName('pg_catalog', $floatName));
 
-        } elseif ('decimal' === $typeName || 'dec' === $typeName || 'numeric' === $typeName) {
+        } elseif (Keyword::DECIMAL === $keyword || Keyword::DEC === $keyword || Keyword::NUMERIC === $keyword) {
             // NB: we explicitly require constants here, per comment in gram.y:
             // > To avoid parsing conflicts against function invocations, the modifiers
             // > have to be shown as expr_list here, but parse analysis will only accept
@@ -2023,20 +2048,21 @@ class Parser
         }
 
         return new nodes\TypeName(
-            new nodes\QualifiedName('pg_catalog', self::STANDARD_TYPES_MAPPING[$typeName]),
+            new nodes\QualifiedName('pg_catalog', self::STANDARD_TYPES_MAPPING[$typeName ?? $keyword->value]),
             $modifiers
         );
     }
 
     protected function BitTypeName(bool $leading = false): ?nodes\TypeName
     {
-        if (!$this->stream->matchesKeyword(self::STANDARD_TYPES_BIT)) {
+        if (null === $keyword = $this->stream->matchesAnyKeyword(self::STANDARD_TYPES_BIT)) {
             return null;
         }
 
-        $typeName  = $this->stream->next()->getValue();
+        $this->stream->next();
+        $typeName  = $keyword->value;
         $modifiers = null;
-        if ($this->stream->matchesKeyword('varying')) {
+        if ($this->stream->matchesAnyKeyword(Keyword::VARYING)) {
             $this->stream->next();
             $typeName = 'varbit';
         }
@@ -2061,20 +2087,20 @@ class Parser
     protected function CharacterTypeName(bool $leading = false): ?nodes\TypeName
     {
         if (
-            !$this->stream->matchesKeyword(self::STANDARD_TYPES_CHARACTER)
-            || ('national' === $this->stream->getCurrent()->getValue()
-                && !$this->stream->look(1)->matches(TokenType::KEYWORD, ['character', 'char']))
+            (null === $keyword = $this->stream->matchesAnyKeyword(...self::STANDARD_TYPES_CHARACTER))
+            || (Keyword::NATIONAL === $keyword
+                && !$this->stream->look()->matchesKeyword(Keyword::CHARACTER, Keyword::CHAR))
         ) {
             return null;
         }
 
-        $typeName  = $this->stream->next()->getValue();
-        $varying   = ('varchar' === $typeName);
+        $this->stream->next();
+        $varying   = (Keyword::VARCHAR === $keyword);
         $modifiers = null;
-        if ('national' === $typeName) {
+        if (Keyword::NATIONAL === $keyword) {
             $this->stream->next();
         }
-        if ('varchar' !== $typeName && $this->stream->matchesKeyword('varying')) {
+        if (!$varying && $this->stream->matchesAnyKeyword(Keyword::VARYING)) {
             $this->stream->next();
             $varying = true;
         }
@@ -2099,11 +2125,12 @@ class Parser
 
     protected function DateTimeTypeName(): ?nodes\TypeName
     {
-        if (!$this->stream->matchesKeyword(self::STANDARD_TYPES_DATETIME)) {
+        if (null === $keyword = $this->stream->matchesAnyKeyword(...self::STANDARD_TYPES_DATETIME)) {
             return null;
         }
 
-        $typeName  = $this->stream->next()->getValue();
+        $this->stream->next();
+        $typeName  = $keyword->value;
         $modifiers = null;
         if ($this->stream->matchesSpecialChar('(')) {
             $this->stream->next();
@@ -2387,60 +2414,61 @@ class Parser
 
     protected function ExpressionAtom(): nodes\ScalarExpression
     {
-        $token = $this->stream->getCurrent();
-        if ($this->stream->matchesKeyword(self::ATOM_KEYWORDS)) {
-            switch ($token->getValue()) {
-                case 'row':
-                    if ($this->stream->look()->matches(TokenType::SPECIAL_CHAR, '(')) {
-                        return $this->RowConstructor();
-                    }
+        switch ($keyword = $this->stream->matchesAnyKeyword(...self::ATOM_KEYWORDS)) {
+            case null:
+                $token = $this->stream->getCurrent();
+                if (0 === ($token->getType()->value & self::ATOM_SPECIAL_TYPES)) {
                     break;
-
-                case 'array':
-                    return $this->ArrayConstructor();
-
-                case 'exists':
-                    $this->stream->next();
-                    return new nodes\expressions\SubselectExpression(
-                        $this->SelectWithParentheses(),
-                        enums\SubselectConstruct::EXISTS
-                    );
-
-                case 'case':
-                    return $this->CaseExpression();
-
-                case 'grouping':
-                    return $this->GroupingExpression();
-
-                case 'true':
-                case 'false':
-                case 'null':
-                    return nodes\expressions\Constant::createFromToken($this->stream->next());
-            }
-
-        } elseif (0 !== ($token->getType()->value & self::ATOM_SPECIAL_TYPES)) {
-            if ($token->matches(TokenType::SPECIAL_CHAR, '(')) {
-                switch ($this->checkContentsOfParentheses()) {
-                    case self::PARENTHESES_ROW:
-                        return $this->RowConstructor();
-
-                    case self::PARENTHESES_SELECT:
-                        $atom = new nodes\expressions\SubselectExpression($this->SelectWithParentheses());
-                        break;
-
-                    case self::PARENTHESES_EXPRESSION:
-                    default:
-                        $this->stream->next();
-                        $atom = $this->Expression();
-                        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
                 }
+                if ($token->matches(TokenType::SPECIAL_CHAR, '(')) {
+                    switch ($this->checkContentsOfParentheses()) {
+                        case self::PARENTHESES_ROW:
+                            return $this->RowConstructor();
 
-            } elseif ($token->matches(TokenType::PARAMETER)) {
-                $atom = nodes\expressions\Parameter::createFromToken($this->stream->next());
+                        case self::PARENTHESES_SELECT:
+                            $atom = new nodes\expressions\SubselectExpression($this->SelectWithParentheses());
+                            break;
 
-            } elseif ($token->matches(TokenType::LITERAL)) {
-                return nodes\expressions\Constant::createFromToken($this->stream->next());
-            }
+                        case self::PARENTHESES_EXPRESSION:
+                        default:
+                            $this->stream->next();
+                            $atom = $this->Expression();
+                            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
+                    }
+
+                } elseif ($token->matches(TokenType::PARAMETER)) {
+                    $atom = nodes\expressions\Parameter::createFromToken($this->stream->next());
+
+                } elseif ($token->matches(TokenType::LITERAL)) {
+                    return nodes\expressions\Constant::createFromToken($this->stream->next());
+                }
+                break;
+
+            case Keyword::ROW:
+                if ($this->stream->look()->matches(TokenType::SPECIAL_CHAR, '(')) {
+                    return $this->RowConstructor();
+                }
+                break;
+
+            case Keyword::ARRAY:
+                return $this->ArrayConstructor();
+
+            case Keyword::EXISTS:
+                $this->stream->next();
+                return new nodes\expressions\SubselectExpression(
+                    $this->SelectWithParentheses(),
+                    enums\SubselectConstruct::EXISTS
+                );
+
+            case Keyword::CASE:
+                return $this->CaseExpression();
+
+            case Keyword::GROUPING:
+                return $this->GroupingExpression();
+
+            default:
+                $this->stream->next();
+                return new nodes\expressions\KeywordConstant(enums\ConstantName::fromKeywords($keyword));
         }
 
         if (!isset($atom)) {
@@ -2509,7 +2537,7 @@ class Parser
             $this->stream->expect(TokenType::IDENTIFIER);
         }
 
-        $identifiers = [nodes\Identifier::createFromToken($token)];
+        $identifiers = [new nodes\Identifier($token->getValue())];
 
         $lookIdx = 1;
         while ($this->stream->look($lookIdx)->matches(TokenType::SPECIAL_CHAR, '.')) {
@@ -2517,14 +2545,15 @@ class Parser
             if (!$token->matches(TokenType::IDENTIFIER) && !$token->matches(TokenType::KEYWORD)) {
                 break;
             }
-            $identifiers[]  = nodes\Identifier::createFromToken($token);
+            $identifiers[]  = new nodes\Identifier($token->getValue());
             $lookIdx       += 2;
         }
 
         if (
             // check that whatever we got looks like func_name production
-            !(1 === count($identifiers) && TokenType::COL_NAME_KEYWORD === $firstType
-              || 1 < count($identifiers) && TokenType::TYPE_FUNC_NAME_KEYWORD === $firstType)
+            1 === \count($identifiers)
+                ? TokenType::COL_NAME_KEYWORD !== $firstType
+                : TokenType::TYPE_FUNC_NAME_KEYWORD !== $firstType
         ) {
             if ($this->stream->look($lookIdx)->matches(TokenType::STRING)) {
                 $this->stream->skip($lookIdx);

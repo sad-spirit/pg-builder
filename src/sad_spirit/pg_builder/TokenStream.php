@@ -183,14 +183,13 @@ class TokenStream
     {
         if (null === $this->keyword) {
             return null;
-        } elseif (
-            [$this->keyword] === $keywords
-            || \in_array($this->keyword, $keywords, true)
-        ) {
-            return $this->keyword;
-        } else {
-            return null;
         }
+
+        return match (\count($keywords)) {
+            0 => null,
+            1 => $this->keyword === \reset($keywords) ? $this->keyword : null,
+            default => \in_array($this->keyword, $keywords, true) ? $this->keyword : null,
+        };
     }
 
     /**
