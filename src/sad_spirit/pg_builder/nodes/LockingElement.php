@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes;
 
+use sad_spirit\pg_builder\enums\LockingStrength;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
 use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
@@ -27,9 +28,9 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 /**
  * AST node for locking options in SELECT clause
  *
- * @property-read string $strength
- * @property-read bool   $noWait
- * @property-read bool   $skipLocked
+ * @property-read LockingStrength $strength
+ * @property-read bool            $noWait
+ * @property-read bool            $skipLocked
  * @extends NonAssociativeList<QualifiedName, iterable<QualifiedName>, QualifiedName>
  */
 class LockingElement extends NonAssociativeList
@@ -37,24 +38,9 @@ class LockingElement extends NonAssociativeList
     use NonRecursiveNode;
     use HasBothPropsAndOffsets;
 
-    public const UPDATE        = 'update';
-    public const NO_KEY_UPDATE = 'no key update';
-    public const SHARE         = 'share';
-    public const KEY_SHARE     = 'key share';
-
-    private const ALLOWED_STRENGTHS = [
-        self::UPDATE        => true,
-        self::NO_KEY_UPDATE => true,
-        self::SHARE         => true,
-        self::KEY_SHARE     => true
-    ];
-
-    /** @var string */
-    protected $p_strength = self::UPDATE;
-    /** @var bool */
-    protected $p_noWait = false;
-    /** @var bool */
-    protected $p_skipLocked = false;
+    protected LockingStrength $p_strength = LockingStrength::UPDATE;
+    protected bool $p_noWait = false;
+    protected bool $p_skipLocked = false;
 
     protected static function getAllowedElementClasses(): array
     {
@@ -64,16 +50,17 @@ class LockingElement extends NonAssociativeList
     /**
      * Constructor for LockingElement
      *
-     * @param string               $strength
+     * @param LockingStrength      $strength
      * @param array<QualifiedName> $relations
      * @param bool                 $noWait
      * @param bool                 $skipLocked
      */
-    public function __construct(string $strength, array $relations = [], bool $noWait = false, bool $skipLocked = false)
-    {
-        if (!isset(self::ALLOWED_STRENGTHS[$strength])) {
-            throw new InvalidArgumentException("Unknown locking strength '{$strength}'");
-        }
+    public function __construct(
+        LockingStrength $strength,
+        array $relations = [],
+        bool $noWait = false,
+        bool $skipLocked = false
+    ) {
         if ($noWait && $skipLocked) {
             throw new InvalidArgumentException("Only one of NOWAIT or SKIP LOCKED is allowed in locking clause");
         }

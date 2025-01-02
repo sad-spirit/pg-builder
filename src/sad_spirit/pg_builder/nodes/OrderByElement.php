@@ -20,73 +20,36 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    TreeWalker,
+    enums\NullsOrder,
+    enums\OrderByDirection,
+    exceptions\InvalidArgumentException
+};
 
 /**
  * AST node representing an expression from ORDER BY clause
  *
  * @property      ScalarExpression              $expression
- * @property-read string|null                   $direction
- * @property-read string|null                   $nullsOrder
+ * @property-read OrderByDirection|null         $direction
+ * @property-read NullsOrder|null               $nullsOrder
  * @property-read string|QualifiedOperator|null $operator
  */
 class OrderByElement extends GenericNode
 {
-    public const ASC         = 'asc';
-    public const DESC        = 'desc';
-    public const USING       = 'using';
-    public const NULLS_FIRST = 'first';
-    public const NULLS_LAST  = 'last';
+    protected ScalarExpression $p_expression;
+    protected ?OrderByDirection $p_direction = null;
+    protected ?NullsOrder $p_nullsOrder = null;
+    protected string|QualifiedOperator|null $p_operator;
 
-    private const ALLOWED_DIRECTIONS = [
-        self::ASC   => true,
-        self::DESC  => true,
-        self::USING => true
-    ];
-
-    private const ALLOWED_NULLS = [
-        self::NULLS_FIRST => true,
-        self::NULLS_LAST  => true
-    ];
-
-    /** @var ScalarExpression */
-    protected $p_expression;
-    /** @var string|null */
-    protected $p_direction;
-    /** @var string|null */
-    protected $p_nullsOrder;
-    /** @var string|QualifiedOperator|null */
-    protected $p_operator;
-
-    /**
-     * OrderByElement constructor
-     *
-     * @param ScalarExpression              $expression
-     * @param string|null                   $direction
-     * @param string|null                   $nullsOrder
-     * @param string|QualifiedOperator|null $operator
-     */
     public function __construct(
         ScalarExpression $expression,
-        ?string $direction = null,
-        ?string $nullsOrder = null,
-        $operator = null
+        ?OrderByDirection $direction = null,
+        ?NullsOrder $nullsOrder = null,
+        string|QualifiedOperator|null $operator = null
     ) {
-        if (null !== $direction && !isset(self::ALLOWED_DIRECTIONS[$direction])) {
-            throw new InvalidArgumentException("Unknown sort direction '{$direction}'");
-        } elseif (self::USING === $direction && null === $operator) {
+        if (OrderByDirection::USING === $direction && null === $operator) {
             throw new InvalidArgumentException("Operator required for USING sort direction");
-        }
-        if (null !== $nullsOrder && !isset(self::ALLOWED_NULLS[$nullsOrder])) {
-            throw new InvalidArgumentException("Unknown nulls order '{$nullsOrder}'");
-        }
-        if (null !== $operator && !is_string($operator) && !$operator instanceof QualifiedOperator) {
-            throw new InvalidArgumentException(sprintf(
-                '%s requires either a string or an instance of QualifiedOperator for USING, %s given',
-                __CLASS__,
-                is_object($operator) ? 'object(' . get_class($operator) . ')' : gettype($operator)
-            ));
         }
 
         $this->generatePropertyNames();

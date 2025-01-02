@@ -20,8 +20,8 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes;
 
+use sad_spirit\pg_builder\enums\IntervalMask;
 use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * Represents a type name for INTERVAL type
@@ -34,39 +34,19 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  * done to underlying type pg_catalog.interval, this is too implementation-specific.
  * So we keep the mask in text form and use the standard INTERVAL type name.
  *
- * @property string $mask
+ * @property ?IntervalMask $mask
  */
 class IntervalTypeName extends TypeName
 {
-    private const ALLOWED_MASKS = [
-        'year'             => true,
-        'month'            => true,
-        'day'              => true,
-        'hour'             => true,
-        'minute'           => true,
-        'second'           => true,
-        'year to month'    => true,
-        'day to hour'      => true,
-        'day to minute'    => true,
-        'day to second'    => true,
-        'hour to minute'   => true,
-        'hour to second'   => true,
-        'minute to second' => true
-    ];
-
-    /** @var string */
-    protected $p_mask = '';
+    protected ?IntervalMask $p_mask = null;
 
     public function __construct(?TypeModifierList $typeModifiers = null)
     {
         parent::__construct(new QualifiedName('pg_catalog', 'interval'), $typeModifiers);
     }
 
-    public function setMask(string $mask = ''): void
+    public function setMask(?IntervalMask $mask): void
     {
-        if ('' !== $mask && !isset(self::ALLOWED_MASKS[$mask])) {
-            throw new InvalidArgumentException("Unknown mask '{$mask}' for interval type");
-        }
         $this->p_mask = $mask;
     }
 }

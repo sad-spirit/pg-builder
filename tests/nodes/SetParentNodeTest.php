@@ -29,7 +29,13 @@ use sad_spirit\pg_builder\{
     Update,
     Values
 };
-use sad_spirit\pg_builder\enums\PatternPredicate;
+use sad_spirit\pg_builder\enums\{
+    NullsOrder,
+    OrderByDirection,
+    PatternPredicate,
+    WindowFrameDirection,
+    WindowFrameMode
+};
 use sad_spirit\pg_builder\nodes\{
     ArrayIndexes,
     ColumnReference,
@@ -258,7 +264,7 @@ class SetParentNodeTest extends TestCase
 
     public function testOrderByElement(): void
     {
-        $order = new OrderByElement(new ColumnReference('foo'), 'asc', 'last');
+        $order = new OrderByElement(new ColumnReference('foo'), OrderByDirection::ASC, NullsOrder::LAST);
 
         $this->assertSame($order, $order->expression->getParentNode());
     }
@@ -311,8 +317,8 @@ class SetParentNodeTest extends TestCase
     {
         $constant5  = new NumericConstant('5');
         $constant10 = new NumericConstant('10');
-        $start      = new WindowFrameBound('preceding', $constant5);
-        $end        = new WindowFrameBound('following', $constant10);
+        $start      = new WindowFrameBound(WindowFrameDirection::PRECEDING, $constant5);
+        $end        = new WindowFrameBound(WindowFrameDirection::FOLLOWING, $constant10);
 
         $this->assertSame($start, $start->value->getParentNode());
         $end->setValue(null);
@@ -322,7 +328,7 @@ class SetParentNodeTest extends TestCase
             new Identifier('reference'),
             new ExpressionList([new ColumnReference('foo')]),
             new OrderByList([new OrderByElement(new ColumnReference('bar'))]),
-            $frame = new WindowFrameClause('rows', $start, $end)
+            $frame = new WindowFrameClause(WindowFrameMode::ROWS, $start, $end)
         );
 
         $this->assertSame($window, $window->refName->getParentNode());

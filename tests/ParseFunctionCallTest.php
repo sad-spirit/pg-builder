@@ -30,9 +30,14 @@ use sad_spirit\pg_builder\enums\{
     ConstantName,
     ExtractPart,
     NormalizeForm,
+    NullsOrder,
+    OrderByDirection,
     SQLValueFunctionName,
     SystemFunctionName,
     TrimSide,
+    WindowFrameDirection,
+    WindowFrameExclusion,
+    WindowFrameMode
 };
 use sad_spirit\pg_builder\exceptions\{
     InvalidArgumentException,
@@ -577,8 +582,8 @@ QRY
                     true,
                     false,
                     new OrderByList([
-                        new OrderByElement(new ColumnReference(new Identifier('foo')), 'desc'),
-                        new OrderByElement(new ColumnReference('bar'), null, 'last')
+                        new OrderByElement(new ColumnReference(new Identifier('foo')), OrderByDirection::DESC),
+                        new OrderByElement(new ColumnReference('bar'), null, NullsOrder::LAST)
                     ])
                 ),
                 new FunctionExpression(
@@ -915,10 +920,10 @@ QRY
                         null,
                         null,
                         new WindowFrameClause(
-                            'rows',
-                            new WindowFrameBound('preceding', new NumericConstant('5')),
-                            new WindowFrameBound('following'),
-                            'current row'
+                            WindowFrameMode::ROWS,
+                            new WindowFrameBound(WindowFrameDirection::PRECEDING, new NumericConstant('5')),
+                            new WindowFrameBound(WindowFrameDirection::FOLLOWING),
+                            WindowFrameExclusion::CURRENT_ROW
                         )
                     )
                 ),
@@ -945,9 +950,9 @@ QRY
                         null,
                         null,
                         new WindowFrameClause(
-                            'range',
-                            new WindowFrameBound('preceding'),
-                            new WindowFrameBound('following', new NumericConstant('3'))
+                            WindowFrameMode::RANGE,
+                            new WindowFrameBound(WindowFrameDirection::PRECEDING),
+                            new WindowFrameBound(WindowFrameDirection::FOLLOWING, new NumericConstant('3'))
                         )
                     )
                 ),
@@ -964,10 +969,10 @@ QRY
                         null,
                         null,
                         new WindowFrameClause(
-                            'groups',
-                            new WindowFrameBound('current row'),
-                            new WindowFrameBound('following'),
-                            'ties'
+                            WindowFrameMode::GROUPS,
+                            new WindowFrameBound(WindowFrameDirection::CURRENT_ROW),
+                            new WindowFrameBound(WindowFrameDirection::FOLLOWING),
+                            WindowFrameExclusion::TIES
                         )
                     )
                 )

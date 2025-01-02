@@ -24,6 +24,7 @@ use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Lexer,
     Parser,
+    enums\IntervalMask,
     exceptions\SyntaxException
 };
 use sad_spirit\pg_builder\nodes\{
@@ -246,7 +247,7 @@ QRY
         $foo    = new ColumnReference('foo');
         $mod10  = new TypeModifierList([new NumericConstant('10')]);
         $masked = new IntervalTypeName($mod10);
-        $masked->setMask('hour to second');
+        $masked->setMask(IntervalMask::HTS);
 
         $this->assertEquals(
             new ExpressionList([
@@ -310,7 +311,7 @@ QRY
         $val      = new StringConstant('a value');
         $mod10    = new TypeModifierList([new NumericConstant('10')]);
         $interval = new IntervalTypeName($mod10);
-        $interval->setMask('minute to second');
+        $interval->setMask(IntervalMask::MTS);
         $this->assertEquals(
             new ExpressionList([
                 new TypecastExpression(

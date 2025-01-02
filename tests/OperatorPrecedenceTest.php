@@ -32,7 +32,6 @@ use sad_spirit\pg_builder\{
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
     Identifier,
-    IntervalTypeName,
     QualifiedName
 };
 use sad_spirit\pg_builder\nodes\expressions\{
@@ -41,15 +40,11 @@ use sad_spirit\pg_builder\nodes\expressions\{
     BetweenExpression,
     FunctionExpression,
     KeywordConstant,
-    NumericConstant,
     OperatorExpression,
     PatternMatchingExpression,
     StringConstant
 };
-use sad_spirit\pg_builder\nodes\lists\{
-    FunctionArgumentList,
-    TypeModifierList
-};
+use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
 
 /**
  * Operator precedence tests (checking that precedence follows Postgres 9.5+)
@@ -297,10 +292,6 @@ class OperatorPrecedenceTest extends TestCase
 
     public function intervalTypeProvider(): array
     {
-        $interval = new IntervalTypeName(new TypeModifierList([
-            new NumericConstant('10')
-        ]));
-        $interval->setMask('minute to second');
         return [
             [
                 "cast (foo as interval (5) minute to second (6))",

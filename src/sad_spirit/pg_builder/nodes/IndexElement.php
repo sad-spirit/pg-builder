@@ -20,78 +20,40 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\Node;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    TreeWalker,
+    enums\IndexElementDirection,
+    enums\NullsOrder,
+    exceptions\InvalidArgumentException
+};
 
 /**
  * AST node representing a column description in CREATE INDEX statement
  *
  * We don't parse CREATE INDEX statements, but the same syntax is also used in ON CONFLICT
- * clauses of INSERT statements and we do parse those.
+ * clauses of INSERT statements, and we do parse those.
  *
  * @property      ScalarExpression|Identifier $expression
  * @property-read QualifiedName|null          $collation
  * @property-read QualifiedName|null          $opClass
- * @property-read string|null                 $direction
- * @property-read string|null                 $nullsOrder
+ * @property-read IndexElementDirection|null  $direction
+ * @property-read NullsOrder|null             $nullsOrder
  */
 class IndexElement extends GenericNode
 {
-    public const ASC         = 'asc';
-    public const DESC        = 'desc';
-    public const NULLS_FIRST = 'first';
-    public const NULLS_LAST  = 'last';
+    protected ScalarExpression|Identifier $p_expression;
+    protected ?QualifiedName $p_collation;
+    protected ?QualifiedName $p_opClass;
+    protected ?IndexElementDirection $p_direction;
+    protected ?NullsOrder $p_nullsOrder;
 
-    private const ALLOWED_DIRECTIONS = [
-        self::ASC  => true,
-        self::DESC => true
-    ];
-
-    private const ALLOWED_NULLS = [
-        self::NULLS_FIRST => true,
-        self::NULLS_LAST  => true
-    ];
-
-    /** @var ScalarExpression|Identifier */
-    protected $p_expression;
-    /** @var QualifiedName|null */
-    protected $p_collation;
-    /** @var QualifiedName|null */
-    protected $p_opClass;
-    /** @var string|null */
-    protected $p_direction;
-    /** @var string|null */
-    protected $p_nullsOrder;
-
-    /**
-     * IndexElement constructor
-     *
-     * @param ScalarExpression|Identifier $expression
-     * @param QualifiedName|null          $collation
-     * @param QualifiedName|null          $opClass
-     * @param string|null                 $direction
-     * @param string|null                 $nullsOrder
-     */
     public function __construct(
-        Node $expression,
+        ScalarExpression|Identifier $expression,
         ?QualifiedName $collation = null,
         ?QualifiedName $opClass = null,
-        ?string $direction = null,
-        ?string $nullsOrder = null
+        ?IndexElementDirection $direction = null,
+        ?NullsOrder $nullsOrder = null
     ) {
-        if (null !== $direction && !isset(self::ALLOWED_DIRECTIONS[$direction])) {
-            throw new InvalidArgumentException("Unknown sort direction '{$direction}'");
-        }
-        if (null !== $nullsOrder && !isset(self::ALLOWED_NULLS[$nullsOrder])) {
-            throw new InvalidArgumentException("Unknown nulls order '{$nullsOrder}'");
-        }
-        if (!($expression instanceof ScalarExpression) && !($expression instanceof Identifier)) {
-            throw new InvalidArgumentException(sprintf(
-                'IndexElement needs either a ScalarExpression or column Identifier as its expression, %s given',
-                get_class($expression)
-            ));
-        }
         if (null !== $collation && $collation === $opClass) {
             throw new InvalidArgumentException("Cannot use the same Node for collation and opClass");
         }
@@ -108,17 +70,9 @@ class IndexElement extends GenericNode
 
     /**
      * Sets the node identifying the indexed column / function call / expression
-     *
-     * @param ScalarExpression|Identifier $expression
      */
-    public function setExpression(Node $expression): void
+    public function setExpression(ScalarExpression|Identifier $expression): void
     {
-        if (!($expression instanceof ScalarExpression) && !($expression instanceof Identifier)) {
-            throw new InvalidArgumentException(sprintf(
-                'IndexElement needs either a ScalarExpression or column Identifier as its expression, %s given',
-                get_class($expression)
-            ));
-        }
         $this->setRequiredProperty($this->p_expression, $expression);
     }
 

@@ -625,7 +625,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkLockingElement(nodes\LockingElement $node): string
     {
-        $sql = 'for ' . $node->strength;
+        $sql = 'for ' . $node->strength->value;
         if (0 < count($node)) {
             $sql .= ' of ' . implode(', ', $this->walkGenericNodeList($node));
         }
@@ -641,8 +641,8 @@ class SqlBuilderWalker implements StatementToStringWalker
     {
         $sql = $node->expression->dispatch($this);
         if (null !== $node->direction) {
-            $sql .= ' ' . $node->direction;
-            if (nodes\OrderByElement::USING === $node->direction) {
+            $sql .= ' ' . $node->direction->value;
+            if (enums\OrderByDirection::USING === $node->direction) {
                 $sql .= ' '  . (
                             $node->operator instanceof nodes\QualifiedOperator
                             ? $node->operator->dispatch($this)
@@ -651,7 +651,7 @@ class SqlBuilderWalker implements StatementToStringWalker
             }
         }
         if (null !== $node->nullsOrder) {
-            $sql .= ' nulls ' . $node->nullsOrder;
+            $sql .= ' nulls ' . $node->nullsOrder->value;
         }
         return $sql;
     }
@@ -729,7 +729,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         $sql = ($node->setOf ? 'setof ' : '')
                . (
                     $node instanceof nodes\IntervalTypeName
-                    ? 'interval' . ($node->mask ? ' ' . $node->mask : '')
+                    ? 'interval' . (null !== $node->mask ? ' ' . $node->mask->value : '')
                     : $node->name->dispatch($this)
                )
                . (0 < count($node->modifiers) ? '(' . implode(', ', $node->modifiers->dispatch($this)) . ')' : '');
@@ -768,25 +768,23 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkWindowFrameClause(nodes\WindowFrameClause $node): string
     {
-        return $node->type . ' '
+        return $node->type->value . ' '
                . (
                    null === $node->end
                    ? $node->start->dispatch($this)
                    : 'between ' . $node->start->dispatch($this) . ' and ' . $node->end->dispatch($this)
                )
-               . (null === $node->exclusion ? '' : ' exclude ' . $node->exclusion);
+               . (null === $node->exclusion ? '' : ' exclude ' . $node->exclusion->value);
     }
 
     public function walkWindowFrameBound(nodes\WindowFrameBound $node): string
     {
         if (null !== $node->value) {
-            return $node->value->dispatch($this) . ' ' . $node->direction;
-
-        } elseif (in_array($node->direction, ['preceding', 'following'])) {
-            return 'unbounded ' . $node->direction;
-
+            return $node->value->dispatch($this) . ' ' . $node->direction->value;
+        } elseif (enums\WindowFrameDirection::CURRENT_ROW === $node->direction) {
+            return $node->direction->value;
         } else {
-            return $node->direction;
+            return 'unbounded ' . $node->direction->value;
         }
     }
 
@@ -1108,13 +1106,13 @@ class SqlBuilderWalker implements StatementToStringWalker
                      : '';
         return (
                 $expression->type instanceof nodes\IntervalTypeName
-                ? 'interval' . ('' === $expression->type->mask ? $modifiers : '')
+                ? 'interval' . (null === $expression->type->mask ? $modifiers : '')
                 : $expression->type->name->dispatch($this) . $modifiers
             )
             . ' ' . $expression->argument->dispatch($this)
             . (
-                $expression->type instanceof nodes\IntervalTypeName && '' !== $expression->type->mask
-                ? ' ' . $expression->type->mask . $modifiers
+                $expression->type instanceof nodes\IntervalTypeName && null !== $expression->type->mask
+                ? ' ' . $expression->type->mask->value . $modifiers
                 : ''
             );
     }
@@ -1386,8 +1384,8 @@ class SqlBuilderWalker implements StatementToStringWalker
             }
             $sql .= $onConflict->target->dispatch($this);
         }
-        $sql .= ' do ' . $onConflict->action;
-        if ('update' === $onConflict->action) {
+        $sql .= ' do ' . $onConflict->action->value;
+        if (enums\OnConflictAction::UPDATE === $onConflict->action) {
             $indent = $this->getIndent();
             $this->indentLevel++;
 
@@ -1419,8 +1417,8 @@ class SqlBuilderWalker implements StatementToStringWalker
             )
             . (null === $element->collation ? '' : ' collate ' . $element->collation->dispatch($this))
             . (null === $element->opClass ? '' : ' ' . $element->opClass->dispatch($this))
-            . (null === $element->direction ? '' : ' ' . $element->direction)
-            . (null === $element->nullsOrder ? '' : ' nulls ' . $element->nullsOrder);
+            . (null === $element->direction ? '' : ' ' . $element->direction->value)
+            . (null === $element->nullsOrder ? '' : ' nulls ' . $element->nullsOrder->value);
     }
 
 

@@ -20,88 +20,62 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    TreeWalker,
+    enums\WindowFrameDirection,
+    enums\WindowFrameExclusion,
+    enums\WindowFrameMode,
+    exceptions\InvalidArgumentException
+};
 
 /**
  * AST node representing the window frame (opt_frame_clause production in grammar)
  *
- * @property-read string                $type
- * @property-read WindowFrameBound      $start
- * @property-read WindowFrameBound|null $end
- * @property-read string|null           $exclusion
+ * @property-read WindowFrameMode           $type
+ * @property-read WindowFrameBound          $start
+ * @property-read WindowFrameBound|null     $end
+ * @property-read WindowFrameExclusion|null $exclusion
  */
 class WindowFrameClause extends GenericNode
 {
-    public const RANGE       = 'range';
-    public const ROWS        = 'rows';
-    public const GROUPS      = 'groups';
-
-    public const CURRENT_ROW = 'current row';
-    public const GROUP       = 'group';
-    public const TIES        = 'ties';
-
-    private const ALLOWED_TYPES = [
-        self::RANGE  => true,
-        self::ROWS   => true,
-        self::GROUPS => true
-    ];
-
-    private const ALLOWED_EXCLUSIONS = [
-        self::CURRENT_ROW => true,
-        self::GROUP       => true,
-        self::TIES        => true
-    ];
-
-    /** @var string */
-    protected $p_type;
-    /** @var WindowFrameBound */
-    protected $p_start;
-    /** @var WindowFrameBound|null */
-    protected $p_end = null;
-    /** @var string|null */
-    protected $p_exclusion;
+    protected WindowFrameMode $p_type;
+    protected WindowFrameBound $p_start;
+    protected ?WindowFrameBound $p_end = null;
+    protected ?WindowFrameExclusion $p_exclusion = null;
 
     public function __construct(
-        string $type,
+        WindowFrameMode $type,
         WindowFrameBound $start,
         ?WindowFrameBound $end = null,
-        ?string $exclusion = null
+        ?WindowFrameExclusion $exclusion = null
     ) {
         $this->generatePropertyNames();
 
-        if (!isset(self::ALLOWED_TYPES[$type])) {
-            throw new InvalidArgumentException("Unknown window frame type '{$type}'");
-        }
-        $this->p_type = $type;
-
-        if (null !== $exclusion && !isset(self::ALLOWED_EXCLUSIONS[$exclusion])) {
-            throw new InvalidArgumentException("Unknown window frame exclusion '{$exclusion}'");
-        }
+        $this->p_type      = $type;
         $this->p_exclusion = $exclusion;
 
         // like in frame_extent production in gram.y, reject invalid frame cases
-        if (WindowFrameBound::FOLLOWING === $start->direction && !$start->value) {
+        if (WindowFrameDirection::FOLLOWING === $start->direction && !$start->value) {
             throw new InvalidArgumentException('Frame start cannot be UNBOUNDED FOLLOWING');
         }
         if (null === $end) {
-            if (WindowFrameBound::FOLLOWING === $start->direction && $start->value) {
+            if (WindowFrameDirection::FOLLOWING === $start->direction && $start->value) {
                 throw new InvalidArgumentException('Frame starting from following row cannot end with current row');
             }
 
         } else {
-            if (WindowFrameBound::PRECEDING === $end->direction && !$end->value) {
+            if (WindowFrameDirection::PRECEDING === $end->direction && !$end->value) {
                 throw new InvalidArgumentException("Frame end cannot be UNBOUNDED PRECEDING");
             }
             if (
-                WindowFrameBound::CURRENT_ROW === $start->direction
-                && WindowFrameBound::PRECEDING === $end->direction
+                WindowFrameDirection::CURRENT_ROW === $start->direction
+                && WindowFrameDirection::PRECEDING === $end->direction
             ) {
                 throw new InvalidArgumentException("Frame starting from current row cannot have preceding rows");
             }
             if (
-                WindowFrameBound::FOLLOWING === $start->direction
-                && in_array($end->direction, [WindowFrameBound::CURRENT_ROW, WindowFrameBound::PRECEDING])
+                WindowFrameDirection::FOLLOWING === $start->direction
+                && in_array($end->direction, [WindowFrameDirection::CURRENT_ROW, WindowFrameDirection::PRECEDING])
             ) {
                 throw new InvalidArgumentException("Frame starting from following row cannot have preceding rows");
             }

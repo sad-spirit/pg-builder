@@ -28,7 +28,12 @@ use sad_spirit\pg_builder\{
     Lexer,
     Select,
     SetOpSelect,
-    enums\SetOperator
+};
+use sad_spirit\pg_builder\enums\{
+    LockingStrength,
+    SetOperator,
+    WindowFrameDirection,
+    WindowFrameMode
 };
 use sad_spirit\pg_builder\exceptions\{
     SyntaxException,
@@ -257,8 +262,16 @@ QRY
         );
         $this->assertEquals(
             new LockList([
-                new LockingElement('share', [new QualifiedName('a', 'foo'), new QualifiedName('c', 'baz')]),
-                new LockingElement('no key update', [new QualifiedName('b', 'bar')], false, true)
+                new LockingElement(
+                    LockingStrength::SHARE,
+                    [new QualifiedName('a', 'foo'), new QualifiedName('c', 'baz')]
+                ),
+                new LockingElement(
+                    LockingStrength::NO_KEY_UPDATE,
+                    [new QualifiedName('b', 'bar')],
+                    false,
+                    true
+                )
             ]),
             clone $select->locking
         );
@@ -273,8 +286,8 @@ QRY
         );
         $this->assertEquals(
             new LockList([
-                new LockingElement('update', [new QualifiedName('foo')]),
-                new LockingElement('update', [new QualifiedName('bar')], true)
+                new LockingElement(LockingStrength::UPDATE, [new QualifiedName('foo')]),
+                new LockingElement(LockingStrength::UPDATE, [new QualifiedName('bar')], true)
             ]),
             clone $select->locking
         );
@@ -304,9 +317,9 @@ QRY
                 null,
                 null,
                 new WindowFrameClause(
-                    'range',
-                    new WindowFrameBound('preceding'),
-                    new WindowFrameBound('current row')
+                    WindowFrameMode::RANGE,
+                    new WindowFrameBound(WindowFrameDirection::PRECEDING),
+                    new WindowFrameBound(WindowFrameDirection::CURRENT_ROW)
                 )
             )
         ];

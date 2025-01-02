@@ -1059,31 +1059,29 @@ class Parser
 
     protected function LockingElement(): nodes\LockingElement
     {
-        $this->stream->expect(TokenType::KEYWORD, 'for');
-        switch (
-            $strength = $this->stream->expect(TokenType::KEYWORD, ['update', 'no', 'share', 'key'])
-                    ->getValue()
-        ) {
-            case 'no':
-                $strength .= ' ' . $this->stream->expect(TokenType::KEYWORD, 'key')->getValue()
-                         . ' ' . $this->stream->expect(TokenType::KEYWORD, 'update')->getValue();
+        $this->stream->expectKeyword(Keyword::FOR);
+        $strength = [$this->stream->expectKeyword(Keyword::UPDATE, Keyword::NO, Keyword::SHARE, Keyword::KEY)];
+        switch ($strength[0]) {
+            case Keyword::NO:
+                $strength[] = $this->stream->expectKeyword(Keyword::KEY);
+                $strength[] = $this->stream->expectKeyword(Keyword::UPDATE);
                 break;
-            case 'key':
-                $strength .= ' ' . $this->stream->expect(TokenType::KEYWORD, 'share')->getValue();
+            case Keyword::KEY:
+                $strength[] = $this->stream->expectKeyword(Keyword::SHARE);
         }
 
         $relations  = [];
         $noWait     = false;
         $skipLocked = false;
 
-        if ($this->stream->matchesKeyword('of')) {
+        if ($this->stream->matchesAnyKeyword(Keyword::OF)) {
             do {
                 $this->stream->next();
                 $relations[] = $this->QualifiedName();
             } while ($this->stream->matchesSpecialChar(','));
         }
 
-        if ($this->stream->matchesKeyword('nowait')) {
+        if ($this->stream->matchesAnyKeyword(Keyword::NOWAIT)) {
             $this->stream->next();
             $noWait = true;
 
@@ -1092,7 +1090,12 @@ class Parser
             $skipLocked = true;
         }
 
-        return new nodes\LockingElement($strength, $relations, $noWait, $skipLocked);
+        return new nodes\LockingElement(
+            enums\LockingStrength::fromKeywords(...$strength),
+            $relations,
+            $noWait,
+            $skipLocked
+        );
     }
 
     protected function LimitOffsetClause(SelectCommon $stmt): void
@@ -1452,41 +1455,41 @@ class Parser
 
     protected function WindowFrameClause(): nodes\WindowFrameClause
     {
-        $frameType  = $this->stream->expect(TokenType::KEYWORD, ['range', 'rows', 'groups']);
+        $mode       = $this->stream->expectKeyword(Keyword::RANGE, Keyword::ROWS, Keyword::GROUPS);
         $tokenStart = $this->stream->getCurrent();
         $exclusion  = null;
-        if (!$tokenStart->matches(TokenType::KEYWORD, 'between')) {
+        if (!$tokenStart->matchesKeyword(Keyword::BETWEEN)) {
             $start = $this->WindowFrameBound();
             $end   = null;
 
         } else {
             $this->stream->next();
             $start = $this->WindowFrameBound();
-            $this->stream->expect(TokenType::KEYWORD, 'and');
+            $this->stream->expectKeyword(Keyword::AND);
             $end   = $this->WindowFrameBound();
         }
 
         // opt_window_exclusion_clause from gram.y
-        if ($this->stream->matchesKeyword('exclude')) {
+        if ($this->stream->matchesAnyKeyword(Keyword::EXCLUDE)) {
             $this->stream->next();
-            $first = $this->stream->expect(TokenType::KEYWORD, ['current', 'group', 'ties', 'no']);
-            switch ($first->getValue()) {
-                case 'current':
-                    $this->stream->expect(TokenType::KEYWORD, 'row');
-                    $exclusion = 'current row';
+            $first = $this->stream->expectKeyword(Keyword::CURRENT, Keyword::GROUP, Keyword::TIES, Keyword::NO);
+            switch ($first) {
+                case Keyword::CURRENT:
+                    $this->stream->expectKeyword(Keyword::ROW);
+                    $exclusion = enums\WindowFrameExclusion::CURRENT_ROW;
                     break;
-                case 'no':
-                    $this->stream->expect(TokenType::KEYWORD, 'others');
+                case Keyword::NO:
+                    $this->stream->expectKeyword(Keyword::OTHERS);
                     // EXCLUDE NO OTHERS is noise
                     break;
                 default:
-                    $exclusion = $first->getValue();
+                    $exclusion = enums\WindowFrameExclusion::fromKeywords($first);
             }
         }
 
         // Repackage exceptions thrown in WindowFrameClause constructor as syntax ones and provide context
         try {
-            return new nodes\WindowFrameClause($frameType->getValue(), $start, $end, $exclusion);
+            return new nodes\WindowFrameClause(enums\WindowFrameMode::fromKeywords($mode), $start, $end, $exclusion);
 
         } catch (exceptions\InvalidArgumentException $e) {
             throw exceptions\SyntaxException::atPosition(
@@ -1502,13 +1505,15 @@ class Parser
         foreach (self::CHECKS_FRAME_BOUND as $check) {
             if ($this->stream->matchesKeywordSequence(...$check)) {
                 $this->stream->skip(2);
-                return new nodes\WindowFrameBound(Keyword::CURRENT === $check[0] ? 'current row' : $check[1]->value);
+                return new nodes\WindowFrameBound(enums\WindowFrameDirection::from(
+                    Keyword::CURRENT === $check[0] ? 'current row' : $check[1]->value
+                ));
             }
         }
 
         $value     = $this->Expression();
-        $direction = $this->stream->expect(TokenType::KEYWORD, ['preceding', 'following'])->getValue();
-        return new nodes\WindowFrameBound($direction, $value);
+        $direction = $this->stream->expectKeyword(Keyword::PRECEDING, Keyword::FOLLOWING);
+        return new nodes\WindowFrameBound(enums\WindowFrameDirection::fromKeywords($direction), $value);
     }
 
     protected function ExpressionList(): nodes\lists\ExpressionList
@@ -2189,26 +2194,30 @@ class Parser
     ): nodes\IntervalTypeName {
         if (
             null === $modifiers
-            && $this->stream->matchesKeyword(['year', 'month', 'day', 'hour', 'minute', 'second'])
+            && (null !== $keyword = $this->stream->matchesAnyKeyword(
+                Keyword::YEAR,
+                Keyword::MONTH,
+                Keyword::DAY,
+                Keyword::HOUR,
+                Keyword::MINUTE,
+                Keyword::SECOND
+            ))
         ) {
-            $trailing  = [$this->stream->next()->getValue()];
-            $second    = 'second' === $trailing[0];
-            if ($this->stream->matchesKeyword('to')) {
+            $this->stream->next();
+            $trailing = [$keyword];
+            $second   = Keyword::SECOND === $keyword;
+            if ($this->stream->matchesAnyKeyword(Keyword::TO)) {
                 $toToken    = $this->stream->next();
-                $trailing[] = 'to';
-                if ('year' === $trailing[0]) {
-                    $end = $this->stream->expect(TokenType::KEYWORD, 'month');
-                } elseif ('day' === $trailing[0]) {
-                    $end = $this->stream->expect(TokenType::KEYWORD, ['hour', 'minute', 'second']);
-                } elseif ('hour' === $trailing[0]) {
-                    $end = $this->stream->expect(TokenType::KEYWORD, ['minute', 'second']);
-                } elseif ('minute' === $trailing[0]) {
-                    $end = $this->stream->expect(TokenType::KEYWORD, 'second');
-                } else {
-                    throw new exceptions\SyntaxException('Unexpected ' . $toToken);
-                }
-                $second     = 'second' === $end->getValue();
-                $trailing[] = $end->getValue();
+                $trailing[] = Keyword::TO;
+                $end        = match ($keyword) {
+                    Keyword::YEAR => $this->stream->expectKeyword(Keyword::MONTH),
+                    Keyword::DAY => $this->stream->expectKeyword(Keyword::HOUR, Keyword::MINUTE, Keyword::SECOND),
+                    Keyword::HOUR => $this->stream->expectKeyword(Keyword::MINUTE, Keyword::SECOND),
+                    Keyword::MINUTE => $this->stream->expectKeyword(Keyword::SECOND),
+                    default => throw new exceptions\SyntaxException('Unexpected ' . $toToken)
+                };
+                $second     = Keyword::SECOND === $end;
+                $trailing[] = $end;
             }
 
             if ($second) {
@@ -2217,7 +2226,7 @@ class Parser
         }
         $typeNode = new nodes\IntervalTypeName($modifiers);
         if (!empty($trailing)) {
-            $typeNode->setMask(implode(' ', $trailing));
+            $typeNode->setMask(enums\IntervalMask::fromKeywords(...$trailing));
         }
 
         return $typeNode;
@@ -3989,15 +3998,21 @@ class Parser
     protected function OrderByElement(): nodes\OrderByElement
     {
         $expression = $this->Expression();
-        $operator   = $direction = $nullsOrder = null;
-        if ($this->stream->matchesKeyword(['asc', 'desc', 'using'])) {
-            if ('using' === ($direction = $this->stream->next()->getValue())) {
+        $operator   = null;
+        $direction  = null;
+        $nullsOrder = null;
+        if (null !== $keyword = $this->stream->matchesAnyKeyword(Keyword::ASC, Keyword::DESC, Keyword::USING)) {
+            $this->stream->next();
+            $direction = enums\OrderByDirection::fromKeywords($keyword);
+            if (Keyword::USING === $keyword) {
                 $operator = $this->Operator(true);
             }
         }
-        if ($this->stream->matchesKeyword('nulls')) {
+        if ($this->stream->matchesAnyKeyword(Keyword::NULLS)) {
             $this->stream->next();
-            $nullsOrder = $this->stream->expect(TokenType::KEYWORD, ['first', 'last'])->getValue();
+            $nullsOrder = enums\NullsOrder::fromKeywords(
+                $this->stream->expectKeyword(Keyword::FIRST, Keyword::LAST)
+            );
         }
 
         return new nodes\OrderByElement($expression, $direction, $nullsOrder, $operator);
@@ -4005,7 +4020,9 @@ class Parser
 
     protected function OnConflict(): nodes\OnConflictClause
     {
-        $target = $set = $condition = null;
+        $target    = null;
+        $set       = null;
+        $condition = null;
         if ($this->stream->matchesKeywordSequence(Keyword::ON, Keyword::CONSTRAINT)) {
             $this->stream->skip(2);
             $target = $this->ColId();
@@ -4014,17 +4031,17 @@ class Parser
             $target = $this->IndexParameters();
         }
 
-        $this->stream->expect(TokenType::KEYWORD, 'do');
-        if ('update' === ($action = $this->stream->expect(TokenType::KEYWORD, ['update', 'nothing'])->getValue())) {
-            $this->stream->expect(TokenType::KEYWORD, 'set');
+        $this->stream->expectKeyword(Keyword::DO);
+        if (Keyword::UPDATE === $action = $this->stream->expectKeyword(Keyword::UPDATE, Keyword::NOTHING)) {
+            $this->stream->expectKeyword(Keyword::SET);
             $set = $this->SetClauseList();
-            if ($this->stream->matchesKeyword('where')) {
+            if ($this->stream->matchesAnyKeyword(Keyword::WHERE)) {
                 $this->stream->next();
                 $condition = $this->Expression();
             }
         }
 
-        return new nodes\OnConflictClause($action, $target, $set, $condition);
+        return new nodes\OnConflictClause(enums\OnConflictAction::fromKeywords($action), $target, $set, $condition);
     }
 
     protected function IndexParameters(): nodes\IndexParameters
@@ -4066,9 +4083,12 @@ class Parser
             $expression = $this->ColId();
         }
 
-        $collation = $opClass = $direction = $nullsOrder = null;
+        $collation  = null;
+        $opClass    = null;
+        $direction  = null;
+        $nullsOrder = null;
 
-        if ($this->stream->matchesKeyword('collate')) {
+        if ($this->stream->matchesAnyKeyword(Keyword::COLLATE)) {
             $this->stream->next();
             $collation = $this->QualifiedName();
         }
@@ -4083,13 +4103,16 @@ class Parser
             $opClass = $this->QualifiedName();
         }
 
-        if ($this->stream->matchesKeyword(['asc', 'desc'])) {
-            $direction = $this->stream->next()->getValue();
+        if (null !== $keyword = $this->stream->matchesAnyKeyword(Keyword::ASC, Keyword::DESC)) {
+            $this->stream->next();
+            $direction = enums\IndexElementDirection::fromKeywords($keyword);
         }
 
-        if ($this->stream->matchesKeyword('nulls')) {
+        if (null !== $this->stream->matchesAnyKeyword(Keyword::NULLS)) {
             $this->stream->next();
-            $nullsOrder = $this->stream->expect(TokenType::KEYWORD, ['first', 'last'])->getValue();
+            $nullsOrder = enums\NullsOrder::fromKeywords(
+                $this->stream->expectKeyword(Keyword::FIRST, Keyword::LAST)
+            );
         }
 
         return new nodes\IndexElement($expression, $collation, $opClass, $direction, $nullsOrder);

@@ -28,7 +28,8 @@ use sad_spirit\pg_builder\{
     Lexer,
     Insert,
     Select,
-    enums\InsertOverriding
+    enums\InsertOverriding,
+    enums\OnConflictAction
 };
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
@@ -107,7 +108,7 @@ QRY
         ]);
         $built->overriding = InsertOverriding::SYSTEM;
         $built->returning->replace([new Star()]);
-        $built->onConflict = new OnConflictClause('nothing');
+        $built->onConflict = new OnConflictClause(OnConflictAction::NOTHING);
 
         $foo = new Select(new TargetList([
             new TargetElement(new ColumnReference('somefoo'))
@@ -162,7 +163,7 @@ QRY
             [
                 '(did) DO UPDATE SET dname = EXCLUDED.dname',
                 new OnConflictClause(
-                    'update',
+                    OnConflictAction::UPDATE,
                     new IndexParameters([
                         new IndexElement(new Identifier('did'))
                     ]),
@@ -179,7 +180,7 @@ QRY
                  SET dname = EXCLUDED.dname || ' (formerly ' || d.dname || ')'
                  WHERE d.zipcode <> '21201'",
                 new OnConflictClause(
-                    'update',
+                    OnConflictAction::UPDATE,
                     new IndexParameters([
                         new IndexElement(new Identifier('did'))
                     ]),
@@ -211,7 +212,7 @@ QRY
             [
                 'ON CONSTRAINT distributors_pkey DO NOTHING',
                 new OnConflictClause(
-                    'nothing',
+                    OnConflictAction::NOTHING,
                     new Identifier('distributors_pkey')
                 )
             ]

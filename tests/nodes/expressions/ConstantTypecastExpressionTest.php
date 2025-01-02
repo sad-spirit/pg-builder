@@ -32,6 +32,7 @@ use sad_spirit\pg_builder\nodes\{
     expressions\NumericConstant,
     expressions\StringConstant
 };
+use sad_spirit\pg_builder\enums\IntervalMask;
 use sad_spirit\pg_builder\enums\StringConstantType;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\SqlBuilderWalker;
@@ -130,9 +131,9 @@ class ConstantTypecastExpressionTest extends TestCase
     public function sqlProvider(): array
     {
         $masked = new IntervalTypeName();
-        $masked->mask = 'hour to second';
+        $masked->mask = IntervalMask::HTS;
         $maskedPrecision = new IntervalTypeName(new TypeModifierList([new NumericConstant('1')]));
-        $maskedPrecision->mask = 'day to second';
+        $maskedPrecision->mask = IntervalMask::DTS;
 
         return [
             [
