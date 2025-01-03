@@ -26,7 +26,6 @@ use sad_spirit\pg_builder\nodes\{
 };
 use sad_spirit\pg_builder\nodes\json\{
     HasBehaviours,
-    JsonArgument,
     JsonArgumentList,
     JsonFormattedValue,
     JsonKeywords
@@ -36,16 +35,12 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing json_table() clause in FROM
  *
- * @psalm-property JsonArgumentList              $passing
- * @psalm-property json\JsonColumnDefinitionList $columns
- *
- * @property JsonFormattedValue                                        $context
- * @property ScalarExpression                                          $path
- * @property Identifier|null                                           $pathName
- * @property JsonArgumentList|JsonArgument[]                           $passing
- * @property json\JsonColumnDefinitionList|json\JsonColumnDefinition[] $columns
- * @property json\JsonTablePlan|null                                   $plan
- * @property string|null                                               $onError
+ * @property JsonFormattedValue            $context
+ * @property ScalarExpression              $path
+ * @property Identifier|null               $pathName
+ * @property JsonArgumentList              $passing
+ * @property json\JsonColumnDefinitionList $columns
+ * @property string|null                   $onError
  */
 class JsonTable extends LateralFromElement
 {
@@ -61,8 +56,6 @@ class JsonTable extends LateralFromElement
     protected $p_passing;
     /** @var json\JsonColumnDefinitionList */
     protected $p_columns;
-    /** @var json\JsonTablePlan|null */
-    protected $p_plan = null;
     /** @var string|null */
     protected $p_onError;
 
@@ -72,7 +65,6 @@ class JsonTable extends LateralFromElement
         ?Identifier $pathName = null,
         ?JsonArgumentList $passing = null,
         ?json\JsonColumnDefinitionList $columns = null,
-        ?json\JsonTablePlan $plan = null,
         ?string $onError = null
     ) {
         $this->generatePropertyNames();
@@ -94,11 +86,6 @@ class JsonTable extends LateralFromElement
         $this->p_columns = $columns ?? new json\JsonColumnDefinitionList([]);
         $this->p_columns->setParentNode($this);
 
-        if (null !== $plan) {
-            $this->p_plan = $plan;
-            $this->p_plan->setParentNode($this);
-        }
-
         $this->setOnError($onError);
     }
 
@@ -115,11 +102,6 @@ class JsonTable extends LateralFromElement
     public function setPathName(?Identifier $pathName): void
     {
         $this->setProperty($this->p_pathName, $pathName);
-    }
-
-    public function setPlan(?json\JsonTablePlan $plan): void
-    {
-        $this->setProperty($this->p_plan, $plan);
     }
 
     public function setOnError(?string $onError): void

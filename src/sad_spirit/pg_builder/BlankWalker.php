@@ -1104,9 +1104,6 @@ abstract class BlankWalker implements TreeWalker
         }
         $rangeItem->passing->dispatch($this);
         $rangeItem->columns->dispatch($this);
-        if (null !== $rangeItem->plan) {
-            $rangeItem->plan->dispatch($this);
-        }
 
         $this->walkRangeItemAliases($rangeItem);
         return null;
@@ -1165,31 +1162,6 @@ abstract class BlankWalker implements TreeWalker
             $column->pathName->dispatch($this);
         }
         $column->columns->dispatch($this);
-        return null;
-    }
-
-    public function walkJsonTableDefaultPlan(nodes\range\json\JsonTableDefaultPlan $plan)
-    {
-        return null;
-    }
-
-    public function walkJsonTableParentChildPlan(nodes\range\json\JsonTableParentChildPlan $plan)
-    {
-        $plan->left->dispatch($this);
-        $plan->right->dispatch($this);
-        return null;
-    }
-
-    public function walkJsonTableSiblingPlan(nodes\range\json\JsonTableSiblingPlan $plan)
-    {
-        $plan->left->dispatch($this);
-        $plan->right->dispatch($this);
-        return null;
-    }
-
-    public function walkJsonTableSimplePlan(nodes\range\json\JsonTableSimplePlan $plan)
-    {
-        $plan->name->dispatch($this);
         return null;
     }
 }

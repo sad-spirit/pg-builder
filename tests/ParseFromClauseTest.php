@@ -72,11 +72,7 @@ use sad_spirit\pg_builder\nodes\range\json\{
     JsonFormattedColumnDefinition,
     JsonNestedColumns,
     JsonOrdinalityColumnDefinition,
-    JsonRegularColumnDefinition,
-    JsonTableDefaultPlan,
-    JsonTableParentChildPlan,
-    JsonTablePlan,
-    JsonTableSimplePlan
+    JsonRegularColumnDefinition
 };
 use sad_spirit\pg_builder\nodes\lists\{
     ExpressionList,
@@ -480,7 +476,6 @@ QRY
 json_table(
     '{"foo":"bar"}', '$'
     columns (id for ordinality, foo text)
-    plan default(inner, cross)
     empty on error
 ),
 lateral json_table(
@@ -498,7 +493,6 @@ lateral json_table(
             b1 text
         )
     )
-    plan (a outer (p1 outer "p1 1"))
 ) as jst
 QRY
         );
@@ -512,7 +506,6 @@ QRY
                 new JsonOrdinalityColumnDefinition(new Identifier('id')),
                 new JsonRegularColumnDefinition(new Identifier('foo'), new TypeName(new QualifiedName('text')))
             ]),
-            new JsonTableDefaultPlan(JsonTablePlan::INNER, JsonTablePlan::CROSS),
             JsonKeywords::BEHAVIOUR_EMPTY
         );
 
@@ -585,55 +578,12 @@ QRY
                         )
                     ])
                 )
-            ]),
-            new JsonTableParentChildPlan(
-                new JsonTableSimplePlan(new Identifier('a')),
-                new JsonTableParentChildPlan(
-                    new JsonTableSimplePlan(new Identifier('p1')),
-                    new JsonTableSimplePlan(new Identifier('p1 1')),
-                    JsonTablePlan::OUTER
-                ),
-                JsonTablePlan::OUTER
-            )
+            ])
         );
 
         $table2->setLateral(true);
         $table2->setAlias(new Identifier('jst'));
 
         $this::assertEquals(new FromList([$table1, $table2]), $list);
-    }
-
-    /**
-     * @dataProvider getInvalidJsonTables
-     * @param string $table
-     * @param string $message
-     */
-    public function testInvalidJsonTable(string $table, string $message): void
-    {
-        $this::expectException(SyntaxException::class);
-        $this::expectExceptionMessage($message);
-        $this->parser->parseFromElement($table);
-    }
-
-    public function getInvalidJsonTables(): array
-    {
-        return [
-            [
-                "json_table('null', '$' columns (foo bar) plan default()",
-                "Unexpected special character ')'"
-            ],
-            [
-                "json_table('null', '$' columns (foo bar) plan default(inner, outer)",
-                "Unexpected keyword 'outer'"
-            ],
-            [
-                "json_table('null', '$' columns (foo bar) plan (((p)))",
-                "Unexpected special character ')'"
-            ],
-            [
-                "json_table('null', '$' columns (foo bar) plan ((a inner b) inner c)",
-                "Unexpected keyword 'inner'"
-            ]
-        ];
     }
 }

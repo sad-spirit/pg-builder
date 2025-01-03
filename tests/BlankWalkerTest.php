@@ -153,9 +153,8 @@ from s34, s35 left join (s36 as s37 left join s38 as s39 using (s40))
                 j18 j19
             )
          )
-         plan ((j25 outer j26) cross j27 cross j28) 
      ) as j20,
-     json_table('{"foo":"bar"}', '$' columns (foo text) plan default(inner, cross))
+     json_table('{"foo":"bar"}', '$' columns (foo text))
 where s73.s74 <= any(array[s75, s76]) or
       not ((not e49) is false and e50)
 group by g3.g4, g5, grouping sets(cube((g6, g7), g8), rollup(g9, (g10, g11)), g12, ())

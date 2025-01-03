@@ -228,12 +228,10 @@ from quux, xyzzy left join (atable as one left join anothertable as two using (c
                 foo bar
             )
         )
-        plan(p outer ((pb inner pb1) cross (pc outer pc1)))
      ) as jsonbaz,
      json_table(
          '{"foo":"bar"}', '$'
          columns (id for ordinality, foo text)
-         plan default(inner, cross)
          empty on error
      )     
 where quux.id = ya.five and
