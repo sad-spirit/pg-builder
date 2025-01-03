@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\json;
 
+use sad_spirit\pg_builder\enums\JsonWrapper;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\TreeWalker;
 
@@ -39,7 +40,7 @@ class JsonQuery extends JsonQueryCommon
      * @param ScalarExpression $path
      * @param JsonArgumentList|null $passing
      * @param JsonReturning|null $returning
-     * @param string|null $wrapper
+     * @param JsonWrapper|null $wrapper
      * @param bool|null $keepQuotes
      * @param string|ScalarExpression|null $onEmpty
      * @param string|ScalarExpression|null $onError
@@ -49,7 +50,7 @@ class JsonQuery extends JsonQueryCommon
         ScalarExpression $path,
         ?JsonArgumentList $passing = null,
         ?JsonReturning $returning = null,
-        ?string $wrapper = null,
+        ?JsonWrapper $wrapper = null,
         ?bool $keepQuotes = null,
         $onEmpty = null,
         $onError = null

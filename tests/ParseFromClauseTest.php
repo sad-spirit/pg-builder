@@ -22,6 +22,7 @@ namespace sad_spirit\pg_builder\tests;
 
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
+    enums\JsonWrapper,
     Parser,
     Lexer,
     Select,
@@ -70,7 +71,6 @@ use sad_spirit\pg_builder\nodes\range\{
 use sad_spirit\pg_builder\nodes\range\json\{
     JsonColumnDefinitionList,
     JsonExistsColumnDefinition,
-    JsonFormattedColumnDefinition,
     JsonNestedColumns,
     JsonOrdinalityColumnDefinition,
     JsonRegularColumnDefinition
@@ -538,10 +538,11 @@ QRY
                 new JsonRegularColumnDefinition(
                     new Identifier('text'),
                     new TypeName(new QualifiedName('text')),
+                    null,
                     new StringConstant('$'),
-                    JsonKeywords::WRAPPER_UNCONDITIONAL
+                    JsonWrapper::UNCONDITIONAL
                 ),
-                new JsonFormattedColumnDefinition(
+                new JsonRegularColumnDefinition(
                     new Identifier('jsf'),
                     new TypeName(new QualifiedName('jsonb')),
                     new JsonFormat(JsonEncoding::UTF8),

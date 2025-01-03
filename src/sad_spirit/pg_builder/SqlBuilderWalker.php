@@ -1751,7 +1751,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     {
         return 'json_query(' . $this->walkCommonJsonQueryFields($expression)
             . $this->jsonReturningClause($expression->returning)
-            . (null === $expression->wrapper ? '' : ' ' . $expression->wrapper . ' wrapper')
+            . (null === $expression->wrapper ? '' : ' ' . $expression->wrapper->value . ' wrapper')
             . (null === $expression->keepQuotes ? '' : ' ' . ($expression->keepQuotes ? 'keep' : 'omit') . ' quotes')
             . $this->jsonQueryBehaviours($expression)
             . ')';
@@ -1808,16 +1808,6 @@ class SqlBuilderWalker implements StatementToStringWalker
             .  $this->jsonQueryBehaviours($column);
     }
 
-    public function walkJsonFormattedColumnDefinition(nodes\range\json\JsonFormattedColumnDefinition $column): string
-    {
-        return $column->name->dispatch($this) . ' ' . $column->type->dispatch($this)
-            . ' '  . $column->format->dispatch($this)
-            . (null === $column->path ? '' : ' path ' . $column->path->dispatch($this))
-            . (null === $column->wrapper ? '' : ' ' . $column->wrapper . ' wrapper')
-            . (null === $column->keepQuotes ? '' : ' ' . ($column->keepQuotes ? 'keep' : 'omit') . ' quotes')
-            . $this->jsonQueryBehaviours($column);
-    }
-
     public function walkJsonOrdinalityColumnDefinition(nodes\range\json\JsonOrdinalityColumnDefinition $column): string
     {
         return $column->name->dispatch($this) . ' for ordinality';
@@ -1826,8 +1816,9 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkJsonRegularColumnDefinition(nodes\range\json\JsonRegularColumnDefinition $column): string
     {
         return $column->name->dispatch($this) . ' ' . $column->type->dispatch($this)
+            . (null === $column->format ? '' : ' ' . $column->format->dispatch($this))
             . (null === $column->path ? '' : ' path ' . $column->path->dispatch($this))
-            . (null === $column->wrapper ? '' : ' ' . $column->wrapper . ' wrapper')
+            . (null === $column->wrapper ? '' : ' ' . $column->wrapper->value . ' wrapper')
             . (null === $column->keepQuotes ? '' : ' ' . ($column->keepQuotes ? 'keep' : 'omit') . ' quotes')
             . $this->jsonQueryBehaviours($column);
     }

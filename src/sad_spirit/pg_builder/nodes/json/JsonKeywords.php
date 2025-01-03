@@ -25,16 +25,6 @@ namespace sad_spirit\pg_builder\nodes\json;
  */
 final class JsonKeywords
 {
-    public const WRAPPER_WITHOUT       = 'without';
-    public const WRAPPER_CONDITIONAL   = 'with conditional';
-    public const WRAPPER_UNCONDITIONAL = 'with unconditional';
-
-    public const WRAPPERS = [
-        self::WRAPPER_WITHOUT,
-        self::WRAPPER_CONDITIONAL,
-        self::WRAPPER_UNCONDITIONAL
-    ];
-
     public const BEHAVIOUR_TRUE = 'true';
     public const BEHAVIOUR_ERROR = 'error';
     public const BEHAVIOUR_EMPTY_OBJECT = 'empty object';

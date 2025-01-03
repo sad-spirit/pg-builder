@@ -1124,19 +1124,6 @@ abstract class BlankWalker implements TreeWalker
         return null;
     }
 
-    public function walkJsonFormattedColumnDefinition(nodes\range\json\JsonFormattedColumnDefinition $column)
-    {
-        $this->walkJsonTypedColumnDefinition($column);
-        $column->format->dispatch($this);
-        if ($column->onEmpty instanceof nodes\ScalarExpression) {
-            $column->onEmpty->dispatch($this);
-        }
-        if ($column->onError instanceof nodes\ScalarExpression) {
-            $column->onError->dispatch($this);
-        }
-        return null;
-    }
-
     public function walkJsonOrdinalityColumnDefinition(nodes\range\json\JsonOrdinalityColumnDefinition $column)
     {
         $column->name->dispatch($this);
@@ -1146,6 +1133,9 @@ abstract class BlankWalker implements TreeWalker
     public function walkJsonRegularColumnDefinition(nodes\range\json\JsonRegularColumnDefinition $column)
     {
         $this->walkJsonTypedColumnDefinition($column);
+        if (null !== $column->format) {
+            $column->format->dispatch($this);
+        }
         if ($column->onEmpty instanceof nodes\ScalarExpression) {
             $column->onEmpty->dispatch($this);
         }

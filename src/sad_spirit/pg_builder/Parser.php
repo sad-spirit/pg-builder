@@ -4766,26 +4766,29 @@ class Parser
         }
     }
 
-    protected function JsonWrapperClause(): ?string
+    protected function JsonWrapperClause(): ?enums\JsonWrapper
     {
-        if (!$this->stream->matchesKeyword(['with', 'without'])) {
+        if (null === $wrapper = $this->stream->matchesAnyKeyword(Keyword::WITH, Keyword::WITHOUT)) {
             return null;
         }
 
-        $wrapper = $this->stream->next()->getValue();
-        if ('with' === $wrapper) {
-            if ($this->stream->matchesKeyword(['conditional', 'unconditional'])) {
-                $wrapper .= ' ' . $this->stream->next()->getValue();
+        $this->stream->next();
+        if (Keyword::WITHOUT === $wrapper) {
+            $result = enums\JsonWrapper::WITHOUT;
+        } else {
+            if (null === $check = $this->stream->matchesAnyKeyword(Keyword::CONDITIONAL, Keyword::UNCONDITIONAL)) {
+                $result = enums\JsonWrapper::UNCONDITIONAL;
             } else {
-                $wrapper .= ' unconditional';
+                $this->stream->next();
+                $result = enums\JsonWrapper::fromKeywords($wrapper, $check);
             }
         }
-        if ($this->stream->matchesKeyword('array')) {
+        if (Keyword::ARRAY === $this->stream->getKeyword()) {
             $this->stream->next();
         }
-        $this->stream->expect(TokenType::KEYWORD, 'wrapper');
+        $this->stream->expectKeyword(Keyword::WRAPPER);
 
-        return $wrapper;
+        return $result;
     }
 
     protected function JsonQuotesClause(): ?bool
@@ -4937,42 +4940,28 @@ class Parser
         }
 
         $type = $this->TypeName();
-        if ($this->stream->matchesKeyword('exists')) {
+        if (Keyword::EXISTS === $this->stream->getKeyword()) {
             $this->stream->skip(1);
             $path    = $this->JsonConstantPath();
             $onError = $this->JsonExistsOnErrorClause();
             return new nodes\range\json\JsonExistsColumnDefinition($name, $type, $path, $onError);
 
-        } elseif ($this->stream->matchesKeyword('format')) {
-            /** @var nodes\json\JsonFormat $format */
-            $format     = $this->JsonFormat();
+        } else {
+            if (Keyword::FORMAT !== $this->stream->getKeyword()) {
+                $format = null;
+            } else {
+                $format = $this->JsonFormat();
+            }
             $path       = $this->JsonConstantPath();
             $wrapper    = $this->JsonWrapperClause();
             $keepQuotes = $this->JsonQuotesClause();
             [$onEmpty, $onError] = $this->JsonQueryBehaviour(
                 array_merge(nodes\json\JsonKeywords::BEHAVIOURS_QUERY, ['default', 'empty'])
             );
-            return new nodes\range\json\JsonFormattedColumnDefinition(
-                $name,
-                $type,
-                $format,
-                $path,
-                $wrapper,
-                $keepQuotes,
-                $onEmpty,
-                $onError
-            );
-
-        } else {
-            $path       = $this->JsonConstantPath();
-            $wrapper    = $this->JsonWrapperClause();
-            $keepQuotes = $this->JsonQuotesClause();
-            [$onEmpty, $onError] = $this->JsonQueryBehaviour(
-                array_merge(nodes\json\JsonKeywords::BEHAVIOURS_VALUE, ['default'])
-            );
             return new nodes\range\json\JsonRegularColumnDefinition(
                 $name,
                 $type,
+                $format,
                 $path,
                 $wrapper,
                 $keepQuotes,

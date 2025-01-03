@@ -1140,15 +1140,6 @@ interface TreeWalker
     public function walkJsonExistsColumnDefinition(nodes\range\json\JsonExistsColumnDefinition $column);
 
     /**
-     * Visits the node representing column definition with FORMAT clause in json_table() expression
-     *
-     * @param nodes\range\json\JsonFormattedColumnDefinition $column
-     * @return mixed
-     * @since 2.1.0
-     */
-    public function walkJsonFormattedColumnDefinition(nodes\range\json\JsonFormattedColumnDefinition $column);
-
-    /**
      * Visits the node representing a "FOR ORDINALITY" column definition in json_table() expression
      *
      * @param nodes\range\json\JsonOrdinalityColumnDefinition $column

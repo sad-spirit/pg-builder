@@ -30,6 +30,7 @@ use sad_spirit\pg_builder\enums\{
     ConstantName,
     ExtractPart,
     JsonEncoding,
+    JsonWrapper,
     NormalizeForm,
     NullsOrder,
     OrderByDirection,
@@ -809,7 +810,7 @@ QRY
                         new JsonArgument(new JsonFormattedValue(new NumericConstant('1')), new Identifier('x'))
                     ]),
                     new JsonReturning(new TypeName(new QualifiedName('jsonb'))),
-                    JsonKeywords::WRAPPER_WITHOUT,
+                    JsonWrapper::WITHOUT,
                     true,
                     new NumericConstant('0'),
                     JsonKeywords::BEHAVIOUR_EMPTY_ARRAY
