@@ -29,6 +29,7 @@ use sad_spirit\pg_builder\{
 use sad_spirit\pg_builder\enums\{
     ConstantName,
     ExtractPart,
+    JsonEncoding,
     NormalizeForm,
     NullsOrder,
     OrderByDirection,
@@ -624,7 +625,7 @@ QRY
                     new JsonFormattedValue(new ColumnReference('v'))
                 )),
                 new JsonArrayAgg(
-                    new JsonFormattedValue(new ColumnReference('v'), new JsonFormat('json', 'utf32')),
+                    new JsonFormattedValue(new ColumnReference('v'), new JsonFormat(JsonEncoding::UTF32)),
                     null,
                     null,
                     new JsonReturning(new TypeName(new QualifiedName('blah')))
@@ -728,13 +729,13 @@ QRY
                 new JsonScalar(new NumericConstant('2'), new TypeName(new QualifiedName('jsonb'))),
                 new JsonConstructor(new JsonFormattedValue(new KeywordConstant(ConstantName::NULL))),
                 new JsonConstructor(
-                    new JsonFormattedValue(new StringConstant('{"foo":1}'), new JsonFormat('json', 'utf8')),
+                    new JsonFormattedValue(new StringConstant('{"foo":1}'), new JsonFormat(JsonEncoding::UTF8)),
                     false,
                     new TypeName(new QualifiedName('jsonb'))
                 ),
                 new JsonSerialize(new JsonFormattedValue(new KeywordConstant(ConstantName::NULL))),
                 new JsonSerialize(
-                    new JsonFormattedValue(new StringConstant('{"foo":"bar"}'), new JsonFormat('json', 'utf8')),
+                    new JsonFormattedValue(new StringConstant('{"foo":"bar"}'), new JsonFormat(JsonEncoding::UTF8)),
                     new JsonReturning(new TypeName(new QualifiedName('bytea')), new JsonFormat())
                 )
             ]),
@@ -837,11 +838,11 @@ QRY
             [
                 "json('null' format not_json)",
                 SyntaxException::class,
-                "expecting keyword 'json'"
+                "expecting special character ')'"
             ],
             [
                 "json('null' format json encoding utf64)",
-                InvalidArgumentException::class,
+                SyntaxException::class,
                 "Unrecognized JSON encoding"
             ],
             [

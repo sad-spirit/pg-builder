@@ -26,7 +26,8 @@ use sad_spirit\pg_builder\{
     Lexer,
     Select,
     enums\ConstantName,
-    enums\JoinType
+    enums\JoinType,
+    enums\JsonEncoding
 };
 use sad_spirit\pg_builder\exceptions\SyntaxException;
 use sad_spirit\pg_builder\nodes\{
@@ -543,7 +544,7 @@ QRY
                 new JsonFormattedColumnDefinition(
                     new Identifier('jsf'),
                     new TypeName(new QualifiedName('jsonb')),
-                    new JsonFormat(JsonFormat::FORMAT_JSON, JsonFormat::ENCODING_UTF8),
+                    new JsonFormat(JsonEncoding::UTF8),
                     new StringConstant('$'),
                     null,
                     false

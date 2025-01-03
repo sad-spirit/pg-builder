@@ -21,7 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\json;
 
 use sad_spirit\pg_builder\{
-    exceptions\InvalidArgumentException,
+    enums\JsonEncoding,
     nodes\GenericNode,
     nodes\NonRecursiveNode,
     TreeWalker
@@ -33,50 +33,18 @@ use sad_spirit\pg_builder\{
  * Looks like it is 100% noise right now, as 'json' format is hardcoded in grammar
  * and no encodings other than utf-8 work
  *
- * @property-read string      $format   This can be only 'json' currently, see json_format_clause_opt definition
- * @property-read string|null $encoding
+ * @property-read JsonEncoding|null $encoding
  */
 class JsonFormat extends GenericNode
 {
     use NonRecursiveNode;
 
-    public const FORMAT_JSON = 'json';
+    protected ?JsonEncoding $p_encoding = null;
 
-    private const ALLOWED_FORMATS = [
-        self::FORMAT_JSON => true
-    ];
-
-    public const ENCODING_UTF8  = 'utf8';
-    public const ENCODING_UTF16 = 'utf16';
-    public const ENCODING_UTF32 = 'utf32';
-
-    private const ALLOWED_ENCODINGS = [
-        self::ENCODING_UTF8  => true,
-        self::ENCODING_UTF16 => true,
-        self::ENCODING_UTF32 => true
-    ];
-
-    /** @var string */
-    protected $p_format;
-    /** @var ?string */
-    protected $p_encoding;
-
-    public function __construct(string $format = self::FORMAT_JSON, ?string $encoding = null)
+    public function __construct(?JsonEncoding $encoding = null)
     {
-        if (!isset(self::ALLOWED_FORMATS[$format])) {
-            throw new InvalidArgumentException("Unrecognized JSON format '$format'");
-        }
-
-        if (null !== $encoding) {
-            $lower = strtolower($encoding);
-            if (!isset(self::ALLOWED_ENCODINGS[$lower])) {
-                throw new InvalidArgumentException("Unrecognized JSON encoding '$encoding'");
-            }
-        }
-
         $this->generatePropertyNames();
-        $this->p_format   = $format;
-        $this->p_encoding = $lower ?? null;
+        $this->p_encoding = $encoding;
     }
 
     public function dispatch(TreeWalker $walker)

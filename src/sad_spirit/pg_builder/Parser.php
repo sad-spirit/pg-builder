@@ -4493,19 +4493,26 @@ class Parser
 
     protected function JsonFormat(): ?nodes\json\JsonFormat
     {
-        if (!$this->stream->matchesKeyword('format')) {
+        if (!$this->stream->matchesKeywordSequence(Keyword::FORMAT, Keyword::JSON)) {
             return null;
         }
 
-        $this->stream->next();
-        $this->stream->expect(TokenType::KEYWORD, 'json');
-        if (!$this->stream->matchesKeyword('encoding')) {
+        $this->stream->skip(2);
+        if (Keyword::ENCODING !== $this->stream->getKeyword()) {
             $encoding = null;
         } else {
             $this->stream->next();
-            $encoding = $this->ColId()->value;
+            $encodingToken = $this->stream->getCurrent();
+            $encodingValue = $this->ColId()->value;
+            if (null === $encoding = enums\JsonEncoding::tryFrom(\strtolower($encodingValue))) {
+                throw exceptions\SyntaxException::atPosition(
+                    \sprintf('Unrecognized JSON encoding: %s"', $encodingValue),
+                    $this->stream->getSource(),
+                    $encodingToken->getPosition()
+                );
+            }
         }
-        return new nodes\json\JsonFormat('json', $encoding);
+        return new nodes\json\JsonFormat($encoding);
     }
 
     protected function JsonKeyValue(): nodes\json\JsonKeyValue

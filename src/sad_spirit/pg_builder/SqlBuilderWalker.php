@@ -1571,8 +1571,8 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkJsonFormat(nodes\json\JsonFormat $clause): string
     {
-        return 'format ' . $clause->format
-               . (null === $clause->encoding ? '' : ' encoding ' . $clause->encoding);
+        return 'format json'
+               . (null === $clause->encoding ? '' : ' encoding ' . $clause->encoding->value);
     }
 
     public function walkJsonReturning(nodes\json\JsonReturning $clause): string
