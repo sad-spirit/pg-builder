@@ -1205,7 +1205,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     {
         $sql = $rangeItem->left->dispatch($this)
                . ($rangeItem->natural ? ' natural' : '')
-               . ' ' . $rangeItem->type . ' join ';
+               . ' ' . $rangeItem->type->value . ' join ';
 
         if ($rangeItem->right instanceof nodes\range\JoinExpression) {
             $sql .= '(' . $rangeItem->right->dispatch($this) . ')';
@@ -1295,7 +1295,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkXmlParse(nodes\xml\XmlParse $xml): string
     {
-        return 'xmlparse(' . $xml->documentOrContent . ' ' . $xml->argument->dispatch($this)
+        return 'xmlparse(' . $xml->documentOrContent->value . ' ' . $xml->argument->dispatch($this)
                . ($xml->preserveWhitespace ? ' preserve whitespace' : '') . ')';
     }
 
@@ -1309,12 +1309,12 @@ class SqlBuilderWalker implements StatementToStringWalker
     {
         return 'xmlroot(' . $xml->xml->dispatch($this)
                . ', version ' . ($xml->version ? $xml->version->dispatch($this) : 'no value')
-               . ($xml->standalone ? ', standalone ' . $xml->standalone : '') . ')';
+               . ($xml->standalone ? ', standalone ' . $xml->standalone->value : '') . ')';
     }
 
     public function walkXmlSerialize(nodes\xml\XmlSerialize $xml): string
     {
-        return 'xmlserialize(' . $xml->documentOrContent . ' ' . $xml->argument->dispatch($this)
+        return 'xmlserialize(' . $xml->documentOrContent->value . ' ' . $xml->argument->dispatch($this)
                . ' as ' . $xml->type->dispatch($this)
                . (null === $xml->indent ? '' : ($xml->indent ? ' indent' : ' no indent')) . ')';
     }
@@ -1429,7 +1429,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkCubeOrRollupClause(nodes\group\CubeOrRollupClause $clause): string
     {
-        return $clause->type . '(' . implode(', ', $this->walkGenericNodeList($clause)) . ')';
+        return $clause->type->value . '(' . implode(', ', $this->walkGenericNodeList($clause)) . ')';
     }
 
     public function walkGroupingSetsClause(nodes\group\GroupingSetsClause $clause): string

@@ -27,13 +27,13 @@ use sad_spirit\pg_builder\nodes\{
     ScalarExpression,
     TypeName
 };
+use sad_spirit\pg_builder\enums\XmlOption;
 use sad_spirit\pg_builder\TreeWalker;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * Represents xmlserialize() expression (cannot be a FunctionCall due to special arguments format)
  *
- * @property-read string           $documentOrContent
+ * @property-read XmlOption        $documentOrContent
  * @property      ScalarExpression $argument
  * @property-read TypeName         $type
  * @property      bool|null        $indent
@@ -42,35 +42,17 @@ class XmlSerialize extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
-    public const DOCUMENT = 'document';
-    public const CONTENT  = 'content';
-
-    private const ALLOWED_TYPES = [
-        self::DOCUMENT => true,
-        self::CONTENT  => true
-    ];
-
-    /** @var string */
-    protected $p_documentOrContent;
-    /** @var ScalarExpression */
-    protected $p_argument;
-    /** @var TypeName */
-    protected $p_type;
-    /** @var bool|null */
-    protected $p_indent;
+    protected XmlOption $p_documentOrContent;
+    protected ScalarExpression $p_argument;
+    protected TypeName $p_type;
+    protected ?bool $p_indent = null;
 
     public function __construct(
-        string $documentOrContent,
+        XmlOption $documentOrContent,
         ScalarExpression $argument,
         TypeName $typeName,
         ?bool $indent = null
     ) {
-        if (!isset(self::ALLOWED_TYPES[$documentOrContent])) {
-            throw new InvalidArgumentException(
-                "Either 'document' or 'content' option required, '{$documentOrContent}' given"
-            );
-        }
-
         $this->generatePropertyNames();
         $this->p_documentOrContent = $documentOrContent;
 

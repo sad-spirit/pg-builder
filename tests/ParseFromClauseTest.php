@@ -25,7 +25,8 @@ use sad_spirit\pg_builder\{
     Parser,
     Lexer,
     Select,
-    enums\ConstantName
+    enums\ConstantName,
+    enums\JoinType
 };
 use sad_spirit\pg_builder\exceptions\SyntaxException;
 use sad_spirit\pg_builder\nodes\{
@@ -228,13 +229,13 @@ QRY
         $b = new RelationReference(new QualifiedName('b'));
         $b->setAlias(new Identifier('bb'));
 
-        $ab = new JoinExpression($a, $b, 'inner');
+        $ab = new JoinExpression($a, $b, JoinType::INNER);
         $ab->setNatural(true);
 
         $cd = new JoinExpression(
             new RelationReference(new QualifiedName('c')),
             new RelationReference(new QualifiedName('d')),
-            'right'
+            JoinType::RIGHT
         );
         $cd->setOn(new OperatorExpression(
             '=',
@@ -243,7 +244,7 @@ QRY
         ));
         $cd->setAlias(new Identifier('joinalias'));
 
-        $abcd = new JoinExpression($ab, $cd, 'left');
+        $abcd = new JoinExpression($ab, $cd, JoinType::LEFT);
         $abcd->setUsing(new UsingClause(['blah'], new Identifier('bleh')));
 
         $fg = new JoinExpression(
@@ -252,7 +253,7 @@ QRY
                 new QualifiedName('g'),
                 new FunctionArgumentList([new NumericConstant('1')])
             )),
-            'full'
+            JoinType::FULL
         );
         $fg->setOn(new OperatorExpression(
             '<>',
@@ -265,7 +266,7 @@ QRY
         $subselect->setAlias(new Identifier('h'));
         $subselect->setLateral(true);
 
-        $this->assertEquals(new FromList([$abcd, new JoinExpression($fg, $subselect, 'cross')]), $list);
+        $this->assertEquals(new FromList([$abcd, new JoinExpression($fg, $subselect, JoinType::CROSS)]), $list);
     }
 
     public function testNoMoreThanTwoDots(): void

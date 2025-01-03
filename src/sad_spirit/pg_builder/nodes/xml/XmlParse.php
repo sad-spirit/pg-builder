@@ -26,13 +26,13 @@ use sad_spirit\pg_builder\nodes\{
     GenericNode,
     ScalarExpression
 };
+use sad_spirit\pg_builder\enums\XmlOption;
 use sad_spirit\pg_builder\TreeWalker;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * Represents xmlparse() expression (cannot be a FunctionCall due to special arguments format)
  *
- * @property-read string           $documentOrContent
+ * @property-read XmlOption        $documentOrContent
  * @property      ScalarExpression $argument
  * @property-read bool             $preserveWhitespace
  */
@@ -40,29 +40,15 @@ class XmlParse extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
-    public const DOCUMENT = 'document';
-    public const CONTENT  = 'content';
+    protected XmlOption $p_documentOrContent;
+    protected ScalarExpression $p_argument;
+    protected bool $p_preserveWhitespace;
 
-    private const ALLOWED_TYPES = [
-        self::DOCUMENT => true,
-        self::CONTENT  => true
-    ];
-
-    /** @var string */
-    protected $p_documentOrContent;
-    /** @var ScalarExpression */
-    protected $p_argument;
-    /** @var bool */
-    protected $p_preserveWhitespace;
-
-    public function __construct(string $documentOrContent, ScalarExpression $argument, bool $preserveWhitespace = false)
-    {
-        if (!isset(self::ALLOWED_TYPES[$documentOrContent])) {
-            throw new InvalidArgumentException(
-                "Either 'document' or 'content' option required, '{$documentOrContent}' given"
-            );
-        }
-
+    public function __construct(
+        XmlOption $documentOrContent,
+        ScalarExpression $argument,
+        bool $preserveWhitespace = false
+    ) {
         $this->generatePropertyNames();
 
         $this->p_documentOrContent  = $documentOrContent;

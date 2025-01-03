@@ -21,8 +21,9 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\range;
 
 use sad_spirit\pg_builder\{
-    exceptions\InvalidArgumentException,
     NodeList,
+    enums\JoinType,
+    exceptions\InvalidArgumentException,
     nodes\GenericNode,
     nodes\Identifier,
     nodes\QualifiedName
@@ -32,17 +33,14 @@ use sad_spirit\pg_builder\nodes\lists\IdentifierList;
 /**
  * Base class for alias-able and join-able items in FROM clause
  *
- * @psalm-property IdentifierList|null $columnAliases
- *
- * @property Identifier|null                  $tableAlias
- * @property IdentifierList|Identifier[]|null $columnAliases
+ * @property Identifier|null     $tableAlias
+ * @property IdentifierList|null $columnAliases
  */
 abstract class FromElement extends GenericNode
 {
-    /** @var Identifier|null */
-    protected $p_tableAlias;
-    /** @var IdentifierList|null */
-    protected $p_columnAliases;
+    protected ?Identifier $p_tableAlias = null;
+    /** @var IdentifierList|null  */
+    protected ?NodeList $p_columnAliases = null;
 
     /**
      * Sets table and column aliases for a FROM clause item
@@ -58,8 +56,6 @@ abstract class FromElement extends GenericNode
 
     /**
      * Sets an alias for the FROM item itself
-     *
-     * @param Identifier|null $tableAlias
      */
     public function setTableAlias(?Identifier $tableAlias): void
     {
@@ -85,26 +81,14 @@ abstract class FromElement extends GenericNode
 
     /**
      * Creates a JOIN between this element and another one using given join type
-     *
-     * @param string|FromElement $fromElement
-     * @param string             $joinType
-     * @return JoinExpression
-     * @throws InvalidArgumentException
      */
-    public function join($fromElement, string $joinType = JoinExpression::INNER): JoinExpression
+    public function join(self|string $fromElement, JoinType $joinType = JoinType::INNER): JoinExpression
     {
-        if (is_string($fromElement)) {
+        if (\is_string($fromElement)) {
             $fromElement = $this->getParserOrFail('a FROM element')->parseFromElement($fromElement);
         }
-        if (!($fromElement instanceof self)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s requires an SQL string or an instance of FromElement, %s given',
-                __METHOD__,
-                is_object($fromElement) ? 'object(' . get_class($fromElement) . ')' : gettype($fromElement)
-            ));
-        }
         if (null === $this->parentNode) {
-            return new JoinExpression($this, $fromElement, strtolower($joinType));
+            return new JoinExpression($this, $fromElement, $joinType);
 
         } else {
             // $dummy is required here: if we pass $this to JoinExpression's constructor, then by the time
@@ -113,7 +97,7 @@ abstract class FromElement extends GenericNode
             /** @var JoinExpression $join */
             $join  = $this->parentNode->replaceChild(
                 $this,
-                new JoinExpression($dummy, $fromElement, strtolower($joinType))
+                new JoinExpression($dummy, $fromElement, $joinType)
             );
             $join->replaceChild($dummy, $this);
 
@@ -122,57 +106,42 @@ abstract class FromElement extends GenericNode
     }
 
     /**
-     * Alias for join($fromElement, 'inner')
-     *
-     * @param string|FromElement $fromElement
-     * @return JoinExpression
+     * Alias for join($fromElement, JoinType::INNER)
      */
-    public function innerJoin($fromElement): JoinExpression
+    public function innerJoin(self|string $fromElement): JoinExpression
     {
-        return $this->join($fromElement, JoinExpression::INNER);
+        return $this->join($fromElement);
     }
 
     /**
-     * Alias for join($fromElement, 'cross')
-     *
-     * @param string|FromElement $fromElement
-     * @return JoinExpression
+     * Alias for join($fromElement, JoinType::CROSS)
      */
-    public function crossJoin($fromElement): JoinExpression
+    public function crossJoin(self|string $fromElement): JoinExpression
     {
-        return $this->join($fromElement, JoinExpression::CROSS);
+        return $this->join($fromElement, JoinType::CROSS);
     }
 
     /**
-     * Alias for join($fromElement, 'left')
-     *
-     * @param string|FromElement $fromElement
-     * @return JoinExpression
+     * Alias for join($fromElement, JoinType::LEFT)
      */
-    public function leftJoin($fromElement): JoinExpression
+    public function leftJoin(self|string $fromElement): JoinExpression
     {
-        return $this->join($fromElement, JoinExpression::LEFT);
+        return $this->join($fromElement, JoinType::LEFT);
     }
 
     /**
-     * Alias for join($fromElement, 'right')
-     *
-     * @param string|FromElement $fromElement
-     * @return JoinExpression
+     * Alias for join($fromElement, JoinType::RIGHT)
      */
-    public function rightJoin($fromElement): JoinExpression
+    public function rightJoin(self|string $fromElement): JoinExpression
     {
-        return $this->join($fromElement, JoinExpression::RIGHT);
+        return $this->join($fromElement, JoinType::RIGHT);
     }
 
     /**
-     * Alias for join($fromElement, 'full')
-     *
-     * @param string|FromElement $fromElement
-     * @return JoinExpression
+     * Alias for join($fromElement, JoinType::FULL)
      */
-    public function fullJoin($fromElement): JoinExpression
+    public function fullJoin(self|string $fromElement): JoinExpression
     {
-        return $this->join($fromElement, JoinExpression::FULL);
+        return $this->join($fromElement, JoinType::FULL);
     }
 }

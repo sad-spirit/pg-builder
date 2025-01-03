@@ -34,7 +34,9 @@ use sad_spirit\pg_builder\enums\{
     OrderByDirection,
     PatternPredicate,
     WindowFrameDirection,
-    WindowFrameMode
+    WindowFrameMode,
+    XmlOption,
+    XmlStandalone
 };
 use sad_spirit\pg_builder\nodes\{
     ArrayIndexes,
@@ -537,7 +539,7 @@ class SetParentNodeTest extends TestCase
 
     public function testXmlParse(): void
     {
-        $xml = new XmlParse('document', new StringConstant('<foo>bar</foo>'), false);
+        $xml = new XmlParse(XmlOption::DOCUMENT, new StringConstant('<foo>bar</foo>'), false);
 
         $this->assertSame($xml, $xml->argument->getParentNode());
     }
@@ -552,7 +554,7 @@ class SetParentNodeTest extends TestCase
 
     public function testXmlRoot(): void
     {
-        $xml = new XmlRoot(new ColumnReference('doc'), new StringConstant('1.2'), 'yes');
+        $xml = new XmlRoot(new ColumnReference('doc'), new StringConstant('1.2'), XmlStandalone::YES);
 
         $this->assertSame($xml, $xml->xml->getParentNode());
         $this->assertSame($xml, $xml->version->getParentNode());
@@ -561,7 +563,7 @@ class SetParentNodeTest extends TestCase
     public function testXmlSerialize(): void
     {
         $xml = new XmlSerialize(
-            'document',
+            XmlOption::DOCUMENT,
             new ColumnReference('foo'),
             new TypeName(new QualifiedName('pg_catalog', 'text'))
         );

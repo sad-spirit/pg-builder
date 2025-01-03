@@ -2852,7 +2852,9 @@ class Parser
                 break;
 
             case Keyword::XMLPARSE:
-                $docOrContent = $this->stream->expect(TokenType::KEYWORD, ['document', 'content'])->getValue();
+                $docOrContent = enums\XmlOption::fromKeywords(
+                    $this->stream->expectKeyword(Keyword::DOCUMENT, Keyword::CONTENT)
+                );
                 $value        = $this->Expression();
                 $preserve     = false;
                 if ($this->stream->matchesKeywordSequence(Keyword::PRESERVE, Keyword::WHITESPACE)) {
@@ -2885,14 +2887,18 @@ class Parser
                 break;
 
             case Keyword::XMLSERIALIZE:
-                $docOrContent = $this->stream->expect(TokenType::KEYWORD, ['document', 'content'])->getValue();
+                $docOrContent = enums\XmlOption::fromKeywords(
+                    $this->stream->expectKeyword(Keyword::DOCUMENT, Keyword::CONTENT)
+                );
                 $value        = $this->Expression();
-                $this->stream->expect(TokenType::KEYWORD, 'as');
+                $this->stream->expectKeyword(Keyword::AS);
                 $typeName     = $this->SimpleTypeName();
                 $indent       = null;
-                if ($this->stream->matchesKeyword(['no', 'indent'])) {
-                    if (!($indent = ('indent' === $this->stream->next()->getValue()))) {
-                        $this->stream->expect(TokenType::KEYWORD, 'indent');
+                if (null !== $keyword = $this->stream->matchesAnyKeyword(Keyword::NO, Keyword::INDENT)) {
+                    $indent = Keyword::INDENT === $keyword;
+                    $this->stream->next();
+                    if (!$indent) {
+                        $this->stream->expectKeyword(Keyword::INDENT);
                     }
                 }
                 $funcNode     = new nodes\xml\XmlSerialize($docOrContent, $value, $typeName, $indent);
@@ -3112,19 +3118,20 @@ class Parser
     {
         $xml = $this->Expression();
         $this->stream->expect(TokenType::SPECIAL_CHAR, ',');
-        $this->stream->expect(TokenType::KEYWORD, 'version');
+        $this->stream->expectKeyword(Keyword::VERSION);
         $version = $this->stream->matchesKeywordSequence(Keyword::NO, Keyword::VALUE) ? null : $this->Expression();
         if (!$this->stream->matchesSpecialChar(',')) {
             $standalone = null;
         } else {
             $this->stream->next();
-            $this->stream->expect(TokenType::KEYWORD, 'standalone');
+            $this->stream->expectKeyword(Keyword::STANDALONE);
             if ($this->stream->matchesKeywordSequence(Keyword::NO, Keyword::VALUE)) {
-                $this->stream->next();
-                $this->stream->next();
-                $standalone = 'no value';
+                $this->stream->skip(2);
+                $standalone = enums\XmlStandalone::NO_VALUE;
             } else {
-                $standalone = $this->stream->expect(TokenType::KEYWORD, ['yes', 'no'])->getValue();
+                $standalone = enums\XmlStandalone::fromKeywords(
+                    $this->stream->expectKeyword(Keyword::NO, Keyword::YES)
+                );
             }
         }
         return new nodes\xml\XmlRoot($xml, $version, $standalone);
@@ -3567,33 +3574,42 @@ class Parser
         $left = $this->TableReference();
 
         while (
-            $this->stream->matchesKeyword(['cross', 'natural', 'left', 'right', 'full', 'inner', 'join'])
+            null !== $keyword = $this->stream->matchesAnyKeyword(
+                Keyword::CROSS,
+                Keyword::NATURAL,
+                Keyword::LEFT,
+                Keyword::RIGHT,
+                Keyword::FULL,
+                Keyword::INNER,
+                Keyword::JOIN
+            )
         ) {
             // CROSS JOIN needs no join quals
-            if ('cross' === $this->stream->getCurrent()->getValue()) {
+            if (Keyword::CROSS === $keyword) {
                 $this->stream->next();
-                $this->stream->expect(TokenType::KEYWORD, 'join');
-                $left = new nodes\range\JoinExpression($left, $this->TableReference(), 'cross');
+                $this->stream->expectKeyword(Keyword::JOIN);
+                $left = new nodes\range\JoinExpression($left, $this->TableReference(), enums\JoinType::CROSS);
                 continue;
             }
-            if ('natural' === $this->stream->getCurrent()->getValue()) {
+            if (Keyword::NATURAL === $keyword) {
                 $this->stream->next();
                 $natural = true;
             } else {
                 $natural = false;
             }
 
-            if ($this->stream->matchesKeyword('join')) {
+            if ($this->stream->matchesAnyKeyword(Keyword::JOIN)) {
                 $this->stream->next();
-                $joinType = 'inner';
+                $joinType = enums\JoinType::INNER;
             } else {
-                $joinType = $this->stream->expect(TokenType::KEYWORD, ['left', 'right', 'full', 'inner'])
-                                ->getValue();
+                $joinType = enums\JoinType::fromKeywords(
+                    $this->stream->expectKeyword(Keyword::LEFT, Keyword::RIGHT, Keyword::FULL, Keyword::INNER)
+                );
                 // noise word
-                if ($this->stream->matchesKeyword('outer')) {
+                if ($this->stream->matchesAnyKeyword(Keyword::OUTER)) {
                     $this->stream->next();
                 }
-                $this->stream->expect(TokenType::KEYWORD, 'join');
+                $this->stream->expectKeyword(Keyword::JOIN);
             }
             $left = new nodes\range\JoinExpression($left, $this->TableReference(), $joinType);
 
@@ -4148,10 +4164,13 @@ class Parser
             $this->stream->skip(2);
             $element = new nodes\group\EmptyGroupingSet();
 
-        } elseif ($this->stream->matchesKeyword(['cube', 'rollup'])) {
-            $type = $this->stream->next()->getValue();
+        } elseif (null !== $type = $this->stream->matchesAnyKeyword(Keyword::CUBE, Keyword::ROLLUP)) {
+            $this->stream->next();
             $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
-            $element = new nodes\group\CubeOrRollupClause($this->ExpressionList(), $type);
+            $element = new nodes\group\CubeOrRollupClause(
+                $this->ExpressionList(),
+                enums\CubeOrRollup::fromKeywords($type)
+            );
             $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
         } elseif ($this->stream->matchesKeywordSequence(Keyword::GROUPING, Keyword::SETS)) {

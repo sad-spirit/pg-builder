@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\range;
 
 use sad_spirit\pg_builder\{
+    enums\JoinType,
     exceptions\InvalidArgumentException,
     nodes\Identifier,
     nodes\ScalarExpression,
@@ -30,51 +31,26 @@ use sad_spirit\pg_builder\{
 /**
  * AST node for JOIN expression in FROM clause
  *
- * @psalm-property UsingClause|null $using
- *
- * @property      FromElement                      $left
- * @property      FromElement                      $right
- * @property-read string                           $type
- * @property      bool                             $natural
- * @property      UsingClause|Identifier[]|null    $using
- * @property      ScalarExpression|null            $on
+ * @property      FromElement           $left
+ * @property      FromElement           $right
+ * @property-read JoinType              $type
+ * @property      bool                  $natural
+ * @property      UsingClause|null      $using
+ * @property      ScalarExpression|null $on
  */
 class JoinExpression extends FromElement
 {
-    public const CROSS = 'cross';
-    public const LEFT  = 'left';
-    public const RIGHT = 'right';
-    public const FULL  = 'full';
-    public const INNER = 'inner';
+    protected FromElement $p_left;
+    protected FromElement $p_right;
+    protected JoinType $p_type;
+    protected bool $p_natural = false;
+    protected ?UsingClause $p_using = null;
+    protected ?ScalarExpression $p_on = null;
 
-    private const ALLOWED_TYPES = [
-        self::CROSS => true,
-        self::LEFT  => true,
-        self::RIGHT => true,
-        self::FULL  => true,
-        self::INNER => true
-    ];
-
-    /** @var FromElement */
-    protected $p_left;
-    /** @var FromElement */
-    protected $p_right;
-    /** @var string */
-    protected $p_type;
-    /** @var bool */
-    protected $p_natural = false;
-    /** @var UsingClause|null */
-    protected $p_using = null;
-    /** @var ScalarExpression|null */
-    protected $p_on = null;
-
-    public function __construct(FromElement $left, FromElement $right, string $joinType = self::INNER)
+    public function __construct(FromElement $left, FromElement $right, JoinType $joinType = JoinType::INNER)
     {
         if ($left === $right) {
             throw new InvalidArgumentException("Cannot use the same Node for both sides of JOIN");
-        }
-        if (!isset(self::ALLOWED_TYPES[$joinType])) {
-            throw new InvalidArgumentException("Unknown join type '{$joinType}'");
         }
 
         $this->generatePropertyNames();
@@ -101,9 +77,9 @@ class JoinExpression extends FromElement
     public function setNatural(bool $natural): void
     {
         if ($natural) {
-            if (self::CROSS === $this->p_type) {
+            if (JoinType::CROSS === $this->p_type) {
                 throw new InvalidArgumentException('No join conditions are allowed for CROSS JOIN');
-            } elseif (!empty($this->p_using) || !empty($this->p_on)) {
+            } elseif (null !== $this->p_using || null !== $this->p_on) {
                 throw new InvalidArgumentException('Only one of NATURAL, USING, ON clauses should be set for JOIN');
             }
         }
@@ -115,20 +91,18 @@ class JoinExpression extends FromElement
      *
      * @param null|string|iterable<Identifier>|UsingClause $using
      */
-    public function setUsing(null|string|iterable|UsingClause $using = null): void
+    public function setUsing(null|string|iterable|UsingClause $using): void
     {
         if (null !== $using) {
-            if (self::CROSS === $this->p_type) {
+            if (JoinType::CROSS === $this->p_type) {
                 throw new InvalidArgumentException('No join conditions are allowed for CROSS JOIN');
-            } elseif (!empty($this->p_natural) || !empty($this->p_on)) {
+            } elseif ($this->p_natural || null !== $this->p_on) {
                 throw new InvalidArgumentException('Only one of NATURAL, USING, ON clauses should be set for JOIN');
             }
             if (!$using instanceof UsingClause) {
-                if (is_string($using)) {
-                    $using = UsingClause::createFromString($this->getParserOrFail('a USING clause'), $using);
-                } else {
-                    $using = new UsingClause($using);
-                }
+                $using = \is_string($using)
+                    ? UsingClause::createFromString($this->getParserOrFail('a USING clause'), $using)
+                    : new UsingClause($using);
             }
         }
         $this->setProperty($this->p_using, $using);
@@ -136,26 +110,17 @@ class JoinExpression extends FromElement
 
     /**
      * Sets ON clause for JOIN expression
-     *
-     * @param null|string|ScalarExpression $on
      */
-    public function setOn($on = null): void
+    public function setOn(null|string|ScalarExpression $on): void
     {
         if (null !== $on) {
-            if (self::CROSS === $this->p_type) {
+            if (JoinType::CROSS === $this->p_type) {
                 throw new InvalidArgumentException('No join conditions are allowed for CROSS JOIN');
-            } elseif (!empty($this->p_natural) || !empty($this->p_using)) {
+            } elseif ($this->p_natural || null !== $this->p_using) {
                 throw new InvalidArgumentException('Only one of NATURAL, USING, ON clauses should be set for JOIN');
             }
-            if (is_string($on)) {
+            if (\is_string($on)) {
                 $on = $this->getParserOrFail('an ON expression')->parseExpression($on);
-            }
-            if (!($on instanceof ScalarExpression)) {
-                throw new InvalidArgumentException(sprintf(
-                    '%s requires an SQL expression string or an instance of ScalarExpression, %s given',
-                    __METHOD__,
-                    is_object($on) ? 'object(' . get_class($on) . ')' : gettype($on)
-                ));
             }
         }
         $this->setProperty($this->p_on, $on);

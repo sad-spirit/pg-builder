@@ -37,7 +37,9 @@ use sad_spirit\pg_builder\enums\{
     TrimSide,
     WindowFrameDirection,
     WindowFrameExclusion,
-    WindowFrameMode
+    WindowFrameMode,
+    XmlOption,
+    XmlStandalone
 };
 use sad_spirit\pg_builder\exceptions\{
     InvalidArgumentException,
@@ -379,7 +381,7 @@ QRY
     public function testXmlParse(): void
     {
         $this->assertEquals(
-            new XmlParse('document', new ColumnReference('xml', 'doc'), true),
+            new XmlParse(XmlOption::DOCUMENT, new ColumnReference('xml', 'doc'), true),
             $this->parser->parseExpression("xmlparse(document xml.doc preserve whitespace)")
         );
     }
@@ -395,7 +397,7 @@ QRY
     public function testXmlRoot(): void
     {
         $this->assertEquals(
-            new XmlRoot(new ColumnReference('doc'), new StringConstant('1.2'), 'yes'),
+            new XmlRoot(new ColumnReference('doc'), new StringConstant('1.2'), XmlStandalone::YES),
             $this->parser->parseExpression("xmlroot(doc, version '1.2', standalone yes)")
         );
     }
@@ -404,7 +406,7 @@ QRY
     {
         $this->assertEquals(
             new XmlSerialize(
-                'document',
+                XmlOption::DOCUMENT,
                 new ColumnReference('foo'),
                 new TypeName(new QualifiedName('pg_catalog', 'text')),
                 true

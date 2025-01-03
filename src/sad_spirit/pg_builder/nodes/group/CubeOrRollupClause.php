@@ -20,43 +20,31 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\group;
 
+use sad_spirit\pg_builder\enums\CubeOrRollup;
 use sad_spirit\pg_builder\nodes\HasBothPropsAndOffsets;
 use sad_spirit\pg_builder\nodes\lists\ExpressionList;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing CUBE(...) and ROLLUP(...) constructs in GROUP BY clause
  *
- * @property string $type
+ * @property CubeOrRollup $type
  */
 class CubeOrRollupClause extends ExpressionList implements GroupByElement
 {
     use HasBothPropsAndOffsets;
 
-    public const CUBE   = 'cube';
-    public const ROLLUP = 'rollup';
+    protected CubeOrRollup $p_type = CubeOrRollup::CUBE;
 
-    private const ALLOWED_TYPES = [
-        self::CUBE   => true,
-        self::ROLLUP => true
-    ];
-
-    /** @var string */
-    protected $p_type = self::CUBE;
-
-    public function __construct($list = null, string $type = self::CUBE)
+    public function __construct($list = null, CubeOrRollup $type = CubeOrRollup::CUBE)
     {
         $this->generatePropertyNames();
         parent::__construct($list);
         $this->setType($type);
     }
 
-    public function setType(string $type): void
+    public function setType(CubeOrRollup $type): void
     {
-        if (!isset(self::ALLOWED_TYPES[$type])) {
-            throw new InvalidArgumentException("Unknown grouping set type '{$type}'");
-        }
         $this->p_type = $type;
     }
 

@@ -26,6 +26,7 @@ use sad_spirit\pg_builder\nodes\{
     GenericNode,
     ScalarExpression
 };
+use sad_spirit\pg_builder\enums\XmlStandalone;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\TreeWalker;
 
@@ -34,36 +35,23 @@ use sad_spirit\pg_builder\TreeWalker;
  *
  * @property      ScalarExpression      $xml
  * @property      ScalarExpression|null $version
- * @property-read string|null           $standalone
+ * @property-read XmlStandalone|null    $standalone
  */
 class XmlRoot extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
-    public const YES      = 'yes';
-    public const NO       = 'no';
-    public const NO_VALUE = 'no value';
+    protected ScalarExpression $p_xml;
+    protected ?ScalarExpression $p_version;
+    protected ?XmlStandalone $p_standalone;
 
-    private const STANDALONE_OPTIONS = [
-        self::YES      => true,
-        self::NO       => true,
-        self::NO_VALUE => true
-    ];
-
-    /** @var ScalarExpression */
-    protected $p_xml;
-    /** @var ScalarExpression|null */
-    protected $p_version;
-    /** @var string|null */
-    protected $p_standalone;
-
-    public function __construct(ScalarExpression $xml, ?ScalarExpression $version = null, ?string $standalone = null)
-    {
+    public function __construct(
+        ScalarExpression $xml,
+        ?ScalarExpression $version = null,
+        ?XmlStandalone $standalone = null
+    ) {
         if ($version === $xml) {
             throw new InvalidArgumentException("Cannot use the same Node for xml and version arguments");
-        }
-        if (null !== $standalone && !isset(self::STANDALONE_OPTIONS[$standalone])) {
-            throw new InvalidArgumentException("Unknown standalone option '{$standalone}'");
         }
 
         $this->generatePropertyNames();
@@ -84,7 +72,7 @@ class XmlRoot extends GenericNode implements ScalarExpression, FunctionLike
         $this->setRequiredProperty($this->p_xml, $xml);
     }
 
-    public function setVersion(?ScalarExpression $version = null): void
+    public function setVersion(?ScalarExpression $version): void
     {
         $this->setProperty($this->p_version, $version);
     }

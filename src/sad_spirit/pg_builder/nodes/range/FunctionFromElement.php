@@ -33,17 +33,14 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  *
  * These elements can have ColumnDefinition column aliases and optional WITH ORDINALITY flags in addition to LATERAL
  *
- * @psalm-property IdentifierList|ColumnDefinitionList|null $columnAliases
- *
- * @property IdentifierList|Identifier[]|ColumnDefinitionList|ColumnDefinition[]|null $columnAliases
- * @property bool                                                                     $withOrdinality
+ * @property IdentifierList|ColumnDefinitionList|null $columnAliases
+ * @property bool                                     $withOrdinality
  */
 abstract class FunctionFromElement extends LateralFromElement
 {
     /** @var IdentifierList|ColumnDefinitionList|null */
-    protected $p_columnAliases;
-    /** @var bool */
-    protected $p_withOrdinality = false;
+    protected NodeList|null $p_columnAliases = null;
+    protected bool $p_withOrdinality = false;
 
     /**
      * Sets table and column aliases for a function call in FROM clause
