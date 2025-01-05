@@ -24,25 +24,36 @@ use sad_spirit\pg_builder\nodes\{
     Identifier,
     TypeName,
     expressions\StringConstant,
-    json\JsonExistsBehaviours
+    json\HasBehaviours
 };
+use sad_spirit\pg_builder\enums\JsonBehaviour;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node for EXISTS column definitions in json_table() clause
+ *
+ * @property JsonBehaviour|null $onError
  */
 class JsonExistsColumnDefinition extends JsonTypedColumnDefinition
 {
-    use JsonExistsBehaviours;
+    use HasBehaviours;
+
+    protected ?JsonBehaviour $p_onError;
 
     public function __construct(
         Identifier $name,
         TypeName $type,
         ?StringConstant $path = null,
-        ?string $onError = null
+        ?JsonBehaviour $onError = null
     ) {
         parent::__construct($name, $type, $path);
         $this->setOnError($onError);
+    }
+
+    public function setOnError(?JsonBehaviour $onError): void
+    {
+        /** @psalm-suppress PossiblyInvalidPropertyAssignmentValue */
+        $this->setBehaviour($this->p_onError, false, $onError);
     }
 
     public function dispatch(TreeWalker $walker)

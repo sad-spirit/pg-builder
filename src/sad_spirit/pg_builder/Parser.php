@@ -4732,24 +4732,20 @@ class Parser
 
         switch ($funcName) {
             case 'json_exists':
-                $returning = $this->JsonReturningTypename();
-                $onError   = $this->JsonExistsOnErrorClause();
+                $returning   = $this->JsonReturningTypename();
+                [, $onError] = $this->JsonBehaviour(nodes\json\JsonExists::class);
                 return new nodes\json\JsonExists($context, $path, $passing, $returning, $onError);
 
             case 'json_value':
                 $returning = $this->JsonReturningTypename();
-                [$onEmpty, $onError] = $this->JsonQueryBehaviour(
-                    array_merge(nodes\json\JsonKeywords::BEHAVIOURS_VALUE, ['default'])
-                );
+                [$onEmpty, $onError] = $this->JsonBehaviour(nodes\json\JsonValue::class);
                 return new nodes\json\JsonValue($context, $path, $passing, $returning, $onEmpty, $onError);
 
             case 'json_query':
                 $returning  = $this->JsonReturningClause();
                 $wrapper    = $this->JsonWrapperClause();
                 $keepQuotes = $this->JsonQuotesClause();
-                [$onEmpty, $onError] = $this->JsonQueryBehaviour(
-                    array_merge(nodes\json\JsonKeywords::BEHAVIOURS_QUERY, ['default', 'empty'])
-                );
+                [$onEmpty, $onError] = $this->JsonBehaviour(nodes\json\JsonQuery::class);
                 return new nodes\json\JsonQuery(
                     $context,
                     $path,
@@ -4808,52 +4804,82 @@ class Parser
         return $keepQuotes;
     }
 
-    protected function JsonExistsOnErrorClause(): ?string
-    {
-        if (!$this->stream->matchesKeyword(nodes\json\JsonKeywords::BEHAVIOURS_EXISTS)) {
-            return null;
-        }
-
-        $onError = $this->stream->next()->getValue();
-        $this->stream->expect(TokenType::KEYWORD, 'on');
-        $this->stream->expect(TokenType::KEYWORD, 'error');
-
-        return $onError;
-    }
-
-    protected function JsonQueryBehaviour(array $keywords): array
+    protected function JsonBehaviour(string $className): array
     {
         $onError   = null;
         $onEmpty   = null;
-        while ($this->stream->matchesKeyword($keywords)) {
-            $keyword   = $this->stream->next();
-            $behaviour = $keyword->getValue();
-            if ('default' === $behaviour) {
+        while (
+            null !== $keyword = $this->stream->matchesAnyKeyword(
+                Keyword::NULL,
+                Keyword::ERROR,
+                Keyword::TRUE,
+                Keyword::FALSE,
+                Keyword::UNKNOWN,
+                Keyword::EMPTY,
+                Keyword::DEFAULT
+            )
+        ) {
+            $keywords       = [$keyword];
+            $behaviourToken = $this->stream->next();
+            $behaviour      = null;
+            if (Keyword::DEFAULT === $keyword) {
                 $behaviour = $this->Expression();
-            } elseif ('empty' === $behaviour) {
-                if ($this->stream->matchesKeyword(['array', 'object'])) {
-                    $behaviour .= ' ' . $this->stream->next()->getValue();
+            } elseif (Keyword::EMPTY === $keyword) {
+                if (null !== $empty = $this->stream->matchesAnyKeyword(Keyword::ARRAY, Keyword::OBJECT)) {
+                    $this->stream->next();
+                    $keywords[] = $empty;
                 } else {
-                    $behaviour .= ' array';
+                    $keywords[] = Keyword::ARRAY;
                 }
             }
+            $behaviour ??= enums\JsonBehaviour::fromKeywords(...$keywords);
 
-            $this->stream->expect(TokenType::KEYWORD, 'on');
-            $onWhat = $this->stream->expect(TokenType::KEYWORD, ['empty', 'error'])->getValue();
-            if ('error' === $onWhat && null === $onError) {
+            $onToken = $this->stream->expect(TokenType::KEYWORD, 'on');
+            $onWhat  = $this->stream->expectKeyword(Keyword::EMPTY, Keyword::ERROR);
+            if (Keyword::ERROR === $onWhat && null === $onError) {
                 $onError = $behaviour;
-            } elseif ('empty' === $onWhat && null === $onEmpty && null === $onError) {
+            } elseif (Keyword::EMPTY === $onWhat && null === $onEmpty && null === $onError) {
                 $onEmpty = $behaviour;
             } else {
                 // Error should point to the first relevant token rather than to the current one
                 throw exceptions\SyntaxException::expectationFailed(
                     TokenType::SPECIAL_CHAR,
                     ')',
-                    $keyword,
+                    $behaviourToken,
                     $this->stream->getSource()
                 );
             }
+
+            $checkCase  = $behaviour instanceof enums\JsonBehaviour ? $behaviour : enums\JsonBehaviour::DEFAULT;
+            $applicable = Keyword::EMPTY === $onWhat
+                ? enums\JsonBehaviour::casesForOnEmptyClause($className)
+                : enums\JsonBehaviour::casesForOnErrorClause($className);
+
+            // If no applicable cases found, point error at "ON" token
+            if ([] === $applicable) {
+                throw exceptions\SyntaxException::atPosition(
+                    \sprintf("Unexpected %s clause", Keyword::EMPTY === $onWhat ? 'ON EMPTY' : 'ON ERROR'),
+                    $this->stream->getSource(),
+                    $onToken->getPosition()
+                );
+            }
+            // Invalid case: point error to behaviour token and give valid behaviours, as Postgres does
+            if (!\in_array($checkCase, $applicable, true)) {
+                throw exceptions\SyntaxException::atPosition(
+                    \sprintf(
+                        "Unexpected %s, expecting one of %s",
+                        $checkCase->nameForExceptionMessage(),
+                        \implode(', ', array_map(
+                            fn (enums\JsonBehaviour $behaviour) => $behaviour->nameForExceptionMessage(),
+                            $applicable
+                        ))
+                    ),
+                    $this->stream->getSource(),
+                    $behaviourToken->getPosition()
+                );
+            }
         }
+
         return [$onEmpty, $onError];
     }
 
@@ -4878,13 +4904,7 @@ class Parser
             $passing = $this->JsonArgumentList();
         }
         $columns = $this->JsonTableColumnsClause();
-        if (!$this->stream->matchesKeyword(nodes\json\JsonKeywords::BEHAVIOURS_TABLE)) {
-            $onError = null;
-        } else {
-            $onError = $this->stream->next()->getValue();
-            $this->stream->expect(TokenType::KEYWORD, 'on');
-            $this->stream->expect(TokenType::KEYWORD, 'error');
-        }
+        [, $onError] = $this->JsonBehaviour(nodes\range\JsonTable::class);
 
         $table = new nodes\range\JsonTable(
             $context,
@@ -4942,33 +4962,26 @@ class Parser
         $type = $this->TypeName();
         if (Keyword::EXISTS === $this->stream->getKeyword()) {
             $this->stream->skip(1);
-            $path    = $this->JsonConstantPath();
-            $onError = $this->JsonExistsOnErrorClause();
+            $path        = $this->JsonConstantPath();
+            [, $onError] = $this->JsonBehaviour(nodes\range\json\JsonExistsColumnDefinition::class);
             return new nodes\range\json\JsonExistsColumnDefinition($name, $type, $path, $onError);
 
-        } else {
-            if (Keyword::FORMAT !== $this->stream->getKeyword()) {
-                $format = null;
-            } else {
-                $format = $this->JsonFormat();
-            }
-            $path       = $this->JsonConstantPath();
-            $wrapper    = $this->JsonWrapperClause();
-            $keepQuotes = $this->JsonQuotesClause();
-            [$onEmpty, $onError] = $this->JsonQueryBehaviour(
-                array_merge(nodes\json\JsonKeywords::BEHAVIOURS_QUERY, ['default', 'empty'])
-            );
-            return new nodes\range\json\JsonRegularColumnDefinition(
-                $name,
-                $type,
-                $format,
-                $path,
-                $wrapper,
-                $keepQuotes,
-                $onEmpty,
-                $onError
-            );
         }
+        $format     = Keyword::FORMAT === $this->stream->getKeyword() ? $this->JsonFormat() : null;
+        $path       = $this->JsonConstantPath();
+        $wrapper    = $this->JsonWrapperClause();
+        $keepQuotes = $this->JsonQuotesClause();
+        [$onEmpty, $onError] = $this->JsonBehaviour(nodes\range\json\JsonRegularColumnDefinition::class);
+        return new nodes\range\json\JsonRegularColumnDefinition(
+            $name,
+            $type,
+            $format,
+            $path,
+            $wrapper,
+            $keepQuotes,
+            $onEmpty,
+            $onError
+        );
     }
 
     protected function JsonConstantPath(): ?nodes\expressions\StringConstant

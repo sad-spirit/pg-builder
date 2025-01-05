@@ -29,6 +29,7 @@ use sad_spirit\pg_builder\{
 use sad_spirit\pg_builder\enums\{
     ConstantName,
     ExtractPart,
+    JsonBehaviour,
     JsonEncoding,
     JsonWrapper,
     NormalizeForm,
@@ -90,7 +91,6 @@ use sad_spirit\pg_builder\nodes\json\{
     JsonFormat,
     JsonKeyValue,
     JsonKeyValueList,
-    JsonKeywords,
     JsonObject,
     JsonObjectAgg,
     JsonQuery,
@@ -774,7 +774,7 @@ QRY
                         new JsonArgument(new JsonFormattedValue(new NumericConstant('1')), new Identifier('x'))
                     ]),
                     new TypeName(new QualifiedName('bool')),
-                    JsonKeywords::BEHAVIOUR_FALSE
+                    JsonBehaviour::FALSE
                 ),
                 new JsonValue(
                     new JsonFormattedValue(new TypecastExpression(
@@ -793,7 +793,7 @@ QRY
                         new JsonArgument(new JsonFormattedValue(new NumericConstant('2')), new Identifier('x'))
                     ]),
                     new TypeName(new QualifiedName('pg_catalog', 'int4')),
-                    JsonKeywords::BEHAVIOUR_NULL,
+                    JsonBehaviour::NULL,
                     new NumericConstant('-1')
                 ),
                 new JsonQuery(
@@ -813,7 +813,7 @@ QRY
                     JsonWrapper::WITHOUT,
                     true,
                     new NumericConstant('0'),
-                    JsonKeywords::BEHAVIOUR_EMPTY_ARRAY
+                    JsonBehaviour::EMPTY_ARRAY
                 )
             ]),
             $list
@@ -854,12 +854,12 @@ QRY
             [
                 "json_value('null', '$' empty on error error on empty)",
                 SyntaxException::class,
-                "Unexpected keyword 'empty'"
+                "Unexpected EMPTY [ARRAY]"
             ],
             [
                 "json_exists('null', '$' default 666 on empty)",
                 SyntaxException::class,
-                "Unexpected keyword 'default'"
+                "Unexpected ON EMPTY clause"
             ],
             [
                 "json_query('null', '$' with wrapper keep quotes)",

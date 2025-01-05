@@ -25,11 +25,12 @@ use sad_spirit\pg_builder\nodes\{
     ScalarExpression,
     TypeName
 };
+use sad_spirit\pg_builder\enums\JsonBehaviour;
 use sad_spirit\pg_builder\enums\JsonWrapper;
 use sad_spirit\pg_builder\nodes\expressions\StringConstant;
 use sad_spirit\pg_builder\nodes\json\{
+    HasBehaviours,
     JsonFormat,
-    JsonValueBehaviours,
     WrapperAndQuotesProperties
 };
 use sad_spirit\pg_builder\TreeWalker;
@@ -37,27 +38,19 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node for regular column definitions in json_table() expression
  *
- * @property-read JsonFormat|null $format
+ * @property-read JsonFormat|null              $format
+ * @property      JsonBehaviour|ScalarExpression|null $onEmpty
+ * @property      JsonBehaviour|ScalarExpression|null $onError
  */
 class JsonRegularColumnDefinition extends JsonTypedColumnDefinition
 {
     use WrapperAndQuotesProperties;
-    use JsonValueBehaviours;
+    use HasBehaviours;
 
     protected ?JsonFormat $p_format = null;
+    protected JsonBehaviour|ScalarExpression|null $p_onEmpty = null;
+    protected JsonBehaviour|ScalarExpression|null $p_onError = null;
 
-    /**
-     * Constructor
-     *
-     * @param Identifier $name
-     * @param TypeName $type
-     * @param JsonFormat|null $format
-     * @param StringConstant|null $path
-     * @param JsonWrapper|null $wrapper
-     * @param bool|null $keepQuotes
-     * @param ScalarExpression|string|null $onEmpty
-     * @param ScalarExpression|string|null $onError
-     */
     public function __construct(
         Identifier $name,
         TypeName $type,
@@ -65,8 +58,8 @@ class JsonRegularColumnDefinition extends JsonTypedColumnDefinition
         ?StringConstant $path = null,
         ?JsonWrapper $wrapper = null,
         ?bool $keepQuotes = null,
-        $onEmpty = null,
-        $onError = null
+        JsonBehaviour|ScalarExpression|null $onEmpty = null,
+        JsonBehaviour|ScalarExpression|null $onError = null
     ) {
         parent::__construct($name, $type, $path);
         $this->setWrapper($wrapper);
@@ -78,6 +71,22 @@ class JsonRegularColumnDefinition extends JsonTypedColumnDefinition
             $this->p_format = $format;
             $this->p_format->setParentNode($this);
         }
+    }
+
+    /**
+     * Sets the value for `ON EMPTY` clause (`DEFAULT ...` is represented by an implementation of `ScalarExpression`)
+     */
+    public function setOnEmpty(JsonBehaviour|ScalarExpression|null $onEmpty): void
+    {
+        $this->setBehaviour($this->p_onEmpty, true, $onEmpty);
+    }
+
+    /**
+     * Sets the value for `ON ERROR` clause (`DEFAULT ...` is represented by an implementation of `ScalarExpression`)
+     */
+    public function setOnError(JsonBehaviour|ScalarExpression|null $onError): void
+    {
+        $this->setBehaviour($this->p_onError, false, $onError);
     }
 
     public function dispatch(TreeWalker $walker)

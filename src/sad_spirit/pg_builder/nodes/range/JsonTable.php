@@ -27,9 +27,9 @@ use sad_spirit\pg_builder\nodes\{
 use sad_spirit\pg_builder\nodes\json\{
     HasBehaviours,
     JsonArgumentList,
-    JsonFormattedValue,
-    JsonKeywords
+    JsonFormattedValue
 };
+use sad_spirit\pg_builder\enums\JsonBehaviour;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -40,24 +40,18 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property Identifier|null               $pathName
  * @property JsonArgumentList              $passing
  * @property json\JsonColumnDefinitionList $columns
- * @property string|null                   $onError
+ * @property JsonBehaviour|null            $onError
  */
 class JsonTable extends LateralFromElement
 {
     use HasBehaviours;
 
-    /** @var JsonFormattedValue */
-    protected $p_context;
-    /** @var ScalarExpression */
-    protected $p_path;
-    /** @var Identifier|null */
-    protected $p_pathName = null;
-    /** @var JsonArgumentList */
-    protected $p_passing;
-    /** @var json\JsonColumnDefinitionList */
-    protected $p_columns;
-    /** @var string|null */
-    protected $p_onError;
+    protected JsonFormattedValue $p_context;
+    protected ScalarExpression $p_path;
+    protected ?Identifier $p_pathName = null;
+    protected JsonArgumentList $p_passing;
+    protected json\JsonColumnDefinitionList $p_columns;
+    protected ?JsonBehaviour $p_onError;
 
     public function __construct(
         JsonFormattedValue $context,
@@ -65,7 +59,7 @@ class JsonTable extends LateralFromElement
         ?Identifier $pathName = null,
         ?JsonArgumentList $passing = null,
         ?json\JsonColumnDefinitionList $columns = null,
-        ?string $onError = null
+        ?JsonBehaviour $onError = null
     ) {
         $this->generatePropertyNames();
 
@@ -104,10 +98,10 @@ class JsonTable extends LateralFromElement
         $this->setProperty($this->p_pathName, $pathName);
     }
 
-    public function setOnError(?string $onError): void
+    public function setOnError(?JsonBehaviour $onError): void
     {
         /** @psalm-suppress PossiblyInvalidPropertyAssignmentValue */
-        $this->setBehaviour($this->p_onError, 'ON ERROR', JsonKeywords::BEHAVIOURS_TABLE, $onError);
+        $this->setBehaviour($this->p_onError, false, $onError);
     }
 
     public function dispatch(TreeWalker $walker)

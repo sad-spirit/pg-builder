@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\json;
 
+use sad_spirit\pg_builder\enums\JsonBehaviour;
 use sad_spirit\pg_builder\nodes\{
     ScalarExpression,
     TypeName
@@ -28,18 +29,22 @@ use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing the json_exists() expression
+ *
+ * @property JsonBehaviour|null $onError
  */
 class JsonExists extends JsonQueryCommon
 {
     use ReturningTypenameProperty;
-    use JsonExistsBehaviours;
+    use HasBehaviours;
+
+    protected ?JsonBehaviour $p_onError;
 
     public function __construct(
         JsonFormattedValue $context,
         ScalarExpression $path,
         ?JsonArgumentList $passing = null,
         ?TypeName $returning = null,
-        ?string $onError = null
+        ?JsonBehaviour $onError = null
     ) {
         parent::__construct($context, $path, $passing);
 
@@ -48,6 +53,15 @@ class JsonExists extends JsonQueryCommon
             $this->p_returning->setParentNode($this);
         }
         $this->setOnError($onError);
+    }
+
+    /**
+     * Sets the value for `ON ERROR` clause
+     */
+    public function setOnError(?JsonBehaviour $onError): void
+    {
+        /** @psalm-suppress PossiblyInvalidPropertyAssignmentValue */
+        $this->setBehaviour($this->p_onError, false, $onError);
     }
 
     public function dispatch(TreeWalker $walker)

@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\json;
 
+use sad_spirit\pg_builder\enums\JsonBehaviour;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
@@ -34,32 +35,36 @@ trait HasBehaviours
     /**
      * Sets the value for "ON EMPTY" / "ON ERROR" behaviour clause
      *
-     * @param string|ScalarExpression|null $property
-     * @param string                       $clauseName Name of the clause (for exception messages only)
-     * @param array                        $allowed
-     * @param string|ScalarExpression|null $value
+     * @param JsonBehaviour|ScalarExpression|null $property
+     * @param bool                                $onEmpty
+     * @param JsonBehaviour|ScalarExpression|null $value
      * @return void
      */
-    final protected function setBehaviour(&$property, string $clauseName, array $allowed, $value): void
-    {
+    final protected function setBehaviour(
+        JsonBehaviour|ScalarExpression|null &$property,
+        bool $onEmpty,
+        JsonBehaviour|ScalarExpression|null $value
+    ): void {
         if (null !== $value) {
-            if (!is_string($value) && !($value instanceof ScalarExpression)) {
-                throw new InvalidArgumentException(sprintf(
-                    "Either a string or an instance of ScalarExpression expected for %s clause, %s given",
-                    $clauseName,
-                    is_object($value) ? 'object(' . get_class($value) . ')' : gettype($value)
-                ));
-            } elseif (is_string($value) && !in_array($value, $allowed)) {
-                throw new InvalidArgumentException(sprintf(
-                    "Unrecognized value '%s' for %s clause, expected one of '%s'",
-                    $value,
-                    $clauseName,
-                    implode("', '", $allowed)
+            $checkCase  = $value instanceof JsonBehaviour ? $value : JsonBehaviour::DEFAULT;
+            $applicable = $onEmpty
+                ? JsonBehaviour::casesForOnEmptyClause($this::class)
+                : JsonBehaviour::casesForOnErrorClause($this::class);
+            if (!\in_array($checkCase, $applicable, true)) {
+                throw new InvalidArgumentException(\sprintf(
+                    "Invalid %s behaviour for %s clause of %s. Valid ones are: %s",
+                    $checkCase->nameForExceptionMessage(),
+                    $onEmpty ? 'ON EMPTY' : 'ON ERROR',
+                    $this::class,
+                    \implode(', ', \array_map(
+                        fn (JsonBehaviour $behaviour) => $behaviour->nameForExceptionMessage(),
+                        $applicable
+                    ))
                 ));
             }
         }
 
-        if (!is_string($property) && !is_string($value)) {
+        if (!$property instanceof JsonBehaviour && !$value instanceof JsonBehaviour) {
             $this->setProperty($property, $value);
             return;
         }

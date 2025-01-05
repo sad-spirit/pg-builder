@@ -22,13 +22,14 @@ namespace sad_spirit\pg_builder\tests;
 
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
-    enums\JsonWrapper,
     Parser,
     Lexer,
     Select,
     enums\ConstantName,
     enums\JoinType,
-    enums\JsonEncoding
+    enums\JsonBehaviour,
+    enums\JsonEncoding,
+    enums\JsonWrapper
 };
 use sad_spirit\pg_builder\exceptions\SyntaxException;
 use sad_spirit\pg_builder\nodes\{
@@ -52,8 +53,7 @@ use sad_spirit\pg_builder\nodes\json\{
     JsonArgument,
     JsonArgumentList,
     JsonFormat,
-    JsonFormattedValue,
-    JsonKeywords
+    JsonFormattedValue
 };
 use sad_spirit\pg_builder\nodes\range\{
     ColumnDefinition,
@@ -507,7 +507,7 @@ QRY
                 new JsonOrdinalityColumnDefinition(new Identifier('id')),
                 new JsonRegularColumnDefinition(new Identifier('foo'), new TypeName(new QualifiedName('text')))
             ]),
-            JsonKeywords::BEHAVIOUR_EMPTY
+            JsonBehaviour::EMPTY_ARRAY
         );
 
         $table2 = new JsonTable(
@@ -554,7 +554,7 @@ QRY
                     new Identifier('exists'),
                     new TypeName(new QualifiedName('pg_catalog', 'int4')),
                     new StringConstant('$.aaa'),
-                    JsonKeywords::BEHAVIOUR_TRUE
+                    JsonBehaviour::TRUE
                 ),
                 new JsonNestedColumns(
                     new StringConstant('$[1]'),

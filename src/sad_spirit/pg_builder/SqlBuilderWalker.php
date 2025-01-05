@@ -1718,14 +1718,14 @@ class SqlBuilderWalker implements StatementToStringWalker
             if ($expression->onEmpty instanceof nodes\ScalarExpression) {
                 $result .= ' default ' . $expression->onEmpty->dispatch($this) . ' on empty';
             } else {
-                $result .= ' ' . $expression->onEmpty . ' on empty';
+                $result .= ' ' . $expression->onEmpty->value . ' on empty';
             }
         }
         if (!empty($expression->onError)) {
             if ($expression->onError instanceof nodes\ScalarExpression) {
                 $result .= ' default ' . $expression->onError->dispatch($this) . ' on error';
             } else {
-                $result .= ' ' . $expression->onError . ' on error';
+                $result .= ' ' . $expression->onError->value . ' on error';
             }
         }
         return $result;
@@ -1775,7 +1775,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         $lines[] = $this->getIndent() . ')';
 
         if (null !== $rangeItem->onError) {
-            $lines[] = $this->getIndent() . $rangeItem->onError . ' on error';
+            $lines[] = $this->getIndent() . $rangeItem->onError->value . ' on error';
         }
 
         $this->indentLevel--;

@@ -20,31 +20,26 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\json;
 
+use sad_spirit\pg_builder\enums\JsonBehaviour;
 use sad_spirit\pg_builder\enums\JsonWrapper;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * AST node representing the json_query() expression
+ *
+ * @property JsonBehaviour|ScalarExpression|null $onEmpty
+ * @property JsonBehaviour|ScalarExpression|null $onError
  */
 class JsonQuery extends JsonQueryCommon
 {
     use ReturningProperty;
     use WrapperAndQuotesProperties;
-    use JsonQueryBehaviours;
+    use HasBehaviours;
 
-    /**
-     * Constructor
-     *
-     * @param JsonFormattedValue $context
-     * @param ScalarExpression $path
-     * @param JsonArgumentList|null $passing
-     * @param JsonReturning|null $returning
-     * @param JsonWrapper|null $wrapper
-     * @param bool|null $keepQuotes
-     * @param string|ScalarExpression|null $onEmpty
-     * @param string|ScalarExpression|null $onError
-     */
+    protected JsonBehaviour|ScalarExpression|null $p_onEmpty = null;
+    protected JsonBehaviour|ScalarExpression|null $p_onError = null;
+
     public function __construct(
         JsonFormattedValue $context,
         ScalarExpression $path,
@@ -52,8 +47,8 @@ class JsonQuery extends JsonQueryCommon
         ?JsonReturning $returning = null,
         ?JsonWrapper $wrapper = null,
         ?bool $keepQuotes = null,
-        $onEmpty = null,
-        $onError = null
+        JsonBehaviour|ScalarExpression|null $onEmpty = null,
+        JsonBehaviour|ScalarExpression|null $onError = null
     ) {
         parent::__construct($context, $path, $passing);
         if (null !== $returning) {
@@ -64,6 +59,22 @@ class JsonQuery extends JsonQueryCommon
         $this->setKeepQuotes($keepQuotes);
         $this->setOnEmpty($onEmpty);
         $this->setOnError($onError);
+    }
+
+    /**
+     * Sets the value for `ON EMPTY` clause (`DEFAULT ...` is represented by an implementation of `ScalarExpression`)
+     */
+    public function setOnEmpty(JsonBehaviour|ScalarExpression|null $onEmpty): void
+    {
+        $this->setBehaviour($this->p_onEmpty, true, $onEmpty);
+    }
+
+    /**
+     * Sets the value for `ON ERROR` clause (`DEFAULT ...` is represented by an implementation of `ScalarExpression`)
+     */
+    public function setOnError(JsonBehaviour|ScalarExpression|null $onError): void
+    {
+        $this->setBehaviour($this->p_onError, false, $onError);
     }
 
     public function dispatch(TreeWalker $walker)
