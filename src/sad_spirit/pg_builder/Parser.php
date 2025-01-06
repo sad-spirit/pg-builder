@@ -282,10 +282,10 @@ class Parser
      * Token types that can appear as the first part of an Identifier in {@link NamedExpressionAtom()}
      */
     private const ATOM_IDENTIFIER_TYPES = [
+        TokenType::IDENTIFIER,
         TokenType::TYPE_FUNC_NAME_KEYWORD,
         TokenType::COL_NAME_KEYWORD,
-        TokenType::UNRESERVED_KEYWORD,
-        TokenType::IDENTIFIER
+        TokenType::UNRESERVED_KEYWORD
     ];
 
     /**
@@ -1860,7 +1860,7 @@ class Parser
             )
         ) {
             // ColId
-            $parts[] = nodes\Identifier::createFromToken($this->stream->next());
+            $parts[] = new nodes\Identifier($this->stream->next()->getValue());
             $this->stream->expect(TokenType::SPECIAL_CHAR, '.');
         }
         if ($this->stream->matches(TokenType::SPECIAL, self::MATH_OPERATORS)) {
@@ -2267,15 +2267,10 @@ class Parser
             return null;
         }
 
-        $typeName = [nodes\Identifier::createFromToken($this->stream->next())];
+        $typeName = [new nodes\Identifier($this->stream->next()->getValue())];
         while ($this->stream->matchesSpecialChar('.')) {
             $this->stream->next();
-            if ($this->stream->matches(TokenType::IDENTIFIER)) {
-                $typeName[] = nodes\Identifier::createFromToken($this->stream->next());
-            } else {
-                // any keyword goes, see ColLabel
-                $typeName[] = nodes\Identifier::createFromToken($this->stream->expect(TokenType::KEYWORD));
-            }
+            $typeName[] = $this->ColLabel();
         }
 
         return new nodes\TypeName(new nodes\QualifiedName(...$typeName), $this->GenericTypeModifierList());
@@ -2320,7 +2315,7 @@ class Parser
             )
         ) {
             // allows ColId
-            return nodes\Identifier::createFromToken($this->stream->next());
+            return new nodes\Identifier($this->stream->next()->getValue());
 
         } else {
             throw new exceptions\SyntaxException(
@@ -2489,22 +2484,22 @@ class Parser
         }
 
         if (!isset($atom)) {
-            if ($this->matchesConstTypecast()) {
-                return $this->ConstLeadingTypecast();
-
-            } elseif (
-                $this->matchesSpecialFunctionCall()
-                && null !== ($function = $this->SpecialFunctionCall() ?? $this->JsonAggregateFunc())
-            ) {
-                return $this->convertSpecialFunctionCallToFunctionExpression($function);
-
-            } else {
-                // By the time we got here everything that can still legitimately be matched should
-                // start with a (potentially qualified) name. To prevent back-and-forth match()ing and look()ing
-                // the NamedExpressionAtom() matches such name as far as possible
-                // and then passes the matched parts for further processing if expression looks legit.
-                return $this->NamedExpressionAtom();
+            if (null !== $this->stream->getKeyword()) {
+                if ($this->matchesConstTypecast()) {
+                    return $this->ConstLeadingTypecast();
+                } elseif (
+                    $this->matchesSpecialFunctionCall()
+                    && null !== ($function = $this->SpecialFunctionCall() ?? $this->JsonAggregateFunc())
+                ) {
+                    return $this->convertSpecialFunctionCallToFunctionExpression($function);
+                }
             }
+
+            // By the time we got here everything that can still legitimately be matched should
+            // start with a (potentially qualified) name. To prevent back-and-forth match()ing and look()ing
+            // the NamedExpressionAtom() matches such name as far as possible
+            // and then passes the matched parts for further processing if expression looks legit.
+            return $this->NamedExpressionAtom();
         }
 
         if ([] !== ($indirection = $this->Indirection())) {
@@ -2594,7 +2589,16 @@ class Parser
         }
 
         $this->stream->skip($lookIdx);
-        return $this->ColumnReference($identifiers);
+        $indirection = $this->Indirection();
+        while ([] !== $indirection && !($indirection[0] instanceof nodes\ArrayIndexes)) {
+            $identifiers[] = \array_shift($indirection);
+        }
+        /** @var array<nodes\Identifier|nodes\Star> $identifiers */
+        if ([] !== $indirection) {
+            return new nodes\Indirection($indirection, new nodes\ColumnReference(...$identifiers));
+        }
+
+        return new nodes\ColumnReference(...$identifiers);
     }
 
     protected function RowList(): nodes\lists\RowList
@@ -2867,12 +2871,8 @@ class Parser
                 break;
 
             case Keyword::XMLPI:
-                $this->stream->expect(TokenType::KEYWORD, 'name');
-                if ($this->stream->matches(TokenType::KEYWORD)) {
-                    $name = nodes\Identifier::createFromToken($this->stream->next());
-                } else {
-                    $name = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
-                }
+                $this->stream->expectKeyword(Keyword::NAME);
+                $name    = $this->ColLabel();
                 $content = null;
                 if ($this->stream->matchesSpecialChar(',')) {
                     $this->stream->next();
@@ -3089,11 +3089,7 @@ class Parser
     protected function XmlElementFunction(): nodes\xml\XmlElement
     {
         $this->stream->expect(TokenType::KEYWORD, 'name');
-        if ($this->stream->matches(TokenType::KEYWORD)) {
-            $name = nodes\Identifier::createFromToken($this->stream->next());
-        } else {
-            $name = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
-        }
+        $name = $this->ColLabel();
         $attributes = $content = null;
         if ($this->stream->matchesSpecialChar(',')) {
             $this->stream->next();
@@ -3155,13 +3151,9 @@ class Parser
     {
         $value   = $this->Expression();
         $attName = null;
-        if ($this->stream->matchesKeyword('as')) {
+        if (Keyword::AS === $this->stream->getKeyword()) {
             $this->stream->next();
-            if ($this->stream->matches(TokenType::KEYWORD)) {
-                $attName = nodes\Identifier::createFromToken($this->stream->next());
-            } else {
-                $attName = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
-            }
+            $attName = $this->ColLabel();
         }
         return new nodes\TargetElement($value, $attName);
     }
@@ -3346,17 +3338,14 @@ class Parser
         if (\in_array($this->stream->getCurrent()->getType(), self::ATOM_IDENTIFIER_TYPES, true)) {
             $firstToken = $this->stream->next();
         } else {
+            // This will always throw an exception, as IDENTIFIER was processed in previous branch
             $firstToken = $this->stream->expect(TokenType::IDENTIFIER);
         }
-        $funcName = [nodes\Identifier::createFromToken($firstToken)];
+        $funcName = [new nodes\Identifier($firstToken->getValue())];
 
         while ($this->stream->matchesSpecialChar('.')) {
             $this->stream->next();
-            if ($this->stream->matches(TokenType::KEYWORD)) {
-                $funcName[] = nodes\Identifier::createFromToken($this->stream->next());
-            } else {
-                $funcName[] = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
-            }
+            $funcName[] = $this->ColLabel();
         }
 
         if (
@@ -3436,34 +3425,22 @@ class Parser
             $this->stream->look(1)->matches(TokenType::COLON_EQUALS)
             || $this->stream->look(1)->matches(TokenType::EQUALS_GREATER)
         ) {
-            if ($this->stream->matchesAnyType(TokenType::UNRESERVED_KEYWORD, TokenType::TYPE_FUNC_NAME_KEYWORD)) {
-                $name = nodes\Identifier::createFromToken($this->stream->next());
+            if (
+                $this->stream->matchesAnyType(
+                    TokenType::IDENTIFIER,
+                    TokenType::UNRESERVED_KEYWORD,
+                    TokenType::TYPE_FUNC_NAME_KEYWORD
+                )
+            ) {
+                $name = new nodes\Identifier($this->stream->next()->getValue());
             } else {
-                $name = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
+                // This will always throw an exception, as IDENTIFIER was processed in previous branch
+                $this->stream->expect(TokenType::IDENTIFIER);
             }
             $this->stream->next();
         }
 
         return [$this->Expression(), $name, $variadic];
-    }
-
-    /**
-     * @param nodes\Identifier[] $identifiers Name parts matched in GenericExpressionAtom()
-     * @return nodes\ColumnReference|nodes\Indirection
-     */
-    protected function ColumnReference(array $identifiers): nodes\ScalarExpression
-    {
-        $parts       = [array_shift($identifiers)];
-        $indirection = array_merge($identifiers, $this->Indirection());
-        while (!empty($indirection) && !($indirection[0] instanceof nodes\ArrayIndexes)) {
-            $parts[] = array_shift($indirection);
-        }
-        /** @var array<nodes\Identifier|nodes\Star> $parts */
-        if (!empty($indirection)) {
-            return new nodes\Indirection($indirection, new nodes\ColumnReference(...$parts));
-        }
-
-        return new nodes\ColumnReference(...$parts);
     }
 
     /**
@@ -3475,18 +3452,15 @@ class Parser
         $indirection = [];
         while ($this->stream->matchesSpecialChar(['[', '.'])) {
             if ('.' === $this->stream->next()->getValue()) {
-                if ($this->stream->matchesSpecialChar('*')) {
-                    if (!$allowStar) {
-                        // this will basically trigger an error if '.*' appears in list of fields for INSERT or UPDATE
-                        $this->stream->expect(TokenType::IDENTIFIER);
-                    }
+                if (!$this->stream->matchesSpecialChar('*')) {
+                    $indirection[] = $this->ColLabel();
+                } elseif (!$allowStar) {
+                    // this will basically trigger an error if '.*' appears in list of fields for INSERT or UPDATE
+                    $this->stream->expect(TokenType::IDENTIFIER);
+                } else {
                     $this->stream->next();
                     $indirection[] = new nodes\Star();
                     break;
-                } elseif ($this->stream->matches(TokenType::KEYWORD)) {
-                    $indirection[] = nodes\Identifier::createFromToken($this->stream->next());
-                } else {
-                    $indirection[] = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
                 }
 
             } else {
@@ -3539,18 +3513,14 @@ class Parser
         $element = $this->Expression();
         if (
             $this->stream->matches(TokenType::IDENTIFIER)
-            || $this->stream->matches(TokenType::KEYWORD)
-               && Keyword::from($this->stream->getCurrent()->getValue())->isBareLabel()
+            || (null !== $keyword = $this->stream->getKeyword())
+                && $keyword->isBareLabel()
         ) {
-            $alias = nodes\Identifier::createFromToken($this->stream->next());
+            $alias = new nodes\Identifier($this->stream->next()->getValue());
 
         } elseif ($this->stream->matchesKeyword('as')) {
             $this->stream->next();
-            if ($this->stream->matches(TokenType::KEYWORD)) {
-                $alias = nodes\Identifier::createFromToken($this->stream->next());
-            } else {
-                $alias = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
-            }
+            $alias = $this->ColLabel();
         }
 
         return new nodes\TargetElement($element, $alias);
@@ -3975,11 +3945,33 @@ class Parser
      */
     protected function ColId(): nodes\Identifier
     {
-        if ($this->stream->matchesAnyType(TokenType::UNRESERVED_KEYWORD, TokenType::COL_NAME_KEYWORD)) {
-            return nodes\Identifier::createFromToken($this->stream->next());
+        if (
+            $this->stream->matchesAnyType(
+                TokenType::IDENTIFIER,
+                TokenType::UNRESERVED_KEYWORD,
+                TokenType::COL_NAME_KEYWORD
+            )
+        ) {
+            $token = $this->stream->next();
         } else {
-            return nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
+            // This will throw an exception as IDENTIFIER was matched in previous branch
+            $token = $this->stream->expect(TokenType::IDENTIFIER);
         }
+        return new nodes\Identifier($token->getValue());
+    }
+
+    /**
+     * ColLabel production from Postgres grammar - allow identifiers and keywords of *any* type
+     */
+    protected function ColLabel(): nodes\Identifier
+    {
+        if ($this->stream->matchesAnyType(TokenType::IDENTIFIER, TokenType::KEYWORD)) {
+            $token = $this->stream->next();
+        } else {
+            // This will throw an exception as IDENTIFIER was matched in previous branch
+            $token = $this->stream->expect(TokenType::IDENTIFIER);
+        }
+        return new nodes\Identifier($token->getValue());
     }
 
     protected function QualifiedName(): nodes\QualifiedName
@@ -3988,11 +3980,7 @@ class Parser
 
         while ($this->stream->matchesSpecialChar('.')) {
             $this->stream->next();
-            if ($this->stream->matches(TokenType::KEYWORD)) {
-                $parts[] = nodes\Identifier::createFromToken($this->stream->next());
-            } else {
-                $parts[] = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
-            }
+            $parts[] = $this->ColLabel();
         }
 
         return new nodes\QualifiedName(...$parts);
@@ -4256,12 +4244,8 @@ class Parser
 
         } else {
             $value = $this->RestrictedExpression();
-            $this->stream->expect(TokenType::KEYWORD, 'as');
-            if ($this->stream->matches(TokenType::KEYWORD)) {
-                $alias = nodes\Identifier::createFromToken($this->stream->next());
-            } else {
-                $alias = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
-            }
+            $this->stream->expectKeyword(Keyword::AS);
+            $alias = $this->ColLabel();
         }
 
         return new nodes\xml\XmlNamespace($value, $alias);
@@ -4534,13 +4518,8 @@ class Parser
     protected function JsonArgument(): nodes\json\JsonArgument
     {
         $value = $this->JsonFormattedValue();
-        $this->stream->expect(TokenType::KEYWORD, 'as');
-        if ($this->stream->matches(TokenType::KEYWORD)) {
-            $alias = nodes\Identifier::createFromToken($this->stream->next());
-        } else {
-            $alias = nodes\Identifier::createFromToken($this->stream->expect(TokenType::IDENTIFIER));
-        }
-        return new nodes\json\JsonArgument($value, $alias);
+        $this->stream->expectKeyword(Keyword::AS);
+        return new nodes\json\JsonArgument($value, $this->ColLabel());
     }
 
     protected function JsonReturningClause(): ?nodes\json\JsonReturning
@@ -4937,7 +4916,7 @@ class Parser
 
     protected function JsonColumnDefinition(): nodes\range\json\JsonColumnDefinition
     {
-        if ($this->stream->matches(TokenType::KEYWORD, 'nested')) {
+        if (Keyword::NESTED === $this->stream->getKeyword()) {
             return $this->JsonNestedColumns();
         }
 
@@ -4953,8 +4932,8 @@ class Parser
             $path        = $this->JsonConstantPath();
             [, $onError] = $this->JsonBehaviour(nodes\range\json\JsonExistsColumnDefinition::class);
             return new nodes\range\json\JsonExistsColumnDefinition($name, $type, $path, $onError);
-
         }
+
         $format     = Keyword::FORMAT === $this->stream->getKeyword() ? $this->JsonFormat() : null;
         $path       = $this->JsonConstantPath();
         $wrapper    = $this->JsonWrapperClause();
