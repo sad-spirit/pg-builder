@@ -24,8 +24,7 @@ use sad_spirit\pg_builder\nodes\{
     ExpressionAtom,
     FunctionLike,
     GenericNode,
-    ScalarExpression,
-    TypeName
+    ScalarExpression
 };
 use sad_spirit\pg_builder\TreeWalker;
 
@@ -37,22 +36,15 @@ use sad_spirit\pg_builder\TreeWalker;
 class JsonScalar extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
-    use ReturningTypenameProperty;
 
-    /** @var ScalarExpression */
-    protected $p_expression;
+    protected ScalarExpression $p_expression;
 
-    public function __construct(ScalarExpression $expression, ?TypeName $returning = null)
+    public function __construct(ScalarExpression $expression)
     {
         $this->generatePropertyNames();
 
         $this->p_expression = $expression;
         $this->p_expression->setParentNode($this);
-
-        if (null !== $returning) {
-            $this->p_returning = $returning;
-            $this->p_returning->setParentNode($this);
-        }
     }
 
     public function setExpression(ScalarExpression $expression): void

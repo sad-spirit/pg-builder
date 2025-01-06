@@ -718,8 +718,7 @@ QRY
     public function testMiscJsonExpressions(): void
     {
         $list = $this->parser->parseExpressionList(<<<QRY
-    json_scalar(1), json_scalar(2 returning jsonb),
-    json(null), json('{"foo":1}' format json encoding utf8 without unique returning jsonb),
+    json_scalar(1), json(null), json('{"foo":1}' format json encoding utf8 without unique),
     json_serialize(null), json_serialize('{"foo":"bar"}' format json encoding utf8 returning bytea format json)
 QRY
         );
@@ -727,12 +726,10 @@ QRY
         $this::assertEquals(
             new ExpressionList([
                 new JsonScalar(new NumericConstant('1')),
-                new JsonScalar(new NumericConstant('2'), new TypeName(new QualifiedName('jsonb'))),
                 new JsonConstructor(new JsonFormattedValue(new KeywordConstant(ConstantName::NULL))),
                 new JsonConstructor(
                     new JsonFormattedValue(new StringConstant('{"foo":1}'), new JsonFormat(JsonEncoding::UTF8)),
-                    false,
-                    new TypeName(new QualifiedName('jsonb'))
+                    false
                 ),
                 new JsonSerialize(new JsonFormattedValue(new KeywordConstant(ConstantName::NULL))),
                 new JsonSerialize(
@@ -748,7 +745,7 @@ QRY
     {
         $list = $this->parser->parseExpressionList(<<<'QRY'
     json_exists(null format json, '$'),
-    json_exists(jsonb '{"a": 1, "b": 2}', '$.* ? (@ > $x)' passing 1 as x returning bool false on error),
+    json_exists(jsonb '{"a": 1, "b": 2}', '$.* ? (@ > $x)' passing 1 as x false on error),
     json_value(null::jsonb, '$'),
     json_value(jsonb '{"a": 1, "b": 2}', '$.* ? (@ > $x)' passing 2 as x returning int
                null on empty default -1 on error),
@@ -773,7 +770,6 @@ QRY
                     new JsonArgumentList([
                         new JsonArgument(new JsonFormattedValue(new NumericConstant('1')), new Identifier('x'))
                     ]),
-                    new TypeName(new QualifiedName('bool')),
                     JsonBehaviour::FALSE
                 ),
                 new JsonValue(
@@ -792,7 +788,7 @@ QRY
                     new JsonArgumentList([
                         new JsonArgument(new JsonFormattedValue(new NumericConstant('2')), new Identifier('x'))
                     ]),
-                    new TypeName(new QualifiedName('pg_catalog', 'int4')),
+                    new JsonReturning(new TypeName(new QualifiedName('pg_catalog', 'int4'))),
                     JsonBehaviour::NULL,
                     new NumericConstant('-1')
                 ),

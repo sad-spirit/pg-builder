@@ -1600,17 +1600,6 @@ class SqlBuilderWalker implements StatementToStringWalker
                . (null === $expression->over ? '' : ' over ' . $expression->over->dispatch($this));
     }
 
-    protected function jsonReturningClause(?nodes\GenericNode $returning): string
-    {
-        if ($returning instanceof nodes\TypeName) {
-            return ' returning ' . $returning->dispatch($this);
-        } elseif ($returning instanceof nodes\json\JsonReturning) {
-            return ' ' . $returning->dispatch($this);
-        } else {
-            return '';
-        }
-    }
-
     protected function jsonOnNullClause(?bool $absentOnNull): string
     {
         if (null === $absentOnNull) {
@@ -1651,7 +1640,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         return 'json_array('
             . $this->implode(', ', $expression->arguments->dispatch($this))
             . $this->jsonOnNullClause($expression->absentOnNull)
-            . $this->jsonReturningClause($expression->returning)
+            . (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
             . ')';
     }
 
@@ -1660,7 +1649,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         return 'json_array('
             . $expression->query->dispatch($this)
             . (null === $expression->format ? '' : ' ' . $expression->format->dispatch($this))
-            . $this->jsonReturningClause($expression->returning)
+            . (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
             . ')';
     }
 
@@ -1669,7 +1658,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         return 'json_object(' . implode(', ', $expression->arguments->dispatch($this))
             . $this->jsonOnNullClause($expression->absentOnNull)
             . $this->jsonUniqueKeysClause($expression->uniqueKeys)
-            . $this->jsonReturningClause($expression->returning)
+            . (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
             . ')';
     }
 
@@ -1677,21 +1666,18 @@ class SqlBuilderWalker implements StatementToStringWalker
     {
         return 'json(' . $expression->expression->dispatch($this)
             . $this->jsonUniqueKeysClause($expression->uniqueKeys)
-            . $this->jsonReturningClause($expression->returning)
             . ')';
     }
 
     public function walkJsonScalar(nodes\json\JsonScalar $expression): string
     {
-        return 'json_scalar(' . $expression->expression->dispatch($this)
-            . $this->jsonReturningClause($expression->returning)
-            . ')';
+        return 'json_scalar(' . $expression->expression->dispatch($this) . ')';
     }
 
     public function walkJsonSerialize(nodes\json\JsonSerialize $expression): string
     {
         return 'json_serialize(' . $expression->expression->dispatch($this)
-            . $this->jsonReturningClause($expression->returning)
+            . (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
             . ')';
     }
 
@@ -1734,7 +1720,6 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkJsonExists(nodes\json\JsonExists $expression): string
     {
         return 'json_exists(' . $this->walkCommonJsonQueryFields($expression)
-            . $this->jsonReturningClause($expression->returning)
             . $this->jsonQueryBehaviours($expression)
             . ')';
     }
@@ -1742,7 +1727,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkJsonValue(nodes\json\JsonValue $expression): string
     {
         return 'json_value(' . $this->walkCommonJsonQueryFields($expression)
-            . $this->jsonReturningClause($expression->returning)
+            . (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
             . $this->jsonQueryBehaviours($expression)
             . ')';
     }
@@ -1750,7 +1735,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkJsonQuery(nodes\json\JsonQuery $expression): string
     {
         return 'json_query(' . $this->walkCommonJsonQueryFields($expression)
-            . $this->jsonReturningClause($expression->returning)
+            . (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
             . (null === $expression->wrapper ? '' : ' ' . $expression->wrapper->value . ' wrapper')
             . (null === $expression->keepQuotes ? '' : ' ' . ($expression->keepQuotes ? 'keep' : 'omit') . ' quotes')
             . $this->jsonQueryBehaviours($expression)

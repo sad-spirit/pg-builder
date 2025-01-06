@@ -1018,18 +1018,12 @@ abstract class BlankWalker implements TreeWalker
     public function walkJsonConstructor(nodes\json\JsonConstructor $expression)
     {
         $expression->expression->dispatch($this);
-        if (null !== $expression->returning) {
-            $expression->returning->dispatch($this);
-        }
         return null;
     }
 
     public function walkJsonScalar(nodes\json\JsonScalar $expression)
     {
         $expression->expression->dispatch($this);
-        if (null !== $expression->returning) {
-            $expression->returning->dispatch($this);
-        }
         return null;
     }
 
@@ -1059,9 +1053,6 @@ abstract class BlankWalker implements TreeWalker
     public function walkJsonExists(nodes\json\JsonExists $expression)
     {
         $this->walkCommonJsonQueryFields($expression);
-        if (null !== $expression->returning) {
-            $expression->returning->dispatch($this);
-        }
         return null;
     }
 

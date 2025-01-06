@@ -21,10 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\json;
 
 use sad_spirit\pg_builder\enums\JsonBehaviour;
-use sad_spirit\pg_builder\nodes\{
-    ScalarExpression,
-    TypeName
-};
+use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -34,7 +31,6 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class JsonExists extends JsonQueryCommon
 {
-    use ReturningTypenameProperty;
     use HasBehaviours;
 
     protected ?JsonBehaviour $p_onError;
@@ -43,15 +39,10 @@ class JsonExists extends JsonQueryCommon
         JsonFormattedValue $context,
         ScalarExpression $path,
         ?JsonArgumentList $passing = null,
-        ?TypeName $returning = null,
         ?JsonBehaviour $onError = null
     ) {
         parent::__construct($context, $path, $passing);
 
-        if (null !== $returning) {
-            $this->p_returning = $returning;
-            $this->p_returning->setParentNode($this);
-        }
         $this->setOnError($onError);
     }
 

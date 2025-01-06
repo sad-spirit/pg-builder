@@ -24,8 +24,7 @@ use sad_spirit\pg_builder\nodes\{
     ExpressionAtom,
     FunctionLike,
     GenericNode,
-    ScalarExpression,
-    TypeName
+    ScalarExpression
 };
 use sad_spirit\pg_builder\TreeWalker;
 
@@ -38,12 +37,10 @@ class JsonConstructor extends GenericNode implements ScalarExpression, FunctionL
 {
     use ExpressionAtom;
     use UniqueKeysProperty;
-    use ReturningTypenameProperty;
 
-    /** @var JsonFormattedValue */
-    protected $p_expression;
+    protected JsonFormattedValue $p_expression;
 
-    public function __construct(JsonFormattedValue $expression, ?bool $uniqueKeys = null, ?TypeName $returning = null)
+    public function __construct(JsonFormattedValue $expression, ?bool $uniqueKeys = null)
     {
         $this->generatePropertyNames();
 
@@ -51,11 +48,6 @@ class JsonConstructor extends GenericNode implements ScalarExpression, FunctionL
         $this->p_expression->setParentNode($this);
 
         $this->p_uniqueKeys = $uniqueKeys;
-
-        if (null !== $returning) {
-            $this->p_returning = $returning;
-            $this->p_returning->setParentNode($this);
-        }
     }
 
     public function setExpression(JsonFormattedValue $expression): void

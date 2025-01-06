@@ -21,10 +21,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\json;
 
 use sad_spirit\pg_builder\enums\JsonBehaviour;
-use sad_spirit\pg_builder\nodes\{
-    ScalarExpression,
-    TypeName
-};
+use sad_spirit\pg_builder\nodes\ScalarExpression;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -35,7 +32,7 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class JsonValue extends JsonQueryCommon
 {
-    use ReturningTypenameProperty;
+    use ReturningProperty;
     use HasBehaviours;
 
     protected JsonBehaviour|ScalarExpression|null $p_onEmpty = null;
@@ -45,7 +42,7 @@ class JsonValue extends JsonQueryCommon
         JsonFormattedValue $context,
         ScalarExpression $path,
         ?JsonArgumentList $passing = null,
-        ?TypeName $returning = null,
+        ?JsonReturning $returning = null,
         JsonBehaviour|ScalarExpression|null $onEmpty = null,
         JsonBehaviour|ScalarExpression|null $onError = null
     ) {

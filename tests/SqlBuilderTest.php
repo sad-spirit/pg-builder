@@ -194,10 +194,10 @@ select distinct on (something) quux.one, xyzzy.two[1], (quux.three).four, $1.bla
        json_objectagg(k: v null on null) filter (where v <> 0),
        json_array(values (2), (1), (3) returning bytea),
        json_object(k: v, kk value vv with unique keys),
-       json('{"foo":1}' format json encoding utf8 without unique returning jsonb),
+       json('{"foo":1}' format json encoding utf8 without unique),
        json_scalar(123),
        json_serialize('{"foo":"bar"}' format json encoding utf8 returning bytea format json),
-       json_exists(jsonb '{"a": 1, "b": 2}', '$.* ? (@ > $x)' passing 1 as x returning bool false on error),
+       json_exists(jsonb '{"a": 1, "b": 2}', '$.* ? (@ > $x)' passing 1 as x false on error),
        json_value(jsonb '{"a": 1, "b": 2}', '$.* ? (@ > $x)' passing 2 as x returning int null on empty),
        json_query(jsonb '{"a": 1, "b": 2}', '$.* ? (@ > $x)' passing 1 as x returning jsonb 
                   without wrapper keep quotes empty on error)

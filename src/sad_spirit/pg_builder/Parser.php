@@ -2927,13 +2927,12 @@ class Parser
             case Keyword::JSON:
                 $funcNode = new nodes\json\JsonConstructor(
                     $this->JsonFormattedValue(),
-                    $this->JsonUniquenessConstraint(),
-                    $this->JsonReturningTypename()
+                    $this->JsonUniquenessConstraint()
                 );
                 break;
 
             case Keyword::JSON_SCALAR:
-                $funcNode = new nodes\json\JsonScalar($this->Expression(), $this->JsonReturningTypename());
+                $funcNode = new nodes\json\JsonScalar($this->Expression());
                 break;
 
             case Keyword::JSON_SERIALIZE:
@@ -4554,16 +4553,6 @@ class Parser
         return new nodes\json\JsonReturning($this->TypeName(), $this->JsonFormat());
     }
 
-    protected function JsonReturningTypename(): ?nodes\TypeName
-    {
-        if (!$this->stream->matchesKeyword('returning')) {
-            return null;
-        }
-
-        $this->stream->next();
-        return $this->TypeName();
-    }
-
     protected function JsonFormattedValueList(): nodes\json\JsonFormattedValueList
     {
         $list = new nodes\json\JsonFormattedValueList([$this->JsonFormattedValue()]);
@@ -4732,12 +4721,11 @@ class Parser
 
         switch ($funcName) {
             case 'json_exists':
-                $returning   = $this->JsonReturningTypename();
                 [, $onError] = $this->JsonBehaviour(nodes\json\JsonExists::class);
-                return new nodes\json\JsonExists($context, $path, $passing, $returning, $onError);
+                return new nodes\json\JsonExists($context, $path, $passing, $onError);
 
             case 'json_value':
-                $returning = $this->JsonReturningTypename();
+                $returning = $this->JsonReturningClause();
                 [$onEmpty, $onError] = $this->JsonBehaviour(nodes\json\JsonValue::class);
                 return new nodes\json\JsonValue($context, $path, $passing, $returning, $onEmpty, $onError);
 
