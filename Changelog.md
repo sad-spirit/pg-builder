@@ -1,5 +1,33 @@
 # Changelog
 
+## [Unreleased]
+
+The package now requires PHP 8.2+ and Postgres 12+.
+
+### Added
+
+Support for new syntax of Postgres 17
+ * SQL/JSON functions
+   * `json()` produces json values from text, bytea, json or jsonb values, represented by 
+     `nodes\json\JsonConstructor`.
+   * `json_scalar()` produces a json value from any scalar sql value, represented by
+     `nodes\json\JsonScalar`.
+   * `json_serialize()` produces text or bytea from json or jsonb input, represented by
+     `nodes\json\JsonSerialize`
+   * `json_exists()`, `json_query()`, `json_value()` for querying JSON data using jsonpath expressions.
+     Represented by `nodes\json\JsonExists`, `nodes\json\JsonQuery`,
+     `nodes\json\JsonValue`, respectively.
+   * `json_table()` allows JSON data to be converted into a relational view and used a FROM clause,
+     represented by `nodes\range\JsonTable` and related classes. 
+
+### Removed
+
+ * Features deprecated in 2.x releases were removed:
+   * `ParserAwareTypeConverterFactory` class, `BuilderSupportDecorator` should be used instead.
+   * `$resultTypes` parameter for `NativeStatement::executePrepared()`. The types should be
+     passed to `NativeStatement::prepare()`.
+ * `Node` classes no longer implement deprecated `Serializable` interface.
+
 ## [2.4.0] - 2024-05-27
 
 ### Changed
@@ -363,3 +391,4 @@ Initial release on GitHub
 [2.3.0]: https://github.com/sad-spirit/pg-builder/compare/v2.3.0-beta...v2.3.0
 [2.3.1]: https://github.com/sad-spirit/pg-builder/compare/v2.3.0...v2.3.1
 [2.4.0]: https://github.com/sad-spirit/pg-builder/compare/v2.3.1...v2.4.0
+[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v2.4.0...HEAD
