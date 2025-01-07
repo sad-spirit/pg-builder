@@ -42,9 +42,8 @@ final class KeywordToken extends GenericToken
         return $this->keyword;
     }
 
-    public function matchesKeyword(Keyword ...$keywords): bool
+    public function matchesAnyKeyword(Keyword ...$keywords): bool
     {
-        return [$this->keyword] === $keywords
-            || \in_array($this->keyword, $keywords, true);
+        return \in_array($this->keyword, $keywords, true);
     }
 }

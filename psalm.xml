@@ -29,6 +29,13 @@
             </errorLevel>
         </InaccessibleProperty>
 
+        <InvalidArrayOffset>
+            <errorLevel type="suppress">
+                <!-- https://github.com/vimeo/psalm/issues/5672 -->
+                <file name="src/sad_spirit/pg_builder/enums/JsonBehaviour.php"/>
+            </errorLevel>
+        </InvalidArrayOffset>
+
         <InvalidCatch>
             <errorLevel type="suppress">
                 <!-- Doesn't like catching \Psr\Cache\InvalidArgumentException that does not extend \Throwable -->

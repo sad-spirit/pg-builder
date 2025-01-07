@@ -25,12 +25,7 @@ namespace sad_spirit\pg_builder;
  */
 class TokenStream
 {
-    /** @var Token[] */
-    private $tokens;
-    /** @var int */
-    private $current;
-    /** @var string */
-    private $source;
+    private int $current;
 
     /**
      * If stream is at KeywordToken, its keyword property is kept here
@@ -43,10 +38,8 @@ class TokenStream
      * @param Token[] $tokens Array of tokens extracted by Lexer
      * @param string  $source Source of SQL statement, mostly for exceptions
      */
-    public function __construct(array $tokens, string $source)
+    public function __construct(private readonly array $tokens, private readonly string $source)
     {
-        $this->tokens = $tokens;
-        $this->source = $source;
         $this->reset();
     }
 
@@ -155,17 +148,6 @@ class TokenStream
     }
 
     /**
-     * Checks whether current token matches the given keyword
-     *
-     * @param string|string[] $keyword
-     * @return bool
-     */
-    public function matchesKeyword(string|array $keyword): bool
-    {
-        return null !== $this->keyword && $this->tokens[$this->current]->matches(TokenType::KEYWORD, $keyword);
-    }
-
-    /**
      * Returns Keyword for the current token, if any
      */
     public function getKeyword(): ?Keyword
@@ -184,12 +166,7 @@ class TokenStream
         if (null === $this->keyword) {
             return null;
         }
-
-        return match (\count($keywords)) {
-            0 => null,
-            1 => $this->keyword === \reset($keywords) ? $this->keyword : null,
-            default => \in_array($this->keyword, $keywords, true) ? $this->keyword : null,
-        };
+        return \in_array($this->keyword, $keywords, true) ? $this->keyword : null;
     }
 
     /**
@@ -231,8 +208,8 @@ class TokenStream
         foreach ($keywords as $keyword) {
             if (
                 $keyword instanceof Keyword
-                ? !$this->tokens[$this->current + $index++]->matchesKeyword($keyword)
-                : !$this->tokens[$this->current + $index++]->matchesKeyword(...$keyword)
+                ? $keyword !== $this->tokens[$this->current + $index++]->getKeyword()
+                : !$this->tokens[$this->current + $index++]->matchesAnyKeyword(...$keyword)
             ) {
                 return false;
             }

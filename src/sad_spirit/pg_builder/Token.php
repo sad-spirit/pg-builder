@@ -41,7 +41,7 @@ interface Token extends \Stringable
     /**
      * Checks whether current token matches any of the given keywords
      */
-    public function matchesKeyword(Keyword ...$keywords): bool;
+    public function matchesAnyKeyword(Keyword ...$keywords): bool;
 
     /**
      * Returns token's position in input string

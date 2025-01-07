@@ -621,7 +621,7 @@ REGEXP;
                 continue;
             }
 
-            if (!($hasUescape = $this->tokens[$i + 1]->matches(TokenType::KEYWORD, 'uescape'))) {
+            if (!($hasUescape = (Keyword::UESCAPE === $this->tokens[$i + 1]->getKeyword()))) {
                 $newValue = $this->unescapeUnicode($this->tokens[$i]);
             } else {
                 if (TokenType::STRING !== $this->tokens[$i + 2]->getType()) {

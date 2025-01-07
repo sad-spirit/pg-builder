@@ -49,7 +49,7 @@ abstract class GenericToken implements Token
         }
     }
 
-    public function matchesKeyword(Keyword ...$keywords): bool
+    public function matchesAnyKeyword(Keyword ...$keywords): bool
     {
         return false;
     }

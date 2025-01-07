@@ -373,7 +373,7 @@ class Parser
             return null;
         }
 
-        if (!$this->stream->look($lookIdx)->matches(TokenType::KEYWORD, ['values', 'select', 'with'])) {
+        if (!$this->stream->look($lookIdx)->matchesAnyKeyword(Keyword::VALUES, Keyword::SELECT, Keyword::WITH)) {
             $selectLevel = false;
         } elseif (1 === ($selectLevel = count($openParens))) {
             return self::PARENTHESES_SELECT;
@@ -408,12 +408,19 @@ class Parser
                 case ')':
                     if (1 < count($openParens) && $selectLevel === count($openParens)) {
                         if (
-                            $this->stream->look($lookIdx + 1)->matches(
-                                TokenType::KEYWORD,
-                                ['union', 'intersect', 'except', 'order', 'limit', 'offset',
-                                    'for' /* ...update */, 'fetch' /* SQL:2008 limit */]
-                            )
-                            || $this->stream->look($lookIdx + 1)->matches(TokenType::SPECIAL_CHAR, ')')
+                            $this->stream->look($lookIdx + 1)
+                                ->matchesAnyKeyword(
+                                    Keyword::UNION,
+                                    Keyword::INTERSECT,
+                                    Keyword::EXCEPT,
+                                    Keyword::ORDER,
+                                    Keyword::LIMIT,
+                                    Keyword::OFFSET,
+                                    Keyword::FOR /* ...update */,
+                                    Keyword::FETCH /* SQL:2008 limit */
+                                )
+                            || $this->stream->look($lookIdx + 1)
+                                ->matches(TokenType::SPECIAL_CHAR, ')')
                         ) {
                             // this addresses stuff like ((select 1) order by 1)
                             $selectLevel--;
@@ -486,7 +493,7 @@ class Parser
     private function matchesOperator(): bool
     {
         return $this->stream->matches(TokenType::OPERATOR)
-               || $this->stream->matchesAnyKeyword(Keyword::OPERATOR)
+               || Keyword::OPERATOR === $this->stream->getKeyword()
                   && $this->stream->look(1)->matches(TokenType::SPECIAL_CHAR, '(');
     }
 
@@ -548,7 +555,7 @@ class Parser
         } elseif (\in_array($keyword, $dontCheckParens, true)) {
             return true;
         } elseif (Keyword::COLLATION === $keyword) {
-            return $this->stream->look()->matchesKeyword(Keyword::FOR)
+            return Keyword::FOR === $this->stream->look()->getKeyword()
                 && $this->stream->look(2)->matches(TokenType::SPECIAL_CHAR, '(');
         } else {
             return $this->stream->look()->matches(TokenType::SPECIAL_CHAR, '(');
@@ -599,14 +606,14 @@ class Parser
         $idx  = 1;
         if (
             isset(self::STANDARD_DOUBLE_WORD_TYPES[$base->value])
-            && !$this->stream->look($idx++)->matchesKeyword(...self::STANDARD_DOUBLE_WORD_TYPES[$base->value])
+            && !$this->stream->look($idx++)->matchesAnyKeyword(...self::STANDARD_DOUBLE_WORD_TYPES[$base->value])
         ) {
             return false;
         }
 
         if (
             isset(self::STANDARD_TYPES_OPT_VARYING[$base->value])
-            && $this->stream->look($idx)->matchesKeyword(Keyword::VARYING)
+            && Keyword::VARYING === $this->stream->look($idx)->getKeyword()
         ) {
             $idx++;
         }
@@ -620,7 +627,7 @@ class Parser
 
         if (
             isset($trailingTimezone[$base->value])
-            && $this->stream->look($idx)->matchesKeyword(Keyword::WITH, Keyword::WITHOUT)
+            && $this->stream->look($idx)->matchesAnyKeyword(Keyword::WITH, Keyword::WITHOUT)
         ) {
             $idx += 3;
         }
@@ -712,12 +719,12 @@ class Parser
 
     protected function Statement(): Statement
     {
-        if ($this->stream->matchesKeyword('with')) {
+        if (Keyword::WITH === $this->stream->getKeyword()) {
             $withClause = $this->WithClause();
         }
 
         if (
-            $this->stream->matchesKeyword(['select', 'values'])
+            $this->stream->matchesAnyKeyword(Keyword::SELECT, Keyword::VALUES)
             || $this->stream->matchesSpecialChar('(')
         ) {
             $stmt = $this->SelectStatement();
@@ -729,16 +736,16 @@ class Parser
             }
             return $stmt;
 
-        } elseif ($this->stream->matchesKeyword('insert')) {
+        } elseif (Keyword::INSERT === $this->stream->getKeyword()) {
             $stmt = $this->InsertStatement();
 
-        } elseif ($this->stream->matchesKeyword('update')) {
+        } elseif (Keyword::UPDATE === $this->stream->getKeyword()) {
             $stmt = $this->UpdateStatement();
 
-        } elseif ($this->stream->matchesKeyword('delete')) {
+        } elseif (Keyword::DELETE === $this->stream->getKeyword()) {
             $stmt = $this->DeleteStatement();
 
-        } elseif ($this->stream->matchesKeyword('merge')) {
+        } elseif (Keyword::MERGE === $this->stream->getKeyword()) {
             $stmt = $this->MergeStatement();
 
         } else {
@@ -756,7 +763,7 @@ class Parser
 
     protected function SelectStatement(): SelectCommon
     {
-        if ($this->stream->matchesAnyKeyword(Keyword::WITH)) {
+        if (Keyword::WITH === $this->stream->getKeyword()) {
             $withClause = $this->WithClause();
         }
 
@@ -798,18 +805,25 @@ class Parser
         }
 
         // LIMIT / OFFSET clause and FOR [UPDATE] clause may come in any order
-        if ($this->stream->matchesKeyword(['for', 'limit', 'offset', 'fetch'])) {
-            if ('for' === $this->stream->getCurrent()->getValue()) {
+        if (
+            null !== $keyword = $this->stream->matchesAnyKeyword(
+                Keyword::FOR,
+                Keyword::LIMIT,
+                Keyword::OFFSET,
+                Keyword::FETCH
+            )
+        ) {
+            if (Keyword::FOR === $keyword) {
                 // locking clause first
                 $this->ForLockingClause($stmt);
-                if ($this->stream->matchesKeyword(['limit', 'offset', 'fetch'])) {
+                if ($this->stream->matchesAnyKeyword(Keyword::LIMIT, Keyword::OFFSET, Keyword::FETCH)) {
                     $this->LimitOffsetClause($stmt);
                 }
 
             } else {
                 // limit clause first
                 $this->LimitOffsetClause($stmt);
-                if ($this->stream->matchesKeyword('for')) {
+                if (Keyword::FOR === $this->stream->getKeyword()) {
                     $this->ForLockingClause($stmt);
                 }
             }
@@ -820,7 +834,7 @@ class Parser
 
     protected function InsertStatement(): Insert
     {
-        if ($this->stream->matchesAnyKeyword(Keyword::WITH)) {
+        if (Keyword::WITH === $this->stream->getKeyword()) {
             $withClause = $this->WithClause();
         }
         $this->stream->expectKeyword(Keyword::INSERT);
@@ -842,7 +856,7 @@ class Parser
                 $stmt->cols->replace($this->InsertTargetList());
                 $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
             }
-            if ($this->stream->matchesAnyKeyword(Keyword::OVERRIDING)) {
+            if (Keyword::OVERRIDING === $this->stream->getKeyword()) {
                 $this->stream->next();
                 $stmt->setOverriding(enums\InsertOverriding::fromKeywords(
                     $this->stream->expectKeyword(Keyword::USER, Keyword::SYSTEM)
@@ -857,7 +871,7 @@ class Parser
             $stmt->onConflict = $this->OnConflict();
         }
 
-        if ($this->stream->matchesAnyKeyword(Keyword::RETURNING)) {
+        if (Keyword::RETURNING === $this->stream->getKeyword()) {
             $this->stream->next();
             $stmt->returning->replace($this->TargetList());
         }
@@ -867,13 +881,13 @@ class Parser
 
     protected function UpdateStatement(): Update
     {
-        if ($this->stream->matchesKeyword('with')) {
+        if (Keyword::WITH === $this->stream->getKeyword()) {
             $withClause = $this->WithClause();
         }
 
-        $this->stream->expect(TokenType::KEYWORD, 'update');
+        $this->stream->expectKeyword(Keyword::UPDATE);
         $relation = $this->UpdateOrDeleteTarget();
-        $this->stream->expect(TokenType::KEYWORD, 'set');
+        $this->stream->expectKeyword(Keyword::SET);
 
         $stmt = new Update($relation, $this->SetClauseList());
 
@@ -881,18 +895,18 @@ class Parser
             $stmt->with = $withClause;
         }
 
-        if ($this->stream->matchesKeyword('from')) {
+        if (Keyword::FROM === $this->stream->getKeyword()) {
             $this->stream->next();
             $stmt->from->replace($this->FromList());
         }
-        if ($this->stream->matchesKeyword('where')) {
+        if (Keyword::WHERE === $this->stream->getKeyword()) {
             $this->stream->next();
             if ($this->stream->matchesKeywordSequence(Keyword::CURRENT, Keyword::OF)) {
                 throw new exceptions\NotImplementedException('WHERE CURRENT OF clause is not supported');
             }
             $stmt->where->condition = $this->Expression();
         }
-        if ($this->stream->matchesKeyword('returning')) {
+        if (Keyword::RETURNING === $this->stream->getKeyword()) {
             $this->stream->next();
             $stmt->returning->replace($this->TargetList());
         }
@@ -902,11 +916,11 @@ class Parser
 
     protected function DeleteStatement(): Delete
     {
-        if ($this->stream->matchesKeyword('with')) {
+        if (Keyword::WITH === $this->stream->getKeyword()) {
             $withClause = $this->WithClause();
         }
-        $this->stream->expect(TokenType::KEYWORD, 'delete');
-        $this->stream->expect(TokenType::KEYWORD, 'from');
+        $this->stream->expectKeyword(Keyword::DELETE);
+        $this->stream->expectKeyword(Keyword::FROM);
 
         $stmt = new Delete($this->UpdateOrDeleteTarget(self::RELATION_FORMAT_DELETE));
 
@@ -914,18 +928,18 @@ class Parser
             $stmt->with = $withClause;
         }
 
-        if ($this->stream->matchesKeyword('using')) {
+        if (Keyword::USING === $this->stream->getKeyword()) {
             $this->stream->next();
             $stmt->using->replace($this->FromList());
         }
-        if ($this->stream->matchesKeyword('where')) {
+        if (Keyword::WHERE === $this->stream->getKeyword()) {
             $this->stream->next();
             if ($this->stream->matchesKeywordSequence(Keyword::CURRENT, Keyword::OF)) {
                 throw new exceptions\NotImplementedException('WHERE CURRENT OF clause is not supported');
             }
             $stmt->where->condition = $this->Expression();
         }
-        if ($this->stream->matchesKeyword('returning')) {
+        if (Keyword::RETURNING === $this->stream->getKeyword()) {
             $this->stream->next();
             $stmt->returning->replace($this->TargetList());
         }
@@ -935,8 +949,8 @@ class Parser
 
     protected function WithClause(): nodes\WithClause
     {
-        $this->stream->expect(TokenType::KEYWORD, 'with');
-        if ($recursive = $this->stream->matchesKeyword('recursive')) {
+        $this->stream->expectKeyword(Keyword::WITH);
+        if ($recursive = (Keyword::RECURSIVE === $this->stream->getKeyword())) {
             $this->stream->next();
         }
 
@@ -963,25 +977,25 @@ class Parser
             } while ($this->stream->matchesSpecialChar(','));
             $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         }
-        $this->stream->expect(TokenType::KEYWORD, 'as');
+        $this->stream->expectKeyword(Keyword::AS);
 
-        if ($this->stream->matchesKeyword('materialized')) {
+        if (Keyword::MATERIALIZED === $this->stream->getKeyword()) {
             $materialized = true;
             $this->stream->next();
-        } elseif ($this->stream->matchesKeyword('not')) {
+        } elseif (Keyword::NOT === $this->stream->getKeyword()) {
             $materialized = false;
             $this->stream->next();
-            $this->stream->expect(TokenType::KEYWORD, 'materialized');
+            $this->stream->expectKeyword(Keyword::MATERIALIZED);
         }
 
         $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
         $statement = $this->Statement();
         $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
-        if ($this->stream->matchesKeyword('search')) {
+        if (Keyword::SEARCH === $this->stream->getKeyword()) {
             $search = $this->SearchClause();
         }
-        if ($this->stream->matchesKeyword('cycle')) {
+        if (Keyword::CYCLE === $this->stream->getKeyword()) {
             $cycle = $this->CycleClause();
         }
 
@@ -990,37 +1004,37 @@ class Parser
 
     public function SearchClause(): nodes\cte\SearchClause
     {
-        $this->stream->expect(TokenType::KEYWORD, 'search');
-        $first = $this->stream->expect(TokenType::KEYWORD, ['breadth', 'depth']);
-        $this->stream->expect(TokenType::KEYWORD, 'first');
+        $this->stream->expectKeyword(Keyword::SEARCH);
+        $first = $this->stream->expectKeyword(Keyword::BREADTH, Keyword::DEPTH);
+        $this->stream->expectKeyword(Keyword::FIRST);
 
-        $this->stream->expect(TokenType::KEYWORD, 'by');
+        $this->stream->expectKeyword(Keyword::BY);
         $trackColumns = $this->ColIdList();
 
-        $this->stream->expect(TokenType::KEYWORD, 'set');
+        $this->stream->expectKeyword(Keyword::SET);
         $sequenceColumn = $this->ColId();
 
-        return new nodes\cte\SearchClause('breadth' === $first->getValue(), $trackColumns, $sequenceColumn);
+        return new nodes\cte\SearchClause(Keyword::BREADTH === $first, $trackColumns, $sequenceColumn);
     }
 
     public function CycleClause(): nodes\cte\CycleClause
     {
-        $this->stream->expect(TokenType::KEYWORD, 'cycle');
+        $this->stream->expectKeyword(Keyword::CYCLE);
         $trackColumns = $this->ColIdList();
 
-        $this->stream->expect(TokenType::KEYWORD, 'set');
+        $this->stream->expectKeyword(Keyword::SET);
         $markColumn = $this->ColId();
 
         $markValue   = null;
         $markDefault = null;
-        if ($this->stream->matchesKeyword('to')) {
+        if (Keyword::TO === $this->stream->getKeyword()) {
             $this->stream->next();
             $markValue = $this->ConstantExpression();
-            $this->stream->expect(TokenType::KEYWORD, 'default');
+            $this->stream->expectKeyword(Keyword::DEFAULT);
             $markDefault = $this->ConstantExpression();
         }
 
-        $this->stream->expect(TokenType::KEYWORD, 'using');
+        $this->stream->expectKeyword(Keyword::USING);
         $pathColumn = $this->ColId();
 
         return new nodes\cte\CycleClause($trackColumns, $markColumn, $pathColumn, $markValue, $markDefault);
@@ -1052,7 +1066,7 @@ class Parser
 
         do {
             $list[] = $this->LockingElement();
-        } while ($this->stream->matchesKeyword('for'));
+        } while (Keyword::FOR === $this->stream->getKeyword());
 
         return $list;
     }
@@ -1074,14 +1088,14 @@ class Parser
         $noWait     = false;
         $skipLocked = false;
 
-        if ($this->stream->matchesAnyKeyword(Keyword::OF)) {
+        if (Keyword::OF === $this->stream->getKeyword()) {
             do {
                 $this->stream->next();
                 $relations[] = $this->QualifiedName();
             } while ($this->stream->matchesSpecialChar(','));
         }
 
-        if ($this->stream->matchesAnyKeyword(Keyword::NOWAIT)) {
+        if (Keyword::NOWAIT === $this->stream->getKeyword()) {
             $this->stream->next();
             $noWait = true;
 
@@ -1101,14 +1115,14 @@ class Parser
     protected function LimitOffsetClause(SelectCommon $stmt): void
     {
         // LIMIT and OFFSET clauses may come in any order
-        if ($this->stream->matchesKeyword('offset')) {
+        if (Keyword::OFFSET === $this->stream->getKeyword()) {
             $this->OffsetClause($stmt);
-            if ($this->stream->matchesKeyword(['limit', 'fetch'])) {
+            if ($this->stream->matchesAnyKeyword(Keyword::LIMIT, Keyword::FETCH)) {
                 $this->LimitClause($stmt);
             }
         } else {
             $this->LimitClause($stmt);
-            if ($this->stream->matchesKeyword('offset')) {
+            if (Keyword::OFFSET === $this->stream->getKeyword()) {
                 $this->OffsetClause($stmt);
             }
         }
@@ -1123,10 +1137,10 @@ class Parser
                 $this->stream->getCurrent()->getPosition()
             );
         }
-        if ($this->stream->matchesKeyword('limit')) {
+        if (Keyword::LIMIT === $this->stream->getKeyword()) {
             // Traditional Postgres LIMIT clause
             $this->stream->next();
-            if ($this->stream->matchesKeyword('all')) {
+            if (Keyword::ALL === $this->stream->getKeyword()) {
                 $this->stream->next();
                 $stmt->limit = new nodes\expressions\KeywordConstant(enums\ConstantName::NULL);
             } else {
@@ -1135,10 +1149,10 @@ class Parser
 
         } else {
             // SQL:2008 syntax
-            $this->stream->expect(TokenType::KEYWORD, 'fetch');
-            $this->stream->expect(TokenType::KEYWORD, ['first', 'next']);
+            $this->stream->expectKeyword(Keyword::FETCH);
+            $this->stream->expectKeyword(Keyword::FIRST, Keyword::NEXT);
 
-            if ($this->stream->matchesKeyword(['row', 'rows'])) {
+            if ($this->stream->matchesAnyKeyword(Keyword::ROW, Keyword::ROWS)) {
                 // no limit specified -> 1 row
                 $stmt->limit = new nodes\expressions\NumericConstant('1');
             } elseif ($this->stream->matchesSpecialChar(['+', '-'])) {
@@ -1162,12 +1176,12 @@ class Parser
                 $stmt->limit = $this->ExpressionAtom();
             }
 
-            $this->stream->expect(TokenType::KEYWORD, ['row', 'rows']);
+            $this->stream->expectKeyword(Keyword::ROW, Keyword::ROWS);
             if ($this->stream->matchesKeywordSequence(Keyword::WITH, Keyword::TIES)) {
                 $stmt->limitWithTies = true;
                 $this->stream->skip(2);
             } else {
-                $this->stream->expect(TokenType::KEYWORD, 'only');
+                $this->stream->expectKeyword(Keyword::ONLY);
             }
         }
     }
@@ -1185,9 +1199,9 @@ class Parser
         // allows c_expr (i.e. ExpressionAtom) production if trailed by ROW / ROWS, but full
         // a_expr (i.e. Expression) production in other case. We don't bother to do lookahead
         // here, so allow Expression in either case and treat trailing ROW / ROWS as noise
-        $this->stream->expect(TokenType::KEYWORD, 'offset');
+        $this->stream->expectKeyword(Keyword::OFFSET);
         $stmt->offset = $this->Expression();
-        if ($this->stream->matchesKeyword(['row', 'rows'])) {
+        if ($this->stream->matchesAnyKeyword(Keyword::ROW, Keyword::ROWS)) {
             $this->stream->next();
         }
     }
@@ -1283,7 +1297,7 @@ class Parser
      */
     protected function ExpressionWithDefault()
     {
-        if ($this->stream->matchesKeyword('default')) {
+        if (Keyword::DEFAULT === $this->stream->getKeyword()) {
             $this->stream->next();
             return new nodes\SetToDefault();
         } else {
@@ -1308,7 +1322,7 @@ class Parser
     {
         $stmt = $this->SimpleSelect();
 
-        while ($this->stream->matchesAnyKeyword(Keyword::INTERSECT)) {
+        while (Keyword::INTERSECT === $this->stream->getKeyword()) {
             $this->stream->next();
             $setOp = enums\SetOperator::INTERSECT;
             if (null !== $mod = $this->stream->matchesAnyKeyword(Keyword::ALL, Keyword::DISTINCT)) {
@@ -1329,19 +1343,18 @@ class Parser
             return $this->SelectWithParentheses(); // select_with_parens grammar production
         }
 
-        $token = $this->stream->expect(TokenType::KEYWORD, ['select', 'values']);
-        if ('values' === $token->getValue()) {
+        if (Keyword::VALUES === $this->stream->expectKeyword(Keyword::SELECT, Keyword::VALUES)) {
             return new Values($this->RowList());
         }
 
         $distinctClause = false;
 
-        if ($this->stream->matchesKeyword('all')) {
+        if (Keyword::ALL === $this->stream->getKeyword()) {
             // noise "ALL"
             $this->stream->next();
-        } elseif ($this->stream->matchesKeyword('distinct')) {
+        } elseif (Keyword::DISTINCT === $this->stream->getKeyword()) {
             $this->stream->next();
-            if (!$this->stream->matchesKeyword('on')) {
+            if (Keyword::ON !== $this->stream->getKeyword()) {
                 $distinctClause = true;
             } else {
                 $this->stream->next();
@@ -1354,11 +1367,22 @@ class Parser
         if (
             $distinctClause === false
             && (
-                $this->stream->matchesKeyword([
-                    'into', 'from', 'where', 'group', 'having', 'window',
-                    'union', 'intersect', 'except',
-                    'order', 'limit', 'offset', 'fetch', 'for'
-                ])
+                $this->stream->matchesAnyKeyword(
+                    Keyword::INTO,
+                    Keyword::FROM,
+                    Keyword::WHERE,
+                    Keyword::GROUP,
+                    Keyword::HAVING,
+                    Keyword::WINDOW,
+                    Keyword::UNION,
+                    Keyword::INTERSECT,
+                    Keyword::EXCEPT,
+                    Keyword::ORDER,
+                    Keyword::LIMIT,
+                    Keyword::OFFSET,
+                    Keyword::FETCH,
+                    Keyword::FOR
+                )
                 || $this->stream->matchesSpecialChar(')')
                 || $this->stream->isEOF()
             )
@@ -1370,16 +1394,16 @@ class Parser
 
         $stmt = new Select($targetList, $distinctClause);
 
-        if ($this->stream->matchesKeyword('into')) {
+        if (Keyword::INTO === $this->stream->getKeyword()) {
             throw new exceptions\NotImplementedException("SELECT INTO clauses are not supported");
         }
 
-        if ($this->stream->matchesKeyword('from')) {
+        if (Keyword::FROM === $this->stream->getKeyword()) {
             $this->stream->next();
             $stmt->from->replace($this->FromList());
         }
 
-        if ($this->stream->matchesKeyword('where')) {
+        if (Keyword::WHERE === $this->stream->getKeyword()) {
             $this->stream->next();
             $stmt->where->condition = $this->Expression();
         }
@@ -1389,12 +1413,12 @@ class Parser
             $stmt->group->replace($this->GroupByClause());
         }
 
-        if ($this->stream->matchesKeyword('having')) {
+        if (Keyword::HAVING === $this->stream->getKeyword()) {
             $this->stream->next();
             $stmt->having->condition = $this->Expression();
         }
 
-        if ($this->stream->matchesKeyword('window')) {
+        if (Keyword::WINDOW === $this->stream->getKeyword()) {
             $this->stream->next();
             $stmt->window->replace($this->WindowList());
         }
@@ -1417,7 +1441,7 @@ class Parser
     protected function WindowDefinition(): nodes\WindowDefinition
     {
         $name    = $this->ColId();
-        $this->stream->expect(TokenType::KEYWORD, 'as');
+        $this->stream->expectKeyword(Keyword::AS);
         $spec    = $this->WindowSpecification();
         $spec->setName($name);
 
@@ -1432,7 +1456,11 @@ class Parser
             $this->stream->matchesAnyType(TokenType::IDENTIFIER, TokenType::COL_NAME_KEYWORD)
             || ($this->stream->matches(TokenType::UNRESERVED_KEYWORD)
                 // See comment for opt_existing_window_name production in gram.y
-                && !in_array($this->stream->getCurrent()->getValue(), ['partition', 'range', 'rows', 'groups']))
+                && !in_array(
+                    $this->stream->getKeyword(),
+                    [Keyword::PARTITION, Keyword::RANGE, Keyword::ROWS, Keyword::GROUPS]
+                )
+            )
         ) {
             $refName = $this->ColId();
         }
@@ -1444,7 +1472,7 @@ class Parser
             $this->stream->skip(2);
             $order = $this->OrderByList();
         }
-        if ($this->stream->matchesKeyword(['range', 'rows', 'groups'])) {
+        if ($this->stream->matchesAnyKeyword(Keyword::RANGE, Keyword::ROWS, Keyword::GROUPS)) {
             $frame = $this->WindowFrameClause();
         }
 
@@ -1458,7 +1486,7 @@ class Parser
         $mode       = $this->stream->expectKeyword(Keyword::RANGE, Keyword::ROWS, Keyword::GROUPS);
         $tokenStart = $this->stream->getCurrent();
         $exclusion  = null;
-        if (!$tokenStart->matchesKeyword(Keyword::BETWEEN)) {
+        if (Keyword::BETWEEN !== $tokenStart->getKeyword()) {
             $start = $this->WindowFrameBound();
             $end   = null;
 
@@ -1470,7 +1498,7 @@ class Parser
         }
 
         // opt_window_exclusion_clause from gram.y
-        if ($this->stream->matchesAnyKeyword(Keyword::EXCLUDE)) {
+        if (Keyword::EXCLUDE === $this->stream->getKeyword()) {
             $this->stream->next();
             $first = $this->stream->expectKeyword(Keyword::CURRENT, Keyword::GROUP, Keyword::TIES, Keyword::NO);
             switch ($first) {
@@ -1532,7 +1560,7 @@ class Parser
     {
         $terms = [$this->LogicalExpressionTerm()];
 
-        while ($this->stream->matchesAnyKeyword(Keyword::OR)) {
+        while (Keyword::OR === $this->stream->getKeyword()) {
             $this->stream->next();
 
             $terms[] = $this->LogicalExpressionTerm();
@@ -1549,7 +1577,7 @@ class Parser
     {
         $factors = [$this->LogicalExpressionFactor()];
 
-        while ($this->stream->matchesAnyKeyword(Keyword::AND)) {
+        while (Keyword::AND === $this->stream->getKeyword()) {
             $this->stream->next();
 
             $factors[] = $this->LogicalExpressionFactor();
@@ -1564,7 +1592,7 @@ class Parser
 
     protected function LogicalExpressionFactor(): nodes\ScalarExpression
     {
-        if ($this->stream->matchesAnyKeyword(Keyword::NOT)) {
+        if (Keyword::NOT === $this->stream->getKeyword()) {
             $this->stream->next();
             return new nodes\expressions\NotExpression($this->LogicalExpressionFactor());
         }
@@ -1616,7 +1644,7 @@ class Parser
 
                 } else {
                     $pattern = $this->OverlapsExpression();
-                    if (null !== $this->stream->matchesAnyKeyword(Keyword::ESCAPE)) {
+                    if (Keyword::ESCAPE === $this->stream->getKeyword()) {
                         $this->stream->next();
                         $escape = $this->OverlapsExpression();
                     }
@@ -1670,7 +1698,7 @@ class Parser
 
         if (
             !$left instanceof nodes\expressions\RowExpression
-            || !$this->stream->matchesKeyword('overlaps')
+            || Keyword::OVERLAPS !== $this->stream->getKeyword()
         ) {
             return $left;
         }
@@ -1715,7 +1743,7 @@ class Parser
         if (Keyword::BETWEEN === $keyword) {
             $negated = false;
             $this->stream->next();
-        } elseif (!$this->stream->look(1)->matchesKeyword(Keyword::BETWEEN)) {
+        } elseif (Keyword::BETWEEN !== $this->stream->look()->getKeyword()) {
             return $value;
         } else {
             $negated = true;
@@ -1761,11 +1789,11 @@ class Parser
     {
         $left = $this->GenericOperatorExpression();
 
-        while ($this->stream->matchesKeyword(['not', 'in'])) {
-            if ('in' === $this->stream->getCurrent()->getValue()) {
+        while (null !== $keyword = $this->stream->matchesAnyKeyword(Keyword::NOT, Keyword::IN)) {
+            if (Keyword::IN === $keyword) {
                 $negated = false;
                 $this->stream->next();
-            } elseif (!$this->stream->look(1)->matches(TokenType::KEYWORD, 'in')) {
+            } elseif (Keyword::IN !== $this->stream->look()->getKeyword()) {
                 break;
             } else {
                 $negated = true;
@@ -1797,7 +1825,7 @@ class Parser
         while (
             ($op = $this->matchesOperator())
                || $this->stream->matches(TokenType::SPECIAL, self::MATH_OPERATORS)
-                   && $this->stream->look(1)->matchesKeyword(...self::SUBQUERY_EXPRESSIONS)
+                   && $this->stream->look(1)->matchesAnyKeyword(...self::SUBQUERY_EXPRESSIONS)
         ) {
             $operator = $op ? $this->Operator() : $this->stream->next()->getValue();
             if (!$op || $this->stream->matchesAnyKeyword(...self::SUBQUERY_EXPRESSIONS)) {
@@ -1849,7 +1877,7 @@ class Parser
             return $this->stream->next()->getValue();
         }
 
-        $this->stream->expect(TokenType::KEYWORD, 'operator');
+        $this->stream->expectKeyword(Keyword::OPERATOR);
         $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
         $parts = [];
         while (
@@ -1892,7 +1920,7 @@ class Parser
                 continue;
             }
 
-            if ($this->stream->matchesAnyKeyword(Keyword::NOT)) {
+            if (Keyword::NOT === $this->stream->getKeyword()) {
                 $this->stream->next();
                 $isNot = true;
             }
@@ -1948,7 +1976,7 @@ class Parser
     {
         $setOf  = false;
         $bounds = [];
-        if ($this->stream->matchesKeyword('setof')) {
+        if (Keyword::SETOF === $this->stream->getKeyword()) {
             $this->stream->next();
             $setOf = true;
         }
@@ -1956,7 +1984,7 @@ class Parser
         $typeName = $this->SimpleTypeName();
         $typeName->setSetOf($setOf);
 
-        if ($this->stream->matchesKeyword('array')) {
+        if (Keyword::ARRAY === $this->stream->getKeyword()) {
             $this->stream->next();
             if (!$this->stream->matchesSpecialChar('[')) {
                 $bounds[] = -1;
@@ -2004,7 +2032,7 @@ class Parser
         if (
             (null === $keyword = $this->stream->matchesAnyKeyword(...self::STANDARD_TYPES_NUMERIC))
             || (Keyword::DOUBLE === $keyword
-                && !$this->stream->look()->matchesKeyword(Keyword::PRECISION))
+                && Keyword::PRECISION !== $this->stream->look()->getKeyword())
         ) {
             return null;
         }
@@ -2075,7 +2103,7 @@ class Parser
         $this->stream->next();
         $typeName  = $keyword->value;
         $modifiers = null;
-        if ($this->stream->matchesAnyKeyword(Keyword::VARYING)) {
+        if (Keyword::VARYING === $this->stream->getKeyword()) {
             $this->stream->next();
             $typeName = 'varbit';
         }
@@ -2102,7 +2130,7 @@ class Parser
         if (
             (null === $keyword = $this->stream->matchesAnyKeyword(...self::STANDARD_TYPES_CHARACTER))
             || (Keyword::NATIONAL === $keyword
-                && !$this->stream->look()->matchesKeyword(Keyword::CHARACTER, Keyword::CHAR))
+                && !$this->stream->look()->matchesAnyKeyword(Keyword::CHARACTER, Keyword::CHAR))
         ) {
             return null;
         }
@@ -2113,7 +2141,7 @@ class Parser
         if (Keyword::NATIONAL === $keyword) {
             $this->stream->next();
         }
-        if (!$varying && $this->stream->matchesAnyKeyword(Keyword::VARYING)) {
+        if (!$varying && Keyword::VARYING === $this->stream->getKeyword()) {
             $this->stream->next();
             $varying = true;
         }
@@ -2154,7 +2182,7 @@ class Parser
         }
 
         if ($this->stream->matchesKeywordSequence([Keyword::WITH, Keyword::WITHOUT], Keyword::TIME, Keyword::ZONE)) {
-            if ('with' === $this->stream->next()->getValue()) {
+            if (Keyword::WITH === $this->stream->next()->getKeyword()) {
                 $typeName .= 'tz';
             }
             $this->stream->skip(2);
@@ -2165,7 +2193,7 @@ class Parser
 
     protected function IntervalTypeName(): ?nodes\IntervalTypeName
     {
-        if (!$this->stream->matchesKeyword('interval')) {
+        if (Keyword::INTERVAL !== $this->stream->getKeyword()) {
             return null;
         }
         $this->stream->next();
@@ -2177,7 +2205,7 @@ class Parser
 
     protected function IntervalLeadingTypecast(): ?nodes\expressions\TypecastExpression
     {
-        if (!$this->stream->matchesKeyword('interval')) {
+        if (Keyword::INTERVAL !== $this->stream->getKeyword()) {
             return null;
         }
         $this->stream->next();
@@ -2206,7 +2234,7 @@ class Parser
             $this->stream->next();
             $trailing = [$keyword];
             $second   = Keyword::SECOND === $keyword;
-            if ($this->stream->matchesAnyKeyword(Keyword::TO)) {
+            if (Keyword::TO === $this->stream->getKeyword()) {
                 $toToken    = $this->stream->next();
                 $trailing[] = Keyword::TO;
                 $end        = match ($keyword) {
@@ -2248,7 +2276,7 @@ class Parser
 
     protected function JsonTypeName(): ?nodes\TypeName
     {
-        if (!$this->stream->matchesKeyword('json')) {
+        if (Keyword::JSON !== $this->stream->getKeyword()) {
             return null;
         }
         $this->stream->next();
@@ -2387,7 +2415,7 @@ class Parser
     protected function CollateExpression(): nodes\ScalarExpression
     {
         $left = $this->UnaryPlusMinusExpression();
-        if ($this->stream->matchesKeyword('collate')) {
+        if (Keyword::COLLATE === $this->stream->getKeyword()) {
             $this->stream->next();
             return new nodes\expressions\CollateExpression($left, $this->QualifiedName());
         }
@@ -2613,7 +2641,7 @@ class Parser
 
     protected function RowConstructor(): nodes\expressions\RowExpression
     {
-        if ($this->stream->matchesKeyword('row')) {
+        if (Keyword::ROW === $this->stream->getKeyword()) {
             $this->stream->next();
         }
         // ROW() is only possible with the keyword, 'VALUES ()' is a syntax error
@@ -2691,34 +2719,34 @@ class Parser
         $whenClauses = [];
         $elseClause  = null;
 
-        $this->stream->expect(TokenType::KEYWORD, 'case');
+        $this->stream->expectKeyword(Keyword::CASE);
         // "simple" variant?
-        if (!$this->stream->matchesKeyword('when')) {
+        if (Keyword::WHEN !== $this->stream->getKeyword()) {
             $argument = $this->Expression();
         }
 
         // requires at least one WHEN clause
         do {
-            $this->stream->expect(TokenType::KEYWORD, 'when');
+            $this->stream->expectKeyword(Keyword::WHEN);
             $when = $this->Expression();
-            $this->stream->expect(TokenType::KEYWORD, 'then');
+            $this->stream->expectKeyword(Keyword::THEN);
             $then = $this->Expression();
             $whenClauses[] = new nodes\expressions\WhenExpression($when, $then);
-        } while ($this->stream->matchesKeyword('when'));
+        } while (Keyword::WHEN === $this->stream->getKeyword());
 
         // may have an ELSE clause
-        if ($this->stream->matchesKeyword('else')) {
+        if (Keyword::ELSE === $this->stream->getKeyword()) {
             $this->stream->next();
             $elseClause = $this->Expression();
         }
-        $this->stream->expect(TokenType::KEYWORD, 'end');
+        $this->stream->expectKeyword(Keyword::END);
 
         return new nodes\expressions\CaseExpression($whenClauses, $elseClause, $argument);
     }
 
     protected function GroupingExpression(): nodes\expressions\GroupingExpression
     {
-        $this->stream->expect(TokenType::KEYWORD, 'grouping');
+        $this->stream->expectKeyword(Keyword::GROUPING);
         $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
         $expression = new nodes\expressions\GroupingExpression($this->ExpressionList());
         $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
@@ -3016,11 +3044,11 @@ class Parser
                         new nodes\lists\FunctionArgumentList($arguments)
                     );
                 }
-                $this->stream->expect(TokenType::KEYWORD, 'placing');
+                $this->stream->expectKeyword(Keyword::PLACING);
                 $arguments[] = $this->Expression();
-                $this->stream->expect(TokenType::KEYWORD, 'from');
+                $this->stream->expectKeyword(Keyword::FROM);
                 $arguments[] = $this->Expression();
-                if ($this->stream->matchesKeyword('for')) {
+                if (Keyword::FOR === $this->stream->getKeyword()) {
                     $this->stream->next();
                     $arguments[] = $this->Expression();
                 }
@@ -3055,10 +3083,10 @@ class Parser
                         new nodes\lists\FunctionArgumentList($arguments)
                     );
                 }
-                $token = $this->stream->expect(TokenType::KEYWORD, ['from', 'for', 'similar']);
-                if ('similar' === $token->getValue()) {
+                $keyword = $this->stream->expectKeyword(Keyword::FROM, Keyword::FOR, Keyword::SIMILAR);
+                if (Keyword::SIMILAR === $keyword) {
                     $similar = $this->Expression();
-                    $this->stream->expect(TokenType::KEYWORD, 'escape');
+                    $this->stream->expectKeyword(Keyword::ESCAPE);
                     return new nodes\expressions\SubstringSimilarExpression(
                         $arguments[0],
                         $similar,
@@ -3067,17 +3095,17 @@ class Parser
                 }
                 $arguments[] = null;
                 $arguments[] = null;
-                if ('from' === $token->getValue()) {
+                if (Keyword::FROM === $keyword) {
                     $arguments[1] = $this->Expression();
                 } else {
                     $arguments[2] = $this->Expression();
                 }
-                if ($this->stream->matchesKeyword(['from', 'for'])) {
-                    if (!$arguments[1] && 'from' === $this->stream->getCurrent()->getValue()) {
+                if (null !== $keyword = $this->stream->matchesAnyKeyword(Keyword::FROM, Keyword::FOR)) {
+                    if (!$arguments[1] && Keyword::FROM === $keyword) {
                         $this->stream->next();
                         $arguments[1] = $this->Expression();
 
-                    } elseif (!$arguments[2] && 'for' === $this->stream->getCurrent()->getValue()) {
+                    } elseif (!$arguments[2] && Keyword::FOR === $keyword) {
                         $this->stream->next();
                         $arguments[2] = $this->Expression();
                     }
@@ -3088,12 +3116,12 @@ class Parser
 
     protected function XmlElementFunction(): nodes\xml\XmlElement
     {
-        $this->stream->expect(TokenType::KEYWORD, 'name');
+        $this->stream->expectKeyword(Keyword::NAME);
         $name = $this->ColLabel();
         $attributes = $content = null;
         if ($this->stream->matchesSpecialChar(',')) {
             $this->stream->next();
-            if (!$this->stream->matchesKeyword('xmlattributes')) {
+            if (Keyword::XMLATTRIBUTES !== $this->stream->getKeyword()) {
                 $content = $this->ExpressionList();
             } else {
                 $this->stream->next();
@@ -3210,8 +3238,8 @@ class Parser
             $withinGroup = true;
             $this->stream->skip(2);
             $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
-            $this->stream->expect(TokenType::KEYWORD, 'order');
-            $this->stream->expect(TokenType::KEYWORD, 'by');
+            $this->stream->expectKeyword(Keyword::ORDER);
+            $this->stream->expectKeyword(Keyword::BY);
             $order = $this->OrderByList();
             $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         }
@@ -3230,13 +3258,13 @@ class Parser
 
     protected function FilterClause(): ?nodes\ScalarExpression
     {
-        if (!$this->stream->matchesKeyword('filter')) {
+        if (Keyword::FILTER !== $this->stream->getKeyword()) {
             return null;
         }
 
         $this->stream->next();
         $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
-        $this->stream->expect(TokenType::KEYWORD, 'where');
+        $this->stream->expectKeyword(Keyword::WHERE);
         $filter = $this->Expression();
         $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
@@ -3245,7 +3273,7 @@ class Parser
 
     protected function OverClause(): ?nodes\WindowDefinition
     {
-        if (!$this->stream->matchesKeyword('over')) {
+        if (Keyword::OVER !== $this->stream->getKeyword()) {
             return null;
         }
         $this->stream->next();
@@ -3281,8 +3309,9 @@ class Parser
             $positionalArguments = new nodes\Star();
 
         } elseif (!$this->stream->matchesSpecialChar(')')) {
-            if ($this->stream->matchesKeyword(['distinct', 'all'])) {
-                $distinct = 'distinct' === $this->stream->next()->getValue();
+            if (null !== $keyword = $this->stream->matchesAnyKeyword(Keyword::DISTINCT, Keyword::ALL)) {
+                $this->stream->next();
+                $distinct = Keyword::DISTINCT === $keyword;
             }
             [$value, $name, $variadic] = $this->GenericFunctionArgument();
             if (!$name) {
@@ -3415,7 +3444,7 @@ class Parser
     protected function GenericFunctionArgument(bool $allowVariadic = true): array
     {
         $variadic = false;
-        if ($allowVariadic && ($variadic = $this->stream->matchesKeyword('variadic'))) {
+        if ($allowVariadic && ($variadic = (Keyword::VARIADIC === $this->stream->getKeyword()))) {
             $this->stream->next();
         }
 
@@ -3518,7 +3547,7 @@ class Parser
         ) {
             $alias = new nodes\Identifier($this->stream->next()->getValue());
 
-        } elseif ($this->stream->matchesKeyword('as')) {
+        } elseif (Keyword::AS === $this->stream->getKeyword()) {
             $this->stream->next();
             $alias = $this->ColLabel();
         }
@@ -3567,7 +3596,7 @@ class Parser
                 $natural = false;
             }
 
-            if ($this->stream->matchesAnyKeyword(Keyword::JOIN)) {
+            if (Keyword::JOIN === $this->stream->getKeyword()) {
                 $this->stream->next();
                 $joinType = enums\JoinType::INNER;
             } else {
@@ -3575,7 +3604,7 @@ class Parser
                     $this->stream->expectKeyword(Keyword::LEFT, Keyword::RIGHT, Keyword::FULL, Keyword::INNER)
                 );
                 // noise word
-                if ($this->stream->matchesAnyKeyword(Keyword::OUTER)) {
+                if (Keyword::OUTER === $this->stream->getKeyword()) {
                     $this->stream->next();
                 }
                 $this->stream->expectKeyword(Keyword::JOIN);
@@ -3586,8 +3615,8 @@ class Parser
                 $left->setNatural(true);
 
             } else {
-                $token = $this->stream->expect(TokenType::KEYWORD, ['on', 'using']);
-                if ('on' === $token->getValue()) {
+                $keyword = $this->stream->expectKeyword(Keyword::ON, Keyword::USING);
+                if (Keyword::ON === $keyword) {
                     $left->setOn($this->Expression());
                 } else {
                     $left->setUsing($this->UsingClause(true));
@@ -3621,7 +3650,7 @@ class Parser
 
         if ($parentheses) {
             $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
-            if ($this->stream->matchesKeyword('as')) {
+            if (Keyword::AS === $this->stream->getKeyword()) {
                 $this->stream->next();
                 $alias = $this->ColId();
             }
@@ -3632,14 +3661,14 @@ class Parser
 
     protected function TableReference(): nodes\range\FromElement
     {
-        if ($this->stream->matchesKeyword('lateral')) {
+        if (Keyword::LATERAL === $this->stream->getKeyword()) {
             $this->stream->next();
             // lateral can only apply to subselects, XMLTABLEs or function invocations
             if ($this->stream->matchesSpecialChar('(')) {
                 $reference = $this->RangeSubselect();
-            } elseif ($this->stream->matchesKeyword('xmltable')) {
+            } elseif (Keyword::XMLTABLE === $this->stream->getKeyword()) {
                 $reference = $this->XmlTable();
-            } elseif ($this->stream->matchesKeyword('json_table')) {
+            } elseif (Keyword::JSON_TABLE === $this->stream->getKeyword()) {
                 $reference = $this->JsonTable();
             } else {
                 $reference = $this->RangeFunctionCall();
@@ -3659,10 +3688,10 @@ class Parser
                 }
             }
 
-        } elseif ($this->stream->matchesKeyword('xmltable')) {
+        } elseif (Keyword::XMLTABLE === $this->stream->getKeyword()) {
             $reference = $this->XmlTable();
 
-        } elseif ($this->stream->matchesKeyword('json_table')) {
+        } elseif (Keyword::JSON_TABLE === $this->stream->getKeyword()) {
             $reference = $this->JsonTable();
 
         } elseif (
@@ -3728,7 +3757,7 @@ class Parser
             ?? $this->JsonAggregateFunc(true)
             ?? $this->GenericFunctionCall();
 
-        if (!$this->stream->matchesKeyword('as')) {
+        if (Keyword::AS !== $this->stream->getKeyword()) {
             $aliases = null;
         } else {
             $this->stream->next();
@@ -3761,7 +3790,7 @@ class Parser
         $alias = null;
 
         // AS is required for aliases in INSERT
-        if ($this->stream->matchesKeyword('as')) {
+        if (Keyword::AS === $this->stream->getKeyword()) {
             $this->stream->next();
             $alias = $this->ColId();
         }
@@ -3780,7 +3809,7 @@ class Parser
             $expression->setAlias($alias[0], $alias[1]);
         }
 
-        if ($this->stream->matchesKeyword('tablesample')) {
+        if (Keyword::TABLESAMPLE === $this->stream->getKeyword()) {
             $this->stream->next();
             $method     = $this->GenericFunctionName();
             $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
@@ -3788,7 +3817,7 @@ class Parser
             $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
             $repeatable = null;
-            if ($this->stream->matchesKeyword('repeatable')) {
+            if (Keyword::REPEATABLE === $this->stream->getKeyword()) {
                 $this->stream->next();
                 $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
                 $repeatable = $this->Expression();
@@ -3821,7 +3850,7 @@ class Parser
     {
         $inherit           = null;
         $expectParenthesis = false;
-        if ($this->stream->matchesKeyword('only')) {
+        if (Keyword::ONLY === $this->stream->getKeyword()) {
             $this->stream->next();
             $inherit = false;
             if ($this->stream->matchesSpecialChar('(')) {
@@ -3854,13 +3883,13 @@ class Parser
     protected function DMLAliasClause(string $statementType): ?nodes\Identifier
     {
         if (
-            $this->stream->matchesKeyword('as')
+            Keyword::AS === $this->stream->getKeyword()
             || $this->stream->matchesAnyType(TokenType::IDENTIFIER, TokenType::COL_NAME_KEYWORD)
             || ($this->stream->matches(TokenType::UNRESERVED_KEYWORD)
                 && (self::RELATION_FORMAT_UPDATE !== $statementType
-                    || 'set' !== $this->stream->getCurrent()->getValue()))
+                    || Keyword::SET !== $this->stream->getCurrent()->getKeyword()))
         ) {
-            if ($this->stream->matchesKeyword('as')) {
+            if (Keyword::AS === $this->stream->getKeyword()) {
                 $this->stream->next();
             }
             return $this->ColId();
@@ -3871,7 +3900,7 @@ class Parser
     protected function OptionalAliasClause(bool $allowFunctionAlias = false): ?array
     {
         if (
-            $this->stream->matchesKeyword('as')
+            Keyword::AS === $this->stream->getKeyword()
             || $this->stream->matchesAnyType(
                 TokenType::IDENTIFIER,
                 TokenType::UNRESERVED_KEYWORD,
@@ -3882,7 +3911,7 @@ class Parser
             $columnAliases = null;
 
             // AS is complete noise here, unlike in TargetList
-            if ($this->stream->matchesKeyword('as')) {
+            if (Keyword::AS === $this->stream->getKeyword()) {
                 $this->stream->next();
             }
             if (!$allowFunctionAlias || !$this->stream->matchesSpecialChar('(')) {
@@ -3922,7 +3951,7 @@ class Parser
         $alias     = $this->ColId();
         $type      = $this->TypeName();
         $collation = null;
-        if ($this->stream->matchesKeyword('collate')) {
+        if (Keyword::COLLATE === $this->stream->getKeyword()) {
             $this->stream->next();
             $collation = $this->QualifiedName();
         }
@@ -4011,7 +4040,7 @@ class Parser
                 $operator = $this->Operator(true);
             }
         }
-        if ($this->stream->matchesAnyKeyword(Keyword::NULLS)) {
+        if (Keyword::NULLS === $this->stream->getKeyword()) {
             $this->stream->next();
             $nullsOrder = enums\NullsOrder::fromKeywords(
                 $this->stream->expectKeyword(Keyword::FIRST, Keyword::LAST)
@@ -4038,7 +4067,7 @@ class Parser
         if (Keyword::UPDATE === $action = $this->stream->expectKeyword(Keyword::UPDATE, Keyword::NOTHING)) {
             $this->stream->expectKeyword(Keyword::SET);
             $set = $this->SetClauseList();
-            if ($this->stream->matchesAnyKeyword(Keyword::WHERE)) {
+            if (Keyword::WHERE === $this->stream->getKeyword()) {
                 $this->stream->next();
                 $condition = $this->Expression();
             }
@@ -4059,7 +4088,7 @@ class Parser
 
         $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
 
-        if ($this->stream->matchesKeyword('where')) {
+        if (Keyword::WHERE === $this->stream->getKeyword()) {
             $this->stream->next();
             $items->where->condition = $this->Expression();
         }
@@ -4091,7 +4120,7 @@ class Parser
         $direction  = null;
         $nullsOrder = null;
 
-        if ($this->stream->matchesAnyKeyword(Keyword::COLLATE)) {
+        if (Keyword::COLLATE === $this->stream->getKeyword()) {
             $this->stream->next();
             $collation = $this->QualifiedName();
         }
@@ -4111,7 +4140,7 @@ class Parser
             $direction = enums\IndexElementDirection::fromKeywords($keyword);
         }
 
-        if (null !== $this->stream->matchesAnyKeyword(Keyword::NULLS)) {
+        if (Keyword::NULLS === $this->stream->getKeyword()) {
             $this->stream->next();
             $nullsOrder = enums\NullsOrder::fromKeywords(
                 $this->stream->expectKeyword(Keyword::FIRST, Keyword::LAST)
@@ -4123,7 +4152,7 @@ class Parser
 
     protected function GroupByClause(): nodes\group\GroupByClause
     {
-        $distinct = $this->stream->matchesKeyword(['all', 'distinct'])
+        $distinct = $this->stream->matchesAnyKeyword(Keyword::ALL, Keyword::DISTINCT)
                     && 'distinct' === $this->stream->next()->getValue();
         $this->GroupByListElements($clause = new nodes\group\GroupByClause(null, $distinct));
         return $clause;
@@ -4180,15 +4209,15 @@ class Parser
     {
         $arguments = [$this->ExpressionAtom()];
         // 'by ref' is noise in Postgres
-        $this->stream->expect(TokenType::KEYWORD, 'passing');
-        if ($this->stream->matchesKeyword('by')) {
+        $this->stream->expectKeyword(Keyword::PASSING);
+        if (Keyword::BY === $this->stream->getKeyword()) {
             $this->stream->next();
-            $this->stream->expect(TokenType::KEYWORD, ['ref', 'value']);
+            $this->stream->expectKeyword(Keyword::REF, Keyword::VALUE);
         }
         $arguments[] = $this->ExpressionAtom();
-        if ($this->stream->matchesKeyword('by')) {
+        if (Keyword::BY === $this->stream->getKeyword()) {
             $this->stream->next();
-            $this->stream->expect(TokenType::KEYWORD, ['ref', 'value']);
+            $this->stream->expectKeyword(Keyword::REF, Keyword::VALUE);
         }
 
         return $arguments;
@@ -4196,11 +4225,11 @@ class Parser
 
     protected function XmlTable(): nodes\range\XmlTable
     {
-        $this->stream->expect(TokenType::KEYWORD, 'xmltable');
+        $this->stream->expectKeyword(Keyword::XMLTABLE);
         $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
 
         $namespaces = null;
-        if ($this->stream->matchesKeyword('xmlnamespaces')) {
+        if (Keyword::XMLNAMESPACES === $this->stream->getKeyword()) {
             $this->stream->next();
             $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
             $namespaces = $this->XmlNamespaceList();
@@ -4208,7 +4237,7 @@ class Parser
             $this->stream->expect(TokenType::SPECIAL_CHAR, ',');
         }
         $doc = $this->XmlExistsArguments();
-        $this->stream->expect(TokenType::KEYWORD, 'columns');
+        $this->stream->expectKeyword(Keyword::COLUMNS);
         $columns = $this->XmlColumnList();
 
         $table = new nodes\range\XmlTable($doc[0], $doc[1], $columns, $namespaces);
@@ -4237,7 +4266,7 @@ class Parser
     protected function XmlNamespace(): nodes\xml\XmlNamespace
     {
         // Default namespace is not currently supported, but Postgres accepts the syntax. We do the same.
-        if ($this->stream->matchesKeyword('default')) {
+        if (Keyword::DEFAULT === $this->stream->getKeyword()) {
             $this->stream->next();
             $value = $this->RestrictedExpression();
             $alias = null;
@@ -4275,7 +4304,7 @@ class Parser
         $type = $this->TypeName();
         $nullable = $default = $path = null;
         do {
-            if ($this->stream->matchesKeyword('path')) {
+            if (Keyword::PATH === $this->stream->getKeyword()) {
                 if (null !== $path) {
                     throw exceptions\SyntaxException::atPosition(
                         "only one PATH value per column is allowed",
@@ -4286,7 +4315,7 @@ class Parser
                 $this->stream->next();
                 $path = $this->RestrictedExpression();
 
-            } elseif ($this->stream->matchesKeyword('default')) {
+            } elseif (Keyword::DEFAULT === $this->stream->getKeyword()) {
                 if (null !== $default) {
                     throw exceptions\SyntaxException::atPosition(
                         "only one DEFAULT value is allowed",
@@ -4297,7 +4326,7 @@ class Parser
                 $this->stream->next();
                 $default = $this->RestrictedExpression();
 
-            } elseif ($this->stream->matchesKeyword('null')) {
+            } elseif (Keyword::NULL === $this->stream->getKeyword()) {
                 if (null !== $nullable) {
                     throw exceptions\SyntaxException::atPosition(
                         "conflicting or redundant NULL / NOT NULL declarations",
@@ -4309,8 +4338,8 @@ class Parser
                 $nullable = true;
 
             } elseif (
-                $this->stream->matchesKeyword('not')
-                      && $this->stream->look(1)->matches(TokenType::KEYWORD, 'null')
+                Keyword::NOT === $this->stream->getKeyword()
+                    && Keyword::NULL === $this->stream->look()->getKeyword()
             ) {
                 if (null !== $nullable) {
                     throw exceptions\SyntaxException::atPosition(
@@ -4333,18 +4362,18 @@ class Parser
 
     protected function MergeStatement(): Merge
     {
-        if ($this->stream->matchesKeyword('with')) {
+        if (Keyword::WITH === $this->stream->getKeyword()) {
             $withClause = $this->WithClause();
         }
 
-        $this->stream->expect(TokenType::KEYWORD, 'merge');
-        $this->stream->expect(TokenType::KEYWORD, 'into');
+        $this->stream->expectKeyword(Keyword::MERGE);
+        $this->stream->expectKeyword(Keyword::INTO);
         $relation = $this->UpdateOrDeleteTarget(self::RELATION_FORMAT_DELETE);
 
-        $this->stream->expect(TokenType::KEYWORD, 'using');
+        $this->stream->expectKeyword(Keyword::USING);
         $using = $this->FromElement();
 
-        $this->stream->expect(TokenType::KEYWORD, 'on');
+        $this->stream->expectKeyword(Keyword::ON);
 
         $merge = new Merge($relation, $using, $this->Expression(), $this->MergeWhenList());
         if (!empty($withClause)) {
@@ -4356,7 +4385,7 @@ class Parser
     protected function MergeWhenList(): nodes\merge\MergeWhenList
     {
         $list = new nodes\merge\MergeWhenList([$this->MergeWhenClause()]);
-        while ($this->stream->matchesKeyword('when')) {
+        while (Keyword::WHEN === $this->stream->getKeyword()) {
             $list[] = $this->MergeWhenClause();
         }
         return $list;
@@ -4364,23 +4393,23 @@ class Parser
 
     protected function MergeWhenClause(): nodes\merge\MergeWhenClause
     {
-        $this->stream->expect(TokenType::KEYWORD, 'when');
-        if (!$this->stream->matches(TokenType::KEYWORD, 'not')) {
+        $this->stream->expectKeyword(Keyword::WHEN);
+        if (Keyword::NOT !== $this->stream->getKeyword()) {
             $matched = true;
         } else {
             $matched = false;
             $this->stream->next();
         }
-        $this->stream->expect(TokenType::KEYWORD, 'matched');
+        $this->stream->expectKeyword(Keyword::MATCHED);
 
-        if (!$this->stream->matches(TokenType::KEYWORD, 'and')) {
+        if (Keyword::AND !== $this->stream->getKeyword()) {
             $condition = null;
         } else {
             $this->stream->next();
             $condition = $this->Expression();
         }
 
-        $this->stream->expect(TokenType::KEYWORD, 'then');
+        $this->stream->expectKeyword(Keyword::THEN);
         return $matched
             ? new nodes\merge\MergeWhenMatched($condition, $this->MergeWhenMatchedAction())
             : new nodes\merge\MergeWhenNotMatched($condition, $this->MergeWhenNotMatchedAction());
@@ -4388,18 +4417,17 @@ class Parser
 
     protected function MergeWhenMatchedAction(): ?Node
     {
-        $keyword = $this->stream->expect(TokenType::KEYWORD, ['do', 'delete', 'update'])->getValue();
-        switch ($keyword) {
-            case 'do':
-                $this->stream->expect(TokenType::KEYWORD, 'nothing');
+        switch ($this->stream->expectKeyword(Keyword::DO, Keyword::DELETE, Keyword::UPDATE)) {
+            case Keyword::DO:
+                $this->stream->expectKeyword(Keyword::NOTHING);
                 return null;
 
-            case 'delete':
+            case Keyword::DELETE:
                 return new nodes\merge\MergeDelete();
 
-            case 'update':
+            case Keyword::UPDATE:
             default:
-                $this->stream->expect(TokenType::KEYWORD, 'set');
+                $this->stream->expectKeyword(Keyword::SET);
                 return new nodes\merge\MergeUpdate($this->SetClauseList());
         }
     }
@@ -4424,14 +4452,14 @@ class Parser
             $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         }
 
-        if (null === $this->stream->matchesAnyKeyword(Keyword::OVERRIDING)) {
+        if (Keyword::OVERRIDING !== $this->stream->getKeyword()) {
             $overriding = null;
         } else {
             $this->stream->next();
             $overriding = enums\InsertOverriding::fromKeywords(
                 $this->stream->expectKeyword(Keyword::USER, Keyword::SYSTEM)
             );
-            $this->stream->expect(TokenType::KEYWORD, 'value');
+            $this->stream->expectKeyword(Keyword::VALUE);
         }
 
         return new nodes\merge\MergeInsert($cols, $this->MergeValues(), $overriding);
@@ -4439,7 +4467,7 @@ class Parser
 
     protected function MergeValues(): nodes\merge\MergeValues
     {
-        $this->stream->expect(TokenType::KEYWORD, 'values');
+        $this->stream->expectKeyword(Keyword::VALUES);
         $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
         $list = $this->ExpressionListWithDefault();
         $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
@@ -4449,13 +4477,14 @@ class Parser
 
     protected function JsonUniquenessConstraint(): ?bool
     {
-        if (!$this->stream->matchesKeyword(['with', 'without'])) {
+        if (null === $keyword = $this->stream->matchesAnyKeyword(Keyword::WITH, Keyword::WITHOUT)) {
             return null;
         }
 
-        $uniqueKeys = 'with' === $this->stream->next()->getValue();
-        $this->stream->expect(TokenType::KEYWORD, 'unique');
-        if ($this->stream->matchesKeyword('keys')) {
+        $this->stream->next();
+        $uniqueKeys = Keyword::WITH === $keyword;
+        $this->stream->expectKeyword(Keyword::UNIQUE);
+        if (Keyword::KEYS === $this->stream->getKeyword()) {
             $this->stream->next();
         }
 
@@ -4464,12 +4493,14 @@ class Parser
 
     protected function JsonNullClause(): ?bool
     {
-        if (!$this->stream->matchesKeyword(['absent', 'null'])) {
+        if (null === $keyword = $this->stream->matchesAnyKeyword(Keyword::ABSENT, Keyword::NULL)) {
             return null;
         }
-        $absent = 'absent' === $this->stream->next()->getValue();
-        $this->stream->expect(TokenType::KEYWORD, 'on');
-        $this->stream->expect(TokenType::KEYWORD, 'null');
+
+        $this->stream->next();
+        $absent = Keyword::ABSENT === $keyword;
+        $this->stream->expectKeyword(Keyword::ON);
+        $this->stream->expectKeyword(Keyword::NULL);
 
         return $absent;
     }
@@ -4501,7 +4532,7 @@ class Parser
     protected function JsonKeyValue(): nodes\json\JsonKeyValue
     {
         $key = $this->Expression();
-        if (!$this->stream->matchesKeyword('value')) {
+        if (Keyword::VALUE !== $this->stream->getKeyword()) {
             $this->stream->expect(TokenType::SPECIAL_CHAR, ':');
         } else {
             $this->stream->next();
@@ -4524,7 +4555,7 @@ class Parser
 
     protected function JsonReturningClause(): ?nodes\json\JsonReturning
     {
-        if (!$this->stream->matchesKeyword('returning')) {
+        if (Keyword::RETURNING !== $this->stream->getKeyword()) {
             return null;
         }
 
@@ -4580,13 +4611,13 @@ class Parser
      */
     protected function JsonAggregateFunc(bool $windowless = false): ?nodes\json\JsonAggregate
     {
-        if (!$this->stream->matchesKeyword(['json_arrayagg', 'json_objectagg'])) {
+        if (null === $keyword = $this->stream->matchesAnyKeyword(Keyword::JSON_ARRAYAGG, Keyword::JSON_OBJECTAGG)) {
             return null;
         }
 
-        $name = $this->stream->next();
+        $this->stream->next();
         $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
-        if ('json_arrayagg' === $name->getValue()) {
+        if (Keyword::JSON_ARRAYAGG === $keyword) {
             $expression = new nodes\json\JsonArrayAgg($this->JsonFormattedValue());
             if ($this->stream->matchesKeywordSequence(Keyword::ORDER, Keyword::BY)) {
                 $this->stream->skip(2);
@@ -4620,7 +4651,7 @@ class Parser
                 $this->JsonReturningClause()
             );
         } elseif (
-            $this->stream->matchesKeyword('returning')
+            Keyword::RETURNING === $this->stream->getKeyword()
             || $this->stream->matchesSpecialChar(')')
         ) {
             return new nodes\json\JsonArrayValueList(null, null, $this->JsonReturningClause());
@@ -4637,7 +4668,7 @@ class Parser
     {
         if ($this->stream->matchesSpecialChar(')')) {
             return new nodes\json\JsonObject();
-        } elseif ($this->stream->matchesKeyword('returning')) {
+        } elseif (Keyword::RETURNING === $this->stream->getKeyword()) {
             return new nodes\json\JsonObject(null, null, null, $this->JsonReturningClause());
         }
 
@@ -4664,7 +4695,7 @@ class Parser
             }
             return new nodes\expressions\FunctionExpression(new nodes\QualifiedName('json_object'), $arguments);
         } else {
-            if (!$this->stream->matchesKeyword('value')) {
+            if (Keyword::VALUE !== $this->stream->getKeyword()) {
                 $this->stream->expect(TokenType::SPECIAL_CHAR, ':');
             } else {
                 $this->stream->next();
@@ -4691,7 +4722,7 @@ class Parser
         $context = $this->JsonFormattedValue();
         $this->stream->expect(TokenType::SPECIAL_CHAR, ',');
         $path    = $this->Expression();
-        if (!$this->stream->matchesKeyword('passing')) {
+        if (Keyword::PASSING !== $this->stream->getKeyword()) {
             $passing = null;
         } else {
             $this->stream->next();
@@ -4756,21 +4787,25 @@ class Parser
 
     protected function JsonQuotesClause(): ?bool
     {
-        if (!$this->stream->matchesKeyword(['keep', 'omit'])) {
+        if (null === $keyword = $this->stream->matchesAnyKeyword(Keyword::KEEP, Keyword::OMIT)) {
             return null;
         }
 
-        $keepQuotes = 'keep' === $this->stream->next()->getValue();
-        $this->stream->expect(TokenType::KEYWORD, 'quotes');
-        if ($this->stream->matchesKeyword('on')) {
+        $this->stream->next();
+        $keepQuotes = Keyword::KEEP === $keyword;
+        $this->stream->expectKeyword(Keyword::QUOTES);
+        if (Keyword::ON === $this->stream->getKeyword()) {
             $this->stream->next();
-            $this->stream->expect(TokenType::KEYWORD, 'scalar');
-            $this->stream->expect(TokenType::KEYWORD, 'string');
+            $this->stream->expectKeyword(Keyword::SCALAR);
+            $this->stream->expectKeyword(Keyword::STRING);
         }
 
         return $keepQuotes;
     }
 
+    /**
+     * @param class-string<Node> $className
+     */
     protected function JsonBehaviour(string $className): array
     {
         $onError   = null;
@@ -4852,19 +4887,19 @@ class Parser
 
     protected function JsonTable(): nodes\range\JsonTable
     {
-        $this->stream->expect(TokenType::KEYWORD, 'json_table');
+        $this->stream->expectKeyword(Keyword::JSON_TABLE);
         $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
 
         $context = $this->JsonFormattedValue();
         $this->stream->expect(TokenType::SPECIAL_CHAR, ',');
         $path    = $this->Expression();
-        if (!$this->stream->matchesKeyword('as')) {
+        if (Keyword::AS !== $this->stream->getKeyword()) {
             $pathName = null;
         } else {
             $this->stream->next();
             $pathName = $this->ColId();
         }
-        if (!$this->stream->matchesKeyword('passing')) {
+        if (Keyword::PASSING !== $this->stream->getKeyword()) {
             $passing = null;
         } else {
             $this->stream->next();
@@ -4892,7 +4927,7 @@ class Parser
 
     protected function JsonTableColumnsClause(): nodes\range\json\JsonColumnDefinitionList
     {
-        $this->stream->expect(TokenType::KEYWORD, 'columns');
+        $this->stream->expectKeyword(Keyword::COLUMNS);
         $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
 
         $list = $this->JsonColumnDefinitionList();
@@ -4953,7 +4988,7 @@ class Parser
 
     protected function JsonConstantPath(): ?nodes\expressions\StringConstant
     {
-        if (!$this->stream->matchesKeyword('path')) {
+        if (Keyword::PATH !== $this->stream->getKeyword()) {
             return null;
         }
 
@@ -4963,12 +4998,12 @@ class Parser
 
     protected function JsonNestedColumns(): nodes\range\json\JsonNestedColumns
     {
-        $this->stream->expect(TokenType::KEYWORD, 'nested');
-        if ($this->stream->matchesKeyword('path')) {
+        $this->stream->expectKeyword(Keyword::NESTED);
+        if (Keyword::PATH === $this->stream->getKeyword()) {
             $this->stream->next();
         }
         $path = new nodes\expressions\StringConstant($this->stream->expect(TokenType::STRING)->getValue());
-        if (!$this->stream->matchesKeyword('as')) {
+        if (Keyword::AS !== $this->stream->getKeyword()) {
             $pathName = null;
         } else {
             $this->stream->next();
