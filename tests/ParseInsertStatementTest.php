@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Parser,
@@ -60,10 +61,7 @@ use sad_spirit\pg_builder\nodes\{
  */
 class ParseInsertStatementTest extends TestCase
 {
-    /**
-     * @var Parser
-     */
-    protected $parser;
+    protected Parser $parser;
 
     protected function setUp(): void
     {
@@ -146,17 +144,13 @@ QRY
         $this->assertEquals($built, $parsed);
     }
 
-    /**
-     * @dataProvider onConflictClauseProvider
-     * @param string           $sql
-     * @param OnConflictClause $expected
-     */
+    #[DataProvider('onConflictClauseProvider')]
     public function testParseOnConflictClause(string $sql, OnConflictClause $expected): void
     {
         $this->assertEquals($expected, $this->parser->parseOnConflict($sql));
     }
 
-    public function onConflictClauseProvider(): array
+    public static function onConflictClauseProvider(): array
     {
         // directly from Postgres docs on the clause
         return [

@@ -42,8 +42,7 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  */
 class NonAssociativeListImplementation extends NonAssociativeList implements Parseable, ElementParseable
 {
-    /** @var Parser|null */
-    private $parser;
+    private ?Parser $parser;
 
     public function __construct($list = null, ?Parser $parser = null)
     {

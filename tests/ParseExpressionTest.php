@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Parser,
@@ -88,10 +89,7 @@ use sad_spirit\pg_builder\nodes\expressions\{
  */
 class ParseExpressionTest extends TestCase
 {
-    /**
-     * @var Parser
-     */
-    protected $parser;
+    protected Parser $parser;
 
     protected function setUp(): void
     {
@@ -169,11 +167,7 @@ QRY
         );
     }
 
-    /**
-     * @dataProvider getUnbalancedParentheses
-     * @param string $expr
-     * @param string $message
-     */
+    #[DataProvider('getUnbalancedParentheses')]
     public function testUnbalanceParentheses(string $expr, string $message): void
     {
         $this->expectException(SyntaxException::class);
@@ -181,7 +175,7 @@ QRY
         $this->parser->parseExpression($expr);
     }
 
-    public function getUnbalancedParentheses(): array
+    public static function getUnbalancedParentheses(): array
     {
         return [
             ['(foo', "Unbalanced '('"],
@@ -433,13 +427,8 @@ QRY
         );
     }
 
-    /**
-     * @dataProvider getInvalidQualifiedOperators
-     *
-     * @param string|string[] $expression
-     * @param string          $message
-     */
-    public function testInvalidQualifiedOperators($expression, string $message): void
+    #[DataProvider('getInvalidQualifiedOperators')]
+    public function testInvalidQualifiedOperators(string|array $expression, string $message): void
     {
         $this::expectException(SyntaxException::class);
         $this::expectExceptionMessage($message);
@@ -451,7 +440,7 @@ QRY
         }
     }
 
-    public function getInvalidQualifiedOperators(): array
+    public static function getInvalidQualifiedOperators(): array
     {
         return [
             [['this', 'sucks'], 'does not look like a valid operator string'],

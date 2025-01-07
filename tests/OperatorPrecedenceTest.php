@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Parser,
@@ -51,10 +52,7 @@ use sad_spirit\pg_builder\nodes\lists\FunctionArgumentList;
  */
 class OperatorPrecedenceTest extends TestCase
 {
-    /**
-     * @var Parser
-     */
-    protected $parser;
+    protected Parser $parser;
 
     protected function setUp(): void
     {
@@ -81,77 +79,49 @@ class OperatorPrecedenceTest extends TestCase
         }
     }
 
-    /**
-     * @dataProvider associativeEqualityProvider
-     * @param string      $expression
-     * @param string|Node $parsedCurrent
-     */
-    public function testAssociativeEquality(string $expression, $parsedCurrent): void
+    #[DataProvider('associativeEqualityProvider')]
+    public function testAssociativeEquality(string $expression, string|Node $parsedCurrent): void
     {
         $this->doTest($expression, $parsedCurrent);
     }
 
-    /**
-     * @dataProvider inequalityPrecedenceProvider
-     * @param string      $expression
-     * @param string|Node $parsedCurrent
-     */
-    public function testInequalityPrecedence(string $expression, $parsedCurrent): void
+    #[DataProvider('inequalityPrecedenceProvider')]
+    public function testInequalityPrecedence(string $expression, string|Node $parsedCurrent): void
     {
         $this->doTest($expression, $parsedCurrent);
     }
 
-    /**
-     * @dataProvider inequalityWithCustomOperatorsPrecedenceProvider
-     * @param string      $expression
-     * @param string|Node $parsedCurrent
-     */
-    public function testInequalityWithCustomOperatorsPrecedence(string $expression, $parsedCurrent): void
+    #[DataProvider('inequalityWithCustomOperatorsPrecedenceProvider')]
+    public function testInequalityWithCustomOperatorsPrecedence(string $expression, string|Node $parsedCurrent): void
     {
         $this->doTest($expression, $parsedCurrent);
     }
 
-    /**
-     * @dataProvider isWhateverPrecedenceProvider
-     * @param string      $expression
-     * @param string|Node $parsedCurrent
-     */
-    public function testIsWhateverPrecedence(string $expression, $parsedCurrent): void
+    #[DataProvider('isWhateverPrecedenceProvider')]
+    public function testIsWhateverPrecedence(string $expression, string|Node $parsedCurrent): void
     {
         $this->doTest($expression, $parsedCurrent);
     }
 
-    /**
-     * @dataProvider betweenPrecedenceProvider
-     * @param string      $expression
-     * @param string|Node $parsedCurrent
-     */
-    public function testBetweenPrecedence(string $expression, $parsedCurrent): void
+    #[DataProvider('betweenPrecedenceProvider')]
+    public function testBetweenPrecedence(string $expression, string|Node $parsedCurrent): void
     {
         $this->doTest($expression, $parsedCurrent);
     }
 
-    /**
-     * @dataProvider equalsGreaterOperatorProvider
-     * @param string      $expression
-     * @param string|Node $parsedCurrent
-     */
-    public function testEqualsGreaterOperator(string $expression, $parsedCurrent): void
+    #[DataProvider('equalsGreaterOperatorProvider')]
+    public function testEqualsGreaterOperator(string $expression, string|Node $parsedCurrent): void
     {
         $this->doTest($expression, $parsedCurrent);
     }
 
-    /**
-     * @dataProvider intervalTypeProvider
-     * @param string      $expression
-     * @param string|Node $parsedCurrent
-     */
-    public function testIntervalTypeSpecification(string $expression, $parsedCurrent): void
+    #[DataProvider('intervalTypeProvider')]
+    public function testIntervalTypeSpecification(string $expression, string|Node $parsedCurrent): void
     {
         $this->doTest($expression, $parsedCurrent);
     }
 
-    public function associativeEqualityProvider(): array
+    public static function associativeEqualityProvider(): array
     {
         return [
             [
@@ -161,7 +131,7 @@ class OperatorPrecedenceTest extends TestCase
         ];
     }
 
-    public function inequalityPrecedenceProvider(): array
+    public static function inequalityPrecedenceProvider(): array
     {
         return [
             [
@@ -186,7 +156,7 @@ class OperatorPrecedenceTest extends TestCase
     }
 
 
-    public function isWhateverPrecedenceProvider(): array
+    public static function isWhateverPrecedenceProvider(): array
     {
         return [
             [
@@ -225,7 +195,7 @@ class OperatorPrecedenceTest extends TestCase
         ];
     }
 
-    public function betweenPrecedenceProvider(): array
+    public static function betweenPrecedenceProvider(): array
     {
         return [
             [
@@ -247,7 +217,7 @@ class OperatorPrecedenceTest extends TestCase
         ];
     }
 
-    public function inequalityWithCustomOperatorsPrecedenceProvider(): array
+    public static function inequalityWithCustomOperatorsPrecedenceProvider(): array
     {
         // Based on Tom Lane's message to pgsql-hackers which started the whole precedence brouhaha
         // https://www.postgresql.org/message-id/12603.1424360914%40sss.pgh.pa.us
@@ -271,7 +241,7 @@ class OperatorPrecedenceTest extends TestCase
         ];
     }
 
-    public function equalsGreaterOperatorProvider(): array
+    public static function equalsGreaterOperatorProvider(): array
     {
         return [
             [
@@ -290,7 +260,7 @@ class OperatorPrecedenceTest extends TestCase
         ];
     }
 
-    public function intervalTypeProvider(): array
+    public static function intervalTypeProvider(): array
     {
         return [
             [

@@ -38,20 +38,9 @@ use sad_spirit\pg_builder\{
  */
 class ParameterWalkerTest extends TestCase
 {
-    /**
-     * @var Parser
-     */
-    protected $parser;
-
-    /**
-     * @var SqlBuilderWalker
-     */
-    protected $builder;
-
-    /**
-     * @var ParameterWalker
-     */
-    protected $walker;
+    protected Parser $parser;
+    protected SqlBuilderWalker $builder;
+    protected ParameterWalker $walker;
 
     protected function setUp(): void
     {

@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Lexer,
@@ -45,10 +46,7 @@ use sad_spirit\pg_builder\nodes\{
  */
 class ParseTypecastTest extends TestCase
 {
-    /**
-     * @var Parser
-     */
-    protected $parser;
+    protected Parser $parser;
 
     protected function setUp(): void
     {
@@ -371,11 +369,7 @@ QRY
         );
     }
 
-    /**
-     * @dataProvider getInvalidTypeSpecifications
-     * @param string $expression
-     * @param string $message
-     */
+    #[DataProvider('getInvalidTypeSpecifications')]
     public function testInvalidTypeSpecification(string $expression, string $message): void
     {
         $this->expectException(SyntaxException::class);
@@ -383,7 +377,7 @@ QRY
         $this->parser->parseExpression($expression);
     }
 
-    public function getInvalidTypeSpecifications(): array
+    public static function getInvalidTypeSpecifications(): array
     {
         return [
             [

@@ -38,15 +38,9 @@ use sad_spirit\pg_builder\{
 
 class NativeStatementTest extends TestCase
 {
-    /**
-     * @var Connection
-     */
-    protected $connection;
+    protected Connection $connection;
 
-    /**
-     * @var StatementFactory
-     */
-    protected $factory;
+    protected StatementFactory $factory;
 
     protected function setUp(): void
     {

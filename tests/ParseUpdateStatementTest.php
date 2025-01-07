@@ -67,10 +67,7 @@ use sad_spirit\pg_builder\nodes\range\{
  */
 class ParseUpdateStatementTest extends TestCase
 {
-    /**
-     * @var Parser
-     */
-    protected $parser;
+    protected Parser $parser;
 
     protected function setUp(): void
     {

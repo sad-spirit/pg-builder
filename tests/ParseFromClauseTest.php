@@ -98,10 +98,7 @@ use sad_spirit\pg_builder\nodes\xml\{
  */
 class ParseFromClauseTest extends TestCase
 {
-    /**
-     * @var Parser
-     */
-    protected $parser;
+    protected Parser $parser;
 
     protected function setUp(): void
     {

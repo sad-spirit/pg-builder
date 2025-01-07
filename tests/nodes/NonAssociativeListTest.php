@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests\nodes;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     exceptions\InvalidArgumentException,
@@ -37,11 +38,8 @@ use sad_spirit\pg_builder\nodes\{
  */
 class NonAssociativeListTest extends TestCase
 {
-    /**
-     * @dataProvider invalidOffsetsProvider
-     * @param mixed $offset
-     */
-    public function testDisallowsNonIntegerAndNegativeOffsets($offset): void
+    #[DataProvider('invalidOffsetsProvider')]
+    public function testDisallowsNonIntegerAndNegativeOffsets(mixed $offset): void
     {
         $this::expectException(InvalidArgumentException::class);
         $this::expectExceptionMessage('Non-negative integer offsets expected');
@@ -49,7 +47,7 @@ class NonAssociativeListTest extends TestCase
         $nodeList[$offset] = new SetToDefault();
     }
 
-    public function invalidOffsetsProvider(): array
+    public static function invalidOffsetsProvider(): array
     {
         return [
             [-1],

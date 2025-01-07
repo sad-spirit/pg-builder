@@ -29,8 +29,7 @@ use sad_spirit\pg_builder\Node;
  */
 class GenericNodeTest extends TestCase
 {
-    /** @var GenericNodeImplementation */
-    private $node;
+    private GenericNodeImplementation $node;
 
     protected function setUp(): void
     {

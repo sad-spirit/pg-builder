@@ -31,7 +31,7 @@ class BlankWalkerImplementation extends BlankWalker
     public const IDENTIFIER_MASK = '[sdivuwxfgejm]\d+';
 
     /** @var array<string, true> */
-    public $identifiers = [];
+    public array $identifiers = [];
 
     public function walkIdentifier(Identifier $node): void
     {

@@ -32,8 +32,7 @@ use sad_spirit\pg_builder\{
  */
 class WithClauseTest extends TestCase
 {
-    /** @var WithClause  */
-    private $withClause;
+    private WithClause $withClause;
 
     protected function setUp(): void
     {

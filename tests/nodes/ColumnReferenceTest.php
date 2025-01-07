@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests\nodes;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\exceptions\{
     InvalidArgumentException,
@@ -33,11 +34,7 @@ use sad_spirit\pg_builder\nodes\{
 
 class ColumnReferenceTest extends TestCase
 {
-    /**
-     * @dataProvider validColumnReferencesProvider
-     * @param array $arguments
-     * @param array $expected
-     */
+    #[DataProvider('validColumnReferencesProvider')]
     public function testCreateValidColumnReferences(array $arguments, array $expected): void
     {
         $reference = new ColumnReference(...$arguments);
@@ -53,11 +50,11 @@ class ColumnReferenceTest extends TestCase
     }
 
     /**
-     * @dataProvider invalidColumnReferencesProvider
      * @param array                    $arguments
      * @param class-string<\Throwable> $class
      * @param string                   $message
      */
+    #[DataProvider('invalidColumnReferencesProvider')]
     public function testCreateInvalidColumnReferences(array $arguments, string $class, string $message): void
     {
         $this::expectException($class);
@@ -65,7 +62,7 @@ class ColumnReferenceTest extends TestCase
         new ColumnReference(...$arguments);
     }
 
-    public function validColumnReferencesProvider(): array
+    public static function validColumnReferencesProvider(): array
     {
         return [
             [
@@ -99,7 +96,7 @@ class ColumnReferenceTest extends TestCase
         ];
     }
 
-    public function invalidColumnReferencesProvider(): array
+    public static function invalidColumnReferencesProvider(): array
     {
         $foo = new Identifier('foo');
 

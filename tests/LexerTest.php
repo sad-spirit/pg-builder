@@ -20,6 +20,8 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Lexer,
@@ -37,10 +39,7 @@ use sad_spirit\pg_builder\nodes\expressions\{
  */
 class LexerTest extends TestCase
 {
-    /**
-     * @var Lexer
-     */
-    protected $lexer;
+    protected Lexer $lexer;
 
     protected function setUp(): void
     {
@@ -93,11 +92,7 @@ QRY
         $this->assertTrue($stream->isEOF());
     }
 
-    /**
-     * @dataProvider getConcatenatedStrings
-     * @param string $sql
-     * @param array $tokens
-     */
+    #[DataProvider('getConcatenatedStrings')]
     public function testConcatenateStringLiterals(string $sql, array $tokens): void
     {
         $stream = $this->lexer->tokenize($sql);
@@ -106,7 +101,7 @@ QRY
         }
     }
 
-    public function getConcatenatedStrings(): array
+    public static function getConcatenatedStrings(): array
     {
         return [
             [
@@ -141,9 +136,7 @@ QRY
         ];
     }
 
-    /**
-     * @doesNotPerformAssertions
-     */
+    #[DoesNotPerformAssertions]
     public function testMulticharacterOperators(): void
     {
         $stream = $this->lexer->tokenize(<<<QRY
@@ -177,22 +170,14 @@ QRY
         $this->assertEquals('foo\\bar', $stream2->next()->getValue());
     }
 
-    /**
-     * @param string $sql
-     * @param string $expected
-     * @dataProvider validCStyleEscapesProvider
-     */
+    #[DataProvider('validCStyleEscapesProvider')]
     public function testValidCStyleEscapes(string $sql, string $expected): void
     {
         $stream = $this->lexer->tokenize($sql);
         $this::assertEquals($expected, $stream->next()->getValue());
     }
 
-    /**
-     * @param string $sql
-     * @param string $message
-     * @dataProvider invalidCStyleEscapesProvider
-     */
+    #[DataProvider('invalidCStyleEscapesProvider')]
     public function testInvalidCStyleEscapes(string $sql, string $message): void
     {
         $this::expectException(SyntaxException::class);
@@ -239,10 +224,7 @@ QRY
         $this->lexer->tokenize('select $foo$ blah $$ blah');
     }
 
-    /**
-     * @dataProvider getUnterminatedLiterals
-     * @param string $literal
-     */
+    #[DataProvider('getUnterminatedLiterals')]
     public function testUnterminatedStringLiteral(string $literal): void
     {
         $this->expectException(SyntaxException::class);
@@ -250,7 +232,7 @@ QRY
         $this->lexer->tokenize($literal);
     }
 
-    public function getUnterminatedLiterals(): array
+    public static function getUnterminatedLiterals(): array
     {
         return [
             ["select 'foo  "],
@@ -294,9 +276,7 @@ QRY
         $lexer->tokenize("u&'not allowed'");
     }
 
-    /**
-     * @dataProvider validUnicodeEscapesProvider
-     */
+    #[DataProvider('validUnicodeEscapesProvider')]
     public function testValidUnicodeEscapes(string $sql, TokenType $type, string $value): void
     {
         $stream = $this->lexer->tokenize($sql);
@@ -304,11 +284,7 @@ QRY
         $this::assertTrue($stream->isEOF());
     }
 
-    /**
-     * @param string $sql
-     * @param string $message
-     * @dataProvider invalidUnicodeEscapesProvider
-     */
+    #[DataProvider('invalidUnicodeEscapesProvider')]
     public function testInvalidUnicodeEscapes(string $sql, string $message): void
     {
         $this::expectException(SyntaxException::class);
@@ -316,10 +292,7 @@ QRY
         $this->lexer->tokenize($sql);
     }
 
-    /**
-     * @param string $sql
-     * @dataProvider invalidUTF8Provider
-     */
+    #[DataProvider('invalidUTF8Provider')]
     public function testDisallowInvalidUTF8(string $sql): void
     {
         $this::expectException(InvalidArgumentException::class);
@@ -327,10 +300,7 @@ QRY
         $this->lexer->tokenize($sql);
     }
 
-    /**
-     * @param string $sql
-     * @dataProvider invalidNumericLiteralProvider
-     */
+    #[DataProvider('invalidNumericLiteralProvider')]
     public function testDisallowJunkAfterNumericLiterals(string $sql): void
     {
         $this::expectException(SyntaxException::class);
@@ -352,10 +322,7 @@ QRY
         $this->lexer->tokenize('1..2');
     }
 
-    /**
-     * @param string $sql
-     * @dataProvider validNumericLiteralProvider
-     */
+    #[DataProvider('validNumericLiteralProvider')]
     public function testAllowNonDecimalNumericLiteralsAndUnderscores(string $sql): void
     {
         $stream = $this->lexer->tokenize($sql);
@@ -365,7 +332,7 @@ QRY
         );
     }
 
-    public function validCStyleEscapesProvider(): array
+    public static function validCStyleEscapesProvider(): array
     {
         return [
             ["e''''",                                                                     "'"],
@@ -380,7 +347,7 @@ QRY
         ];
     }
 
-    public function invalidCStyleEscapesProvider(): array
+    public static function invalidCStyleEscapesProvider(): array
     {
         return [
             ["e'wrong: \\u061'",                    "Invalid Unicode escape"],
@@ -394,7 +361,7 @@ QRY
         ];
     }
 
-    public function validUnicodeEscapesProvider(): array
+    public static function validUnicodeEscapesProvider(): array
     {
         return [
             ["U&'d\\0061t\\+000061'", TokenType::STRING, 'data'],
@@ -407,7 +374,7 @@ QRY
         ];
     }
 
-    public function invalidUnicodeEscapesProvider(): array
+    public static function invalidUnicodeEscapesProvider(): array
     {
         return [
             ["U&'wrong: \\061'", "Invalid Unicode escape"],
@@ -423,7 +390,7 @@ QRY
         ];
     }
 
-    public function invalidUTF8Provider(): array
+    public static function invalidUTF8Provider(): array
     {
         return [
             ["e'\\xf0'"],
@@ -441,7 +408,7 @@ QRY
      * From src\test\regress\sql\numerology.sql
      * @return array
      */
-    public function invalidNumericLiteralProvider(): array
+    public static function invalidNumericLiteralProvider(): array
     {
         return [
             ['123abc'],
@@ -478,7 +445,7 @@ QRY
      * From src\test\regress\sql\numerology.sql
      * @return array
      */
-    public function validNumericLiteralProvider(): array
+    public static function validNumericLiteralProvider(): array
     {
         return [
             ['0b100101'],

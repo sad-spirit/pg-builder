@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Node,
@@ -49,8 +50,7 @@ use sad_spirit\pg_builder\nodes\expressions\{
  */
 class SqlBuilderParenthesesTest extends TestCase
 {
-    /** @var SqlBuilderWalker */
-    protected $builder;
+    protected SqlBuilderWalker $builder;
 
     protected function setUp(): void
     {
@@ -75,11 +75,8 @@ class SqlBuilderParenthesesTest extends TestCase
      *
      * All comparison operators are non-associative in 9.5+ and have the same precedence,
      * so chains without parentheses will always fail
-     *
-     * @dataProvider chainedComparisonProvider
-     * @param Node   $ast
-     * @param string $expected
      */
+    #[DataProvider('chainedComparisonProvider')]
     public function testChainedComparisonRequiresParentheses(Node $ast, string $expected): void
     {
         $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builder));
@@ -87,29 +84,23 @@ class SqlBuilderParenthesesTest extends TestCase
 
     /**
      * Checks that we don't add parentheses for IS SOMETHING arguments
-     *
-     * @param Node   $ast
-     * @param string $expected
-     * @dataProvider isPrecedenceProvider
      */
+    #[DataProvider('isPrecedenceProvider')]
     public function testCompatParenthesesForIsPrecedenceChanges(Node $ast, string $expected): void
     {
         $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builder));
     }
 
     /**
-     * Checks that we don't adds parentheses to expressions with non-strict inequalities
-     *
-     * @param Node   $ast
-     * @param string $expected
-     * @dataProvider inequalityPrecedenceProvider
+     * Checks that we don't add parentheses to expressions with non-strict inequalities
      */
+    #[DataProvider('inequalityPrecedenceProvider')]
     public function testCompatParenthesesForInequalityPrecedenceChanges(Node $ast, string $expected): void
     {
         $this->assertStringsEqualIgnoringWhitespace($expected, $ast->dispatch($this->builder));
     }
 
-    public function chainedComparisonProvider(): array
+    public static function chainedComparisonProvider(): array
     {
         return [
             [
@@ -151,7 +142,7 @@ class SqlBuilderParenthesesTest extends TestCase
         ];
     }
 
-    public function isPrecedenceProvider(): array
+    public static function isPrecedenceProvider(): array
     {
         return [
             [
@@ -207,7 +198,7 @@ class SqlBuilderParenthesesTest extends TestCase
         ];
     }
 
-    public function inequalityPrecedenceProvider(): array
+    public static function inequalityPrecedenceProvider(): array
     {
         return [
             [

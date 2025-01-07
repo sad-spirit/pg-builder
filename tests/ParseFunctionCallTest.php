@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Lexer,
@@ -123,10 +124,7 @@ use sad_spirit\pg_builder\nodes\xml\{
  */
 class ParseFunctionCallTest extends TestCase
 {
-    /**
-     * @var Parser
-     */
-    protected $parser;
+    protected Parser $parser;
 
     protected function setUp(): void
     {
@@ -508,11 +506,7 @@ QRY
         );
     }
 
-    /**
-     * @dataProvider getInvalidNamedAndVariadicParameters
-     * @param string $functionCall
-     * @param string $message
-     */
+    #[DataProvider('getInvalidNamedAndVariadicParameters')]
     public function testInvalidNamedAndVariadicParameters(string $functionCall, string $message): void
     {
         $this->expectException(SyntaxException::class);
@@ -520,7 +514,7 @@ QRY
         $this->parser->parseExpression($functionCall);
     }
 
-    public function getInvalidNamedAndVariadicParameters(): array
+    public static function getInvalidNamedAndVariadicParameters(): array
     {
         return [
             [
@@ -538,17 +532,14 @@ QRY
         ];
     }
 
-    /**
-     * @dataProvider getInvalidFunctionNames
-     * @param string $functionCall
-     */
+    #[DataProvider('getInvalidFunctionNames')]
     public function testInvalidFunctionNames(string $functionCall): void
     {
         $this->expectException(SyntaxException::class);
         $this->parser->parseExpression($functionCall);
     }
 
-    public function getInvalidFunctionNames(): array
+    public static function getInvalidFunctionNames(): array
     {
         return [
             ['out()'], // TYPE_COL_NAME_KEYWORD
@@ -817,11 +808,11 @@ QRY
     }
 
     /**
-     * @dataProvider getInvalidJsonExpressions
      * @param string                   $expression
      * @param class-string<\Throwable> $exception
      * @param string                   $message
      */
+    #[DataProvider('getInvalidJsonExpressions')]
     public function testInvalidJsonExpressions(string $expression, string $exception, string $message): void
     {
         $this::expectException($exception);
@@ -829,7 +820,7 @@ QRY
         $this->parser->parseExpression($expression);
     }
 
-    public function getInvalidJsonExpressions(): array
+    public static function getInvalidJsonExpressions(): array
     {
         return [
             [
@@ -981,11 +972,7 @@ QRY
         );
     }
 
-    /**
-     * @dataProvider getInvalidWindowSpecification
-     * @param string $spec
-     * @param string $message
-     */
+    #[DataProvider('getInvalidWindowSpecification')]
     public function testInvalidWindowSpecifications(string $spec, string $message): void
     {
         $this->expectException(SyntaxException::class);
@@ -993,7 +980,7 @@ QRY
         $this->parser->parseExpression($spec);
     }
 
-    public function getInvalidWindowSpecification(): array
+    public static function getInvalidWindowSpecification(): array
     {
         return [
             [
@@ -1027,11 +1014,7 @@ QRY
         ];
     }
 
-    /**
-     * @dataProvider getInvalidWithinGroupUsage
-     * @param string $expression
-     * @param string $message
-     */
+    #[DataProvider('getInvalidWithinGroupUsage')]
     public function testInvalidWithinGroupUsage(string $expression, string $message): void
     {
         $this->expectException(SyntaxException::class);
@@ -1039,7 +1022,7 @@ QRY
         $this->parser->parseExpression($expression);
     }
 
-    public function getInvalidWithinGroupUsage(): array
+    public static function getInvalidWithinGroupUsage(): array
     {
         return [
             [

@@ -34,7 +34,7 @@ use PHPUnit\Framework\TestCase;
 class BlankWalkerTest extends TestCase
 {
     /** @var string[] */
-    private $sql = [
+    private array $sql = [
         <<<'QRY'
 with recursive w1 (w2, w3) as (
     select s1, s2, array[s3], false

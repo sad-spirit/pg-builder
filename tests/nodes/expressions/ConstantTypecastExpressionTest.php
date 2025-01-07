@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests\nodes\expressions;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
@@ -42,10 +43,7 @@ use sad_spirit\pg_builder\SqlBuilderWalker;
  */
 class ConstantTypecastExpressionTest extends TestCase
 {
-    /**
-     * @dataProvider invalidArgumentProvider
-     * @param ScalarExpression $argument
-     */
+    #[DataProvider('invalidArgumentProvider')]
     public function testInvalidArgumentViaConstructor(ScalarExpression $argument): void
     {
         $this::expectException(InvalidArgumentException::class);
@@ -54,10 +52,9 @@ class ConstantTypecastExpressionTest extends TestCase
     }
 
     /**
-     * @dataProvider invalidArgumentProvider
-     * @param ScalarExpression $argument
      * @psalm-suppress PropertyTypeCoercion
      */
+    #[DataProvider('invalidArgumentProvider')]
     public function testInvalidArgumentViaSetter(ScalarExpression $argument): void
     {
         $typecast = new ConstantTypecastExpression(new StringConstant(''), new TypeName(new QualifiedName('foo')));
@@ -106,11 +103,7 @@ class ConstantTypecastExpressionTest extends TestCase
         $typecast->type->setOf = true;
     }
 
-    /**
-     * @dataProvider sqlProvider
-     * @param TypeName $type
-     * @param string $sql
-     */
+    #[DataProvider('sqlProvider')]
     public function testSqlGeneration(TypeName $type, string $sql): void
     {
         $typecast = new ConstantTypecastExpression(new StringConstant('bar'), $type);
@@ -119,7 +112,7 @@ class ConstantTypecastExpressionTest extends TestCase
         $this::assertEquals($sql, $typecast->dispatch($builder));
     }
 
-    public function invalidArgumentProvider(): array
+    public static function invalidArgumentProvider(): array
     {
         return [
             [new ColumnReference('foo', 'bar')],
@@ -128,7 +121,7 @@ class ConstantTypecastExpressionTest extends TestCase
         ];
     }
 
-    public function sqlProvider(): array
+    public static function sqlProvider(): array
     {
         $masked = new IntervalTypeName();
         $masked->mask = IntervalMask::HTS;

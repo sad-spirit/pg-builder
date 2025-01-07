@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests\nodes;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\nodes\Star;
@@ -29,8 +30,7 @@ use sad_spirit\pg_builder\nodes\Star;
  */
 class GenericNodeListTest extends TestCase
 {
-    /** @var GenericNodeListImplementation */
-    private $nodeList;
+    private GenericNodeListImplementation $nodeList;
 
     protected function setUp(): void
     {
@@ -57,18 +57,15 @@ class GenericNodeListTest extends TestCase
         $this::assertSame($this->nodeList, $impl->getParentNode());
     }
 
-    /**
-     * @dataProvider invalidValuesProvider
-     * @param mixed $invalidValue
-     */
-    public function testAcceptsOnlyNodeInstances($invalidValue): void
+    #[DataProvider('invalidValuesProvider')]
+    public function testAcceptsOnlyNodeInstances(mixed $invalidValue): void
     {
         $this::expectException(InvalidArgumentException::class);
         $this::expectExceptionMessage('can contain only instances of Node');
         $this->nodeList[] = $invalidValue;
     }
 
-    public function invalidValuesProvider(): array
+    public static function invalidValuesProvider(): array
     {
         return [
             [null],

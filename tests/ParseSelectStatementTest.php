@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Parser,
@@ -74,10 +75,7 @@ use sad_spirit\pg_builder\nodes\range\RelationReference;
  */
 class ParseSelectStatementTest extends TestCase
 {
-    /**
-     * @var Parser
-     */
-    protected $parser;
+    protected Parser $parser;
 
     protected function setUp(): void
     {
@@ -179,10 +177,7 @@ QRY
         );
     }
 
-    /**
-     * @dataProvider getMultipleClausesQueries
-     * @param string $query
-     */
+    #[DataProvider('getMultipleClausesQueries')]
     public function testPreventMultipleClauses(string $query): void
     {
         $this->expectException(SyntaxException::class);
@@ -190,7 +185,7 @@ QRY
         $this->parser->parseStatement($query);
     }
 
-    public function getMultipleClausesQueries(): array
+    public static function getMultipleClausesQueries(): array
     {
         return [
             ['(select * from foo order by 1) order by 2'],
@@ -200,15 +195,13 @@ QRY
         ];
     }
 
-    /**
-     * @dataProvider getLimitOffsetClauses
-     * @param string                     $stmt
-     * @param int|float|ScalarExpression $limit
-     * @param int|null                   $offset
-     * @param bool                       $withTies
-     */
-    public function testLimitOffsetClauses(string $stmt, $limit, ?int $offset = null, bool $withTies = false): void
-    {
+    #[DataProvider('getLimitOffsetClauses')]
+    public function testLimitOffsetClauses(
+        string $stmt,
+        int|float|ScalarExpression $limit,
+        ?int $offset = null,
+        bool $withTies = false
+    ): void {
         $parsed = $this->parser->parseStatement($stmt);
 
         $built = new Select(new TargetList([new Star()]));
@@ -223,7 +216,7 @@ QRY
         $this->assertEquals($built, $parsed);
     }
 
-    public function getLimitOffsetClauses(): array
+    public static function getLimitOffsetClauses(): array
     {
         return [
             ['select * limit 2 offset 3', 2, 3],

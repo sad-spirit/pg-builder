@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests\nodes;
 
+use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Lexer,
@@ -134,10 +135,10 @@ class WhereOrHavingClauseTest extends TestCase
     }
 
     /**
-     * @doesNotPerformAssertions
      * @noinspection SqlNoDataSourceInspection
      * @noinspection SqlResolve
      */
+    #[DoesNotPerformAssertions]
     public function testNestedWhereShouldHaveParser(): void
     {
         $parser = new Parser(new Lexer());

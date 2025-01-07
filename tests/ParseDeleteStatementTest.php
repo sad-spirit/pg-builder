@@ -48,10 +48,7 @@ use sad_spirit\pg_builder\nodes\{
  */
 class ParseDeleteStatementTest extends TestCase
 {
-    /**
-     * @var Parser
-     */
-    protected $parser;
+    protected Parser $parser;
 
     protected function setUp(): void
     {

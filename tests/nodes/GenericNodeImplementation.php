@@ -35,12 +35,9 @@ use sad_spirit\pg_builder\{
  */
 class GenericNodeImplementation extends GenericNode
 {
-    /** @var int */
-    public $setChildCalled = 0;
-    /** @var Node|null */
-    protected $p_child;
-    /** @var Node|null */
-    protected $p_readonly;
+    public int $setChildCalled = 0;
+    protected ?Node $p_child = null;
+    protected ?Node $p_readonly = null;
 
     public function __construct(?Node $readonly = null)
     {

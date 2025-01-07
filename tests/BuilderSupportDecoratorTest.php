@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Lexer,
@@ -83,17 +84,13 @@ class BuilderSupportDecoratorTest extends TestCase
         );
     }
 
-    /**
-     * @param string        $typeName
-     * @param TypeConverter $converter
-     * @dataProvider complexTypeNamesProvider
-     */
+    #[DataProvider('complexTypeNamesProvider')]
     public function testParseComplexTypeNames(string $typeName, TypeConverter $converter): void
     {
         $this->assertEquals($converter, $this->factory->getConverterForTypeSpecification($typeName));
     }
 
-    public function complexTypeNamesProvider(): array
+    public static function complexTypeNamesProvider(): array
     {
         return [
             ["decimal(1,2)",                   new NumericConverter()],
@@ -111,9 +108,9 @@ class BuilderSupportDecoratorTest extends TestCase
      * @param array<string, mixed> $parameters
      * @param array<string, mixed> $paramTypes
      * @param string[]|string      $expected
-     * @dataProvider parametersProvider
      */
-    public function testConvertParameters(array $parameters, array $paramTypes, $expected): void
+    #[DataProvider('parametersProvider')]
+    public function testConvertParameters(array $parameters, array $paramTypes, string|array $expected): void
     {
         $native = new NativeStatement(
             'select * from foo where bar = :bar and baz > :baz',
@@ -136,7 +133,7 @@ class BuilderSupportDecoratorTest extends TestCase
         }
     }
 
-    public function parametersProvider(): array
+    public static function parametersProvider(): array
     {
         return [
             [
