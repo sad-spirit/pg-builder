@@ -630,4 +630,15 @@ QRY
             $this->parser->parseExpression('news_expire >= current_date')
         );
     }
+
+    public function testIsDistinctFromInequality(): void
+    {
+        $this->assertEquals(
+            new IsDistinctFromExpression(
+                new OperatorExpression('<', new NumericConstant('1'), new NumericConstant('2')),
+                new OperatorExpression('>', new NumericConstant('1'), new NumericConstant('2'))
+            ),
+            $this->parser->parseExpression('1 < 2 is distinct from 1 > 2')
+        );
+    }
 }

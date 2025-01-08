@@ -28,6 +28,14 @@ Support for new syntax of Postgres 17
      passed to `NativeStatement::prepare()`.
  * `Node` classes no longer implement deprecated `Serializable` interface.
 
+### Fixed
+ 
+ * Incorrect method was called to parse right argument of `IS [NOT] DISTINCT FROM` expression, causing syntax exceptions
+   with correct expressions, e.g. `foo IS DISTINCT FROM bar < baz`.
+ * Some keywords (`AND`, `BETWEEN`, `COLLATE`, `ILIKE`, `IN`, `IS`, `LIKE`, `OR`) that can be used in Postgres
+   as column aliases without `AS` keyword caused syntax exceptions when used
+   in such a way, e.g. `SELECT NULL AND` (this returns a null column aliased `and` in Postgres).
+
 ## [2.4.0] - 2024-05-27
 
 ### Changed

@@ -636,6 +636,28 @@ class Parser
     }
 
     /**
+     * Checks whether the given token matches the end of TargetElement
+     *
+     * This is needed to check whether some bare-label keywords are used as part of an Expression
+     * or as column aliases in TargetElement
+     *
+     * Stuff that may legitimately follow TargetElement is
+     *  - End of input (`RETURNING` clause is always the last one, `SELECT` may contain only TargetList)
+     *  - Closing parenthesis, see above
+     *  - A comma (separating another TargetElement)
+     *  - Several keywords (e.g. `FROM`, `WHERE`...) that are all conveniently not bare-label
+     *
+     * @param Token $token
+     * @return bool
+     */
+    private function matchesTargetElementBound(Token $token): bool
+    {
+        return $token instanceof tokens\EOFToken
+            || ($token instanceof tokens\KeywordToken && !$token->getKeyword()->isBareLabel())
+            || $token->matches(TokenType::SPECIAL_CHAR, [',', ')']);
+    }
+
+    /**
      * Constructor, sets Lexer and Cache implementations to use
      *
      * It is recommended to always use cache in production: loading AST from cache is generally 3-4 times faster
@@ -1556,14 +1578,17 @@ class Parser
         return $expressions;
     }
 
-    protected function Expression(): nodes\ScalarExpression
+    protected function Expression(bool $targetElement = false): nodes\ScalarExpression
     {
-        $terms = [$this->LogicalExpressionTerm()];
+        $terms = [$this->LogicalExpressionTerm($targetElement)];
 
         while (Keyword::OR === $this->stream->getKeyword()) {
+            if ($targetElement && $this->matchesTargetElementBound($this->stream->look())) {
+                break;
+            }
             $this->stream->next();
 
-            $terms[] = $this->LogicalExpressionTerm();
+            $terms[] = $this->LogicalExpressionTerm($targetElement);
         }
 
         if (1 === count($terms)) {
@@ -1573,14 +1598,17 @@ class Parser
         return new nodes\expressions\LogicalExpression($terms, enums\LogicalOperator::OR);
     }
 
-    protected function LogicalExpressionTerm(): nodes\ScalarExpression
+    protected function LogicalExpressionTerm(bool $targetElement): nodes\ScalarExpression
     {
-        $factors = [$this->LogicalExpressionFactor()];
+        $factors = [$this->LogicalExpressionFactor($targetElement)];
 
         while (Keyword::AND === $this->stream->getKeyword()) {
+            if ($targetElement && $this->matchesTargetElementBound($this->stream->look())) {
+                break;
+            }
             $this->stream->next();
 
-            $factors[] = $this->LogicalExpressionFactor();
+            $factors[] = $this->LogicalExpressionFactor($targetElement);
         }
 
         if (1 === count($factors)) {
@@ -1590,26 +1618,23 @@ class Parser
         return new nodes\expressions\LogicalExpression($factors, enums\LogicalOperator::AND);
     }
 
-    protected function LogicalExpressionFactor(): nodes\ScalarExpression
+    protected function LogicalExpressionFactor(bool $targetElement): nodes\ScalarExpression
     {
         if (Keyword::NOT === $this->stream->getKeyword()) {
             $this->stream->next();
-            return new nodes\expressions\NotExpression($this->LogicalExpressionFactor());
+            return new nodes\expressions\NotExpression($this->LogicalExpressionFactor($targetElement));
         }
-        return $this->IsWhateverExpression();
+        return $this->IsWhateverExpression(false, $targetElement);
     }
 
     /**
      * In Postgres 9.5+ all comparison operators have the same precedence and are non-associative
-     *
-     * @param bool $restricted
-     * @return nodes\ScalarExpression
      */
-    protected function Comparison(bool $restricted = false): nodes\ScalarExpression
+    protected function Comparison(bool $restricted, bool $targetElement = false): nodes\ScalarExpression
     {
         $argument = $restricted
                     ? $this->GenericOperatorExpression(true)
-                    : $this->PatternMatchingExpression();
+                    : $this->PatternMatchingExpression($targetElement);
 
         if (
             $this->stream->matchesSpecialChar(['<', '>', '='])
@@ -1618,19 +1643,32 @@ class Parser
             return new nodes\expressions\OperatorExpression(
                 $this->stream->next()->getValue(),
                 $argument,
-                $restricted ? $this->GenericOperatorExpression(true) : $this->PatternMatchingExpression()
+                $restricted ? $this->GenericOperatorExpression(true) : $this->PatternMatchingExpression($targetElement)
             );
         }
 
         return $argument;
     }
 
-    protected function PatternMatchingExpression(): nodes\ScalarExpression
+    protected function PatternMatchingExpression(bool $targetElement): nodes\ScalarExpression
     {
-        $string = $this->OverlapsExpression();
+        $string = $this->OverlapsExpression($targetElement);
 
         // speedup
-        if (null === $this->stream->matchesAnyKeyword(Keyword::LIKE, Keyword::ILIKE, Keyword::NOT, Keyword::SIMILAR)) {
+        if (
+            null === $keyword = $this->stream->matchesAnyKeyword(
+                Keyword::LIKE,
+                Keyword::ILIKE,
+                Keyword::NOT,
+                Keyword::SIMILAR
+            )
+        ) {
+            return $string;
+        }
+        if (
+            $targetElement && (Keyword::LIKE === $keyword || Keyword::ILIKE === $keyword)
+            && $this->matchesTargetElementBound($this->stream->look())
+        ) {
             return $string;
         }
 
@@ -1643,10 +1681,10 @@ class Parser
                     $pattern = $this->SubqueryExpression();
 
                 } else {
-                    $pattern = $this->OverlapsExpression();
+                    $pattern = $this->OverlapsExpression($targetElement);
                     if (Keyword::ESCAPE === $this->stream->getKeyword()) {
                         $this->stream->next();
-                        $escape = $this->OverlapsExpression();
+                        $escape = $this->OverlapsExpression($targetElement);
                     }
                 }
 
@@ -1692,9 +1730,9 @@ class Parser
         return $result;
     }
 
-    protected function OverlapsExpression(): nodes\ScalarExpression
+    protected function OverlapsExpression(bool $targetElement): nodes\ScalarExpression
     {
-        $left = $this->BetweenExpression();
+        $left = $this->BetweenExpression($targetElement);
 
         if (
             !$left instanceof nodes\expressions\RowExpression
@@ -1732,15 +1770,18 @@ class Parser
      *
      * @return nodes\ScalarExpression
      */
-    protected function BetweenExpression(): nodes\ScalarExpression
+    protected function BetweenExpression(bool $targetElement): nodes\ScalarExpression
     {
-        $value = $this->InExpression();
+        $value = $this->InExpression($targetElement);
 
         if (null === $keyword = $this->stream->matchesAnyKeyword(Keyword::BETWEEN, Keyword::NOT)) {
             return $value;
         }
 
         if (Keyword::BETWEEN === $keyword) {
+            if ($targetElement && $this->matchesTargetElementBound($this->stream->look())) {
+                return $value;
+            }
             $negated = false;
             $this->stream->next();
         } elseif (Keyword::BETWEEN !== $this->stream->look()->getKeyword()) {
@@ -1758,7 +1799,7 @@ class Parser
         $left  = $this->GenericOperatorExpression(true);
         $this->stream->expectKeyword(Keyword::AND);
         // right argument of BETWEEN is defined as 'b_expr' in pre-9.5 grammar and as 'a_expr' afterwards
-        $right = $this->GenericOperatorExpression();
+        $right = $this->GenericOperatorExpression(true, $targetElement);
 
         return new nodes\expressions\BetweenExpression(
             $value,
@@ -1785,12 +1826,15 @@ class Parser
      * %nonassoc in gram.y and the above code should be a syntax error per bison docs:
      * > %nonassoc specifies no associativity, which means that `x op y op z' is considered a syntax error.
      */
-    protected function InExpression(): nodes\ScalarExpression
+    protected function InExpression(bool $targetElement): nodes\ScalarExpression
     {
-        $left = $this->GenericOperatorExpression();
+        $left = $this->GenericOperatorExpression(false, $targetElement);
 
         while (null !== $keyword = $this->stream->matchesAnyKeyword(Keyword::NOT, Keyword::IN)) {
             if (Keyword::IN === $keyword) {
+                if ($targetElement && $this->matchesTargetElementBound($this->stream->look())) {
+                    return $left;
+                }
                 $negated = false;
                 $this->stream->next();
             } elseif (Keyword::IN !== $this->stream->look()->getKeyword()) {
@@ -1813,14 +1857,11 @@ class Parser
 
 
     /**
-     * Handles infix and postfix operators
-     *
-     * @param bool $restricted
-     * @return nodes\ScalarExpression
+     * Handles infix operators
      */
-    protected function GenericOperatorExpression(bool $restricted = false): nodes\ScalarExpression
+    protected function GenericOperatorExpression(bool $restricted, bool $targetElement = false): nodes\ScalarExpression
     {
-        $leftOperand = $this->GenericOperatorTerm($restricted);
+        $leftOperand = $this->GenericOperatorTerm($restricted, $targetElement);
 
         while (
             ($op = $this->matchesOperator())
@@ -1839,7 +1880,7 @@ class Parser
                 $leftOperand = new nodes\expressions\OperatorExpression(
                     $operator,
                     $leftOperand,
-                    $this->GenericOperatorTerm($restricted)
+                    $this->GenericOperatorTerm($restricted, $targetElement)
                 );
             }
         }
@@ -1847,14 +1888,14 @@ class Parser
         return $leftOperand;
     }
 
-    protected function GenericOperatorTerm(bool $restricted = false): nodes\ScalarExpression
+    protected function GenericOperatorTerm(bool $restricted, bool $targetElement): nodes\ScalarExpression
     {
         $operators = [];
         // prefix operator(s)
         while ($this->matchesOperator()) {
             $operators[] = $this->Operator();
         }
-        $term = $this->ArithmeticExpression($restricted);
+        $term = $this->ArithmeticExpression($restricted, $targetElement);
         // prefix operators are left-associative
         while (!empty($operators)) {
             $term = new nodes\expressions\OperatorExpression(array_pop($operators), null, $term);
@@ -1901,9 +1942,11 @@ class Parser
         return new nodes\QualifiedOperator(...$parts);
     }
 
-    protected function IsWhateverExpression(bool $restricted = false): nodes\ScalarExpression
-    {
-        $operand = $this->Comparison($restricted);
+    protected function IsWhateverExpression(
+        bool $restricted = false,
+        bool $targetElement = false
+    ): nodes\ScalarExpression {
+        $operand = $this->Comparison($restricted, $targetElement);
         $isNot   = false;
 
         while (
@@ -1911,6 +1954,13 @@ class Parser
                 ? $this->stream->matchesAnyKeyword(Keyword::IS)
                 : $this->stream->matchesAnyKeyword(Keyword::IS, Keyword::ISNULL, Keyword::NOTNULL)
         ) {
+            if (
+                $targetElement && Keyword::IS === $keyword
+                && $this->matchesTargetElementBound($this->stream->look())
+            ) {
+                break;
+            }
+
             $this->stream->next();
             if (Keyword::NOTNULL === $keyword) {
                 $operand = new nodes\expressions\IsExpression($operand, enums\IsPredicate::NULL, true);
@@ -1961,7 +2011,7 @@ class Parser
                 $this->stream->skip(2);
                 return new nodes\expressions\IsDistinctFromExpression(
                     $operand,
-                    $this->ArithmeticExpression($restricted),
+                    $this->Comparison($restricted, $targetElement),
                     $isNot
                 );
             }
@@ -2352,70 +2402,73 @@ class Parser
         }
     }
 
-    protected function ArithmeticExpression(bool $restricted = false): nodes\ScalarExpression
+    protected function ArithmeticExpression(bool $restricted, bool $targetElement): nodes\ScalarExpression
     {
-        $leftOperand = $this->ArithmeticTerm($restricted);
+        $leftOperand = $this->ArithmeticTerm($restricted, $targetElement);
 
         while ($this->stream->matchesSpecialChar(['+', '-'])) {
             $operator = $this->stream->next()->getValue();
             $leftOperand = new nodes\expressions\OperatorExpression(
                 $operator,
                 $leftOperand,
-                $this->ArithmeticTerm($restricted)
+                $this->ArithmeticTerm($restricted, $targetElement)
             );
         }
 
         return $leftOperand;
     }
 
-    protected function ArithmeticTerm(bool $restricted = false): nodes\ScalarExpression
+    protected function ArithmeticTerm(bool $restricted, bool $targetElement): nodes\ScalarExpression
     {
-        $leftOperand = $this->ArithmeticMultiplier($restricted);
+        $leftOperand = $this->ArithmeticMultiplier($restricted, $targetElement);
 
         while ($this->stream->matchesSpecialChar(['*', '/', '%'])) {
             $operator = $this->stream->next()->getValue();
             $leftOperand = new nodes\expressions\OperatorExpression(
                 $operator,
                 $leftOperand,
-                $this->ArithmeticMultiplier($restricted)
+                $this->ArithmeticMultiplier($restricted, $targetElement)
             );
         }
 
         return $leftOperand;
     }
 
-    protected function ArithmeticMultiplier(bool $restricted = false): nodes\ScalarExpression
+    protected function ArithmeticMultiplier(bool $restricted, bool $targetElement): nodes\ScalarExpression
     {
         $leftOperand = $restricted
                        ? $this->UnaryPlusMinusExpression()
-                       : $this->AtTimeZoneExpression();
+                       : $this->AtTimeZoneExpression($targetElement);
 
         while ($this->stream->matchesSpecialChar('^')) {
             $operator    = $this->stream->next()->getValue();
             $leftOperand = new nodes\expressions\OperatorExpression(
                 $operator,
                 $leftOperand,
-                $restricted ? $this->UnaryPlusMinusExpression() : $this->AtTimeZoneExpression()
+                $restricted ? $this->UnaryPlusMinusExpression() : $this->AtTimeZoneExpression($targetElement)
             );
         }
 
         return $leftOperand;
     }
 
-    protected function AtTimeZoneExpression(): nodes\ScalarExpression
+    protected function AtTimeZoneExpression(bool $targetElement): nodes\ScalarExpression
     {
-        $left = $this->CollateExpression();
+        $left = $this->CollateExpression($targetElement);
         if ($this->stream->matchesKeywordSequence(Keyword::AT, Keyword::TIME, Keyword::ZONE)) {
             $this->stream->skip(3);
-            return new nodes\expressions\AtTimeZoneExpression($left, $this->CollateExpression());
+            return new nodes\expressions\AtTimeZoneExpression($left, $this->CollateExpression($targetElement));
         }
         return $left;
     }
 
-    protected function CollateExpression(): nodes\ScalarExpression
+    protected function CollateExpression(bool $targetElement): nodes\ScalarExpression
     {
         $left = $this->UnaryPlusMinusExpression();
-        if (Keyword::COLLATE === $this->stream->getKeyword()) {
+        if (
+            Keyword::COLLATE === $this->stream->getKeyword()
+            && !($targetElement && $this->matchesTargetElementBound($this->stream->look()))
+        ) {
             $this->stream->next();
             return new nodes\expressions\CollateExpression($left, $this->QualifiedName());
         }
@@ -3539,7 +3592,7 @@ class Parser
             $this->stream->next();
             return new nodes\Star();
         }
-        $element = $this->Expression();
+        $element = $this->Expression(true);
         if (
             $this->stream->matches(TokenType::IDENTIFIER)
             || (null !== $keyword = $this->stream->getKeyword())
