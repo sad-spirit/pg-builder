@@ -38,14 +38,9 @@ class JsonSerialize extends GenericNode implements ScalarExpression, FunctionLik
     use ExpressionAtom;
     use ReturningProperty;
 
-    /** @var JsonFormattedValue */
-    protected $p_expression;
-
-    public function __construct(JsonFormattedValue $expression, ?JsonReturning $returning = null)
+    public function __construct(protected JsonFormattedValue $p_expression, ?JsonReturning $returning = null)
     {
         $this->generatePropertyNames();
-
-        $this->p_expression = $expression;
         $this->p_expression->setParentNode($this);
 
         if (null !== $returning) {
@@ -59,7 +54,7 @@ class JsonSerialize extends GenericNode implements ScalarExpression, FunctionLik
         $this->setRequiredProperty($this->p_expression, $expression);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonSerialize($this);
     }

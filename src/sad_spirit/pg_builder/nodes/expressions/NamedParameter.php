@@ -29,19 +29,16 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class NamedParameter extends Parameter
 {
-    /** @var string */
-    protected $p_name;
-
-    protected $propertyNames = [
+    /** @var array<string, string> */
+    protected array $propertyNames = [
         'name' => 'p_name'
     ];
 
-    public function __construct(string $name)
+    public function __construct(protected string $p_name)
     {
-        $this->p_name = $name;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkNamedParameter($this);
     }

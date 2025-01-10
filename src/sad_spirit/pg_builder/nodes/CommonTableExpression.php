@@ -38,35 +38,25 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  * Quite similar to range\Subselect, but any statement is allowed here, not only
  * SELECT
  *
- * @psalm-property-read IdentifierList $columnAliases
- *
- * @property      Statement                   $statement
- * @property-read Identifier                  $alias
- * @property-read IdentifierList|Identifier[] $columnAliases
- * @property      bool|null                   $materialized
- * @property      SearchClause|null           $search
- * @property      CycleClause|null            $cycle
+ * @property      Statement         $statement
+ * @property-read Identifier        $alias
+ * @property-read IdentifierList    $columnAliases
+ * @property      bool|null         $materialized
+ * @property      SearchClause|null $search
+ * @property      CycleClause|null  $cycle
  */
 class CommonTableExpression extends GenericNode
 {
-    /** @var Statement */
-    protected $p_statement;
-    /** @var Identifier */
-    protected $p_alias;
-    /** @var IdentifierList */
-    protected $p_columnAliases;
-    /** @var bool|null */
-    protected $p_materialized;
-    /** @var SearchClause|null */
-    protected $p_search;
-    /** @var CycleClause|null */
-    protected $p_cycle;
+    protected Statement $p_statement;
+    protected IdentifierList $p_columnAliases;
+    protected ?SearchClause $p_search = null;
+    protected ?CycleClause $p_cycle = null;
 
     public function __construct(
         Statement $statement,
-        Identifier $alias,
+        protected Identifier $p_alias,
         ?IdentifierList $columnAliases = null,
-        ?bool $materialized = null,
+        protected ?bool $p_materialized = null,
         ?SearchClause $search = null,
         ?CycleClause $cycle = null
     ) {
@@ -77,14 +67,10 @@ class CommonTableExpression extends GenericNode
         $this->generatePropertyNames();
         $this->p_statement = $statement;
         $this->p_statement->setParentNode($this);
-
-        $this->p_alias = $alias;
         $this->p_alias->setParentNode($this);
 
         $this->p_columnAliases = $columnAliases ?? new IdentifierList();
         $this->p_columnAliases->setParentNode($this);
-
-        $this->p_materialized = $materialized;
 
         if (null !== $search) {
             $this->p_search = $search;
@@ -120,7 +106,7 @@ class CommonTableExpression extends GenericNode
         $this->setProperty($this->p_cycle, $cycle);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkCommonTableExpression($this);
     }

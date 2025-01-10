@@ -38,21 +38,16 @@ use sad_spirit\pg_builder\{
  */
 class WindowFrameClause extends GenericNode
 {
-    protected WindowFrameMode $p_type;
     protected WindowFrameBound $p_start;
     protected ?WindowFrameBound $p_end = null;
-    protected ?WindowFrameExclusion $p_exclusion = null;
 
     public function __construct(
-        WindowFrameMode $type,
+        protected WindowFrameMode $p_type,
         WindowFrameBound $start,
         ?WindowFrameBound $end = null,
-        ?WindowFrameExclusion $exclusion = null
+        protected ?WindowFrameExclusion $p_exclusion = null
     ) {
         $this->generatePropertyNames();
-
-        $this->p_type      = $type;
-        $this->p_exclusion = $exclusion;
 
         // like in frame_extent production in gram.y, reject invalid frame cases
         if (WindowFrameDirection::FOLLOWING === $start->direction && !$start->value) {
@@ -90,7 +85,7 @@ class WindowFrameClause extends GenericNode
         }
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkWindowFrameClause($this);
     }

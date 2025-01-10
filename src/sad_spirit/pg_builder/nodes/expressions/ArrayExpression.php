@@ -54,7 +54,7 @@ class ArrayExpression extends NonAssociativeList implements ScalarExpression
         return parent::prepareListElement($value);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkArrayExpression($this);
     }

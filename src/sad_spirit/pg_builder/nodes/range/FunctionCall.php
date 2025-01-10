@@ -30,18 +30,13 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class FunctionCall extends FunctionFromElement
 {
-    /** @var FunctionLike */
-    protected $p_function;
-
-    public function __construct(FunctionLike $function)
+    public function __construct(protected FunctionLike $p_function)
     {
         $this->generatePropertyNames();
-
-        $this->p_function = $function;
         $this->p_function->setParentNode($this);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkRangeFunctionCall($this);
     }

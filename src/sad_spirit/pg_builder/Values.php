@@ -20,20 +20,16 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_builder\nodes\expressions\RowExpression;
 use sad_spirit\pg_builder\nodes\lists\RowList;
 
 /**
  * AST node representing VALUES statement
  *
- * @psalm-property RowList $rows
- *
- * @property RowList|RowExpression[] $rows
+ * @property RowList $rows
  */
 class Values extends SelectCommon
 {
-    /** @var RowList */
-    protected $p_rows;
+    protected RowList $p_rows;
 
     public function __construct(RowList $rows)
     {
@@ -43,7 +39,7 @@ class Values extends SelectCommon
         $this->p_rows = $rows;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkValuesStatement($this);
     }

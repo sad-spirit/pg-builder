@@ -57,7 +57,7 @@ trait HasBehaviours
                     $onEmpty ? 'ON EMPTY' : 'ON ERROR',
                     $this::class,
                     \implode(', ', \array_map(
-                        fn (JsonBehaviour $behaviour) => $behaviour->nameForExceptionMessage(),
+                        fn (JsonBehaviour $behaviour): string => $behaviour->nameForExceptionMessage(),
                         $applicable
                     ))
                 ));

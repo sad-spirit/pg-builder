@@ -35,24 +35,19 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class IsJsonExpression extends NegatableExpression
 {
-    protected ScalarExpression $p_argument;
     protected ?IsJsonType $p_type;
-    protected ?bool $p_uniqueKeys;
 
     public function __construct(
-        ScalarExpression $argument,
+        protected ScalarExpression $p_argument,
         bool $not = false,
         ?IsJsonType $type = null,
-        ?bool $unique = null
+        protected ?bool $p_uniqueKeys = null
     ) {
         $this->generatePropertyNames();
 
         $this->setType($type);
-
-        $this->p_argument   = $argument;
         $this->p_argument->setParentNode($this);
         $this->p_not        = $not;
-        $this->p_uniqueKeys = $unique;
     }
 
     public function setArgument(ScalarExpression $argument): void
@@ -70,7 +65,7 @@ class IsJsonExpression extends NegatableExpression
         $this->p_uniqueKeys = $unique;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkIsJsonExpression($this);
     }

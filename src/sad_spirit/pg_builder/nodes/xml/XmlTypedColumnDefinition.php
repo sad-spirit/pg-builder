@@ -38,20 +38,14 @@ use sad_spirit\pg_builder\{
  */
 class XmlTypedColumnDefinition extends XmlColumnDefinition
 {
-    /** @var TypeName */
-    protected $p_type;
-    /** @var ScalarExpression|null */
-    protected $p_path = null;
-    /** @var bool|null */
-    protected $p_nullable = null;
-    /** @var ScalarExpression|null */
-    protected $p_default = null;
+    protected ?ScalarExpression $p_path = null;
+    protected ?ScalarExpression $p_default = null;
 
     public function __construct(
         Identifier $name,
-        TypeName $type,
+        protected TypeName $p_type,
         ?ScalarExpression $path = null,
-        ?bool $nullable = null,
+        protected ?bool $p_nullable = null,
         ?ScalarExpression $default = null
     ) {
         if (null !== $path && $path === $default) {
@@ -59,8 +53,6 @@ class XmlTypedColumnDefinition extends XmlColumnDefinition
         }
 
         parent::__construct($name);
-
-        $this->p_type = $type;
         $this->p_type->setParentNode($this);
 
         if (null !== $path) {
@@ -72,8 +64,6 @@ class XmlTypedColumnDefinition extends XmlColumnDefinition
             $this->p_default = $default;
             $this->p_default->setParentNode($this);
         }
-
-        $this->p_nullable = $nullable;
     }
 
     public function setType(TypeName $type): void
@@ -81,22 +71,22 @@ class XmlTypedColumnDefinition extends XmlColumnDefinition
         $this->setRequiredProperty($this->p_type, $type);
     }
 
-    public function setPath(?ScalarExpression $path = null): void
+    public function setPath(?ScalarExpression $path): void
     {
         $this->setProperty($this->p_path, $path);
     }
 
-    public function setNullable(?bool $nullable = null): void
+    public function setNullable(?bool $nullable): void
     {
         $this->p_nullable = $nullable;
     }
 
-    public function setDefault(?ScalarExpression $default = null): void
+    public function setDefault(?ScalarExpression $default): void
     {
         $this->setProperty($this->p_default, $default);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkXmlTypedColumnDefinition($this);
     }

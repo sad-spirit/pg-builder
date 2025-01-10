@@ -28,7 +28,7 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class GroupingSetsClause extends GroupByList implements GroupByElement
 {
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkGroupingSetsClause($this);
     }

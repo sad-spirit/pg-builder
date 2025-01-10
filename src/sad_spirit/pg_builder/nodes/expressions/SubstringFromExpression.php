@@ -44,12 +44,9 @@ class SubstringFromExpression extends GenericNode implements ScalarExpression, F
 {
     use ExpressionAtom;
 
-    /** @var ScalarExpression */
-    protected $p_string;
-    /** @var ScalarExpression|null */
-    protected $p_from;
-    /** @var ScalarExpression|null */
-    protected $p_for;
+    protected ScalarExpression $p_string;
+    protected ?ScalarExpression $p_from;
+    protected ?ScalarExpression $p_for;
 
     public function __construct(
         ScalarExpression $string,
@@ -100,7 +97,7 @@ class SubstringFromExpression extends GenericNode implements ScalarExpression, F
         $this->setProperty($this->p_for, $for);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkSubstringFromExpression($this);
     }

@@ -32,41 +32,22 @@ use sad_spirit\pg_wrapper\{
  */
 class NativeStatement
 {
-    /**
-     * SQL statement
-     * @var string
-     */
-    private $sql;
-
-    /**
-     * Mapping 'parameter name' => 'parameter position' if named parameters were used
-     * @var array<string, int>
-     */
-    private $namedParameterMap;
-
-    /**
-     * Type info: 'parameter position' => 'parameter type' if explicit typecasts were used for parameters
-     * @var array<int, ?nodes\TypeName>
-     */
-    private $parameterTypes;
-
-    /**
-     * @var PreparedStatement|null
-     */
-    private $preparedStatement;
+    private ?PreparedStatement $preparedStatement = null;
 
     /**
      * Constructor, sets the query building results
      *
-     * @param string                      $sql
-     * @param array<int, ?nodes\TypeName> $parameterTypes
-     * @param array<string, int>          $namedParameterMap
+     * @param string                      $sql               SQL statement
+     * @param array<int, ?nodes\TypeName> $parameterTypes    Type info: 'parameter position' => 'parameter type'
+     *                                                       if explicit typecasts were used for parameters
+     * @param array<string, int>          $namedParameterMap Mapping 'parameter name' => 'parameter position'
+     *                                                       if named parameters were used
      */
-    public function __construct(string $sql, array $parameterTypes, array $namedParameterMap)
-    {
-        $this->sql               = $sql;
-        $this->parameterTypes    = $parameterTypes;
-        $this->namedParameterMap = $namedParameterMap;
+    public function __construct(
+        private readonly string $sql,
+        private readonly array $parameterTypes,
+        private readonly array $namedParameterMap
+    ) {
     }
 
     /**
@@ -79,8 +60,6 @@ class NativeStatement
 
     /**
      * Returns the SQL statement string
-     *
-     * @return string
      */
     public function getSql(): string
     {
@@ -135,8 +114,8 @@ class NativeStatement
     /**
      * Merges the types array received from builder with additional types info
      *
-     * @param mixed[] $paramTypes Parameter types (keys can be either names or positions), types from this
-     *                            array take precedence over types from $parameterTypes
+     * @param array $paramTypes Parameter types (keys can be either names or positions), types from this
+     *                          array take precedence over types from $parameterTypes
      * @return array<int, mixed>
      * @throws exceptions\InvalidArgumentException
      */
@@ -161,10 +140,10 @@ class NativeStatement
      * Executes the query with the ability to pass parameters separately
      *
      * @param Connection $connection  DB connection
-     * @param mixed[]    $params      Parameters (keys are treated as names unless $namedParameterMap is empty)
-     * @param mixed[]    $paramTypes  Parameter types (keys can be either names or positions), types from this
-     *                                array take precedence over types from $parameterTypes property
-     * @param mixed[]    $resultTypes Result types to pass to ResultSet (keys can be either names or positions)
+     * @param array $params      Parameters (keys are treated as names unless $namedParameterMap is empty)
+     * @param array $paramTypes  Parameter types (keys can be either names or positions), types from this
+     *                           array take precedence over types from $parameterTypes property
+     * @param array $resultTypes Result types to pass to Result (keys can be either names or positions)
      * @return Result
      * @throws ServerException
      * @throws exceptions\InvalidArgumentException
@@ -204,7 +183,7 @@ class NativeStatement
     public function prepare(Connection $connection, array $paramTypes = [], array $resultTypes = []): PreparedStatement
     {
         $mergedTypes = $this->mergeParameterTypes($paramTypes);
-        $hasUnknown  = false !== \array_search(null, $mergedTypes, true);
+        $hasUnknown  = \in_array(null, $mergedTypes, true);
         $autoFetch   = PreparedStatement::getAutoFetchParameterTypes();
 
         try {
@@ -224,7 +203,7 @@ class NativeStatement
     /**
      * Executes the prepared statement using only the given parameters (requires prepare() to be called first)
      *
-     * @param mixed[] $params      Parameters (keys are treated as names unless $namedParameterMap is empty)
+     * @param array $params Parameters (keys are treated as names unless $namedParameterMap is empty)
      * @return Result
      * @throws exceptions\RuntimeException
      * @throws ServerException

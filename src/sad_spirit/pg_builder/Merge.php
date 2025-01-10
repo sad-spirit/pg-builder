@@ -20,52 +20,34 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_builder\nodes\merge\{
-    MergeWhenClause,
-    MergeWhenList
+use sad_spirit\pg_builder\nodes\{
+    ScalarExpression,
+    merge\MergeWhenList,
+    range\FromElement,
+    range\UpdateOrDeleteTarget
 };
-use sad_spirit\pg_builder\nodes\range\{
-    FromElement,
-    UpdateOrDeleteTarget
-};
-use sad_spirit\pg_builder\nodes\ScalarExpression;
 
 /**
  * AST node representing MERGE statement
  *
- * @psalm-property MergeWhenList $when
- *
- * @property UpdateOrDeleteTarget            $relation
- * @property FromElement                     $using
- * @property ScalarExpression                $on
- * @property MergeWhenList|MergeWhenClause[] $when
+ * @property UpdateOrDeleteTarget $relation
+ * @property FromElement          $using
+ * @property ScalarExpression     $on
+ * @property MergeWhenList        $when
  */
 class Merge extends Statement
 {
-    /** @var UpdateOrDeleteTarget */
-    protected $p_relation;
-    /** @var FromElement */
-    protected $p_using;
-    /** @var ScalarExpression */
-    protected $p_on;
-    /** @var MergeWhenList */
-    protected $p_when;
+    protected MergeWhenList $p_when;
 
     public function __construct(
-        UpdateOrDeleteTarget $relation,
-        FromElement $using,
-        ScalarExpression $on,
+        protected UpdateOrDeleteTarget $p_relation,
+        protected FromElement $p_using,
+        protected ScalarExpression $p_on,
         ?MergeWhenList $when = null
     ) {
         parent::__construct();
-
-        $this->p_relation = $relation;
         $this->p_relation->setParentNode($this);
-
-        $this->p_using = $using;
         $this->p_using->setParentNode($this);
-
-        $this->p_on = $on;
         $this->p_on->setParentNode($this);
 
         $this->p_when = $when ?? new MergeWhenList();
@@ -87,7 +69,7 @@ class Merge extends Statement
         $this->setRequiredProperty($this->p_on, $on);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkMergeStatement($this);
     }

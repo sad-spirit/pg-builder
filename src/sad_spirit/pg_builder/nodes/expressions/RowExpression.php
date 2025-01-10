@@ -72,7 +72,7 @@ class RowExpression extends NonAssociativeList implements Parseable, ElementPars
         return $parser->parseRowConstructor($sql);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkRowExpression($this);
     }

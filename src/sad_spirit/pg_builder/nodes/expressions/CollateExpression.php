@@ -35,19 +35,10 @@ use sad_spirit\pg_builder\{
  */
 class CollateExpression extends GenericNode implements ScalarExpression
 {
-    /** @var ScalarExpression */
-    protected $p_argument;
-    /** @var QualifiedName */
-    protected $p_collation;
-
-    public function __construct(ScalarExpression $argument, QualifiedName $collation)
+    public function __construct(protected ScalarExpression $p_argument, protected QualifiedName $p_collation)
     {
         $this->generatePropertyNames();
-
-        $this->p_argument = $argument;
         $this->p_argument->setParentNode($this);
-
-        $this->p_collation = $collation;
         $this->p_collation->setParentNode($this);
     }
 
@@ -56,7 +47,7 @@ class CollateExpression extends GenericNode implements ScalarExpression
         $this->setRequiredProperty($this->p_argument, $argument);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkCollateExpression($this);
     }

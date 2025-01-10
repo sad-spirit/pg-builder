@@ -23,33 +23,24 @@ namespace sad_spirit\pg_builder;
 use sad_spirit\pg_builder\nodes\{
     lists\FromList,
     lists\TargetList,
-    range\FromElement,
     range\UpdateOrDeleteTarget,
-    TargetElement,
     WhereOrHavingClause
 };
 
 /**
  * AST node representing DELETE statement
  *
- * @psalm-property FromList   $using
- * @psalm-property TargetList $returning
- *
- * @property-read UpdateOrDeleteTarget       $relation
- * @property      FromList|FromElement[]     $using
- * @property-read WhereOrHavingClause        $where
- * @property      TargetList|TargetElement[] $returning
+ * @property-read UpdateOrDeleteTarget $relation
+ * @property      FromList             $using
+ * @property-read WhereOrHavingClause  $where
+ * @property      TargetList           $returning
  */
 class Delete extends Statement
 {
-    /** @var UpdateOrDeleteTarget */
-    protected $p_relation;
-    /** @var FromList */
-    protected $p_using;
-    /** @var WhereOrHavingClause */
-    protected $p_where;
-    /** @var TargetList */
-    protected $p_returning;
+    protected UpdateOrDeleteTarget $p_relation;
+    protected FromList $p_using;
+    protected WhereOrHavingClause $p_where;
+    protected TargetList $p_returning;
 
     public function __construct(UpdateOrDeleteTarget $relation)
     {
@@ -67,7 +58,7 @@ class Delete extends Statement
         $this->p_where->parentNode     = $this;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkDeleteStatement($this);
     }

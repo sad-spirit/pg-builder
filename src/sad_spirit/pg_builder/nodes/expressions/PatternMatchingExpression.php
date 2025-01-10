@@ -43,12 +43,11 @@ class PatternMatchingExpression extends NegatableExpression
     protected ScalarExpression $p_argument;
     protected ScalarExpression $p_pattern;
     protected ?ScalarExpression $p_escape = null;
-    protected PatternPredicate $p_operator;
 
     public function __construct(
         ScalarExpression $argument,
         ScalarExpression $pattern,
-        PatternPredicate $operator = PatternPredicate::LIKE,
+        protected PatternPredicate $p_operator = PatternPredicate::LIKE,
         bool $not = false,
         ?ScalarExpression $escape = null
     ) {
@@ -68,8 +67,6 @@ class PatternMatchingExpression extends NegatableExpression
             $this->p_escape = $escape;
             $this->p_escape->setParentNode($this);
         }
-
-        $this->p_operator = $operator;
         $this->p_not      = $not;
     }
 
@@ -83,12 +80,12 @@ class PatternMatchingExpression extends NegatableExpression
         $this->setRequiredProperty($this->p_pattern, $pattern);
     }
 
-    public function setEscape(?ScalarExpression $escape = null): void
+    public function setEscape(?ScalarExpression $escape): void
     {
         $this->setProperty($this->p_escape, $escape);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkPatternMatchingExpression($this);
     }

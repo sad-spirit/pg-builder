@@ -48,16 +48,9 @@ class ExtractExpression extends GenericNode implements ScalarExpression, Functio
 {
     use ExpressionAtom;
 
-    protected string|ExtractPart $p_field;
-    protected ScalarExpression $p_source;
-
-    public function __construct(string|ExtractPart $field, ScalarExpression $source)
+    public function __construct(protected string|ExtractPart $p_field, protected ScalarExpression $p_source)
     {
         $this->generatePropertyNames();
-
-        $this->p_field = $field;
-
-        $this->p_source = $source;
         $this->p_source->setParentNode($this);
     }
 
@@ -71,7 +64,7 @@ class ExtractExpression extends GenericNode implements ScalarExpression, Functio
         $this->setRequiredProperty($this->p_source, $source);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkExtractExpression($this);
     }

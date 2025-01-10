@@ -43,12 +43,11 @@ class XmlRoot extends GenericNode implements ScalarExpression, FunctionLike
 
     protected ScalarExpression $p_xml;
     protected ?ScalarExpression $p_version;
-    protected ?XmlStandalone $p_standalone;
 
     public function __construct(
         ScalarExpression $xml,
         ?ScalarExpression $version = null,
-        ?XmlStandalone $standalone = null
+        protected ?XmlStandalone $p_standalone = null
     ) {
         if ($version === $xml) {
             throw new InvalidArgumentException("Cannot use the same Node for xml and version arguments");
@@ -63,8 +62,6 @@ class XmlRoot extends GenericNode implements ScalarExpression, FunctionLike
             $this->p_version = $version;
             $this->p_version->setParentNode($this);
         }
-
-        $this->p_standalone = $standalone;
     }
 
     public function setXml(ScalarExpression $xml): void
@@ -77,7 +74,7 @@ class XmlRoot extends GenericNode implements ScalarExpression, FunctionLike
         $this->setProperty($this->p_version, $version);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkXmlRoot($this);
     }

@@ -25,21 +25,19 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * Represents a '*' meaning "all fields"
  */
-class Star extends GenericNode
+class Star extends GenericNode implements \Stringable
 {
     use NonRecursiveNode;
 
     /**
      * This is only used for constructing exception messages
-     *
-     * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return '*';
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkStar($this);
     }

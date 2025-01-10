@@ -196,11 +196,11 @@ QRY
                 \RecursiveIteratorIterator::LEAVES_ONLY
             ) as $file
         ) {
-            if (!$file->isFile() || !preg_match('/\.php$/', $file->getFilename())) {
+            if (!$file->isFile() || !preg_match('/\.php$/', (string) $file->getFilename())) {
                 continue;
             }
 
-            $className = str_replace('/', '\\', substr($file->getRealPath(), strlen($srcDir) + 1, -4));
+            $className = str_replace('/', '\\', substr((string) $file->getRealPath(), strlen($srcDir) + 1, -4));
             if (!class_exists($className)) {
                 if (!interface_exists($className, false) && !trait_exists($className, false)) {
                     $this::fail("Autoloading failed for {$className}");
@@ -240,14 +240,13 @@ QRY
     public function testBlankWalkerVisitsEverything(): void
     {
         $parser     = new Parser(new Lexer());
-        // https://github.com/vimeo/psalm/issues/5667
-        /** @psalm-suppress InvalidArgument */
-        $statements = array_map([$parser, 'parseStatement'], $this->sql);
+        // @phpstan-ignore callable.nonNativeMethod
+        $statements = array_map($parser->parseStatement(...), $this->sql);
 
         $this->assertAllNodeSubClassesAreUsed(...$statements);
 
         $walker = new BlankWalkerImplementation();
-        array_map(function ($statement) use ($walker) {
+        array_map(function ($statement) use ($walker): void {
             $statement->dispatch($walker);
         }, $statements);
 

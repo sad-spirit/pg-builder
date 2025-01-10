@@ -114,12 +114,7 @@ class ColumnReferenceTest extends TestCase
             [
                 [new Star(), new Identifier('foo')],
                 InvalidArgumentException::class,
-                'could not be converted to Identifier'
-            ],
-            [
-                ['first', 1],
-                InvalidArgumentException::class,
-                'could not be converted to Identifier'
+                "instance of Star can only be used for the 'column' part"
             ],
             [
                 [$foo, $foo],

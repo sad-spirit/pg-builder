@@ -34,14 +34,11 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class IsExpression extends NegatableExpression
 {
-    protected ScalarExpression $p_argument;
     protected IsPredicate $p_what;
 
-    public function __construct(ScalarExpression $argument, IsPredicate $what, bool $not = false)
+    public function __construct(protected ScalarExpression $p_argument, IsPredicate $what, bool $not = false)
     {
         $this->generatePropertyNames();
-
-        $this->p_argument = $argument;
         $this->p_argument->setParentNode($this);
 
         $this->p_not = $not;
@@ -59,7 +56,7 @@ class IsExpression extends NegatableExpression
         $this->p_what = $what;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkIsExpression($this);
     }

@@ -59,7 +59,7 @@ class SQLValueFunction extends GenericNode implements FunctionLike, ScalarExpres
         $this->p_modifier = $modifier;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkSQLValueFunction($this);
     }

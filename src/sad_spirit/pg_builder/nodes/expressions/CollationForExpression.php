@@ -41,14 +41,9 @@ class CollationForExpression extends GenericNode implements ScalarExpression, Fu
 {
     use ExpressionAtom;
 
-    /** @var ScalarExpression */
-    protected $p_argument;
-
-    public function __construct(ScalarExpression $argument)
+    public function __construct(protected ScalarExpression $p_argument)
     {
         $this->generatePropertyNames();
-
-        $this->p_argument = $argument;
         $this->p_argument->setParentNode($this);
     }
 
@@ -57,7 +52,7 @@ class CollationForExpression extends GenericNode implements ScalarExpression, Fu
         $this->setRequiredProperty($this->p_argument, $argument);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkCollationForExpression($this);
     }

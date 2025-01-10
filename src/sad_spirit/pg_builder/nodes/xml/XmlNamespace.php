@@ -35,16 +35,11 @@ use sad_spirit\pg_builder\{
  */
 class XmlNamespace extends GenericNode
 {
-    /** @var ScalarExpression */
-    protected $p_value;
-    /** @var Identifier|null */
-    protected $p_alias = null;
+    protected ?Identifier $p_alias = null;
 
-    public function __construct(ScalarExpression $value, ?Identifier $alias = null)
+    public function __construct(protected ScalarExpression $p_value, ?Identifier $alias = null)
     {
         $this->generatePropertyNames();
-
-        $this->p_value = $value;
         $this->p_value->setParentNode($this);
 
         if (null !== $alias) {
@@ -58,12 +53,12 @@ class XmlNamespace extends GenericNode
         $this->setRequiredProperty($this->p_value, $value);
     }
 
-    public function setAlias(?Identifier $alias = null): void
+    public function setAlias(?Identifier $alias): void
     {
         $this->setProperty($this->p_alias, $alias);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkXmlNamespace($this);
     }

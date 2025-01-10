@@ -40,7 +40,7 @@ class Lexer
      * @var array<string, string>
      * @link https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS-ESCAPE
      */
-    private static $replacements = [
+    private const BACKSLASH_REPLACEMENTS = [
         'b'  => "\10", // backspace, no equivalent in PHP
         'f'  => "\f",
         'n'  => "\n",
@@ -48,40 +48,34 @@ class Lexer
         't'  => "\t"
     ];
 
-    /** @var string */
-    private $source;
-    /** @var int */
-    private $position;
-    /** @var int */
-    private $length;
+    private string $source;
+    private int $position;
+    private int $length;
     /** @var Token[] */
-    private $tokens;
+    private array $tokens = [];
     /** @var array<string,mixed> */
-    private $options;
+    private array $options;
     /**
      * Set to true if Unicode escapes were seen during main lexer run, triggers processing these
-     * @var bool
      */
-    private $unescape;
+    private ?bool $unescape = null;
     /**
      * First codepoint of Unicode surrogate pair
-     * @var int|null
      */
-    private $pairFirst;
+    private ?int $pairFirst = null;
     /**
      * Position of last Unicode escape in string
-     * @var int
      */
-    private $lastUnicodeEscape;
+    private ?int $lastUnicodeEscape = null;
 
     /** @var array<string, int> */
-    private $operatorCharHash;
+    private readonly array $operatorCharHash;
     /** @var array<string, int> */
-    private $specialCharHash;
+    private readonly array $specialCharHash;
     /** @var array<string, int> */
-    private $nonStandardCharHash;
+    private readonly array $nonStandardCharHash;
     /** @psalm-var non-empty-string */
-    private $baseRegexp;
+    private readonly string $baseRegexp;
 
     /**
      * Constructor, sets options for lexer
@@ -476,8 +470,8 @@ REGEXP;
                     break;
                 }
 
-                if (isset(self::$replacements[$part[1]])) {
-                    $unescaped .= self::$replacements[$part[1]];
+                if (isset(self::BACKSLASH_REPLACEMENTS[$part[1]])) {
+                    $unescaped .= self::BACKSLASH_REPLACEMENTS[$part[1]];
 
                 } elseif ('x' === $part[1]) {
                     $unescaped .= chr((int)hexdec(substr($part, 2)));

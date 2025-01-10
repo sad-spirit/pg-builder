@@ -34,24 +34,20 @@ use sad_spirit\pg_builder\{
  * @property-read Identifier|null $schema
  * @property-read string          $operator
  */
-class QualifiedOperator extends GenericNode
+class QualifiedOperator extends GenericNode implements \Stringable
 {
     use NonRecursiveNode;
 
-    /** @var Identifier|null */
-    protected $p_catalog;
-    /** @var Identifier|null */
-    protected $p_schema;
-    /** @var string */
-    protected $p_operator;
+    protected Identifier|null $p_catalog = null;
+    protected Identifier|null $p_schema;
+    protected string $p_operator;
 
     /**
      * QualifiedOperator constructor, requires at least the operator, accepts up to three name parts
      *
-     * @param string|Identifier ...$nameParts
      * @noinspection PhpMissingBreakStatementInspection
      */
-    public function __construct(...$nameParts)
+    public function __construct(string|Identifier ...$nameParts)
     {
         $this->generatePropertyNames();
 
@@ -74,7 +70,7 @@ class QualifiedOperator extends GenericNode
                 break;
 
             case 0:
-                throw new InvalidArgumentException(__CLASS__ . ' expects operator name parts, none given');
+                throw new InvalidArgumentException(self::class . ' expects operator name parts, none given');
             default:
                 throw new SyntaxException("Too many dots in qualified name: " . implode('.', $nameParts));
         }
@@ -82,12 +78,8 @@ class QualifiedOperator extends GenericNode
 
     /**
      * Tries to convert part of operator name to Identifier
-     *
-     * @param mixed $namePart
-     * @param string $index
-     * @return Identifier
      */
-    private function expectIdentifier($namePart, string $index): Identifier
+    private function expectIdentifier(string|Identifier $namePart, string $index): Identifier
     {
         if ($namePart instanceof Identifier) {
             return $namePart;
@@ -97,7 +89,7 @@ class QualifiedOperator extends GenericNode
         } catch (\Throwable $e) {
             throw new InvalidArgumentException(sprintf(
                 "%s: %s part of operator name could not be converted to Identifier; %s",
-                __CLASS__,
+                self::class,
                 $index,
                 $e->getMessage()
             ));
@@ -106,24 +98,21 @@ class QualifiedOperator extends GenericNode
 
     /**
      * Ensures that the last part of the qualified name looks like an operator
-     *
-     * @param mixed $namePart
-     * @return string
      */
-    private function expectOperator($namePart): string
+    private function expectOperator(Identifier|string $namePart): string
     {
         if (!is_string($namePart)) {
             throw new InvalidArgumentException(sprintf(
                 '%s requires a string for an operator, %s given',
-                __CLASS__,
-                is_object($namePart) ? 'object(' . get_class($namePart) . ')' : gettype($namePart)
+                self::class,
+                'object(' . $namePart::class . ')'
             ));
         }
 
         if (strlen($namePart) !== strspn($namePart, Lexer::CHARS_OPERATOR)) {
             throw new SyntaxException(sprintf(
                 "%s: '%s' does not look like a valid operator string",
-                __CLASS__,
+                self::class,
                 $namePart
             ));
         }
@@ -133,18 +122,16 @@ class QualifiedOperator extends GenericNode
 
     /**
      * Returns the string representation of the node, with double quotes added as needed
-     *
-     * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return 'operator('
             . (null === $this->p_catalog ? '' : (string)$this->p_catalog . '.')
             . (null === $this->p_schema ? '' : (string)$this->p_schema . '.')
-            . (string)$this->p_operator . ')';
+            . $this->p_operator . ')';
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkQualifiedOperator($this);
     }

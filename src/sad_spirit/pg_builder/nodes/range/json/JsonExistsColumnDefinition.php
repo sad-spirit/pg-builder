@@ -38,7 +38,7 @@ class JsonExistsColumnDefinition extends JsonTypedColumnDefinition
 {
     use HasBehaviours;
 
-    protected ?JsonBehaviour $p_onError;
+    protected ?JsonBehaviour $p_onError = null;
 
     public function __construct(
         Identifier $name,
@@ -56,7 +56,7 @@ class JsonExistsColumnDefinition extends JsonTypedColumnDefinition
         $this->setBehaviour($this->p_onError, false, $onError);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonExistsColumnDefinition($this);
     }

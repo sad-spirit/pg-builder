@@ -336,20 +336,7 @@ class Parser
         'mergewhenclause'            => true
     ];
 
-    /**
-     * @var Lexer
-     */
-    private $lexer;
-
-    /**
-     * @var CacheItemPoolInterface|null
-     */
-    private $cache;
-
-    /**
-     * @var TokenStream
-     */
-    private $stream;
+    private TokenStream $stream;
 
     /**
      * Guesses the type of parenthesised expression
@@ -487,8 +474,6 @@ class Parser
 
     /**
      * Tests whether current position of stream matches a (possibly schema-qualified) operator
-     *
-     * @return bool
      */
     private function matchesOperator(): bool
     {
@@ -506,7 +491,7 @@ class Parser
      *
      * @return int|false position after func_name if matches, false if not
      */
-    private function matchesFuncName()
+    private function matchesFuncName(): false|int
     {
         $firstType = $this->stream->getCurrent()->getType();
         if (!\in_array($firstType, self::ATOM_IDENTIFIER_TYPES, true)) {
@@ -533,8 +518,6 @@ class Parser
 
     /**
      * Tests whether current position of stream matches a system function call
-     *
-     * @return bool
      */
     private function matchesSpecialFunctionCall(): bool
     {
@@ -564,8 +547,6 @@ class Parser
 
     /**
      * Tests whether current position of stream matches a function call
-     *
-     * @return bool
      */
     private function matchesFunctionCall(): bool
     {
@@ -578,8 +559,6 @@ class Parser
      * Tests whether current position of stream looks like a type cast with standard type name
      *
      * i.e. "typename 'string constant'" where typename is SQL standard one: "integer" but not "int4"
-     *
-     * @return bool
      */
     private function matchesConstTypecast(): bool
     {
@@ -646,9 +625,6 @@ class Parser
      *  - Closing parenthesis, see above
      *  - A comma (separating another TargetElement)
      *  - Several keywords (e.g. `FROM`, `WHERE`...) that are all conveniently not bare-label
-     *
-     * @param Token $token
-     * @return bool
      */
     private function matchesTargetElementBound(Token $token): bool
     {
@@ -662,20 +638,13 @@ class Parser
      *
      * It is recommended to always use cache in production: loading AST from cache is generally 3-4 times faster
      * than parsing.
-     *
-     * @param Lexer                       $lexer
-     * @param CacheItemPoolInterface|null $cache
      */
-    public function __construct(Lexer $lexer, ?CacheItemPoolInterface $cache = null)
+    public function __construct(private readonly Lexer $lexer, private ?CacheItemPoolInterface $cache = null)
     {
-        $this->lexer = $lexer;
-        $this->cache = $cache;
     }
 
     /**
-     * Sets the cache object used for storing of SQL parse results
-     *
-     * @param CacheItemPoolInterface $cache
+     * Sets the cache object used for storing SQL parse results
      */
     public function setCache(CacheItemPoolInterface $cache): void
     {
@@ -688,13 +657,10 @@ class Parser
      * The method allows calling parseWhatever() methods that map to protected Whatever() methods
      * listed in $callable static property.
      *
-     * @param string $name
-     * @param array  $arguments
-     * @return mixed
      * @throws exceptions\BadMethodCallException
      * @throws exceptions\SyntaxException
      */
-    public function __call(string $name, array $arguments)
+    public function __call(string $name, array $arguments): Node
     {
         if (
             !preg_match('/^parse([a-zA-Z]+)$/', $name, $matches)
@@ -710,7 +676,7 @@ class Parser
                 if ($cacheItem->isHit()) {
                     return clone $cacheItem->get();
                 }
-            } catch (InvalidArgumentException $e) {
+            } catch (InvalidArgumentException) {
             }
         }
 
@@ -1238,10 +1204,7 @@ class Parser
         return $targetList;
     }
 
-    /**
-     * @return nodes\MultipleSetClause|nodes\SingleSetClause
-     */
-    protected function SetClause()
+    protected function SetClause(): nodes\SingleSetClause|nodes\MultipleSetClause
     {
         if (!$this->stream->matchesSpecialChar('(')) {
             $column = $this->SetTargetElement();
@@ -1301,9 +1264,9 @@ class Parser
     }
 
     /**
-     * @return nodes\ScalarExpression[]|nodes\SetToDefault[]
+     * @return array<nodes\ScalarExpression|nodes\SetToDefault>
      */
-    protected function ExpressionListWithDefault()
+    protected function ExpressionListWithDefault(): array
     {
         $values = [$this->ExpressionWithDefault()];
         while ($this->stream->matchesSpecialChar(',')) {
@@ -1314,10 +1277,7 @@ class Parser
         return $values;
     }
 
-    /**
-     * @return nodes\ScalarExpression|nodes\SetToDefault
-     */
-    protected function ExpressionWithDefault()
+    protected function ExpressionWithDefault(): nodes\SetToDefault|nodes\ScalarExpression
     {
         if (Keyword::DEFAULT === $this->stream->getKeyword()) {
             $this->stream->next();
@@ -1767,8 +1727,6 @@ class Parser
      * select 2 between 3 and 4 is false;
      * </code>
      * resulted in syntax error but work in 9.5+
-     *
-     * @return nodes\ScalarExpression
      */
     protected function BetweenExpression(bool $targetElement): nodes\ScalarExpression
     {
@@ -1907,9 +1865,8 @@ class Parser
     /**
      * @param bool $all Whether to match qual_Op or qual_all_Op production
      *                  (the latter allows mathematical operators)
-     * @return string|nodes\QualifiedOperator
      */
-    protected function Operator(bool $all = false)
+    protected function Operator(bool $all = false): string|nodes\QualifiedOperator
     {
         if (
             $this->stream->matches(TokenType::OPERATOR)
@@ -2166,7 +2123,7 @@ class Parser
         }
         // BIT translates to bit(1) *unless* this is a leading typecast
         // where it translates to "any length" (with no modifiers)
-        if (!$leading && $typeName === 'bit' && empty($modifiers)) {
+        if (!$leading && $typeName === 'bit' && !$modifiers instanceof nodes\lists\TypeModifierList) {
             $modifiers = new nodes\lists\TypeModifierList([new nodes\expressions\NumericConstant('1')]);
         }
         return new nodes\TypeName(
@@ -2375,11 +2332,8 @@ class Parser
      *
      * Type modifiers here are allowed according to typenameTypeMod() function from
      * src/backend/parser/parse_type.c
-     *
-     * @return nodes\expressions\Constant|nodes\Identifier
-     * @throws exceptions\SyntaxException
      */
-    protected function GenericTypeModifier()
+    protected function GenericTypeModifier(): nodes\expressions\Constant|nodes\Identifier
     {
         // Let's keep most common case at the top
         if ($this->stream->matchesAnyType(TokenType::INTEGER, TokenType::FLOAT, TokenType::STRING)) {
@@ -2592,10 +2546,8 @@ class Parser
 
     /**
      * Represents AexprConst production from the grammar, used only in CYCLE clause currently
-     *
-     * @return nodes\expressions\Constant|nodes\expressions\ConstantTypecastExpression
      */
-    public function ConstantExpression(): nodes\ScalarExpression
+    public function ConstantExpression(): nodes\expressions\Constant|nodes\expressions\ConstantTypecastExpression
     {
         if (
             $this->stream->matchesAnyKeyword(Keyword::NULL, Keyword::TRUE, Keyword::FALSE)
@@ -2718,10 +2670,7 @@ class Parser
         return new nodes\expressions\RowExpression($fields);
     }
 
-    /**
-     * @return nodes\expressions\SubselectExpression|nodes\expressions\ArrayExpression
-     */
-    protected function ArrayConstructor(): nodes\ScalarExpression
+    protected function ArrayConstructor(): nodes\expressions\SubselectExpression|nodes\expressions\ArrayExpression
     {
         $this->stream->expectKeyword(Keyword::ARRAY);
         if (!$this->stream->matchesSpecialChar(['[', '('])) {
@@ -3256,7 +3205,7 @@ class Parser
 
         throw new exceptions\InvalidArgumentException(
             __FUNCTION__ . "() requires an instance of FunctionCall or ScalarExpression, "
-            . get_class($function) . " given"
+            . $function::class . " given"
         );
     }
 
@@ -3446,8 +3395,6 @@ class Parser
 
     /**
      * func_arg_list production from grammar, needed for substring() and friends
-     *
-     * @return nodes\lists\FunctionArgumentList
      */
     protected function FunctionArgumentList(): nodes\lists\FunctionArgumentList
     {
@@ -3581,10 +3528,7 @@ class Parser
         return $elements;
     }
 
-    /**
-     * @return nodes\Star|nodes\TargetElement
-     */
-    protected function TargetElement(): Node
+    protected function TargetElement(): nodes\Star|nodes\TargetElement
     {
         $alias = null;
 
@@ -3687,7 +3631,6 @@ class Parser
      * fail if the stream is not on the opening parenthesis. This is mostly needed for BC.
      *
      * @param bool $parentheses whether to require parentheses
-     * @return nodes\range\UsingClause
      */
     protected function UsingClause(bool $parentheses = false): nodes\range\UsingClause
     {
@@ -3829,8 +3772,6 @@ class Parser
      * relation_expr_opt_alias from grammar, with no special case for SET
      *
      * Not used in parser itself, needed by StatementFactory
-     *
-     * @return nodes\range\UpdateOrDeleteTarget
      */
     protected function RelationExpressionOptAlias(): nodes\range\UpdateOrDeleteTarget
     {
@@ -3851,10 +3792,7 @@ class Parser
         return new nodes\range\InsertTarget($name, $alias);
     }
 
-    /**
-     * @return nodes\range\RelationReference|nodes\range\TableSample
-     */
-    protected function RelationExpression(): nodes\range\FromElement
+    protected function RelationExpression(): nodes\range\RelationReference|nodes\range\TableSample
     {
         $expression = new nodes\range\RelationReference(...$this->QualifiedNameWithInheritOption());
 
@@ -3926,12 +3864,7 @@ class Parser
     }
 
     /**
-     *
-     * Corresponds to relation_expr_opt_alias production from grammar, see the
-     * comment there.
-     *
-     * @param string $statementType
-     * @return nodes\Identifier|null
+     * Corresponds to relation_expr_opt_alias production from grammar, see the comment there.
      */
     protected function DMLAliasClause(string $statementType): ?nodes\Identifier
     {
@@ -4221,10 +4154,7 @@ class Parser
         }
     }
 
-    /**
-     * @return nodes\group\GroupByElement|nodes\ScalarExpression
-     */
-    protected function GroupByElement(): Node
+    protected function GroupByElement(): nodes\group\GroupByElement|nodes\ScalarExpression
     {
         if (
             $this->stream->matchesSpecialChar('(')
@@ -4468,7 +4398,7 @@ class Parser
             : new nodes\merge\MergeWhenNotMatched($condition, $this->MergeWhenNotMatchedAction());
     }
 
-    protected function MergeWhenMatchedAction(): ?Node
+    protected function MergeWhenMatchedAction(): null|nodes\merge\MergeDelete|nodes\merge\MergeUpdate
     {
         switch ($this->stream->expectKeyword(Keyword::DO, Keyword::DELETE, Keyword::UPDATE)) {
             case Keyword::DO:
@@ -4658,9 +4588,6 @@ class Parser
      * NB: for some strange reason these functions explicitly appear in func_expr_windowless production,
      * which is used for e.g. functions in FROM and for index definitions. Of course, using aggregate
      * functions in FROM causes an error.
-     *
-     * @param bool $windowless
-     * @return nodes\json\JsonAggregate|null
      */
     protected function JsonAggregateFunc(bool $windowless = false): ?nodes\json\JsonAggregate
     {
@@ -4925,7 +4852,7 @@ class Parser
                         "Unexpected %s, expecting one of %s",
                         $checkCase->nameForExceptionMessage(),
                         \implode(', ', array_map(
-                            fn (enums\JsonBehaviour $behaviour) => $behaviour->nameForExceptionMessage(),
+                            fn (enums\JsonBehaviour $behaviour): string => $behaviour->nameForExceptionMessage(),
                             $applicable
                         ))
                     ),

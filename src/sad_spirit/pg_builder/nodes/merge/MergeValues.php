@@ -66,7 +66,7 @@ class MergeValues extends NonAssociativeList implements Parseable, ElementParsea
         return $parser->parseRowConstructorNoKeyword($sql);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkMergeValues($this);
     }

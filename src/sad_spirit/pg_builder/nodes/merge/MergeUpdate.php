@@ -23,32 +23,23 @@ namespace sad_spirit\pg_builder\nodes\merge;
 use sad_spirit\pg_builder\TreeWalker;
 use sad_spirit\pg_builder\nodes\{
     GenericNode,
-    MultipleSetClause,
-    SingleSetClause,
     lists\SetClauseList
 };
 
 /**
  * AST node representing UPDATE action for MERGE statements
  *
- * @psalm-property SetClauseList $set
- *
- * @property SetClauseList|SingleSetClause[]|MultipleSetClause[] $set
+ * @property SetClauseList $set
  */
 class MergeUpdate extends GenericNode
 {
-    /** @var SetClauseList */
-    protected $p_set;
-
-    public function __construct(SetClauseList $set)
+    public function __construct(protected SetClauseList $p_set)
     {
         $this->generatePropertyNames();
-
-        $this->p_set = $set;
         $this->p_set->setParentNode($this);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkMergeUpdate($this);
     }

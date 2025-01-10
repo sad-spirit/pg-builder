@@ -43,10 +43,8 @@ class XmlExists extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
-    /** @var ScalarExpression */
-    protected $p_xpath;
-    /** @var ScalarExpression */
-    protected $p_xml;
+    protected ScalarExpression $p_xpath;
+    protected ScalarExpression $p_xml;
 
     public function __construct(ScalarExpression $xpath, ScalarExpression $xml)
     {
@@ -73,7 +71,7 @@ class XmlExists extends GenericNode implements ScalarExpression, FunctionLike
         $this->setRequiredProperty($this->p_xml, $xml);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkXmlExists($this);
     }

@@ -27,8 +27,7 @@ namespace sad_spirit\pg_builder\nodes\json;
  */
 trait ReturningProperty
 {
-    /** @var JsonReturning|null */
-    protected $p_returning = null;
+    protected ?JsonReturning $p_returning = null;
 
     public function setReturning(?JsonReturning $returning): void
     {

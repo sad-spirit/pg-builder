@@ -29,7 +29,7 @@ class SetToDefault extends GenericNode
 {
     use NonRecursiveNode;
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkSetToDefault($this);
     }

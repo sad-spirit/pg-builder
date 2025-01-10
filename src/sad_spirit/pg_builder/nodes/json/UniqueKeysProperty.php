@@ -27,8 +27,7 @@ namespace sad_spirit\pg_builder\nodes\json;
  */
 trait UniqueKeysProperty
 {
-    /** @var bool|null */
-    protected $p_uniqueKeys;
+    protected ?bool $p_uniqueKeys;
 
     public function setUniqueKeys(?bool $uniqueKeys): void
     {

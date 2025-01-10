@@ -42,12 +42,11 @@ class JoinExpression extends FromElement
 {
     protected FromElement $p_left;
     protected FromElement $p_right;
-    protected JoinType $p_type;
     protected bool $p_natural = false;
     protected ?UsingClause $p_using = null;
     protected ?ScalarExpression $p_on = null;
 
-    public function __construct(FromElement $left, FromElement $right, JoinType $joinType = JoinType::INNER)
+    public function __construct(FromElement $left, FromElement $right, protected JoinType $p_type = JoinType::INNER)
     {
         if ($left === $right) {
             throw new InvalidArgumentException("Cannot use the same Node for both sides of JOIN");
@@ -60,8 +59,6 @@ class JoinExpression extends FromElement
 
         $this->p_right = $right;
         $this->p_right->setParentNode($this);
-
-        $this->p_type = $joinType;
     }
 
     public function setLeft(FromElement $left): void
@@ -126,7 +123,7 @@ class JoinExpression extends FromElement
         $this->setProperty($this->p_on, $on);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJoinExpression($this);
     }

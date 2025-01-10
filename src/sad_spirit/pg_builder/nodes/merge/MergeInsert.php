@@ -66,7 +66,7 @@ class MergeInsert extends GenericNode
         $this->p_overriding = $overriding;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkMergeInsert($this);
     }

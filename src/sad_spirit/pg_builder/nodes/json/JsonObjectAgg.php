@@ -35,11 +35,8 @@ class JsonObjectAgg extends JsonAggregate
 {
     use UniqueKeysProperty;
 
-    /** @var JsonKeyValue */
-    protected $p_keyValue;
-
     public function __construct(
-        JsonKeyValue $keyValue,
+        protected JsonKeyValue $p_keyValue,
         ?bool $absentOnNull = null,
         ?bool $uniqueKeys = null,
         ?JsonReturning $returning = null,
@@ -47,8 +44,6 @@ class JsonObjectAgg extends JsonAggregate
         ?WindowDefinition $over = null
     ) {
         parent::__construct($absentOnNull, $returning, $filter, $over);
-
-        $this->p_keyValue = $keyValue;
         $this->p_keyValue->setParentNode($this);
 
         $this->p_uniqueKeys = $uniqueKeys;
@@ -59,7 +54,7 @@ class JsonObjectAgg extends JsonAggregate
         $this->setRequiredProperty($this->p_keyValue, $keyValue);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonObjectAgg($this);
     }

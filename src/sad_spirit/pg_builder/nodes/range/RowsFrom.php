@@ -30,18 +30,13 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class RowsFrom extends FunctionFromElement
 {
-    /** @var RowsFromList */
-    protected $p_functions;
-
-    public function __construct(RowsFromList $functions)
+    public function __construct(protected RowsFromList $p_functions)
     {
         $this->generatePropertyNames();
-
-        $this->p_functions = $functions;
         $this->p_functions->setParentNode($this);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkRowsFrom($this);
     }

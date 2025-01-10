@@ -27,8 +27,7 @@ namespace sad_spirit\pg_builder\nodes\json;
  */
 trait AbsentOnNullProperty
 {
-    /** @var bool|null */
-    protected $p_absentOnNull = null;
+    protected ?bool $p_absentOnNull = null;
 
     public function setAbsentOnNull(?bool $absentOnNull): void
     {

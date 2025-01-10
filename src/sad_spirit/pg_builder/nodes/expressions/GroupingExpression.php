@@ -34,7 +34,7 @@ class GroupingExpression extends ExpressionList implements ScalarExpression
 {
     use ExpressionAtom;
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkGroupingExpression($this);
     }

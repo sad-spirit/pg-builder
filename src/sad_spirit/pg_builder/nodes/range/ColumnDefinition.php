@@ -40,21 +40,15 @@ class ColumnDefinition extends GenericNode
 {
     use NonRecursiveNode;
 
-    /** @var Identifier */
-    protected $p_name;
-    /** @var TypeName */
-    protected $p_type;
-    /** @var QualifiedName|null */
-    protected $p_collation = null;
+    protected ?QualifiedName $p_collation = null;
 
-    public function __construct(Identifier $colId, TypeName $type, ?QualifiedName $collation = null)
-    {
+    public function __construct(
+        protected Identifier $p_name,
+        protected TypeName $p_type,
+        ?QualifiedName $collation = null
+    ) {
         $this->generatePropertyNames();
-
-        $this->p_name = $colId;
         $this->p_name->setParentNode($this);
-
-        $this->p_type = $type;
         $this->p_type->setParentNode($this);
 
         if (null !== $collation) {
@@ -63,7 +57,7 @@ class ColumnDefinition extends GenericNode
         }
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkColumnDefinition($this);
     }

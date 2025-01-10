@@ -20,8 +20,6 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes;
 
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
@@ -32,29 +30,11 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class SingleSetClause extends GenericNode
 {
-    /** @var SetTargetElement */
-    protected $p_column;
-    /** @var ScalarExpression|SetToDefault */
-    protected $p_value;
+    protected ScalarExpression|SetToDefault $p_value;
 
-    /**
-     * SingleSetClause constructor
-     *
-     * @param SetTargetElement              $column
-     * @param ScalarExpression|SetToDefault $value
-     */
-    public function __construct(SetTargetElement $column, Node $value)
+    public function __construct(protected SetTargetElement $p_column, ScalarExpression|SetToDefault $value)
     {
-        if (!($value instanceof ScalarExpression) && !($value instanceof SetToDefault)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s expects either a ScalarExpression or SetToDefault instance as value, %s given',
-                __CLASS__,
-                get_class($value)
-            ));
-        }
-
         $this->generatePropertyNames();
-        $this->p_column = $column;
         $this->p_column->setParentNode($this);
 
         $this->p_value = $value;
@@ -63,22 +43,13 @@ class SingleSetClause extends GenericNode
 
     /**
      * Sets the Node representing a new value for the column
-     *
-     * @param ScalarExpression|SetToDefault $value
      */
-    public function setValue(Node $value): void
+    public function setValue(ScalarExpression|SetToDefault $value): void
     {
-        if (!($value instanceof ScalarExpression) && !($value instanceof SetToDefault)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s expects either a ScalarExpression or SetToDefault instance as value, %s given',
-                __CLASS__,
-                get_class($value)
-            ));
-        }
         $this->setRequiredProperty($this->p_value, $value);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkSingleSetClause($this);
     }

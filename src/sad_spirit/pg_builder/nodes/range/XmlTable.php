@@ -23,9 +23,7 @@ namespace sad_spirit\pg_builder\nodes\range;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 use sad_spirit\pg_builder\nodes\{
     ScalarExpression,
-    xml\XmlColumnDefinition,
     xml\XmlColumnList,
-    xml\XmlNamespace,
     xml\XmlNamespaceList
 };
 use sad_spirit\pg_builder\TreeWalker;
@@ -33,29 +31,21 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing an XMLTABLE clause in FROM
  *
- * @psalm-property XmlColumnList    $columns
- * @psalm-property XmlNamespaceList $namespaces
- *
- * @property ScalarExpression                    $rowExpression
- * @property ScalarExpression                    $documentExpression
- * @property XmlColumnList|XmlColumnDefinition[] $columns
- * @property XmlNamespaceList|XmlNamespace[]     $namespaces
+ * @property ScalarExpression $rowExpression
+ * @property ScalarExpression $documentExpression
+ * @property XmlColumnList    $columns
+ * @property XmlNamespaceList $namespaces
  */
 class XmlTable extends LateralFromElement
 {
-    /** @var ScalarExpression */
-    protected $p_rowExpression;
-    /** @var ScalarExpression */
-    protected $p_documentExpression;
-    /** @var XmlColumnList */
-    protected $p_columns;
-    /** @var XmlNamespaceList */
-    protected $p_namespaces;
+    protected ScalarExpression $p_rowExpression;
+    protected ScalarExpression $p_documentExpression;
+    protected XmlNamespaceList $p_namespaces;
 
     public function __construct(
         ScalarExpression $rowExpression,
         ScalarExpression $documentExpression,
-        XmlColumnList $columns,
+        protected XmlColumnList $p_columns,
         ?XmlNamespaceList $namespaces = null
     ) {
         if ($rowExpression === $documentExpression) {
@@ -69,8 +59,6 @@ class XmlTable extends LateralFromElement
 
         $this->p_documentExpression = $documentExpression;
         $this->p_documentExpression->setParentNode($this);
-
-        $this->p_columns = $columns;
         $this->p_columns->setParentNode($this);
 
         $this->p_namespaces = $namespaces ?? new XmlNamespaceList();
@@ -87,7 +75,7 @@ class XmlTable extends LateralFromElement
         $this->setRequiredProperty($this->p_documentExpression, $documentExpression);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkXmlTable($this);
     }

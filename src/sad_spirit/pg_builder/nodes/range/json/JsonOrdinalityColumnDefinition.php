@@ -27,7 +27,7 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class JsonOrdinalityColumnDefinition extends JsonNamedColumnDefinition
 {
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonOrdinalityColumnDefinition($this);
     }

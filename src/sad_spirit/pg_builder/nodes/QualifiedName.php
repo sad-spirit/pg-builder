@@ -33,24 +33,20 @@ use sad_spirit\pg_builder\{
  * @property-read Identifier|null $schema
  * @property-read Identifier      $relation
  */
-class QualifiedName extends GenericNode
+class QualifiedName extends GenericNode implements \Stringable
 {
     use NonRecursiveNode;
 
-    /** @var Identifier|null */
-    protected $p_catalog;
-    /** @var Identifier|null */
-    protected $p_schema;
-    /** @var Identifier */
-    protected $p_relation;
+    protected ?Identifier $p_catalog = null;
+    protected ?Identifier $p_schema = null;
+    protected Identifier $p_relation;
 
     /**
      * QualifiedName constructor, requires at least one name part, accepts up to three
      *
-     * @param string|Identifier ...$nameParts
      * @noinspection PhpMissingBreakStatementInspection
      */
-    public function __construct(...$nameParts)
+    public function __construct(string|Identifier ...$nameParts)
     {
         $this->generatePropertyNames();
 
@@ -79,7 +75,7 @@ class QualifiedName extends GenericNode
                 break;
 
             case 0:
-                throw new InvalidArgumentException(__CLASS__ . ' constructor expects at least one name part');
+                throw new InvalidArgumentException(self::class . ' constructor expects at least one name part');
             default:
                 throw new SyntaxException("Too many dots in qualified name: " . implode('.', $nameParts));
         }
@@ -87,12 +83,8 @@ class QualifiedName extends GenericNode
 
     /**
      * Tries to convert part of qualified name to Identifier
-     *
-     * @param mixed $namePart
-     * @param string $index
-     * @return Identifier
      */
-    private function expectIdentifier($namePart, string $index): Identifier
+    private function expectIdentifier(string|Identifier $namePart, string $index): Identifier
     {
         if ($namePart instanceof Identifier) {
             return $namePart;
@@ -102,7 +94,7 @@ class QualifiedName extends GenericNode
         } catch (\Throwable $e) {
             throw new InvalidArgumentException(sprintf(
                 "%s: %s part of qualified name could not be converted to Identifier; %s",
-                __CLASS__,
+                self::class,
                 $index,
                 $e->getMessage()
             ));
@@ -112,9 +104,7 @@ class QualifiedName extends GenericNode
     public function __serialize(): array
     {
         return array_map(
-            function ($prop) {
-                return $this->$prop instanceof Identifier ? $this->$prop->value : $this->$prop;
-            },
+            fn($prop) => $this->$prop instanceof Identifier ? $this->$prop->value : $this->$prop,
             $this->propertyNames
         );
     }
@@ -122,7 +112,7 @@ class QualifiedName extends GenericNode
     protected function unserializeProperties(array $properties): void
     {
         $this->generatePropertyNames();
-        array_walk($properties, function ($v, $k) {
+        array_walk($properties, function ($v, $k): void {
             if (null !== $v) {
                 $name = $this->propertyNames[$k];
                 $this->$name = new Identifier($v);
@@ -131,7 +121,7 @@ class QualifiedName extends GenericNode
         });
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkQualifiedName($this);
     }
@@ -141,7 +131,7 @@ class QualifiedName extends GenericNode
      *
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return (null === $this->p_catalog ? '' : (string)$this->p_catalog . '.')
             . (null === $this->p_schema ? '' : (string)$this->p_schema . '.')

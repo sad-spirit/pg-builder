@@ -33,7 +33,7 @@ class KeywordConstant extends Constant
         $this->p_value = $value->value;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkKeywordConstant($this);
     }

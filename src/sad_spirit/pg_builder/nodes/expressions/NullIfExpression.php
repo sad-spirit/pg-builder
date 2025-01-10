@@ -39,10 +39,8 @@ class NullIfExpression extends GenericNode implements FunctionLike, ScalarExpres
 {
     use ExpressionAtom;
 
-    /** @var ScalarExpression */
-    protected $p_first;
-    /** @var ScalarExpression */
-    protected $p_second;
+    protected ScalarExpression $p_first;
+    protected ScalarExpression $p_second;
 
     public function __construct(ScalarExpression $first, ScalarExpression $second)
     {
@@ -69,7 +67,7 @@ class NullIfExpression extends GenericNode implements FunctionLike, ScalarExpres
         $this->setRequiredProperty($this->p_second, $second);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkNullIfExpression($this);
     }

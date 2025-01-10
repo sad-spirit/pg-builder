@@ -38,16 +38,9 @@ class ArrayComparisonExpression extends GenericNode implements ScalarExpression
 {
     use ExpressionAtom;
 
-    protected ArrayComparisonConstruct $p_keyword;
-    protected ScalarExpression $p_array;
-
-    public function __construct(ArrayComparisonConstruct $keyword, ScalarExpression $array)
+    public function __construct(protected ArrayComparisonConstruct $p_keyword, protected ScalarExpression $p_array)
     {
         $this->generatePropertyNames();
-
-        $this->p_keyword = $keyword;
-
-        $this->p_array = $array;
         $this->p_array->setParentNode($this);
     }
 
@@ -56,7 +49,7 @@ class ArrayComparisonExpression extends GenericNode implements ScalarExpression
         $this->setRequiredProperty($this->p_array, $array);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkArrayComparisonExpression($this);
     }

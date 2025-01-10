@@ -40,8 +40,7 @@ class UsingClause extends IdentifierList implements Parseable
 {
     use HasBothPropsAndOffsets;
 
-    /** @var Identifier|null */
-    protected $p_alias = null;
+    protected ?Identifier $p_alias = null;
 
     /**
      * Constructor
@@ -49,7 +48,7 @@ class UsingClause extends IdentifierList implements Parseable
      * @param iterable<Identifier|string>|null $list
      * @param Identifier|string|null           $alias
      */
-    public function __construct($list = null, $alias = null)
+    public function __construct($list = null, Identifier|string|null $alias = null)
     {
         $this->generatePropertyNames();
         parent::__construct($list);
@@ -58,10 +57,8 @@ class UsingClause extends IdentifierList implements Parseable
 
     /**
      * Sets the table alias for the join columns in USING clause
-     *
-     * @param Identifier|string|null $alias
      */
-    public function setAlias($alias): void
+    public function setAlias(Identifier|string|null $alias): void
     {
         $this->setProperty(
             $this->p_alias,
@@ -69,7 +66,7 @@ class UsingClause extends IdentifierList implements Parseable
         );
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkUsingClause($this);
     }

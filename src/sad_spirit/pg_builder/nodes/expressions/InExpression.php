@@ -21,11 +21,9 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
-    Node,
     SelectCommon,
-    nodes\ScalarExpression,
-    exceptions\InvalidArgumentException,
-    TreeWalker
+    TreeWalker,
+    nodes\ScalarExpression
 };
 use sad_spirit\pg_builder\nodes\lists\ExpressionList;
 
@@ -34,41 +32,19 @@ use sad_spirit\pg_builder\nodes\lists\ExpressionList;
  *
  * Cannot be an OperatorExpression due to specific right operands
  *
- * @psalm-property SelectCommon|ExpressionList $right
- *
- * @property ScalarExpression                               $left
- * @property SelectCommon|ExpressionList|ScalarExpression[] $right
+ * @property ScalarExpression            $left
+ * @property SelectCommon|ExpressionList $right
  */
 class InExpression extends NegatableExpression
 {
-    /** @var ScalarExpression */
-    protected $p_left;
-    /** @var SelectCommon|ExpressionList */
-    protected $p_right;
-
-    /**
-     * InExpression constructor
-     *
-     * @param ScalarExpression            $left
-     * @param SelectCommon|ExpressionList $right
-     * @param bool                        $not
-     */
-    public function __construct(ScalarExpression $left, Node $right, bool $not = false)
-    {
-        if (!($right instanceof SelectCommon) && !($right instanceof ExpressionList)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s requires an instance of either SelectCommon or ExpressionList as right operand, %s given',
-                __CLASS__,
-                get_class($right)
-            ));
-        }
-
+    public function __construct(
+        protected ScalarExpression $p_left,
+        protected SelectCommon|ExpressionList $p_right,
+        bool $not = false
+    ) {
         $this->generatePropertyNames();
 
-        $this->p_right = $right;
         $this->p_right->setParentNode($this);
-
-        $this->p_left = $left;
         $this->p_left->setParentNode($this);
 
         $this->p_not = $not;
@@ -81,22 +57,13 @@ class InExpression extends NegatableExpression
 
     /**
      * Sets the subselect or a list of expressions appearing in parentheses: foo IN (...)
-     *
-     * @param SelectCommon|ExpressionList $right
      */
-    public function setRight(Node $right): void
+    public function setRight(SelectCommon|ExpressionList $right): void
     {
-        if (!($right instanceof SelectCommon) && !($right instanceof ExpressionList)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s requires an instance of either SelectCommon or ExpressionList as right operand, %s given',
-                __CLASS__,
-                get_class($right)
-            ));
-        }
         $this->setRequiredProperty($this->p_right, $right);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkInExpression($this);
     }

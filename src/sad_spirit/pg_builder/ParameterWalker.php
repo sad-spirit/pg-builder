@@ -30,28 +30,22 @@ class ParameterWalker extends BlankWalker
      * Mapping parameter name => parameter number
      * @var array<string, int>
      */
-    private $namedParameterMap = [];
+    private array $namedParameterMap = [];
 
     /**
      * Parameter types extracted from typecasts
      * @var array<int, nodes\TypeName|null>
      */
-    private $parameterTypes    = [];
-
-    /**
-     * Whether to leave NamedParameter nodes in the AST or replace them with PositionalParameter ones
-     * @var bool
-     */
-    private $keepNamedParameters;
+    private array $parameterTypes    = [];
 
     /**
      * Constructor, specifies how to handle named parameters
      *
-     * @param bool $keepNamedParameters
+     * @param bool $keepNamedParameters Whether to leave NamedParameter nodes in the AST or replace them
+     *                                  with PositionalParameter ones
      */
-    public function __construct(bool $keepNamedParameters = false)
+    public function __construct(private readonly bool $keepNamedParameters = false)
     {
-        $this->keepNamedParameters = $keepNamedParameters;
     }
 
     /**
@@ -74,7 +68,7 @@ class ParameterWalker extends BlankWalker
         return $this->parameterTypes;
     }
 
-    public function walkNamedParameter(nodes\expressions\NamedParameter $node)
+    public function walkNamedParameter(nodes\expressions\NamedParameter $node): null
     {
         if (empty($this->namedParameterMap) && !empty($this->parameterTypes)) {
             throw new exceptions\InvalidArgumentException(
@@ -98,7 +92,7 @@ class ParameterWalker extends BlankWalker
         return null;
     }
 
-    public function walkPositionalParameter(nodes\expressions\PositionalParameter $node)
+    public function walkPositionalParameter(nodes\expressions\PositionalParameter $node): null
     {
         if (!empty($this->namedParameterMap)) {
             throw new exceptions\InvalidArgumentException(
@@ -126,43 +120,43 @@ class ParameterWalker extends BlankWalker
 
     /* Optimization: these may have child nodes but will not have parameters. No sense in visiting. */
 
-    public function walkSQLValueFunction(nodes\expressions\SQLValueFunction $node)
+    public function walkSQLValueFunction(nodes\expressions\SQLValueFunction $node): null
     {
         /* No Parameters here */
         return null;
     }
 
-    public function walkColumnReference(nodes\ColumnReference $node)
+    public function walkColumnReference(nodes\ColumnReference $node): null
     {
          /* No Parameters here */
         return null;
     }
 
-    public function walkLockingElement(nodes\LockingElement $node)
+    public function walkLockingElement(nodes\LockingElement $node): null
     {
         /* No Parameters here */
         return null;
     }
 
-    public function walkQualifiedName(nodes\QualifiedName $node)
+    public function walkQualifiedName(nodes\QualifiedName $node): null
     {
         /* No Parameters here */
         return null;
     }
 
-    public function walkQualifiedOperator(nodes\QualifiedOperator $node)
+    public function walkQualifiedOperator(nodes\QualifiedOperator $node): null
     {
         /* No Parameters here */
         return null;
     }
 
-    public function walkTypeName(nodes\TypeName $node)
+    public function walkTypeName(nodes\TypeName $node): null
     {
         /* No Parameters here */
         return null;
     }
 
-    public function walkColumnDefinition(nodes\range\ColumnDefinition $node)
+    public function walkColumnDefinition(nodes\range\ColumnDefinition $node): null
     {
         /* No Parameters here */
         return null;
@@ -173,19 +167,19 @@ class ParameterWalker extends BlankWalker
         /* No Parameters here */
     }
 
-    public function walkRelationReference(nodes\range\RelationReference $rangeItem)
+    public function walkRelationReference(nodes\range\RelationReference $rangeItem): null
     {
         /* No Parameters here */
         return null;
     }
 
-    public function walkInsertTarget(nodes\range\InsertTarget $target)
+    public function walkInsertTarget(nodes\range\InsertTarget $target): null
     {
         /* No Parameters here */
         return null;
     }
 
-    public function walkUpdateOrDeleteTarget(nodes\range\UpdateOrDeleteTarget $target)
+    public function walkUpdateOrDeleteTarget(nodes\range\UpdateOrDeleteTarget $target): null
     {
         /* No Parameters here */
         return null;

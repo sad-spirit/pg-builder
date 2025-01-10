@@ -33,18 +33,13 @@ use sad_spirit\pg_builder\{
  * Both arguments can only be instances of RowExpression containing two elements, so we implement
  * this as a special subclass rather than use generic OperatorExpression
  *
- * @psalm-property RowExpression $left
- * @psalm-property RowExpression $right
- *
- * @property RowExpression|ScalarExpression[] $left
- * @property RowExpression|ScalarExpression[] $right
+ * @property RowExpression $left
+ * @property RowExpression $right
  */
 class OverlapsExpression extends GenericNode implements ScalarExpression
 {
-    /** @var RowExpression */
-    protected $p_left;
-    /** @var RowExpression */
-    protected $p_right;
+    protected RowExpression $p_left;
+    protected RowExpression $p_right;
 
     public function __construct(RowExpression $left, RowExpression $right)
     {
@@ -83,7 +78,7 @@ class OverlapsExpression extends GenericNode implements ScalarExpression
         $this->setRequiredProperty($this->p_right, $right);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkOverlapsExpression($this);
     }

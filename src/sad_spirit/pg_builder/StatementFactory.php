@@ -42,23 +42,14 @@ use sad_spirit\pg_wrapper\Connection;
  */
 class StatementFactory
 {
-    /**
-     * Query parser, will be passed to created statements
-     * @var Parser
-     */
-    private $parser;
+    /** Query parser, will be passed to created statements */
+    private Parser $parser;
 
-    /**
-     * Query builder
-     * @var StatementToStringWalker
-     */
-    private $builder;
+    /** Query builder */
+    private StatementToStringWalker $builder;
 
-    /**
-     * Whether to generate SQL suitable for PDO
-     * @var bool
-     */
-    private $PDOCompatible;
+    /** Whether to generate SQL suitable for PDO */
+    private bool $PDOCompatible;
 
     /**
      * Constructor, sets objects to parse and build SQL
@@ -136,7 +127,7 @@ class StatementFactory
         $lexerOptions = ['standard_conforming_strings' => 'on' === $standard];
 
         $serverInfo     = $pdo->getAttribute(\PDO::ATTR_SERVER_INFO);
-        $builderOptions = ['escape_unicode' => false === strpos($serverInfo, 'Client Encoding: UTF8')];
+        $builderOptions = ['escape_unicode' => !str_contains((string) $serverInfo, 'Client Encoding: UTF8')];
 
         return new self(new Parser(new Lexer($lexerOptions)), new SqlBuilderWalker($builderOptions), true);
     }

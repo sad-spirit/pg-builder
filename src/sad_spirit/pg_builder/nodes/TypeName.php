@@ -21,7 +21,6 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes;
 
 use sad_spirit\pg_builder\Node;
-use sad_spirit\pg_builder\nodes\expressions\Constant;
 use sad_spirit\pg_builder\nodes\expressions\ConstantTypecastExpression;
 use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
 use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
@@ -30,12 +29,10 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * Represents a type name with all bells and whistles
  *
- * @psalm-property-read TypeModifierList $modifiers
- *
- * @property      bool                                     $setOf
- * @property      array                                    $bounds
- * @property-read QualifiedName                            $name
- * @property-read TypeModifierList|Constant[]|Identifier[] $modifiers
+ * @property      bool             $setOf
+ * @property      array            $bounds
+ * @property-read QualifiedName    $name
+ * @property-read TypeModifierList $modifiers
  */
 class TypeName extends GenericNode
 {
@@ -43,27 +40,21 @@ class TypeName extends GenericNode
         setParentNode as private setParentNodeImpl;
     }
 
-    /** @var bool */
-    protected $p_setOf = false;
+    protected bool $p_setOf = false;
     /** @var array<int,int> */
-    protected $p_bounds = [];
-    /** @var QualifiedName */
-    protected $p_name;
-    /** @var TypeModifierList */
-    protected $p_modifiers;
+    protected array $p_bounds = [];
+    protected ?TypeModifierList $p_modifiers = null;
 
-    public function __construct(QualifiedName $typeName, ?TypeModifierList $typeModifiers = null)
+    public function __construct(protected QualifiedName $p_name, ?TypeModifierList $typeModifiers = null)
     {
         $this->generatePropertyNames();
-
-        $this->p_name = $typeName;
         $this->p_name->setParentNode($this);
 
         $this->p_modifiers = $typeModifiers ?? new TypeModifierList();
         $this->p_modifiers->setParentNode($this);
     }
 
-    public function setSetOf(bool $setOf = false): void
+    public function setSetOf(bool $setOf): void
     {
         if ($setOf && $this->parentNode instanceof ConstantTypecastExpression) {
             throw new InvalidArgumentException('Type names with SETOF cannot be used in constant type cast');
@@ -95,12 +86,12 @@ class TypeName extends GenericNode
         }
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkTypeName($this);
     }
 
-    public function setParentNode(?Node $parent = null): void
+    public function setParentNode(?Node $parent): void
     {
         if (
             $parent instanceof ConstantTypecastExpression

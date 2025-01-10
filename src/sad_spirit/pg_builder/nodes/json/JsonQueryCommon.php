@@ -33,34 +33,23 @@ use sad_spirit\pg_builder\nodes\{
  * Roughly corresponds to json_api_common_syntax production without json_as_path_name_clause_opt, as the latter
  * is only used by json_table() and causes an error when actually appearing in JSON query functions
  *
- * @psalm-property JsonArgumentList $passing
- *
- * @property JsonFormattedValue              $context
- * @property ScalarExpression                $path
- * @property JsonArgumentList|JsonArgument[] $passing
+ * @property JsonFormattedValue $context
+ * @property ScalarExpression   $path
+ * @property JsonArgumentList   $passing
  */
 abstract class JsonQueryCommon extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
-    /** @var JsonFormattedValue */
-    protected $p_context;
-    /** @var ScalarExpression */
-    protected $p_path;
-    /** @var JsonArgumentList */
-    protected $p_passing;
+    protected JsonArgumentList $p_passing;
 
     public function __construct(
-        JsonFormattedValue $context,
-        ScalarExpression $path,
+        protected JsonFormattedValue $p_context,
+        protected ScalarExpression $p_path,
         ?JsonArgumentList $passing = null
     ) {
         $this->generatePropertyNames();
-
-        $this->p_context = $context;
         $this->p_context->setParentNode($this);
-
-        $this->p_path = $path;
         $this->p_path->setParentNode($this);
 
         $this->p_passing = $passing ?? new JsonArgumentList();

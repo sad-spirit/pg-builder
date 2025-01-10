@@ -49,7 +49,7 @@ class FunctionArgumentList extends GenericNodeList
         return $prepared;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkFunctionArgumentList($this);
     }

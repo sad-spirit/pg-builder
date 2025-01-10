@@ -27,8 +27,7 @@ namespace sad_spirit\pg_builder\nodes\range;
  */
 abstract class LateralFromElement extends FromElement
 {
-    /** @var bool */
-    protected $p_lateral = false;
+    protected bool $p_lateral = false;
 
     public function setLateral(bool $lateral): void
     {

@@ -41,24 +41,19 @@ use sad_spirit\pg_builder\{
  */
 class TypecastExpression extends GenericNode implements ScalarExpression, FunctionLike
 {
-    /** @var ScalarExpression|null */
-    protected $p_argument;
-    /** @var TypeName */
-    protected $p_type;
+    protected ?ScalarExpression $p_argument = null;
 
-    public function __construct(ScalarExpression $argument, TypeName $type)
+    public function __construct(ScalarExpression $argument, protected TypeName $p_type)
     {
         $this->generatePropertyNames();
 
         $this->setArgument($argument);
-
-        $this->p_type = $type;
         $this->p_type->setParentNode($this);
     }
 
     public function setArgument(ScalarExpression $argument): void
     {
-        if (!empty($this->p_argument)) {
+        if (null !== $this->p_argument) {
             $this->setRequiredProperty($this->p_argument, $argument);
         } else {
             $this->p_argument = $argument;
@@ -66,7 +61,7 @@ class TypecastExpression extends GenericNode implements ScalarExpression, Functi
         }
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkTypecastExpression($this);
     }

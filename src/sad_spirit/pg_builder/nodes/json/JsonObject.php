@@ -31,9 +31,7 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing the json_object() expression
  *
- * @psalm-property JsonKeyValueList $arguments
- *
- * @property JsonKeyValueList|JsonKeyValue[] $arguments
+ * @property JsonKeyValueList $arguments
  */
 class JsonObject extends GenericNode implements ScalarExpression, FunctionLike
 {
@@ -42,8 +40,7 @@ class JsonObject extends GenericNode implements ScalarExpression, FunctionLike
     use ReturningProperty;
     use UniqueKeysProperty;
 
-    /** @var JsonKeyValueList */
-    protected $p_arguments;
+    protected JsonKeyValueList $p_arguments;
 
     public function __construct(
         ?JsonKeyValueList $arguments = null,
@@ -65,7 +62,7 @@ class JsonObject extends GenericNode implements ScalarExpression, FunctionLike
         }
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonObject($this);
     }

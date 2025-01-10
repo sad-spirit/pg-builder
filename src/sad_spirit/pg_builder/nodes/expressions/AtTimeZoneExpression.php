@@ -33,10 +33,8 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class AtTimeZoneExpression extends GenericNode implements ScalarExpression
 {
-    /** @var ScalarExpression */
-    protected $p_argument;
-    /** @var ScalarExpression */
-    protected $p_timeZone;
+    protected ScalarExpression $p_argument;
+    protected ScalarExpression $p_timeZone;
 
     public function __construct(ScalarExpression $argument, ScalarExpression $timeZone)
     {
@@ -63,7 +61,7 @@ class AtTimeZoneExpression extends GenericNode implements ScalarExpression
         $this->setRequiredProperty($this->p_timeZone, $timeZone);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkAtTimeZoneExpression($this);
     }

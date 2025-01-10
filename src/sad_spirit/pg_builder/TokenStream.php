@@ -23,7 +23,7 @@ namespace sad_spirit\pg_builder;
 /**
  * Represents a token stream
  */
-class TokenStream
+class TokenStream implements \Stringable
 {
     private int $current;
 
@@ -48,7 +48,7 @@ class TokenStream
      *
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return implode("\n", $this->tokens);
     }

@@ -40,21 +40,12 @@ class XmlParse extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
-    protected XmlOption $p_documentOrContent;
-    protected ScalarExpression $p_argument;
-    protected bool $p_preserveWhitespace;
-
     public function __construct(
-        XmlOption $documentOrContent,
-        ScalarExpression $argument,
-        bool $preserveWhitespace = false
+        protected XmlOption $p_documentOrContent,
+        protected ScalarExpression $p_argument,
+        protected bool $p_preserveWhitespace = false
     ) {
         $this->generatePropertyNames();
-
-        $this->p_documentOrContent  = $documentOrContent;
-        $this->p_preserveWhitespace = $preserveWhitespace;
-
-        $this->p_argument = $argument;
         $this->p_argument->setParentNode($this);
     }
 
@@ -63,7 +54,7 @@ class XmlParse extends GenericNode implements ScalarExpression, FunctionLike
         $this->setRequiredProperty($this->p_argument, $argument);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkXmlParse($this);
     }

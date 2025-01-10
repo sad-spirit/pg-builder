@@ -40,9 +40,6 @@ abstract class Parameter extends GenericNode implements ScalarExpression
 
     /**
      * Creates an object of proper Parameter subclass based on given Token
-     *
-     * @param Token $token
-     * @return self
      */
     public static function createFromToken(Token $token): self
     {
@@ -51,7 +48,7 @@ abstract class Parameter extends GenericNode implements ScalarExpression
             TokenType::NAMED_PARAM => new NamedParameter($token->getValue()),
             default => throw new InvalidArgumentException(\sprintf(
                 '%s expects a parameter token, %s given',
-                __CLASS__,
+                self::class,
                 $token->getType()->toString()
             ))
         };

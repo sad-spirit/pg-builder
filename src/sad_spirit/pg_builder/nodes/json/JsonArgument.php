@@ -32,19 +32,10 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class JsonArgument extends GenericNode
 {
-    /** @var JsonFormattedValue */
-    protected $p_value;
-    /** @var Identifier */
-    protected $p_alias;
-
-    public function __construct(JsonFormattedValue $value, Identifier $alias)
+    public function __construct(protected JsonFormattedValue $p_value, protected Identifier $p_alias)
     {
         $this->generatePropertyNames();
-
-        $this->p_value = $value;
         $this->p_value->setParentNode($this);
-
-        $this->p_alias = $alias;
         $this->p_alias->setParentNode($this);
     }
 
@@ -58,7 +49,7 @@ class JsonArgument extends GenericNode
         $this->setRequiredProperty($this->p_alias, $alias);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonArgument($this);
     }

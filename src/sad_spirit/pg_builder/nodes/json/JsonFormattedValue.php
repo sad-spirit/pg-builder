@@ -34,16 +34,11 @@ use sad_spirit\pg_builder\{
  */
 class JsonFormattedValue extends GenericNode
 {
-    /** @var ScalarExpression */
-    protected $p_expression;
-    /** @var JsonFormat|null */
-    protected $p_format = null;
+    protected JsonFormat|null $p_format = null;
 
-    public function __construct(ScalarExpression $expression, ?JsonFormat $format = null)
+    public function __construct(protected ScalarExpression $p_expression, ?JsonFormat $format = null)
     {
         $this->generatePropertyNames();
-
-        $this->p_expression = $expression;
         $this->p_expression->setParentNode($this);
 
         if (null !== $format) {
@@ -62,7 +57,7 @@ class JsonFormattedValue extends GenericNode
         $this->setProperty($this->p_format, $format);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonFormattedValue($this);
     }

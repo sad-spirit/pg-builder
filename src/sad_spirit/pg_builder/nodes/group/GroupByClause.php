@@ -37,14 +37,10 @@ class GroupByClause extends GroupByList implements Parseable
 {
     use HasBothPropsAndOffsets;
 
-    /** @var bool */
-    protected $p_distinct;
-
-    public function __construct($list = null, bool $distinct = false)
+    public function __construct($list = null, protected bool $p_distinct = false)
     {
         $this->generatePropertyNames();
         parent::__construct($list);
-        $this->p_distinct = $distinct;
     }
 
     public function setDistinct(bool $distinct): void
@@ -52,7 +48,7 @@ class GroupByClause extends GroupByList implements Parseable
         $this->p_distinct = $distinct;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkGroupByClause($this);
     }

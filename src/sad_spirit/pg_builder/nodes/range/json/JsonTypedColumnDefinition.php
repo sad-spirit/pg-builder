@@ -34,16 +34,11 @@ use sad_spirit\pg_builder\nodes\{
  */
 abstract class JsonTypedColumnDefinition extends JsonNamedColumnDefinition
 {
-    /** @var TypeName */
-    protected $p_type;
-    /** @var StringConstant|null */
-    protected $p_path = null;
+    protected ?StringConstant $p_path = null;
 
-    public function __construct(Identifier $name, TypeName $type, ?StringConstant $path = null)
+    public function __construct(Identifier $name, protected TypeName $p_type, ?StringConstant $path = null)
     {
         parent::__construct($name);
-
-        $this->p_type = $type;
         $this->p_type->setParentNode($this);
 
         if (null !== $path) {

@@ -40,10 +40,8 @@ abstract class JsonAggregate extends GenericNode implements ScalarExpression, Fu
     use AbsentOnNullProperty;
     use ReturningProperty;
 
-    /** @var ScalarExpression|null */
-    protected $p_filter = null;
-    /** @var WindowDefinition|null */
-    protected $p_over = null;
+    protected ?ScalarExpression $p_filter = null;
+    protected ?WindowDefinition $p_over = null;
 
     public function __construct(
         ?bool $absentOnNull,

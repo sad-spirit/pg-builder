@@ -36,19 +36,14 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  * naming the constraint explicitly.
  *
  * @property-read WhereOrHavingClause $where
- * @extends NonAssociativeList<
- *     IndexElement,
- *     iterable<IndexElement|string>|string,
- *     IndexElement|string
- * >
+ * @extends NonAssociativeList<IndexElement, iterable<IndexElement|string>|string, IndexElement|string>
  * @implements ElementParseable<IndexElement>
  */
 class IndexParameters extends NonAssociativeList implements Parseable, ElementParseable
 {
     use HasBothPropsAndOffsets;
 
-    /** @var WhereOrHavingClause */
-    protected $p_where;
+    protected WhereOrHavingClause $p_where;
 
     protected static function getAllowedElementClasses(): array
     {
@@ -73,7 +68,7 @@ class IndexParameters extends NonAssociativeList implements Parseable, ElementPa
         return $this->getParserOrFail('a list element')->parseIndexElement($sql);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkIndexParameters($this);
     }

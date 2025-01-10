@@ -32,10 +32,8 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class IsDistinctFromExpression extends NegatableExpression
 {
-    /** @var ScalarExpression */
-    protected $p_left;
-    /** @var ScalarExpression */
-    protected $p_right;
+    protected ScalarExpression $p_left;
+    protected ScalarExpression $p_right;
 
     public function __construct(ScalarExpression $left, ScalarExpression $right, bool $not = false)
     {
@@ -64,7 +62,7 @@ class IsDistinctFromExpression extends NegatableExpression
         $this->setRequiredProperty($this->p_right, $right);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkIsDistinctFromExpression($this);
     }

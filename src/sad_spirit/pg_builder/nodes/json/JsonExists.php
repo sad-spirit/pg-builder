@@ -33,7 +33,7 @@ class JsonExists extends JsonQueryCommon
 {
     use HasBehaviours;
 
-    protected ?JsonBehaviour $p_onError;
+    protected ?JsonBehaviour $p_onError = null;
 
     public function __construct(
         JsonFormattedValue $context,
@@ -55,7 +55,7 @@ class JsonExists extends JsonQueryCommon
         $this->setBehaviour($this->p_onError, false, $onError);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonExists($this);
     }

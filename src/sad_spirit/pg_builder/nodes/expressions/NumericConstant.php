@@ -46,12 +46,12 @@ REGEXP;
             !\is_numeric($value)
             && !\preg_match(self::REGEXP, $value)
         ) {
-            throw new InvalidArgumentException(__CLASS__ . " expects a numeric string");
+            throw new InvalidArgumentException(self::class . " expects a numeric string");
         }
         $this->p_value = $value;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkNumericConstant($this);
     }

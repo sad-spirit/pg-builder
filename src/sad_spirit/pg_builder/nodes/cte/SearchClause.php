@@ -27,27 +27,21 @@ use sad_spirit\pg_builder\nodes\{
     lists\IdentifierList
 };
 use sad_spirit\pg_builder\TreeWalker;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * SEARCH BREADTH / DEPTH FIRST clause for Common Table Expressions
  *
- * @psalm-property IdentifierList $trackColumns
- *
- * @property bool                        $breadthFirst
- * @property IdentifierList|Identifier[] $trackColumns
- * @property Identifier                  $sequenceColumn
+ * @property bool           $breadthFirst
+ * @property IdentifierList $trackColumns
+ * @property Identifier     $sequenceColumn
  */
 class SearchClause extends GenericNode
 {
     use NonRecursiveNode;
 
-    /** @var bool */
-    protected $p_breadthFirst;
-    /** @var IdentifierList|null */
-    protected $p_trackColumns;
-    /** @var Identifier|null */
-    protected $p_sequenceColumn;
+    protected bool $p_breadthFirst;
+    protected ?IdentifierList $p_trackColumns = null;
+    protected ?Identifier $p_sequenceColumn = null;
 
     /**
      * Constructor
@@ -56,7 +50,7 @@ class SearchClause extends GenericNode
      * @param iterable<Identifier>|string $trackColumns
      * @param Identifier|string           $sequenceColumn
      */
-    public function __construct(bool $breadthFirst, $trackColumns, $sequenceColumn)
+    public function __construct(bool $breadthFirst, string|iterable $trackColumns, Identifier|string $sequenceColumn)
     {
         $this->generatePropertyNames();
         $this->setBreadthFirst($breadthFirst);
@@ -81,7 +75,7 @@ class SearchClause extends GenericNode
         } elseif (!$columns instanceof IdentifierList) {
             $columns = new IdentifierList($columns);
         }
-        if (!empty($this->p_trackColumns)) {
+        if (null !== $this->p_trackColumns) {
             $this->setRequiredProperty($this->p_trackColumns, $columns);
         } else {
             // Called from constructor
@@ -92,15 +86,13 @@ class SearchClause extends GenericNode
 
     /**
      * Sets the name of the column that can be used for sorting
-     *
-     * @param Identifier|string $column
      */
-    public function setSequenceColumn($column): void
+    public function setSequenceColumn(Identifier|string $column): void
     {
         if (!$column instanceof Identifier) {
             $column = new Identifier($column);
         }
-        if (!empty($this->p_sequenceColumn)) {
+        if (null !== $this->p_sequenceColumn) {
             $this->setRequiredProperty($this->p_sequenceColumn, $column);
         } else {
             // Called from constructor
@@ -109,7 +101,7 @@ class SearchClause extends GenericNode
         }
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkSearchClause($this);
     }

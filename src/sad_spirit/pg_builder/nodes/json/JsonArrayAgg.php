@@ -22,7 +22,6 @@ namespace sad_spirit\pg_builder\nodes\json;
 
 use sad_spirit\pg_builder\nodes\{
     lists\OrderByList,
-    OrderByElement,
     ScalarExpression,
     WindowDefinition
 };
@@ -31,20 +30,15 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * Represents json_objectagg() expression
  *
- * @psalm-property OrderByList|null $order
- *
- * @property JsonFormattedValue                $value
- * @property OrderByList|OrderByElement[]|null $order
+ * @property JsonFormattedValue $value
+ * @property OrderByList|null   $order
  */
 class JsonArrayAgg extends JsonAggregate
 {
-    /** @var JsonFormattedValue */
-    protected $p_value;
-    /** @var OrderByList|null */
-    protected $p_order = null;
+    protected ?OrderByList $p_order = null;
 
     public function __construct(
-        JsonFormattedValue $value,
+        protected JsonFormattedValue $p_value,
         ?OrderByList $order = null,
         ?bool $absentOnNull = null,
         ?JsonReturning $returning = null,
@@ -52,8 +46,6 @@ class JsonArrayAgg extends JsonAggregate
         ?WindowDefinition $over = null
     ) {
         parent::__construct($absentOnNull, $returning, $filter, $over);
-
-        $this->p_value = $value;
         $this->p_value->setParentNode($this);
 
         if (null !== $order) {
@@ -72,7 +64,7 @@ class JsonArrayAgg extends JsonAggregate
         $this->setProperty($this->p_order, $order);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonArrayAgg($this);
     }

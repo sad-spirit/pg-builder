@@ -47,7 +47,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * Child nodes available through ArrayAccess
      * @var array<TKey,T>
      */
-    protected $offsets = [];
+    protected array $offsets = [];
 
     /**
      * Instances of these classes / interfaces will be allowed as list elements (Node is always checked)
@@ -246,7 +246,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     /**
      * {@inheritDoc}
      */
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkGenericNodeList($this);
     }
@@ -292,13 +292,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      */
     public function lastKey()
     {
-        if (function_exists('array_key_last')) {
-            return array_key_last($this->offsets);
-        } elseif ([] === $this->offsets) {
-            return null;
-        } else {
-            return key(array_slice($this->offsets, -1, 1, true));
-        }
+        return array_key_last($this->offsets);
     }
 
     /**
@@ -318,7 +312,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
             throw new InvalidArgumentException(sprintf(
                 "%s requires either an array or an instance of Traversable, %s given",
                 $method,
-                is_object($array) ? 'object(' . get_class($array) . ')' : gettype($array)
+                is_object($array) ? 'object(' . $array::class . ')' : gettype($array)
             ));
         }
 
@@ -364,13 +358,16 @@ abstract class GenericNodeList extends GenericNode implements NodeList
             }
         }
         if (!$found) {
-            $shortClasses = array_map(function ($className) {
-                return ($pos = strrpos($className, '\\')) ? substr($className, $pos + 1) : $className;
-            }, array_merge(
-                [get_class($this)],
-                is_object($value) ? [get_class($value)] : [],
-                static::getAllowedElementClasses()
-            ));
+            $shortClasses = array_map(
+                fn($className) => ($pos = strrpos((string) $className, '\\'))
+                    ? substr((string) $className, $pos + 1)
+                    : $className,
+                array_merge(
+                    [static::class],
+                    is_object($value) ? [$value::class] : [],
+                    static::getAllowedElementClasses()
+                )
+            );
 
             throw new InvalidArgumentException(
                 is_object($value)

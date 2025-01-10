@@ -35,25 +35,19 @@ abstract class GenericNode implements Node
      * Mapping ["class name" => ["magic property" => "actual protected property"]]
      * @var array<string, array>
      */
-    private static $propertyNamesCache = [];
+    private static array $propertyNamesCache = [];
 
     /**
      * Mapping ["magic property" => "actual protected property"] for current object, {@see generatePropertyNames()}
      * @var array<string, string>
      */
-    protected $propertyNames = [];
+    protected array $propertyNames = [];
 
-    /**
-     * Link to the Node containing current one
-     * @var Node|null
-     */
-    protected $parentNode = null;
+    /** Link to the Node containing current one */
+    protected ?Node $parentNode = null;
 
-    /**
-     * Flag for preventing endless recursion in {@see setParentNode()}
-     * @var bool
-     */
-    protected $settingParentNode = false;
+    /** Flag for preventing endless recursion in {@see setParentNode()} */
+    protected bool $settingParentNode = false;
 
     /**
      * Variable overloading, exposes values of protected properties having 'p_' name prefix
@@ -180,10 +174,10 @@ abstract class GenericNode implements Node
      */
     final protected function generatePropertyNames(): void
     {
-        if (!isset(self::$propertyNamesCache[$className = get_class($this)])) {
+        if (!isset(self::$propertyNamesCache[$className = static::class])) {
             self::$propertyNamesCache[$className] = [];
             foreach (array_keys(get_class_vars($className)) as $name) {
-                if ('p_' === substr($name, 0, 2)) {
+                if (str_starts_with($name, 'p_')) {
                     self::$propertyNamesCache[$className][substr($name, 2)] = $name;
                 }
             }
@@ -194,7 +188,7 @@ abstract class GenericNode implements Node
     /**
      * {@inheritDoc}
      */
-    public function setParentNode(?Node $parent = null): void
+    public function setParentNode(?Node $parent): void
     {
         // no-op? recursion?
         if ($parent === $this->parentNode || $this->settingParentNode) {

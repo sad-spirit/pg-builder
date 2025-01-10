@@ -39,16 +39,11 @@ class XmlPi extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
-    /** @var Identifier */
-    protected $p_name;
-    /** @var ScalarExpression|null */
-    protected $p_content = null;
+    protected ?ScalarExpression $p_content = null;
 
-    public function __construct(Identifier $name, ?ScalarExpression $content = null)
+    public function __construct(protected Identifier $p_name, ?ScalarExpression $content = null)
     {
         $this->generatePropertyNames();
-
-        $this->p_name = $name;
         $this->p_name->setParentNode($this);
 
         if (null !== $content) {
@@ -62,7 +57,7 @@ class XmlPi extends GenericNode implements ScalarExpression, FunctionLike
         $this->setProperty($this->p_content, $content);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkXmlPi($this);
     }

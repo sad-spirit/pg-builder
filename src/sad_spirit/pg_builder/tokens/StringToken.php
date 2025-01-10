@@ -22,8 +22,8 @@ use sad_spirit\pg_builder\TokenType;
  */
 final class StringToken extends GenericToken
 {
-    private TokenType $type;
-    private string $value;
+    private readonly TokenType $type;
+    private readonly string $value;
 
     public function __construct(TokenType $type, string $value, int $position)
     {

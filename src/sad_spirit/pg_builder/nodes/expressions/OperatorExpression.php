@@ -68,32 +68,16 @@ class OperatorExpression extends GenericNode implements ScalarExpression
         '-' => self::PRECEDENCE_UNARY_MINUS
     ];
 
-    /** @var ScalarExpression|null */
-    protected $p_left = null;
-    /** @var ScalarExpression */
-    protected $p_right;
-    /** @var string|QualifiedOperator */
-    protected $p_operator;
+    protected ScalarExpression|null $p_left = null;
+    protected ScalarExpression $p_right;
+    protected string|QualifiedOperator $p_operator;
 
-    /**
-     * OperatorExpression constructor
-     *
-     * @param string|QualifiedOperator $operator
-     * @param ScalarExpression|null    $left
-     * @param ScalarExpression         $right
-     */
-    public function __construct($operator, ?ScalarExpression $left, ScalarExpression $right)
+    public function __construct(string|QualifiedOperator $operator, ?ScalarExpression $left, ScalarExpression $right)
     {
-        if (!is_string($operator) && !$operator instanceof QualifiedOperator) {
-            throw new InvalidArgumentException(sprintf(
-                '%s requires either a string or an instance of QualifiedOperator, %s given',
-                __CLASS__,
-                is_object($operator) ? 'object(' . get_class($operator) . ')' : gettype($operator)
-            ));
-        } elseif (is_string($operator) && strlen($operator) !== strspn($operator, Lexer::CHARS_OPERATOR)) {
+        if (is_string($operator) && strlen($operator) !== strspn($operator, Lexer::CHARS_OPERATOR)) {
             throw new SyntaxException(sprintf(
                 "%s: '%s' does not look like a valid operator string",
-                __CLASS__,
+                self::class,
                 $operator
             ));
         }
@@ -116,7 +100,7 @@ class OperatorExpression extends GenericNode implements ScalarExpression
         }
     }
 
-    public function setLeft(?ScalarExpression $left = null): void
+    public function setLeft(?ScalarExpression $left): void
     {
         $this->setProperty($this->p_left, $left);
     }
@@ -126,7 +110,7 @@ class OperatorExpression extends GenericNode implements ScalarExpression
         $this->setRequiredProperty($this->p_right, $right);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkOperatorExpression($this);
     }

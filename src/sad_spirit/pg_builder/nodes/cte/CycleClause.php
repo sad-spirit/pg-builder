@@ -24,20 +24,16 @@ use sad_spirit\pg_builder\nodes\{
     GenericNode,
     Identifier,
     NonRecursiveNode,
-    ScalarExpression,
     expressions\Constant,
     expressions\ConstantTypecastExpression,
     lists\IdentifierList
 };
 use sad_spirit\pg_builder\TreeWalker;
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * CYCLE clause for Common Table Expressions
  *
- * @psalm-property IdentifierList $trackColumns
- *
- * @property IdentifierList|Identifier[]              $trackColumns
+ * @property IdentifierList                           $trackColumns
  * @property Identifier                               $markColumn
  * @property Identifier                               $pathColumn
  * @property Constant|ConstantTypecastExpression|null $markValue
@@ -47,16 +43,11 @@ class CycleClause extends GenericNode
 {
     use NonRecursiveNode;
 
-    /** @var IdentifierList|null */
-    protected $p_trackColumns;
-    /** @var Identifier|null */
-    protected $p_markColumn;
-    /** @var Identifier|null */
-    protected $p_pathColumn;
-    /** @var Constant|ConstantTypecastExpression|null */
-    protected $p_markValue;
-    /** @var Constant|ConstantTypecastExpression|null */
-    protected $p_markDefault;
+    protected ?IdentifierList $p_trackColumns = null;
+    protected ?Identifier $p_markColumn = null;
+    protected ?Identifier $p_pathColumn = null;
+    protected Constant|ConstantTypecastExpression|null $p_markValue;
+    protected Constant|ConstantTypecastExpression|null $p_markDefault;
 
     /**
      * Constructor
@@ -68,11 +59,11 @@ class CycleClause extends GenericNode
      * @param Constant|ConstantTypecastExpression|null $markDefault
      */
     public function __construct(
-        $trackColumns,
-        $markColumn,
-        $pathColumn,
-        ?ScalarExpression $markValue = null,
-        ?ScalarExpression $markDefault = null
+        string|iterable $trackColumns,
+        Identifier|string $markColumn,
+        Identifier|string $pathColumn,
+        Constant|ConstantTypecastExpression|null $markValue = null,
+        Constant|ConstantTypecastExpression|null $markDefault = null
     ) {
         $this->generatePropertyNames();
         $this->setTrackColumns($trackColumns);
@@ -98,7 +89,7 @@ class CycleClause extends GenericNode
         } elseif (!$columns instanceof IdentifierList) {
             $columns = new IdentifierList($columns);
         }
-        if (!empty($this->p_trackColumns)) {
+        if (null !== $this->p_trackColumns) {
             $this->setRequiredProperty($this->p_trackColumns, $columns);
         } else {
             // Called from constructor
@@ -109,15 +100,13 @@ class CycleClause extends GenericNode
 
     /**
      * Sets the name of the column that will be used for marking cycle detection
-     *
-     * @param Identifier|string $column
      */
-    public function setMarkColumn($column): void
+    public function setMarkColumn(Identifier|string $column): void
     {
         if (!$column instanceof Identifier) {
             $column = new Identifier($column);
         }
-        if (!empty($this->p_markColumn)) {
+        if (null !== $this->p_markColumn) {
             $this->setRequiredProperty($this->p_markColumn, $column);
         } else {
             // Called from constructor
@@ -128,15 +117,13 @@ class CycleClause extends GenericNode
 
     /**
      * Sets the name of the column that will store the path to visited rows
-     *
-     * @param Identifier|string $column
      */
-    public function setPathColumn($column): void
+    public function setPathColumn(Identifier|string $column): void
     {
         if (!$column instanceof Identifier) {
             $column = new Identifier($column);
         }
-        if (!empty($this->p_pathColumn)) {
+        if (null !== $this->p_pathColumn) {
             $this->setRequiredProperty($this->p_pathColumn, $column);
         } else {
             // Called from constructor
@@ -147,45 +134,21 @@ class CycleClause extends GenericNode
 
     /**
      * Sets the constant value that will be assigned to $markColumn when cycle is detected
-     *
-     * @param Constant|ConstantTypecastExpression|null $markValue
      */
-    public function setMarkValue(?ScalarExpression $markValue): void
+    public function setMarkValue(Constant|ConstantTypecastExpression|null $markValue): void
     {
-        if (
-            null !== $markValue
-            && !$markValue instanceof Constant
-            && !$markValue instanceof ConstantTypecastExpression
-        ) {
-            throw new InvalidArgumentException(sprintf(
-                '$markValue can only be a constant expression, %s given',
-                get_class($markValue)
-            ));
-        }
         $this->setProperty($this->p_markValue, $markValue);
     }
 
     /**
      * Sets the constant value that will be assigned to $markColumn when cycle is NOT detected
-     *
-     * @param ScalarExpression|null $markDefault
      */
-    public function setMarkDefault(?ScalarExpression $markDefault): void
+    public function setMarkDefault(Constant|ConstantTypecastExpression|null $markDefault): void
     {
-        if (
-            null !== $markDefault
-            && !$markDefault instanceof Constant
-            && !$markDefault instanceof ConstantTypecastExpression
-        ) {
-            throw new InvalidArgumentException(sprintf(
-                '$markDefault can only be a constant expression, %s given',
-                get_class($markDefault)
-            ));
-        }
         $this->setProperty($this->p_markDefault, $markDefault);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkCycleClause($this);
     }

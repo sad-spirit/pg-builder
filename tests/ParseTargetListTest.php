@@ -29,7 +29,7 @@ class ParseTargetListTest extends TestCase
     {
         $parts = \array_map(
             fn (Keyword $keyword): string => 'null ' . $keyword->value,
-            \array_filter(Keyword::cases(), fn (Keyword $keyword) => $keyword->isBareLabel())
+            \array_filter(Keyword::cases(), fn (Keyword $keyword): bool => $keyword->isBareLabel())
         );
         $parts[] = 'false or false or';
         $parts[] = 'true and true and';

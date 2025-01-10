@@ -77,7 +77,7 @@ class JsonQuery extends JsonQueryCommon
         $this->setBehaviour($this->p_onError, false, $onError);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonQuery($this);
     }

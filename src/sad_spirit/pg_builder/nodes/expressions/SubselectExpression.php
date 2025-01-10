@@ -39,15 +39,10 @@ class SubselectExpression extends GenericNode implements ScalarExpression
 {
     use ExpressionAtom;
 
-    protected SelectCommon $p_query;
-    protected ?SubselectConstruct $p_operator;
-
-    public function __construct(SelectCommon $query, ?SubselectConstruct $operator = null)
+    public function __construct(protected SelectCommon $p_query, protected ?SubselectConstruct $p_operator = null)
     {
         $this->generatePropertyNames();
-        $this->p_query = $query;
         $this->p_query->setParentNode($this);
-        $this->p_operator = $operator;
     }
 
     public function setQuery(SelectCommon $query): void
@@ -55,7 +50,7 @@ class SubselectExpression extends GenericNode implements ScalarExpression
         $this->setRequiredProperty($this->p_query, $query);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkSubselectExpression($this);
     }

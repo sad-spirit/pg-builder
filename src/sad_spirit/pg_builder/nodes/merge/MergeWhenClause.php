@@ -33,8 +33,7 @@ use sad_spirit\pg_builder\nodes\ScalarExpression;
  */
 abstract class MergeWhenClause extends GenericNode
 {
-    /** @var ScalarExpression|null */
-    protected $p_condition = null;
+    protected ScalarExpression|null $p_condition = null;
 
     public function __construct(?ScalarExpression $condition = null, ?Node $action = null)
     {

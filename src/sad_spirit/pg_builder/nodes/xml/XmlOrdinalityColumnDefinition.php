@@ -27,7 +27,7 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class XmlOrdinalityColumnDefinition extends XmlColumnDefinition
 {
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkXmlOrdinalityColumnDefinition($this);
     }

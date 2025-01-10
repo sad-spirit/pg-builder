@@ -33,7 +33,8 @@ class StringConstant extends Constant
 {
     protected StringConstantType $p_type;
 
-    protected $propertyNames = [
+    /** @var array<string, string> */
+    protected array $propertyNames = [
         'value' => 'p_value',
         'type'  => 'p_type'
     ];
@@ -51,7 +52,7 @@ class StringConstant extends Constant
         $this->p_type  = $type;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkStringConstant($this);
     }

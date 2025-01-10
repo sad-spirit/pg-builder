@@ -27,27 +27,19 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing a window definition (for function calls with OVER and for WINDOW clause)
  *
- * @psalm-property ExpressionList $partition
- * @psalm-property OrderByList    $order
- *
- * @property      Identifier|null                   $name
- * @property-read Identifier|null                   $refName
- * @property      ExpressionList|ScalarExpression[] $partition
- * @property      OrderByList|OrderByElement[]      $order
- * @property-read WindowFrameClause|null            $frame
+ * @property      Identifier|null        $name
+ * @property-read Identifier|null        $refName
+ * @property      ExpressionList         $partition
+ * @property      OrderByList            $order
+ * @property-read WindowFrameClause|null $frame
  */
 class WindowDefinition extends GenericNode
 {
-    /** @var Identifier|null */
-    protected $p_name = null;
-    /** @var Identifier|null */
-    protected $p_refName = null;
-    /** @var ExpressionList */
-    protected $p_partition;
-    /** @var OrderByList */
-    protected $p_order;
-    /** @var WindowFrameClause|null */
-    protected $p_frame = null;
+    protected Identifier|null $p_name = null;
+    protected Identifier|null $p_refName = null;
+    protected ExpressionList $p_partition;
+    protected OrderByList $p_order;
+    protected WindowFrameClause|null $p_frame = null;
 
     public function __construct(
         ?Identifier $refName = null,
@@ -74,12 +66,12 @@ class WindowDefinition extends GenericNode
         }
     }
 
-    public function setName(?Identifier $name = null): void
+    public function setName(?Identifier $name): void
     {
         $this->setProperty($this->p_name, $name);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkWindowDefinition($this);
     }

@@ -25,16 +25,13 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing the json_array() expression with a list of expressions as argument
  *
- * @psalm-property JsonFormattedValueList $arguments
- *
- * @property JsonFormattedValueList|JsonFormattedValue[] $arguments
+ * @property JsonFormattedValueList $arguments
  */
 class JsonArrayValueList extends JsonArray
 {
     use AbsentOnNullProperty;
 
-    /** @var JsonFormattedValueList */
-    protected $p_arguments;
+    protected JsonFormattedValueList $p_arguments;
 
     public function __construct(
         ?JsonFormattedValueList $arguments = null,
@@ -49,7 +46,7 @@ class JsonArrayValueList extends JsonArray
         $this->setAbsentOnNull($absentOnNull);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonArrayValueList($this);
     }

@@ -33,7 +33,7 @@ class EmptyGroupingSet extends GenericNode implements GroupByElement
 {
     use NonRecursiveNode;
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkEmptyGroupingSet($this);
     }

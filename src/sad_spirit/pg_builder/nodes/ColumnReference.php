@@ -34,27 +34,22 @@ use sad_spirit\pg_builder\{
  * @property-read Identifier|null $relation
  * @property-read Identifier|Star $column
  */
-class ColumnReference extends GenericNode implements ScalarExpression
+class ColumnReference extends GenericNode implements ScalarExpression, \Stringable
 {
     use NonRecursiveNode;
     use ExpressionAtom;
 
-    /** @var Identifier|null */
-    protected $p_catalog;
-    /** @var Identifier|null */
-    protected $p_schema;
-    /** @var Identifier|null */
-    protected $p_relation;
-    /** @var Identifier|Star */
-    protected $p_column;
+    protected ?Identifier $p_catalog = null;
+    protected ?Identifier $p_schema = null;
+    protected ?Identifier $p_relation = null;
+    protected Identifier|Star $p_column;
 
     /**
      * ColumnReference constructor, requires at least one name part, accepts up to four
      *
-     * @param string|Identifier|Star ...$parts
      * @noinspection PhpMissingBreakStatementInspection
      */
-    public function __construct(...$parts)
+    public function __construct(string|Identifier|Star ...$parts)
     {
         $this->generatePropertyNames();
 
@@ -92,7 +87,7 @@ class ColumnReference extends GenericNode implements ScalarExpression
                 break;
 
             case 0:
-                throw new InvalidArgumentException(__CLASS__ . ' constructor expects at least one name part');
+                throw new InvalidArgumentException(self::class . ' constructor expects at least one name part');
             default:
                 throw new SyntaxException("Too many dots in column reference: " . implode('.', $parts));
         }
@@ -100,11 +95,8 @@ class ColumnReference extends GenericNode implements ScalarExpression
 
     /**
      * Tries to convert last part of column reference to Identifier or Star
-     *
-     * @param mixed $namePart
-     * @return Identifier|Star
      */
-    private function expectIdentifierOrStar($namePart)
+    private function expectIdentifierOrStar(string|Identifier|Star $namePart): Identifier|Star
     {
         if ($namePart instanceof Star) {
             return $namePart;
@@ -117,22 +109,24 @@ class ColumnReference extends GenericNode implements ScalarExpression
 
     /**
      * Tries to convert part of column reference to Identifier
-     *
-     * @param mixed $namePart
-     * @param string $index
-     * @return Identifier
      */
-    private function expectIdentifier($namePart, string $index): Identifier
+    private function expectIdentifier(string|Identifier|Star $namePart, string $index): Identifier
     {
         if ($namePart instanceof Identifier) {
             return $namePart;
+        } elseif ($namePart instanceof Star) {
+            throw new InvalidArgumentException(\sprintf(
+                "%s: instance of Star can only be used for the 'column' part, found one for '%s' part",
+                self::class,
+                $index
+            ));
         }
         try {
             return new Identifier($namePart);
         } catch (\Throwable $e) {
             throw new InvalidArgumentException(sprintf(
                 "%s: %s part of column reference could not be converted to Identifier; %s",
-                __CLASS__,
+                self::class,
                 $index,
                 $e->getMessage()
             ));
@@ -155,7 +149,7 @@ class ColumnReference extends GenericNode implements ScalarExpression
     protected function unserializeProperties(array $properties): void
     {
         $this->generatePropertyNames();
-        array_walk($properties, function ($v, $k) {
+        array_walk($properties, function ($v, $k): void {
             if (null !== $v) {
                 $name        = $this->propertyNames[$k];
                 $this->$name = '' === $v ? new Star() : new Identifier($v);
@@ -169,7 +163,7 @@ class ColumnReference extends GenericNode implements ScalarExpression
      *
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return (null === $this->p_catalog ? '' : (string)$this->p_catalog . '.')
                . (null === $this->p_schema ? '' : (string)$this->p_schema . '.')
@@ -177,7 +171,7 @@ class ColumnReference extends GenericNode implements ScalarExpression
                . (string)$this->p_column;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkColumnReference($this);
     }

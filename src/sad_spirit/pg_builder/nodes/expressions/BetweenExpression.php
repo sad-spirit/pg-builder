@@ -88,7 +88,7 @@ class BetweenExpression extends NegatableExpression
         $this->p_operator = $operator;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkBetweenExpression($this);
     }

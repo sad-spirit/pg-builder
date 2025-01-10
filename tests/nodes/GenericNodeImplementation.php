@@ -45,7 +45,7 @@ class GenericNodeImplementation extends GenericNode
         $this->setProperty($this->p_readonly, $readonly);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): never
     {
         throw new NotImplementedException('Under heavy construction [insert picture of man digging]');
     }

@@ -49,20 +49,13 @@ class TrimExpression extends GenericNode implements ScalarExpression, FunctionLi
 {
     use ExpressionAtom;
 
-    protected ExpressionList $p_arguments;
-    protected TrimSide $p_side;
-
-    public function __construct(ExpressionList $arguments, TrimSide $side = TrimSide::BOTH)
+    public function __construct(protected ExpressionList $p_arguments, protected TrimSide $p_side = TrimSide::BOTH)
     {
         $this->generatePropertyNames();
-
-        $this->p_arguments = $arguments;
         $this->p_arguments->setParentNode($this);
-
-        $this->p_side = $side;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkTrimExpression($this);
     }

@@ -73,7 +73,7 @@ abstract class FromElement extends GenericNode
             throw new InvalidArgumentException(sprintf(
                 '%s expects an instance of IdentifierList for $columnAliases, %s given',
                 __METHOD__,
-                get_class($columnAliases)
+                $columnAliases::class
             ));
         }
         $this->setProperty($this->p_columnAliases, $columnAliases);

@@ -21,42 +21,29 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_builder\nodes\{
-    MultipleSetClause,
-    SingleSetClause,
-    TargetElement,
     WhereOrHavingClause,
     lists\FromList,
     lists\TargetList,
     lists\SetClauseList,
-    range\FromElement,
     range\UpdateOrDeleteTarget
 };
 
 /**
  * AST node representing UPDATE statement
  *
- * @psalm-property SetClauseList $set
- * @psalm-property FromList      $from
- * @psalm-property TargetList    $returning
- *
- * @property-read UpdateOrDeleteTarget                                $relation
- * @property      SetClauseList|SingleSetClause[]|MultipleSetClause[] $set
- * @property      FromList|FromElement[]                              $from
- * @property-read WhereOrHavingClause                                 $where
- * @property      TargetList|TargetElement[]                          $returning
+ * @property-read UpdateOrDeleteTarget $relation
+ * @property      SetClauseList        $set
+ * @property      FromList             $from
+ * @property-read WhereOrHavingClause  $where
+ * @property      TargetList           $returning
  */
 class Update extends Statement
 {
-    /** @var UpdateOrDeleteTarget */
-    protected $p_relation;
-    /** @var SetClauseList */
-    protected $p_set;
-    /** @var FromList */
-    protected $p_from;
-    /** @var WhereOrHavingClause */
-    protected $p_where;
-    /** @var TargetList */
-    protected $p_returning;
+    protected UpdateOrDeleteTarget $p_relation;
+    protected SetClauseList $p_set;
+    protected FromList $p_from;
+    protected WhereOrHavingClause $p_where;
+    protected TargetList $p_returning;
 
     public function __construct(UpdateOrDeleteTarget $relation, SetClauseList $set)
     {
@@ -77,7 +64,7 @@ class Update extends Statement
         $this->p_where->parentNode     = $this;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkUpdateStatement($this);
     }

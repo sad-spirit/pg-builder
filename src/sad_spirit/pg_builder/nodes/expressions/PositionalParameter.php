@@ -30,10 +30,10 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class PositionalParameter extends Parameter
 {
-    /** @var int */
-    protected $p_position;
+    protected int $p_position;
 
-    protected $propertyNames = [
+    /** @var array<string, string> */
+    protected array $propertyNames = [
         'position' => 'p_position'
     ];
 
@@ -45,7 +45,7 @@ class PositionalParameter extends Parameter
         $this->p_position = $position;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkPositionalParameter($this);
     }

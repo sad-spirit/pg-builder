@@ -30,14 +30,9 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class Subselect extends LateralFromElement
 {
-    /** @var SelectCommon */
-    protected $p_query;
-
-    public function __construct(SelectCommon $query)
+    public function __construct(protected SelectCommon $p_query)
     {
         $this->generatePropertyNames();
-
-        $this->p_query = $query;
         $this->p_query->setParentNode($this);
     }
 
@@ -46,7 +41,7 @@ class Subselect extends LateralFromElement
         $this->setRequiredProperty($this->p_query, $query);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkRangeSubselect($this);
     }

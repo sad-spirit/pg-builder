@@ -101,7 +101,7 @@ QRY
 
         $map   = $this->walker->getNamedParameterMap();
         $types = $this->walker->getParameterTypes();
-        preg_match_all('#\$\d+#', $statement->dispatch($this->builder), $matches);
+        preg_match_all('#\$\d+#', (string) $statement->dispatch($this->builder), $matches);
         $this->assertCount(36, $map);
         $this->assertCount(36, $types);
         $this->assertCount(36, $matches[0]);
@@ -125,7 +125,7 @@ QRY
 
         $this->assertCount(1, $this->walker->getNamedParameterMap());
         $this->assertCount(1, $this->walker->getParameterTypes());
-        $this->assertEquals(4, substr_count($statement->dispatch($this->builder), '$1'));
+        $this->assertEquals(4, substr_count((string) $statement->dispatch($this->builder), '$1'));
     }
 
     public function testReplaceParametersInUpdate(): void

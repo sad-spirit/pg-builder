@@ -31,21 +31,20 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class MergeWhenMatched extends MergeWhenClause
 {
-    /** @var MergeUpdate|MergeDelete|null */
-    protected $p_action;
+    protected MergeUpdate|MergeDelete|null $p_action;
 
     public function setAction(?Node $action): void
     {
         if (null !== $action && !($action instanceof MergeDelete) && !($action instanceof MergeUpdate)) {
             throw new InvalidArgumentException(sprintf(
                 'Only UPDATE or DELETE action is possible for "WHEN MATCHED" clause, object(%s) given',
-                get_class($action)
+                $action::class
             ));
         }
         $this->setProperty($this->p_action, $action);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkMergeWhenMatched($this);
     }

@@ -82,7 +82,7 @@ class Insert extends Statement
         $this->p_overriding = $overriding;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkInsertStatement($this);
     }

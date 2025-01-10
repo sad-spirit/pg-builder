@@ -24,11 +24,9 @@ use sad_spirit\pg_builder\{
     Node,
     Parseable,
     ElementParseable,
-    Parser
-};
-use sad_spirit\pg_builder\nodes\{
-    ScalarExpression,
-    SetToDefault
+    Parser,
+    nodes\ScalarExpression,
+    nodes\SetToDefault
 };
 use sad_spirit\pg_builder\nodes\expressions\RowExpression;
 

@@ -43,37 +43,20 @@ class FunctionExpression extends FunctionCall implements ScalarExpression
 {
     use ExpressionAtom;
 
-    /** @var bool */
-    protected $p_withinGroup = false;
-    /** @var ScalarExpression|null */
-    protected $p_filter = null;
-    /** @var WindowDefinition|null */
-    protected $p_over = null;
+    protected ScalarExpression|null $p_filter = null;
+    protected WindowDefinition|null $p_over = null;
 
-    /**
-     * Constructor, delegates most stuff to FunctionCall
-     *
-     * @param string|QualifiedName           $funcName
-     * @param FunctionArgumentList|Star|null $arguments
-     * @param bool                           $distinct
-     * @param bool                           $variadic
-     * @param OrderByList|null               $orderBy
-     * @param bool                           $withinGroup
-     * @param ScalarExpression|null          $filter
-     * @param WindowDefinition|null          $over
-     */
     public function __construct(
-        $funcName,
-        $arguments = null,
+        string|QualifiedName $funcName,
+        FunctionArgumentList|Star|null $arguments = null,
         bool $distinct = false,
         bool $variadic = false,
         ?OrderByList $orderBy = null,
-        bool $withinGroup = false,
+        protected bool $p_withinGroup = false,
         ?ScalarExpression $filter = null,
         ?WindowDefinition $over = null
     ) {
         parent::__construct($funcName, $arguments, $distinct, $variadic, $orderBy);
-        $this->p_withinGroup = $withinGroup;
 
         if (null !== $filter) {
             $this->p_filter = $filter;
@@ -86,7 +69,7 @@ class FunctionExpression extends FunctionCall implements ScalarExpression
         }
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkFunctionExpression($this);
     }

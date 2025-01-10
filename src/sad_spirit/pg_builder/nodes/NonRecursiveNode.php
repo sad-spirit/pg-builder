@@ -26,6 +26,8 @@ use sad_spirit\pg_builder\Node;
  * Trait for Nodes that cannot legitimately be parents for the Nodes of the same type
  *
  * Implements setParentNode() method without redundant checks for circular reference
+ *
+ * @require-extends GenericNode
  */
 trait NonRecursiveNode
 {
@@ -33,20 +35,18 @@ trait NonRecursiveNode
      * Link to the Node containing current one
      * @var Node|null
      */
-    protected $parentNode = null;
+    protected ?Node $parentNode = null;
 
     /**
      * Flag for preventing endless recursion in setParentNode()
      * @var bool
      */
-    protected $settingParentNode = false;
+    protected bool $settingParentNode = false;
 
     /**
      * Checks in base setParentNode() are redundant as this is a leaf node
-     *
-     * @param Node|null $parent
      */
-    public function setParentNode(?Node $parent = null): void
+    public function setParentNode(?Node $parent): void
     {
         // no-op? recursion?
         if ($parent === $this->parentNode || $this->settingParentNode) {
@@ -55,9 +55,7 @@ trait NonRecursiveNode
 
         $this->settingParentNode = true;
         try {
-            if (null !== $this->parentNode) {
-                $this->parentNode->removeChild($this);
-            }
+            $this->parentNode?->removeChild($this);
             $this->parentNode = $parent;
 
         } finally {

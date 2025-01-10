@@ -31,21 +31,20 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class MergeWhenNotMatched extends MergeWhenClause
 {
-    /** @var MergeInsert|null */
-    protected $p_action;
+    protected MergeInsert|null $p_action;
 
     public function setAction(?Node $action): void
     {
         if (null !== $action && !($action instanceof MergeInsert)) {
             throw new InvalidArgumentException(sprintf(
                 'Only INSERT action is possible for "WHEN NOT MATCHED" clause, object(%s) given',
-                get_class($action)
+                $action::class
             ));
         }
         $this->setProperty($this->p_action, $action);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkMergeWhenNotMatched($this);
     }

@@ -32,24 +32,19 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class ArrayIndexes extends GenericNode
 {
-    /** @var ScalarExpression|null */
-    protected $p_lower;
-    /** @var ScalarExpression|null */
-    protected $p_upper;
-    /** @var bool */
-    protected $p_isSlice;
+    protected ScalarExpression|null $p_lower;
+    protected ScalarExpression|null $p_upper;
 
     public function __construct(
         ?ScalarExpression $lower = null,
         ?ScalarExpression $upper = null,
-        bool $isSlice = false
+        protected bool $p_isSlice = false
     ) {
         $this->generatePropertyNames();
 
         if (null !== $lower && $upper === $lower) {
             throw new InvalidArgumentException("Cannot use the same Node for upper and lower bounds");
         }
-        $this->p_isSlice = $isSlice;
         $this->setUpper($upper);
         $this->setLower($lower);
     }
@@ -83,7 +78,7 @@ class ArrayIndexes extends GenericNode
         $this->p_isSlice = $isSlice;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkArrayIndexes($this);
     }

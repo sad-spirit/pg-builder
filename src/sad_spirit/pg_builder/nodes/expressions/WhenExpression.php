@@ -36,10 +36,8 @@ use sad_spirit\pg_builder\{
  */
 class WhenExpression extends GenericNode
 {
-    /** @var ScalarExpression */
-    protected $p_when;
-    /** @var ScalarExpression */
-    protected $p_then;
+    protected ScalarExpression $p_when;
+    protected ScalarExpression $p_then;
 
     public function __construct(ScalarExpression $when, ScalarExpression $then)
     {
@@ -66,9 +64,9 @@ class WhenExpression extends GenericNode
         $this->setRequiredProperty($this->p_then, $then);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): never
     {
         // handled by dispatch of CaseExpression as this cannot appear outside of CASE
-        throw new NotImplementedException('Dispatch for ' . __CLASS__ . ' not implemented');
+        throw new NotImplementedException('Dispatch for ' . self::class . ' not implemented');
     }
 }

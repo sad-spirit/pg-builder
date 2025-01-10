@@ -38,7 +38,7 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node for regular column definitions in json_table() expression
  *
- * @property-read JsonFormat|null              $format
+ * @property-read JsonFormat|null                     $format
  * @property      JsonBehaviour|ScalarExpression|null $onEmpty
  * @property      JsonBehaviour|ScalarExpression|null $onError
  */
@@ -89,7 +89,7 @@ class JsonRegularColumnDefinition extends JsonTypedColumnDefinition
         $this->setBehaviour($this->p_onError, false, $onError);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonRegularColumnDefinition($this);
     }

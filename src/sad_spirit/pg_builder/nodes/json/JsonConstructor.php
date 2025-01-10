@@ -38,13 +38,9 @@ class JsonConstructor extends GenericNode implements ScalarExpression, FunctionL
     use ExpressionAtom;
     use UniqueKeysProperty;
 
-    protected JsonFormattedValue $p_expression;
-
-    public function __construct(JsonFormattedValue $expression, ?bool $uniqueKeys = null)
+    public function __construct(protected JsonFormattedValue $p_expression, ?bool $uniqueKeys = null)
     {
         $this->generatePropertyNames();
-
-        $this->p_expression = $expression;
         $this->p_expression->setParentNode($this);
 
         $this->p_uniqueKeys = $uniqueKeys;
@@ -55,7 +51,7 @@ class JsonConstructor extends GenericNode implements ScalarExpression, FunctionL
         $this->setRequiredProperty($this->p_expression, $expression);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonConstructor($this);
     }

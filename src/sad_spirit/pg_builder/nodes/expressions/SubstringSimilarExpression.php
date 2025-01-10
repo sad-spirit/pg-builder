@@ -42,12 +42,9 @@ class SubstringSimilarExpression extends GenericNode implements ScalarExpression
 {
     use ExpressionAtom;
 
-    /** @var ScalarExpression */
-    protected $p_string;
-    /** @var ScalarExpression */
-    protected $p_pattern;
-    /** @var ScalarExpression */
-    protected $p_escape;
+    protected ScalarExpression $p_string;
+    protected ScalarExpression $p_pattern;
+    protected ScalarExpression $p_escape;
 
     public function __construct(ScalarExpression $string, ScalarExpression $pattern, ScalarExpression $escape)
     {
@@ -82,7 +79,7 @@ class SubstringSimilarExpression extends GenericNode implements ScalarExpression
         $this->setRequiredProperty($this->p_escape, $escape);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkSubstringSimilarExpression($this);
     }

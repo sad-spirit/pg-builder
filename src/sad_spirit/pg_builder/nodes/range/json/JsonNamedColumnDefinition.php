@@ -30,14 +30,9 @@ use sad_spirit\pg_builder\nodes\Identifier;
  */
 abstract class JsonNamedColumnDefinition extends GenericNode implements JsonColumnDefinition
 {
-    /** @var Identifier */
-    protected $p_name;
-
-    public function __construct(Identifier $name)
+    public function __construct(protected Identifier $p_name)
     {
         $this->generatePropertyNames();
-
-        $this->p_name = $name;
         $this->p_name->setParentNode($this);
     }
 

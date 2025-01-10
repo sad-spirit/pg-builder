@@ -35,7 +35,7 @@ class XmlForest extends TargetList implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkXmlForest($this);
     }

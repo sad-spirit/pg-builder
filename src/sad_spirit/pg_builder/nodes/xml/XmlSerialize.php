@@ -42,27 +42,15 @@ class XmlSerialize extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
-    protected XmlOption $p_documentOrContent;
-    protected ScalarExpression $p_argument;
-    protected TypeName $p_type;
-    protected ?bool $p_indent = null;
-
     public function __construct(
-        XmlOption $documentOrContent,
-        ScalarExpression $argument,
-        TypeName $typeName,
-        ?bool $indent = null
+        protected XmlOption $p_documentOrContent,
+        protected ScalarExpression $p_argument,
+        protected TypeName $p_type,
+        protected ?bool $p_indent = null
     ) {
         $this->generatePropertyNames();
-        $this->p_documentOrContent = $documentOrContent;
-
-        $this->p_argument = $argument;
         $this->p_argument->setParentNode($this);
-
-        $this->p_type = $typeName;
         $this->p_type->setParentNode($this);
-
-        $this->p_indent = $indent;
     }
 
     public function setArgument(ScalarExpression $argument): void
@@ -75,7 +63,7 @@ class XmlSerialize extends GenericNode implements ScalarExpression, FunctionLike
         $this->p_indent = $indent;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkXmlSerialize($this);
     }

@@ -70,7 +70,7 @@ abstract class FunctionFromElement extends LateralFromElement
             throw new InvalidArgumentException(sprintf(
                 '%s expects an instance of either IdentifierList or ColumnDefinitionList, %s given',
                 __METHOD__,
-                get_class($columnAliases)
+                $columnAliases::class
             ));
         }
 

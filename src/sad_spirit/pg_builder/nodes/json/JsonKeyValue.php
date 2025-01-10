@@ -34,19 +34,10 @@ use sad_spirit\pg_builder\{
  */
 class JsonKeyValue extends GenericNode
 {
-    /** @var ScalarExpression */
-    protected $p_key;
-    /** @var JsonFormattedValue */
-    protected $p_value;
-
-    public function __construct(ScalarExpression $key, JsonFormattedValue $value)
+    public function __construct(protected ScalarExpression $p_key, protected JsonFormattedValue $p_value)
     {
         $this->generatePropertyNames();
-
-        $this->p_key = $key;
         $this->p_key->setParentNode($this);
-
-        $this->p_value = $value;
         $this->p_value->setParentNode($this);
     }
 
@@ -60,7 +51,7 @@ class JsonKeyValue extends GenericNode
         $this->setRequiredProperty($this->p_value, $value);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonKeyValue($this);
     }

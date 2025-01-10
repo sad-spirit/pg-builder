@@ -31,19 +31,14 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class JsonArraySubselect extends JsonArray
 {
-    /** @var SelectCommon */
-    protected $p_query;
-    /** @var JsonFormat|null */
-    protected $p_format;
+    protected ?JsonFormat $p_format = null;
 
     public function __construct(
-        SelectCommon $query,
+        protected SelectCommon $p_query,
         ?JsonFormat $format = null,
         ?JsonReturning $returning = null
     ) {
         parent::__construct($returning);
-
-        $this->p_query = $query;
         $this->p_query->setParentNode($this);
 
         if (null !== $format) {
@@ -62,7 +57,7 @@ class JsonArraySubselect extends JsonArray
         $this->setProperty($this->p_format, $format);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonArraySubselect($this);
     }

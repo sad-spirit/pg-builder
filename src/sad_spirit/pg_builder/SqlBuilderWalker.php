@@ -25,40 +25,33 @@ namespace sad_spirit\pg_builder;
  */
 class SqlBuilderWalker implements StatementToStringWalker
 {
-    /**
-     * Current indentation level
-     * @var int
-     */
-    protected $indentLevel = 0;
+    /** Current indentation level */
+    protected int $indentLevel = 0;
 
     /**
      * Options, mostly deal with prettifying output
      * @var array<string, mixed>
      */
-    protected $options = [
+    protected array $options = [
         'indent'         => "    ",
         'linebreak'      => "\n",
         'wrap'           => 120,
         'escape_unicode' => false
     ];
 
-    /**
-     * Dummy typecast expression used for checks with argumentNeedsParentheses()
-     * @var nodes\expressions\TypecastExpression
-     */
-    private $dummyTypecast;
+    /** Dummy typecast expression used for checks with argumentNeedsParentheses() */
+    private readonly nodes\expressions\TypecastExpression $dummyTypecast;
 
     /**
      * Identifiers are likely to appear in output more than once, so we cache the result of their escaping
      * @var string[]
      */
-    private $escapedUnicodeIdentifiers = [];
+    private array $escapedUnicodeIdentifiers = [];
 
     /**
      * Whether to generate SQL compatible with PDO::prepare()
-     * @var bool
      */
-    private $PDOPrepareCompatibility = false;
+    private bool $PDOPrepareCompatibility = false;
 
     /**
      * Constructor, accepts options that tune output generation
@@ -106,17 +99,12 @@ class SqlBuilderWalker implements StatementToStringWalker
     }
 
     /**
-     * Checks whether an argument of expression should be parenthesized in Postgres 9.5+
-     *
-     * @param nodes\ScalarExpression $argument
-     * @param nodes\ScalarExpression $expression
-     * @param bool                   $right
-     * @return bool
+     * Checks whether an argument of expression should be parenthesized
      */
     protected function argumentNeedsParentheses(
         nodes\ScalarExpression $argument,
         nodes\ScalarExpression $expression,
-        $right = false
+        bool $right = false
     ): bool {
         $argumentPrecedence   = $argument->getPrecedence();
         $expressionPrecedence = $expression->getPrecedence();
@@ -136,26 +124,17 @@ class SqlBuilderWalker implements StatementToStringWalker
             }
         }
 
-        switch ($expression->getAssociativity()) {
-            case $expression::ASSOCIATIVE_RIGHT:
-                return $argumentPrecedence < $expressionPrecedence
-                   || !$right && $argumentPrecedence === $expressionPrecedence;
-            case $expression::ASSOCIATIVE_LEFT:
-                return $argumentPrecedence < $expressionPrecedence
-                   || $right && $argumentPrecedence === $expressionPrecedence;
-            case $expression::ASSOCIATIVE_NONE:
-            default:
-                return $argumentPrecedence <= $expressionPrecedence;
-        }
+        return match ($expression->getAssociativity()) {
+            $expression::ASSOCIATIVE_RIGHT => $argumentPrecedence < $expressionPrecedence
+               || !$right && $argumentPrecedence === $expressionPrecedence,
+            $expression::ASSOCIATIVE_LEFT => $argumentPrecedence < $expressionPrecedence
+               || $right && $argumentPrecedence === $expressionPrecedence,
+            default => $argumentPrecedence <= $expressionPrecedence
+        };
     }
 
     /**
      * Adds parentheses around argument if its precedence is lower than that of parent expression
-     *
-     * @param nodes\ScalarExpression $argument
-     * @param nodes\ScalarExpression $expression
-     * @param bool                   $right
-     * @return string
      */
     protected function optionalParentheses(
         nodes\ScalarExpression $argument,
@@ -169,12 +148,10 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     /**
      * Returns the string to indent the current expression
-     *
-     * @return string
      */
     protected function getIndent(): string
     {
-        return str_repeat($this->options['indent'], $this->indentLevel);
+        return str_repeat((string) $this->options['indent'], $this->indentLevel);
     }
 
     /**
@@ -204,13 +181,13 @@ class SqlBuilderWalker implements StatementToStringWalker
         $lineSep   = $separator . $this->options['linebreak'] . $this->getIndent();
         $indentLen = strlen($this->getIndent());
         $string    = $lead . array_shift($parts);
-        $lineLen   = (false === $lastBreak = strrpos($string, $this->options['linebreak']))
+        $lineLen   = (false === $lastBreak = strrpos($string, (string) $this->options['linebreak']))
                      ? strlen($string) : strlen($string) - $lastBreak;
         $sepLen    = strlen($separator) + 1;
         foreach ($parts as $part) {
             $partLen = strlen($part);
-            if (false !== ($lastBreak = strrpos($part, $this->options['linebreak']))) {
-                $firstBreak = strpos($part, $this->options['linebreak']) ?: $lastBreak;
+            if (false !== ($lastBreak = strrpos($part, (string) $this->options['linebreak']))) {
+                $firstBreak = strpos($part, (string) $this->options['linebreak']) ?: $lastBreak;
                 if ($lineLen + $firstBreak < $this->options['wrap']) {
                     $string .= $separator . ' ' . $part;
                 } else {
@@ -233,9 +210,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     /**
      * Adds string representations of clauses defined in SelectCommon to an array
      *
-     * @param string[]     $clauses
-     * @param SelectCommon $statement
-     * @return void
+     * @param string[] $clauses
      */
     protected function addCommonSelectClauses(array &$clauses, SelectCommon $statement): void
     {
@@ -538,7 +513,7 @@ class SqlBuilderWalker implements StatementToStringWalker
                 . "'";
         }
 
-        if (false === strpos($node->value, "'") && false === strpos($node->value, '\\')) {
+        if (!str_contains($node->value, "'") && !str_contains($node->value, '\\')) {
             return "'" . $node->value . "'";
         }
         // We generate dollar-quoted strings by default as those are more readable, having no escapes.
@@ -547,11 +522,11 @@ class SqlBuilderWalker implements StatementToStringWalker
             return "e'" . strtr($node->value, ["'" => "\\'", "\\" => "\\\\"]) . "'";
         }
 
-        if (false === strpos($node->value . '$', '$$')) {
+        if (!str_contains($node->value . '$', '$$')) {
             return '$$' . $node->value . '$$';
         } else {
             $i = 1;
-            while (false !== strpos($node->value . '$', '$_' . $i . '$')) {
+            while (str_contains($node->value . '$', '$_' . $i . '$')) {
                 $i++;
             }
             return '$_' . $i . '$' . $node->value . '$_' . $i . '$';

@@ -47,7 +47,8 @@ abstract class Constant extends GenericNode implements ScalarExpression
 
     protected string $p_value;
 
-    protected $propertyNames = [
+    /** @var array<string, string> */
+    protected array $propertyNames = [
         'value' => 'p_value'
     ];
 
@@ -74,7 +75,7 @@ abstract class Constant extends GenericNode implements ScalarExpression
 
         throw new InvalidArgumentException(sprintf(
             '%s requires a literal token, %s given',
-            __CLASS__,
+            self::class,
             $token->getType()->toString()
         ));
     }
@@ -96,7 +97,7 @@ abstract class Constant extends GenericNode implements ScalarExpression
                     '%s() requires a scalar value or an object implementing __toString() method, %s given',
                     __METHOD__,
                     \is_object($value)
-                        ? 'object(' . \get_class($value) . ')'
+                        ? 'object(' . $value::class . ')'
                         : \gettype($value)
                 ))
         };

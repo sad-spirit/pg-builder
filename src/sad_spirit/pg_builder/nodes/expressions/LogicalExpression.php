@@ -37,9 +37,8 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
 {
     use HasBothPropsAndOffsets;
 
-    protected LogicalOperator $p_operator;
-
-    protected $propertyNames = [
+    /** @var array<string, string> */
+    protected array $propertyNames = [
         'operator' => 'p_operator'
     ];
 
@@ -47,15 +46,16 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
      * LogicalExpression constructor
      *
      * @param null|string|iterable<ScalarExpression> $terms
-     * @param LogicalOperator                        $operator
+     * @param LogicalOperator $p_operator
      */
-    public function __construct($terms = null, LogicalOperator $operator = LogicalOperator::AND)
-    {
+    public function __construct(
+        string|iterable|null $terms = null,
+        protected LogicalOperator $p_operator = LogicalOperator::AND
+    ) {
         parent::__construct($terms);
-        $this->p_operator = $operator;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkLogicalExpression($this);
     }

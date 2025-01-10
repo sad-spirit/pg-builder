@@ -31,7 +31,7 @@ class NonRecursiveNodeImplementation extends GenericNode
 {
     use NonRecursiveNode;
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): never
     {
         throw new NotImplementedException('Under heavy construction [insert picture of man digging]');
     }

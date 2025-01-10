@@ -49,19 +49,13 @@ class SystemFunctionCall extends GenericNode implements FunctionLike, ScalarExpr
 {
     use ExpressionAtom;
 
-    protected SystemFunctionName $p_name;
-    protected ExpressionList $p_arguments;
-
-    public function __construct(SystemFunctionName $name, ExpressionList $arguments)
+    public function __construct(protected SystemFunctionName $p_name, protected ExpressionList $p_arguments)
     {
         $this->generatePropertyNames();
-        $this->p_name = $name;
-
-        $this->p_arguments = $arguments;
         $this->p_arguments->setParentNode($this);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkSystemFunctionCall($this);
     }

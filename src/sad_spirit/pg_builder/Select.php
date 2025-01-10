@@ -21,61 +21,36 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_builder\nodes\{
+    WhereOrHavingClause,
     group\GroupByClause,
-    group\GroupByElement,
     lists\ExpressionList,
     lists\FromList,
     lists\TargetList,
-    lists\WindowList,
-    range\FromElement,
-    ScalarExpression,
-    TargetElement,
-    WhereOrHavingClause,
-    WindowDefinition
+    lists\WindowList
 };
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 
 /**
  * Represents a (simple) SELECT statement
  *
- * @psalm-property TargetList          $list
- * @psalm-property bool|ExpressionList $distinct
- * @psalm-property FromList            $from
- * @psalm-property GroupByClause       $group
- * @psalm-property WindowList          $window
- *
- * @property      TargetList|TargetElement[]                        $list
- * @property      bool|ExpressionList|ScalarExpression[]            $distinct
- * @property      FromList|FromElement[]                            $from
- * @property-read WhereOrHavingClause                               $where
- * @property      GroupByClause|GroupByElement[]|ScalarExpression[] $group
- * @property-read WhereOrHavingClause                               $having
- * @property      WindowList|WindowDefinition[]                     $window
+ * @property      TargetList          $list
+ * @property      bool|ExpressionList $distinct
+ * @property      FromList            $from
+ * @property-read WhereOrHavingClause $where
+ * @property      GroupByClause       $group
+ * @property-read WhereOrHavingClause $having
+ * @property      WindowList          $window
  */
 class Select extends SelectCommon
 {
-    /** @var TargetList */
-    protected $p_list;
-    /** @var bool|ExpressionList */
-    protected $p_distinct = false;
-    /** @var FromList */
-    protected $p_from;
-    /** @var WhereOrHavingClause */
-    protected $p_where;
-    /** @var GroupByClause */
-    protected $p_group;
-    /** @var WhereOrHavingClause */
-    protected $p_having;
-    /** @var WindowList */
-    protected $p_window;
+    protected TargetList $p_list;
+    protected bool|ExpressionList $p_distinct = false;
+    protected FromList $p_from;
+    protected WhereOrHavingClause $p_where;
+    protected GroupByClause $p_group;
+    protected WhereOrHavingClause $p_having;
+    protected WindowList $p_window;
 
-    /**
-     * Select constructor
-     *
-     * @param TargetList          $list
-     * @param bool|ExpressionList $distinct
-     */
-    public function __construct(TargetList $list, $distinct = false)
+    public function __construct(TargetList $list, bool|ExpressionList $distinct = false)
     {
         parent::__construct();
 
@@ -99,21 +74,12 @@ class Select extends SelectCommon
 
     /**
      * Sets the property corresponding to DISTINCT / DISTINCT ON clause
-     *
-     * @param string|bool|ExpressionList|null $distinct
      */
-    public function setDistinct($distinct): void
+    public function setDistinct(string|bool|ExpressionList|null $distinct): void
     {
-        $distinct = $distinct ?? false;
+        $distinct ??= false;
         if (is_string($distinct)) {
             $distinct = ExpressionList::createFromString($this->getParserOrFail('DISTINCT clause'), $distinct);
-        }
-        if (!is_bool($distinct) && !$distinct instanceof ExpressionList) {
-            throw new InvalidArgumentException(sprintf(
-                '%s expects either a boolean or an instance of ExpressionList, %s given',
-                __METHOD__,
-                is_object($distinct) ? 'object(' . get_class($distinct) . ')' : gettype($distinct)
-            ));
         }
 
         if (is_bool($this->p_distinct)) {
@@ -129,7 +95,7 @@ class Select extends SelectCommon
         }
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkSelectStatement($this);
     }

@@ -47,16 +47,16 @@ class ConstantTypecastExpression extends TypecastExpression
         if (!$argument instanceof StringConstant || StringConstantType::CHARACTER !== $argument->type) {
             throw new InvalidArgumentException(sprintf(
                 "%s only allows a generic string constant as an argument, %s given",
-                __CLASS__,
+                self::class,
                 $argument instanceof StringConstant
                 ? (StringConstantType::HEXADECIMAL === $argument->type ? 'hexadecimal' : 'binary') . ' string'
-                : get_class($argument)
+                : $argument::class
             ));
         }
         parent::setArgument($argument);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkConstantTypecastExpression($this);
     }

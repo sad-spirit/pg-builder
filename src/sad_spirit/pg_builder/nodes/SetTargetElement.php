@@ -31,19 +31,14 @@ use sad_spirit\pg_builder\TreeWalker;
  * 'ERROR:  row expansion via "*" is not supported here'
  *
  * @property Identifier $name
- * @extends NonAssociativeList<
- *     Identifier|ArrayIndexes,
- *     iterable<Identifier|ArrayIndexes>,
- *     Identifier|ArrayIndexes
- * >
+ * @extends NonAssociativeList<Identifier|ArrayIndexes, iterable<Identifier|ArrayIndexes>, Identifier|ArrayIndexes>
  */
 class SetTargetElement extends NonAssociativeList
 {
     use NonRecursiveNode;
     use HasBothPropsAndOffsets;
 
-    /** @var Identifier */
-    protected $p_name;
+    protected Identifier $p_name;
 
     protected static function getAllowedElementClasses(): array
     {
@@ -59,7 +54,7 @@ class SetTargetElement extends NonAssociativeList
      * @param string|Identifier                  $name
      * @param array<int,Identifier|ArrayIndexes> $indirection
      */
-    public function __construct($name, array $indirection = [])
+    public function __construct(string|Identifier $name, array $indirection = [])
     {
         $this->generatePropertyNames();
         parent::__construct($indirection);
@@ -70,15 +65,13 @@ class SetTargetElement extends NonAssociativeList
 
     /**
      * Sets the target column name
-     *
-     * @param string|Identifier $name
      */
-    public function setName($name): void
+    public function setName(string|Identifier $name): void
     {
         $this->setRequiredProperty($this->p_name, $name instanceof Identifier ? $name : new Identifier($name));
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkSetTargetElement($this);
     }

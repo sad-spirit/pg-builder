@@ -46,27 +46,21 @@ class JsonTable extends LateralFromElement
 {
     use HasBehaviours;
 
-    protected JsonFormattedValue $p_context;
-    protected ScalarExpression $p_path;
     protected ?Identifier $p_pathName = null;
     protected JsonArgumentList $p_passing;
     protected json\JsonColumnDefinitionList $p_columns;
-    protected ?JsonBehaviour $p_onError;
+    protected ?JsonBehaviour $p_onError = null;
 
     public function __construct(
-        JsonFormattedValue $context,
-        ScalarExpression $path,
+        protected JsonFormattedValue $p_context,
+        protected ScalarExpression $p_path,
         ?Identifier $pathName = null,
         ?JsonArgumentList $passing = null,
         ?json\JsonColumnDefinitionList $columns = null,
         ?JsonBehaviour $onError = null
     ) {
         $this->generatePropertyNames();
-
-        $this->p_context = $context;
         $this->p_context->setParentNode($this);
-
-        $this->p_path = $path;
         $this->p_path->setParentNode($this);
 
         if (null !== $pathName) {
@@ -104,7 +98,7 @@ class JsonTable extends LateralFromElement
         $this->setBehaviour($this->p_onError, false, $onError);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonTable($this);
     }

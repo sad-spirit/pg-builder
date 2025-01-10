@@ -32,39 +32,24 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node for TABLESAMPLE clause in FROM list
  *
- * @psalm-property ExpressionList $arguments
- *
- * @property-read RelationReference                 $relation
- * @property      QualifiedName                     $method
- * @property      ExpressionList|ScalarExpression[] $arguments
- * @property      ScalarExpression|null             $repeatable
+ * @property-read RelationReference     $relation
+ * @property      QualifiedName         $method
+ * @property      ExpressionList        $arguments
+ * @property      ScalarExpression|null $repeatable
  */
 class TableSample extends FromElement
 {
-    /** @var RelationReference */
-    protected $p_relation;
-    /** @var QualifiedName */
-    protected $p_method;
-    /** @var ExpressionList */
-    protected $p_arguments;
-    /** @var ScalarExpression|null */
-    protected $p_repeatable = null;
+    protected ?ScalarExpression $p_repeatable = null;
 
     public function __construct(
-        RelationReference $relation,
-        QualifiedName $method,
-        ExpressionList $arguments,
+        protected RelationReference $p_relation,
+        protected QualifiedName $p_method,
+        protected ExpressionList $p_arguments,
         ?ScalarExpression $repeatable = null
     ) {
         $this->generatePropertyNames();
-
-        $this->p_relation = $relation;
         $this->p_relation->setParentNode($this);
-
-        $this->p_method = $method;
         $this->p_method->setParentNode($this);
-
-        $this->p_arguments = $arguments;
         $this->p_arguments->setParentNode($this);
 
         if (null !== $repeatable) {
@@ -78,7 +63,7 @@ class TableSample extends FromElement
         $this->setRequiredProperty($this->p_method, $method);
     }
 
-    public function setRepeatable(?ScalarExpression $repeatable = null): void
+    public function setRepeatable(?ScalarExpression $repeatable): void
     {
         $this->setProperty($this->p_repeatable, $repeatable);
     }
@@ -88,7 +73,7 @@ class TableSample extends FromElement
         $this->p_relation->setAlias($tableAlias, $columnAliases);
     }
 
-    public function __get($name)
+    public function __get(string $name)
     {
         if ('tableAlias' === $name || 'columnAliases' === $name) {
             return $this->p_relation->__get($name);
@@ -97,7 +82,7 @@ class TableSample extends FromElement
         }
     }
 
-    public function __set($name, $value)
+    public function __set(string $name, $value)
     {
         if ('tableAlias' === $name || 'columnAliases' === $name) {
             $this->p_relation->__set($name, $value);
@@ -106,7 +91,7 @@ class TableSample extends FromElement
         }
     }
 
-    public function __isset($name)
+    public function __isset(string $name)
     {
         if ('tableAlias' === $name || 'columnAliases' === $name) {
             return true;
@@ -115,7 +100,7 @@ class TableSample extends FromElement
         }
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkTableSample($this);
     }

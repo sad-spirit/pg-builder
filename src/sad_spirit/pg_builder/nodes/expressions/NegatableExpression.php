@@ -30,8 +30,7 @@ use sad_spirit\pg_builder\nodes\ScalarExpression;
  */
 abstract class NegatableExpression extends GenericNode implements ScalarExpression
 {
-    /** @var bool */
-    protected $p_not = false;
+    protected bool $p_not = false;
 
     public function setNot(bool $not): void
     {

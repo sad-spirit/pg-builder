@@ -41,16 +41,11 @@ class InsertTarget extends GenericNode
 {
     use NonRecursiveNode;
 
-    /** @var QualifiedName */
-    protected $p_relation;
-    /** @var Identifier|null */
-    protected $p_alias = null;
+    protected ?Identifier $p_alias = null;
 
-    public function __construct(QualifiedName $relation, ?Identifier $alias = null)
+    public function __construct(protected QualifiedName $p_relation, ?Identifier $alias = null)
     {
         $this->generatePropertyNames();
-
-        $this->p_relation = $relation;
         $this->p_relation->setParentNode($this);
 
         if (null !== $alias) {
@@ -59,7 +54,7 @@ class InsertTarget extends GenericNode
         }
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkInsertTarget($this);
     }

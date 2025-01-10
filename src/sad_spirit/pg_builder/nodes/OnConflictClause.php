@@ -73,7 +73,7 @@ class OnConflictClause extends GenericNode
         $this->setProperty($this->p_target, $target);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkOnConflictClause($this);
     }

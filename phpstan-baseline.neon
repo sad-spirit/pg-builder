@@ -12,12 +12,6 @@ parameters:
 			count: 1
 			path: src/sad_spirit/pg_builder/Parser.php
 
-		# Looks like another problem with memoizing
-		-
-			message: "#^Strict comparison using === between sad_spirit\\\\pg_builder\\\\Keyword::FROM and mixed will always evaluate to false\\.$#"
-			count: 1
-			path: src/sad_spirit/pg_builder/Parser.php
-
 		# This is a genuine problem but fixing it correctly is hard, so leave as is for now
 		-
 			message: "#^PHPDoc type sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\ColumnDefinitionList\\|sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\IdentifierList\\|null of property sad_spirit\\\\pg_builder\\\\nodes\\\\range\\\\FunctionFromElement\\:\\:\\$p_columnAliases is not covariant with PHPDoc type sad_spirit\\\\pg_builder\\\\nodes\\\\lists\\\\IdentifierList\\|null of overridden property sad_spirit\\\\pg_builder\\\\nodes\\\\range\\\\FromElement\\:\\:\\$p_columnAliases\\.$#"

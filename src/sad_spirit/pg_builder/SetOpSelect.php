@@ -62,7 +62,7 @@ class SetOpSelect extends SelectCommon
         $this->setRequiredProperty($this->p_right, $right);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkSetOpSelectStatement($this);
     }

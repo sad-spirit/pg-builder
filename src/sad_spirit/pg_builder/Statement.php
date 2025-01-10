@@ -21,7 +21,6 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_builder\nodes\{
-    CommonTableExpression,
     GenericNode,
     WithClause
 };
@@ -29,20 +28,13 @@ use sad_spirit\pg_builder\nodes\{
 /**
  * Base class for Nodes representing complete SQL statements
  *
- * @psalm-property WithClause $with
- *
- * @property WithClause|CommonTableExpression[] $with
+ * @property WithClause $with
  */
 abstract class Statement extends GenericNode
 {
-    /** @var WithClause */
-    protected $p_with;
-
-    /**
-     * Parser instance, used when adding nodes to a statement as SQL strings
-     * @var Parser|null
-     */
-    private $parser;
+    protected WithClause $p_with;
+    /** Parser instance, used when adding nodes to a statement as SQL strings */
+    private ?Parser $parser = null;
 
     public function __construct()
     {
@@ -59,7 +51,6 @@ abstract class Statement extends GenericNode
 
     /**
      * Sets the parser instance to use
-     * @param Parser $parser
      */
     public function setParser(Parser $parser): void
     {
@@ -81,7 +72,7 @@ abstract class Statement extends GenericNode
         return $this->parser;
     }
 
-    public function setParentNode(?Node $parent = null): void
+    public function setParentNode(?Node $parent): void
     {
         parent::setParentNode($parent);
         if (

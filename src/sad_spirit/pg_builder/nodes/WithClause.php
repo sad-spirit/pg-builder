@@ -44,8 +44,7 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
 {
     use HasBothPropsAndOffsets;
 
-    /** @var bool */
-    protected $p_recursive = false;
+    protected bool $p_recursive = false;
 
     protected static function getAllowedElementClasses(): array
     {
@@ -58,14 +57,14 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
      * @param string|null|iterable<CommonTableExpression|string> $commonTableExpressions
      * @param bool                                               $recursive
      */
-    public function __construct($commonTableExpressions = null, bool $recursive = false)
+    public function __construct(iterable|string|null $commonTableExpressions = null, bool $recursive = false)
     {
         $this->generatePropertyNames();
         parent::__construct($commonTableExpressions);
         $this->setRecursive($recursive);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkWithClause($this);
     }

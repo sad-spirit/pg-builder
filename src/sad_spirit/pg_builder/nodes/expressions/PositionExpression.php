@@ -43,10 +43,8 @@ class PositionExpression extends GenericNode implements ScalarExpression, Functi
 {
     use ExpressionAtom;
 
-    /** @var ScalarExpression */
-    protected $p_substring;
-    /** @var ScalarExpression */
-    protected $p_string;
+    protected ScalarExpression $p_substring;
+    protected ScalarExpression $p_string;
 
     public function __construct(ScalarExpression $substring, ScalarExpression $string)
     {
@@ -73,7 +71,7 @@ class PositionExpression extends GenericNode implements ScalarExpression, Functi
         $this->setRequiredProperty($this->p_string, $string);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkPositionExpression($this);
     }

@@ -48,7 +48,7 @@ class CubeOrRollupClause extends ExpressionList implements GroupByElement
         $this->p_type = $type;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkCubeOrRollupClause($this);
     }

@@ -45,14 +45,10 @@ class OverlayExpression extends GenericNode implements ScalarExpression, Functio
 {
     use ExpressionAtom;
 
-    /** @var ScalarExpression */
-    protected $p_string;
-    /** @var ScalarExpression */
-    protected $p_newSubstring;
-    /** @var ScalarExpression */
-    protected $p_start;
-    /** @var ScalarExpression|null */
-    protected $p_count;
+    protected ScalarExpression $p_string;
+    protected ScalarExpression $p_newSubstring;
+    protected ScalarExpression $p_start;
+    protected ?ScalarExpression $p_count;
 
     public function __construct(
         ScalarExpression $string,
@@ -108,7 +104,7 @@ class OverlayExpression extends GenericNode implements ScalarExpression, Functio
         $this->setProperty($this->p_count, $count);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkOverlayExpression($this);
     }

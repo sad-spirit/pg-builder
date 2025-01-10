@@ -28,29 +28,21 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node for NESTED column definitions in json_table() clause
  *
- * @psalm-property JsonColumnDefinitionList $columns
- *
- * @property StringConstant                                  $path
- * @property Identifier|null                                 $pathName
- * @property JsonColumnDefinitionList|JsonColumnDefinition[] $columns
+ * @property StringConstant           $path
+ * @property Identifier|null          $pathName
+ * @property JsonColumnDefinitionList $columns
  */
 class JsonNestedColumns extends GenericNode implements JsonColumnDefinition
 {
-    /** @var StringConstant */
-    protected $p_path;
-    /** @var Identifier|null */
-    protected $p_pathName = null;
-    /** @var JsonColumnDefinitionList */
-    protected $p_columns;
+    protected ?Identifier $p_pathName = null;
+    protected JsonColumnDefinitionList $p_columns;
 
     public function __construct(
-        StringConstant $path,
+        protected StringConstant $p_path,
         ?Identifier $pathName = null,
         ?JsonColumnDefinitionList $columns = null
     ) {
         $this->generatePropertyNames();
-
-        $this->p_path = $path;
         $this->p_path->setParentNode($this);
 
         if (null !== $pathName) {
@@ -67,7 +59,7 @@ class JsonNestedColumns extends GenericNode implements JsonColumnDefinition
         $this->setProperty($this->p_pathName, $pathName);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonNestedColumns($this);
     }

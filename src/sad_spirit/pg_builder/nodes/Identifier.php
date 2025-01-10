@@ -33,14 +33,14 @@ use sad_spirit\pg_builder\{
  *
  * @property-read string $value
  */
-class Identifier extends GenericNode
+class Identifier extends GenericNode implements \Stringable
 {
     use NonRecursiveNode;
 
-    /** @var string */
-    protected $p_value;
+    protected string $p_value;
 
-    protected $propertyNames = [
+    /** @var array<string, string> */
+    protected array $propertyNames = [
         'value' => 'p_value'
     ];
 
@@ -48,7 +48,7 @@ class Identifier extends GenericNode
      * Cache of check results ["identifier value" => "needs double quotes?"]
      * @var array<string, bool>
      */
-    private static $needsQuoting = [];
+    private static array $needsQuoting = [];
 
     public function __construct(string $value)
     {
@@ -60,16 +60,13 @@ class Identifier extends GenericNode
 
     /**
      * Creates an instance of Identifier from identifier or keyword Token
-     *
-     * @param Token $token
-     * @return self
      */
     public static function createFromToken(Token $token): self
     {
         if (!$token->matches(TokenType::IDENTIFIER) && !$token->matches(TokenType::KEYWORD)) {
             throw new InvalidArgumentException(sprintf(
                 '%s requires an identifier or keyword token, %s given',
-                __CLASS__,
+                self::class,
                 $token->getType()->toString()
             ));
         }
@@ -108,7 +105,7 @@ class Identifier extends GenericNode
      *
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         $value = $this->p_value;
         // We are likely to see the same identifier again, so cache the check results
@@ -121,7 +118,7 @@ class Identifier extends GenericNode
                : $value;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkIdentifier($this);
     }

@@ -13,7 +13,8 @@ parameters:
     - TESTS_SAD_SPIRIT_PG_BUILDER_PDO_DSN
   ignoreErrors:
     - identifier: missingType.iterableValue
-    # More stupid problems with memoizing TokenStream::getKeyword() return value
+    # More stupid problems with memoizing
     - identifier: identical.alwaysFalse
     - identifier: notIdentical.alwaysTrue
+    - identifier: notIdentical.alwaysFalse
   treatPhpDocTypesAsCertain: false

@@ -27,11 +27,8 @@ interface Node
 {
     /**
      * Double-dispatch method supposed to call the relevant method of TreeWalker
-     *
-     * @param TreeWalker $walker
-     * @return mixed
      */
-    public function dispatch(TreeWalker $walker);
+    public function dispatch(TreeWalker $walker): mixed;
 
     /**
      * Adds the link to the Node containing current one
@@ -41,12 +38,10 @@ interface Node
      *
      * @throws exceptions\InvalidArgumentException When trying to set a child of a Node as its parent
      */
-    public function setParentNode(?Node $parent = null): void;
+    public function setParentNode(?Node $parent): void;
 
     /**
      * Returns the node containing current one
-     *
-     * @return Node|null
      */
     public function getParentNode(): ?Node;
 
@@ -55,8 +50,6 @@ interface Node
      *
      * This is a building block for methods that change the AST, see e.g. ParameterWalker
      *
-     * @param Node $oldChild
-     * @param Node $newChild
      * @return Node|null $newChild in case of successful replace, null otherwise
      * @throws exceptions\InvalidArgumentException
      */
@@ -65,16 +58,12 @@ interface Node
     /**
      * Removes the child Node (actually tries to store a null in a relevant property)
      *
-     * @param Node $child
-     * @return Node|null
      * @throws exceptions\InvalidArgumentException
      */
     public function removeChild(Node $child): ?Node;
 
     /**
      * Returns the Parser (used by some subclasses to add parts of expression in SQL string form)
-     *
-     * @return Parser|null
      */
     public function getParser(): ?Parser;
 }

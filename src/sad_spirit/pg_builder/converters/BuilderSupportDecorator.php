@@ -51,20 +51,14 @@ use sad_spirit\pg_wrapper\converters\{
  */
 class BuilderSupportDecorator implements TypeNameNodeHandler, TypeOIDMapperAware
 {
-    /** @var DefaultTypeConverterFactory */
-    private $wrapped;
-    /** @var Parser */
-    private $parser;
     /**
      * Mapping "type name as string" => Type name processed by Parser
      * @var array<string, TypeName>
      */
-    private $parsedNames = [];
+    private array $parsedNames = [];
 
-    public function __construct(DefaultTypeConverterFactory $wrapped, Parser $parser)
+    public function __construct(private readonly DefaultTypeConverterFactory $wrapped, private readonly Parser $parser)
     {
-        $this->wrapped = $wrapped;
-        $this->parser = $parser;
     }
 
     public function getConverterForTypeSpecification($type): TypeConverter
@@ -153,8 +147,11 @@ class BuilderSupportDecorator implements TypeNameNodeHandler, TypeOIDMapperAware
      * @param string|string[]                     $type
      * @param string                              $schema
      */
-    public function registerConverter($converter, $type, string $schema = 'pg_catalog'): void
-    {
+    public function registerConverter(
+        callable|TypeConverter|string $converter,
+        array|string $type,
+        string $schema = 'pg_catalog'
+    ): void {
         $this->wrapped->registerConverter($converter, $type, $schema);
     }
 

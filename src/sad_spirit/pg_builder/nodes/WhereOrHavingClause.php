@@ -32,8 +32,7 @@ use sad_spirit\pg_builder\nodes\expressions\LogicalExpression;
  */
 class WhereOrHavingClause extends GenericNode
 {
-    /** @var ScalarExpression|null */
-    protected $p_condition;
+    protected ScalarExpression|null $p_condition;
 
     public function __construct(?ScalarExpression $condition = null)
     {
@@ -60,10 +59,9 @@ class WhereOrHavingClause extends GenericNode
     /**
      * Explicitly sets the expression for the clause
      *
-     * @param string|ScalarExpression|WhereOrHavingClause|null $condition
      * @return $this
      */
-    public function setCondition($condition = null): self
+    public function setCondition(string|null|self|ScalarExpression $condition = null): self
     {
         $this->setProperty($this->p_condition, $this->normalizeCondition($condition));
         return $this;
@@ -72,10 +70,9 @@ class WhereOrHavingClause extends GenericNode
     /**
      * Adds a condition to the clause using AND operator
      *
-     * @param string|ScalarExpression|WhereOrHavingClause $condition
      * @return $this
      */
-    public function and($condition): self
+    public function and(self|string|ScalarExpression|null $condition): self
     {
         $nested = $condition instanceof self;
         if (null === ($condition = $this->normalizeCondition($condition))) {
@@ -127,10 +124,9 @@ class WhereOrHavingClause extends GenericNode
     /**
      * Adds a condition to the clause using OR operator
      *
-     * @param string|ScalarExpression|WhereOrHavingClause $condition
      * @return $this
      */
-    public function or($condition): self
+    public function or(self|string|ScalarExpression|null $condition): self
     {
         if (null === ($condition = $this->normalizeCondition($condition))) {
             return $this;
@@ -171,10 +167,9 @@ class WhereOrHavingClause extends GenericNode
      * </code>
      * will yield 'foo and (bar or baz)'.
      *
-     * @param string|ScalarExpression|WhereOrHavingClause $condition
      * @return WhereOrHavingClause
      */
-    public function nested($condition): self
+    public function nested(self|string|ScalarExpression $condition): self
     {
         $condition = new self($this->normalizeCondition($condition));
         // $condition should have access to a Parser instance
@@ -183,7 +178,7 @@ class WhereOrHavingClause extends GenericNode
         return $condition;
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkWhereOrHavingClause($this);
     }

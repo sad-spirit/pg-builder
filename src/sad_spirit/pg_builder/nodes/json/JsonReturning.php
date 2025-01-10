@@ -34,16 +34,11 @@ use sad_spirit\pg_builder\{
  */
 class JsonReturning extends GenericNode
 {
-    /** @var TypeName */
-    protected $p_type;
-    /** @var JsonFormat|null */
-    protected $p_format;
+    protected ?JsonFormat $p_format = null;
 
-    public function __construct(TypeName $type, ?JsonFormat $format = null)
+    public function __construct(protected TypeName $p_type, ?JsonFormat $format = null)
     {
         $this->generatePropertyNames();
-
-        $this->p_type = $type;
         $this->p_type->setParentNode($this);
 
         if (null !== $format) {
@@ -62,7 +57,7 @@ class JsonReturning extends GenericNode
         $this->setProperty($this->p_format, $format);
     }
 
-    public function dispatch(TreeWalker $walker)
+    public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkJsonReturning($this);
     }
