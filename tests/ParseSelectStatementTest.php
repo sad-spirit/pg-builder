@@ -1,21 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
- *
- * @noinspection SqlNoDataSourceInspection, SqlResolve
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -84,7 +76,8 @@ class ParseSelectStatementTest extends TestCase
 
     public function testParseAllSimpleSelectClauses(): void
     {
-        $parsed = $this->parser->parseStatement(<<<QRY
+        $parsed = $this->parser->parseStatement(
+            <<<QRY
 select distinct on (foo) foo, bar, baz() over (win95) as blah, quux alias, xyzzy as as, foobar any
 from one, two
 where one.id = two.id
@@ -148,11 +141,13 @@ QRY
 
     public function testSetOperationsPrecedence(): void
     {
-        $list1 = $this->parser->parseStatement(<<<QRY
+        $list1 = $this->parser->parseStatement(
+            <<<QRY
     select 'foo' union select 'bar' intersect select 'baz'
 QRY
         );
-        $list2 = $this->parser->parseStatement(<<<QRY
+        $list2 = $this->parser->parseStatement(
+            <<<QRY
     (select 'foo' union select 'bar') intersect select 'baz'
 QRY
         );
@@ -205,7 +200,7 @@ QRY
         $parsed = $this->parser->parseStatement($stmt);
 
         $built = new Select(new TargetList([new Star()]));
-        $built->limit = is_scalar($limit) ? Constant::createFromPHPValue($limit) : $limit;
+        $built->limit = \is_scalar($limit) ? Constant::createFromPHPValue($limit) : $limit;
         if ($offset) {
             $built->offset = Constant::createFromPHPValue($offset);
         }
@@ -249,7 +244,8 @@ QRY
     public function testLockingClauses(): void
     {
         /** @var Select $select */
-        $select = $this->parser->parseStatement(<<<QRY
+        $select = $this->parser->parseStatement(
+            <<<QRY
     select * from a.foo, b.bar, c.baz for share of a.foo, c.baz for no key update of b.bar skip locked
 QRY
         );
@@ -273,7 +269,8 @@ QRY
     public function testAllowMultipleLockingClauses(): void
     {
         /** @var Select $select */
-        $select = $this->parser->parseStatement(<<<QRY
+        $select = $this->parser->parseStatement(
+            <<<QRY
     (select * from foo, bar for update of foo) for update of bar nowait
 QRY
         );
@@ -296,7 +293,8 @@ QRY
     public function testParseWindowClause(): void
     {
         /** @var Select $select */
-        $select = $this->parser->parseStatement(<<<QRY
+        $select = $this->parser->parseStatement(
+            <<<QRY
     select * window foo as (), bar as (foo), baz as (partition by whatever),
                     quux as (range between unbounded preceding and current row)
 QRY

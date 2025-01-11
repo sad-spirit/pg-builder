@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -73,7 +67,8 @@ class LexerTest extends TestCase
 
     public function testStripComments(): void
     {
-        $stream = $this->lexer->tokenize(<<<QRY
+        $stream = $this->lexer->tokenize(
+            <<<QRY
 select FOO -- this is a one-line comment
 , bar /* this is
 a multiline C-style comment */, "bA""z" /*
@@ -139,7 +134,8 @@ QRY
     #[DoesNotPerformAssertions]
     public function testMulticharacterOperators(): void
     {
-        $stream = $this->lexer->tokenize(<<<QRY
+        $stream = $this->lexer->tokenize(
+            <<<QRY
 #!/*--
 */=- @+ <=
 +* *+--/*
@@ -187,7 +183,8 @@ QRY
 
     public function testDollarQuotedString(): void
     {
-        $stream = $this->lexer->tokenize(<<<QRY
+        $stream = $this->lexer->tokenize(
+            <<<QRY
     $\$a string$$
     \$foo$ another $$ string ' \\ \$foo$
 QRY
@@ -397,10 +394,10 @@ QRY
             ["'\xf0'"],
             ["n'\xf0'"],
             ["u&'\xf0'"],
-            ['u&"' . chr(240) . '"'],
-            [':' . chr(240)],
-            ['"ident' . chr(240) . 'ifier"'],
-            ['ident' . chr(240) . 'ifier']
+            ['u&"' . \chr(240) . '"'],
+            [':' . \chr(240)],
+            ['"ident' . \chr(240) . 'ifier"'],
+            ['ident' . \chr(240) . 'ifier']
         ];
     }
 

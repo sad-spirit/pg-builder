@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -57,7 +51,8 @@ class ParseDeleteStatementTest extends TestCase
 
     public function testParseAllClauses(): void
     {
-        $parsed = $this->parser->parseStatement(<<<QRY
+        $parsed = $this->parser->parseStatement(
+            <<<QRY
 with foo (id) as (
     select somefoo from basefoo
 )

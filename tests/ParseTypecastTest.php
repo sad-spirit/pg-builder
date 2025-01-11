@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -55,7 +49,8 @@ class ParseTypecastTest extends TestCase
 
     public function testTypecastOperator(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     foo.bar::baz, foo::bar.baz, foo::bar::baz(666), foo::int array, foo::int[]
 QRY
         );
@@ -91,7 +86,8 @@ QRY
 
     public function testNumericTypes(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     cast (foo as int), cast(foo as integer), cast(foo as smallint), foo::bigint,
     foo::real, foo::float(20), cast(foo as float(40)), cast (foo as double precision),
     foo::decimal(1,2), foo::dec(3), cast (foo as numeric), foo::boolean
@@ -125,7 +121,8 @@ QRY
 
     public function testBitTypes(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     foo::bit, cast(foo as bit varying), foo::bit varying(10), cast (foo as bit(10))
 QRY
         );
@@ -150,7 +147,8 @@ QRY
 
     public function testCharacterTypes(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     cast(blah as character), blah::char varying, cast(blah as character varying(13)),
     blah::char(13), blah::varchar, blah::nchar, cast(blah as national character varying(13)),
     blah::json
@@ -201,7 +199,8 @@ QRY
 
     public function testDateTimeTypes(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     foo::time, foo::timestamp(3), cast(foo as time with time zone), foo::timestamp without time zone,
     cast (foo as timestamp(3) with time zone)
 QRY
@@ -237,7 +236,8 @@ QRY
 
     public function testIntervalType(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     cast (foo as interval), foo::interval(10), foo::interval hour to second(10)
 QRY
         );
@@ -259,7 +259,8 @@ QRY
 
     public function testComplexTypes(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     cast (foo as setof text), cast (foo as text array[5]), cast (foo as text[5])
 QRY
         );
@@ -299,7 +300,8 @@ QRY
 
     public function testLeadingTypecast(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     double precision 'a value', national char varying 'a value', varchar(10) 'a value',
     char 'a value', bit 'a value', bit varying (10) 'a value', time (10) with time zone 'a value',
     timestamp without time zone 'a value', interval 'a value' minute to second (10), interval (10) 'a value', 

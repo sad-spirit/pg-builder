@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -89,17 +83,17 @@ class Lexer
      */
     public function __construct(array $options = [])
     {
-        $this->options = array_merge(
+        $this->options = \array_merge(
             ['standard_conforming_strings' => true],
             $options
         );
 
-        $this->operatorCharHash     = array_flip(str_split(self::CHARS_OPERATOR));
-        $this->specialCharHash      = array_flip(str_split(self::CHARS_SPECIAL));
-        $this->nonStandardCharHash  = array_flip(str_split('~!@#^&|`?%'));
+        $this->operatorCharHash     = \array_flip(\str_split(self::CHARS_OPERATOR));
+        $this->specialCharHash      = \array_flip(\str_split(self::CHARS_SPECIAL));
+        $this->nonStandardCharHash  = \array_flip(\str_split('~!@#^&|`?%'));
 
-        $uniqueSpecialChars         = array_unique(str_split(self::CHARS_SPECIAL . self::CHARS_OPERATOR));
-        $quotedSpecialChars         = preg_quote(implode('', $uniqueSpecialChars));
+        $uniqueSpecialChars         = \array_unique(\str_split(self::CHARS_SPECIAL . self::CHARS_OPERATOR));
+        $quotedSpecialChars         = \preg_quote(\implode('', $uniqueSpecialChars));
         $this->baseRegexp           = <<<REGEXP
 { 
     --  |                           # start of single-line comment
@@ -146,8 +140,8 @@ REGEXP;
     public function tokenize(string $sql): TokenStream
     {
         $this->source   = $sql;
-        $this->position = strspn($this->source, " \r\n\t\f", 0);
-        $this->length   = strlen($sql);
+        $this->position = \strspn($this->source, " \r\n\t\f", 0);
+        $this->length   = \strlen($sql);
         $this->tokens   = [];
         $this->unescape = false;
 
@@ -159,7 +153,7 @@ REGEXP;
             return new TokenStream($this->tokens, $this->source);
         } else {
             $this->unescapeUnicodeTokens();
-            return new TokenStream(array_values($this->tokens), $this->source);
+            return new TokenStream(\array_values($this->tokens), $this->source);
         }
     }
 
@@ -172,7 +166,7 @@ REGEXP;
     private function doTokenize(): void
     {
         while ($this->position < $this->length) {
-            if (!preg_match($this->baseRegexp, $this->source, $m, 0, $this->position)) {
+            if (!\preg_match($this->baseRegexp, $this->source, $m, 0, $this->position)) {
                 throw exceptions\SyntaxException::atPosition(
                     "Unexpected '{$this->source[$this->position]}'",
                     $this->source,
@@ -187,7 +181,7 @@ REGEXP;
                 } else {
                     $this->tokens[] = new tokens\StringToken(TokenType::IDENTIFIER, $lowCase, $this->position);
                 }
-                $this->position += strlen($m[9]);
+                $this->position += \strlen($m[9]);
 
             } elseif (isset($m[8])) {
                 if (isset($this->operatorCharHash[$m[8]])) {
@@ -209,11 +203,11 @@ REGEXP;
                     $m[6],
                     $this->position
                 );
-                $this->position += strlen($m[6]);
+                $this->position += \strlen($m[6]);
 
             } elseif (isset($m[5])) {
                 $this->tokens[] = new tokens\StringToken(TokenType::NAMED_PARAM, $m[5], $this->position);
-                $this->position += strlen($m[0]);
+                $this->position += \strlen($m[0]);
 
             } elseif (isset($m[4])) {
                 $this->lexDollarQuoted($m[0]);
@@ -227,23 +221,23 @@ REGEXP;
                     );
                 }
                 $this->tokens[] = new tokens\StringToken(TokenType::POSITIONAL_PARAM, $m[2], $this->position);
-                $this->position += strlen($m[0]);
+                $this->position += \strlen($m[0]);
 
             } elseif (isset($m[1])) {
-                $this->lexString(strtolower($m[1]));
+                $this->lexString(\strtolower($m[1]));
 
             } else {
                 // now check the complete match
                 switch ($m[0]) {
                     case '--':
                         // single line comment, skip until newline
-                        $this->position += strcspn($this->source, "\r\n", $this->position);
+                        $this->position += \strcspn($this->source, "\r\n", $this->position);
                         break;
 
                     case '/*':
                         // multiline comment, skip
                         if (
-                            !preg_match(
+                            !\preg_match(
                                 '!/\* ( (?>[^/*]+ | /[^*] | \*[^/] ) | (?R) )* \*/!Ax',
                                 $this->source,
                                 $m,
@@ -257,7 +251,7 @@ REGEXP;
                                 $this->position
                             );
                         }
-                        $this->position += strlen($m[0]);
+                        $this->position += \strlen($m[0]);
                         break;
 
                     case "'":
@@ -316,7 +310,7 @@ REGEXP;
             }
 
             // skip whitespace
-            $this->position += strspn($this->source, " \r\n\t\f", $this->position);
+            $this->position += \strspn($this->source, " \r\n\t\f", $this->position);
         }
     }
 
@@ -329,7 +323,7 @@ REGEXP;
     private function lexDoubleQuoted(bool $unicode = false): void
     {
         $skip = $unicode ? 2 : 0;
-        if (!preg_match('/" ( (?>[^"]+ | "")* ) "/Ax', $this->source, $m, 0, $this->position + $skip)) {
+        if (!\preg_match('/" ( (?>[^"]+ | "")* ) "/Ax', $this->source, $m, 0, $this->position + $skip)) {
             throw exceptions\SyntaxException::atPosition(
                 'Unterminated quoted identifier',
                 $this->source,
@@ -344,10 +338,10 @@ REGEXP;
         }
         $this->tokens[] = new tokens\StringToken(
             $unicode ? TokenType::UNICODE_IDENTIFIER : TokenType::IDENTIFIER,
-            strtr($m[1], ['""' => '"']),
+            \strtr($m[1], ['""' => '"']),
             $this->position
         );
-        $this->position += $skip + strlen($m[0]);
+        $this->position += $skip + \strlen($m[0]);
     }
 
     /**
@@ -358,8 +352,8 @@ REGEXP;
      */
     private function lexDollarQuoted(string $delimiter): void
     {
-        $delimiterLength = strlen($delimiter);
-        if (false === ($pos = strpos($this->source, $delimiter, $this->position + $delimiterLength))) {
+        $delimiterLength = \strlen($delimiter);
+        if (false === ($pos = \strpos($this->source, $delimiter, $this->position + $delimiterLength))) {
             throw exceptions\SyntaxException::atPosition(
                 'Unterminated dollar-quoted string',
                 $this->source,
@@ -368,7 +362,7 @@ REGEXP;
         }
         $this->tokens[] = new tokens\StringToken(
             TokenType::STRING,
-            substr($this->source, $this->position + $delimiterLength, $pos - $this->position - $delimiterLength),
+            \substr($this->source, $this->position + $delimiterLength, $pos - $this->position - $delimiterLength),
             $this->position
         );
         $this->position = $pos + $delimiterLength;
@@ -407,7 +401,7 @@ REGEXP;
                 $type  = TokenType::UNICODE_STRING;
                 break;
 
-            /** @noinspection PhpMissingBreakStatementInspection */
+                /** @noinspection PhpMissingBreakStatementInspection */
             case 'n':
                 $type  = TokenType::NCHAR_STRING;
                 // fall-through is intentional here
@@ -416,7 +410,7 @@ REGEXP;
                 $regex = $this->options['standard_conforming_strings'] ? $regexNoSlashes : $regexSlashes;
         }
 
-        if (!preg_match("/{$regex}/Ax", $this->source, $m, 0, $this->position + strlen($prefix))) {
+        if (!\preg_match("/{$regex}/Ax", $this->source, $m, 0, $this->position + \strlen($prefix))) {
             throw exceptions\SyntaxException::atPosition('Unterminated string literal', $this->source, $this->position);
         }
 
@@ -426,13 +420,13 @@ REGEXP;
             if ($regex === $regexNoQuotes) {
                 $value .= $m[1];
             } elseif ($regex === $regexNoSlashes) {
-                $value .= strtr($m[1], ["''" => "'"]);
+                $value .= \strtr($m[1], ["''" => "'"]);
             } else {
-                $value .= $this->unescapeCStyle($m[1], $this->position + strlen($prefix));
+                $value .= $this->unescapeCStyle($m[1], $this->position + \strlen($prefix));
             }
-            $this->position += strlen($prefix) + strlen($m[0]);
+            $this->position += \strlen($prefix) + \strlen($m[0]);
             $prefix          = '';
-        } while (preg_match("/{$concat}/Ax", $this->source, $m, 0, $this->position));
+        } while (\preg_match("/{$concat}/Ax", $this->source, $m, 0, $this->position));
 
         $this->tokens[] = new tokens\StringToken($type, $value, $realPosition);
     }
@@ -452,18 +446,18 @@ REGEXP;
         $unescaped  = '';
 
         foreach (
-            preg_split(
+            \preg_split(
                 "!(\\\\(?:x[0-9a-fA-F]{1,2}|[0-7]{1,3}|u[0-9a-fA-F]{0,4}|U[0-9a-fA-F]{0,8}|[^0-7]))!",
                 $escaped,
                 -1,
-                PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_OFFSET_CAPTURE
+                \PREG_SPLIT_NO_EMPTY | \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_OFFSET_CAPTURE
             ) ?: [] as [$part, $partPosition]
         ) {
             if ('\\' !== $part[0]) {
                 if (null !== $this->pairFirst) {
                     break;
                 }
-                $unescaped .= strtr($part, ["''" => "'"]);
+                $unescaped .= \strtr($part, ["''" => "'"]);
 
             } elseif ('u' !== $part[1] && 'U' !== $part[1]) {
                 if (null !== $this->pairFirst) {
@@ -474,10 +468,10 @@ REGEXP;
                     $unescaped .= self::BACKSLASH_REPLACEMENTS[$part[1]];
 
                 } elseif ('x' === $part[1]) {
-                    $unescaped .= chr((int)hexdec(substr($part, 2)));
+                    $unescaped .= \chr((int)\hexdec(\substr($part, 2)));
 
-                } elseif (strspn($part, '01234567', 1)) {
-                    $unescaped .= chr((int)octdec(substr($part, 1)));
+                } elseif (\strspn($part, '01234567', 1)) {
+                    $unescaped .= \chr((int)\octdec(\substr($part, 1)));
 
                 } else {
                     // Just strip the escape and return the following char, as Postgres does
@@ -486,7 +480,7 @@ REGEXP;
 
             } else {
                 $expected = 'u' === $part[1] ? 6 : 10;
-                if ($expected > strlen($part)) {
+                if ($expected > \strlen($part)) {
                     throw exceptions\SyntaxException::atPosition(
                         'Invalid Unicode escape value',
                         $this->source,
@@ -495,7 +489,7 @@ REGEXP;
                 }
 
                 $unescaped .= $this->handlePossibleSurrogatePairs(
-                    (int)hexdec(substr($part, 2)),
+                    (int)\hexdec(\substr($part, 2)),
                     $partPosition,
                     $position
                 );
@@ -524,21 +518,21 @@ REGEXP;
     private static function codePointToUtf8(int $codepoint): string
     {
         if ($codepoint <= 0x7F) {
-            return chr($codepoint);
+            return \chr($codepoint);
         }
         if ($codepoint <= 0x7FF) {
-            return chr(($codepoint >> 6) + 0xC0) . chr(($codepoint & 0x3F) + 0x80);
+            return \chr(($codepoint >> 6) + 0xC0) . \chr(($codepoint & 0x3F) + 0x80);
         }
         if ($codepoint <= 0xFFFF) {
-            return chr(($codepoint >> 12) + 0xE0)
-                   . chr((($codepoint >> 6) & 0x3F) + 0x80)
-                   . chr(($codepoint & 0x3F) + 0x80);
+            return \chr(($codepoint >> 12) + 0xE0)
+                   . \chr((($codepoint >> 6) & 0x3F) + 0x80)
+                   . \chr(($codepoint & 0x3F) + 0x80);
         }
         if ($codepoint <= 0x1FFFFF) {
-            return chr(($codepoint >> 18) + 0xF0)
-                   . chr((($codepoint >> 12) & 0x3F) + 0x80)
-                   . chr((($codepoint >> 6) & 0x3F) + 0x80)
-                   . chr(($codepoint & 0x3F) + 0x80);
+            return \chr(($codepoint >> 18) + 0xF0)
+                   . \chr((($codepoint >> 12) & 0x3F) + 0x80)
+                   . \chr((($codepoint >> 6) & 0x3F) + 0x80)
+                   . \chr(($codepoint & 0x3F) + 0x80);
         }
         throw new exceptions\InvalidArgumentException('Invalid Unicode codepoint');
     }
@@ -548,13 +542,13 @@ REGEXP;
      */
     private function lexOperator(): void
     {
-        $length   = strspn($this->source, self::CHARS_OPERATOR, $this->position);
-        $operator = substr($this->source, $this->position, $length);
-        if ($commentSingle = strpos($operator, '--')) {
-            $length = min($length, $commentSingle);
+        $length   = \strspn($this->source, self::CHARS_OPERATOR, $this->position);
+        $operator = \substr($this->source, $this->position, $length);
+        if ($commentSingle = \strpos($operator, '--')) {
+            $length = \min($length, $commentSingle);
         }
-        if ($commentMulti = strpos($operator, '/*')) {
-            $length = min($length, $commentMulti);
+        if ($commentMulti = \strpos($operator, '/*')) {
+            $length = \min($length, $commentMulti);
         }
         if (
             $length > 1
@@ -575,7 +569,7 @@ REGEXP;
             }
         }
 
-        $operator = substr($operator, 0, $length);
+        $operator = \substr($operator, 0, $length);
         if (1 === $length && isset($this->specialCharHash[$operator])) {
             $this->tokens[] = new tokens\StringToken(TokenType::SPECIAL_CHAR, $operator, $this->position++);
             return;
@@ -609,7 +603,7 @@ REGEXP;
      */
     private function unescapeUnicodeTokens(): void
     {
-        for ($i = 0, $tokenCount = count($this->tokens); $i < $tokenCount; $i++) {
+        for ($i = 0, $tokenCount = \count($this->tokens); $i < $tokenCount; $i++) {
             $tokenType = $this->tokens[$i]->getType();
             if (TokenType::UNICODE_STRING !== $tokenType && TokenType::UNICODE_IDENTIFIER !== $tokenType) {
                 continue;
@@ -628,10 +622,10 @@ REGEXP;
 
                 $escape = $this->tokens[$i + 2]->getValue();
                 if (
-                    1 !== strlen($escape)
-                    || ctype_xdigit($escape)
-                    || ctype_space($escape)
-                    || in_array($escape, ['"', "'", '+'], true)
+                    1 !== \strlen($escape)
+                    || \ctype_xdigit($escape)
+                    || \ctype_space($escape)
+                    || \in_array($escape, ['"', "'", '+'], true)
                 ) {
                     throw exceptions\SyntaxException::atPosition(
                         'Invalid Unicode escape character',
@@ -673,19 +667,19 @@ REGEXP;
         $this->lastUnicodeEscape = 0;
 
         $unescaped = '';
-        $quoted    = preg_quote($escapeChar);
+        $quoted    = \preg_quote($escapeChar);
 
         foreach (
-            preg_split(
+            \preg_split(
                 "/({$quoted}(?:{$quoted}|[0-9a-fA-F]{4}|\\+[0-9a-fA-F]{6}))/",
                 $token->getValue(),
                 -1,
-                PREG_SPLIT_NO_EMPTY | PREG_SPLIT_OFFSET_CAPTURE | PREG_SPLIT_DELIM_CAPTURE
+                \PREG_SPLIT_NO_EMPTY | \PREG_SPLIT_OFFSET_CAPTURE | \PREG_SPLIT_DELIM_CAPTURE
             ) ?: [] as [$part, $position]
         ) {
             if ($escapeChar === $part[0] && $escapeChar !== $part[1]) {
                 $unescaped .= $this->handlePossibleSurrogatePairs(
-                    (int)hexdec(ltrim($part, $escapeChar . '+')),
+                    (int)\hexdec(\ltrim($part, $escapeChar . '+')),
                     $position,
                     $token->getPosition() + 3
                 );
@@ -696,7 +690,7 @@ REGEXP;
             } elseif ($escapeChar === $part[0]) {
                 $unescaped .= $escapeChar;
 
-            } elseif (false !== ($escapePos = strpos($part, $escapeChar))) {
+            } elseif (false !== ($escapePos = \strpos($part, $escapeChar))) {
                 throw exceptions\SyntaxException::atPosition(
                     "Invalid Unicode escape",
                     $this->source,

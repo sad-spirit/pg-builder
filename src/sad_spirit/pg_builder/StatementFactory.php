@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -82,8 +76,8 @@ class StatementFactory
      */
     public static function forConnection(Connection $connection): self
     {
-        $serverVersion = pg_parameter_status($connection->getNative(), 'server_version');
-        if (version_compare($serverVersion, '9.5', '<')) {
+        $serverVersion = \pg_parameter_status($connection->getNative(), 'server_version');
+        if (\version_compare($serverVersion, '9.5', '<')) {
             throw new exceptions\RuntimeException(
                 'PostgreSQL versions earlier than 9.5 are no longer supported, '
                 . 'connected server reports version ' . $serverVersion
@@ -93,7 +87,7 @@ class StatementFactory
         $column       = $connection->execute('show standard_conforming_strings')->fetchColumn(0);
         $lexerOptions = ['standard_conforming_strings' => 'on' === $column[0]];
 
-        $clientEncoding = pg_parameter_status($connection->getNative(), 'client_encoding');
+        $clientEncoding = \pg_parameter_status($connection->getNative(), 'client_encoding');
         $builderOptions = ['escape_unicode' => 'UTF8' !== $clientEncoding];
 
         return new self(
@@ -116,7 +110,7 @@ class StatementFactory
                 'Connection to PostgreSQL server expected, given PDO object reports ' . $driver . ' driver'
             );
         }
-        if (version_compare($version = $pdo->getAttribute(\PDO::ATTR_SERVER_VERSION), '9.5', '<')) {
+        if (\version_compare($version = $pdo->getAttribute(\PDO::ATTR_SERVER_VERSION), '9.5', '<')) {
             throw new exceptions\RuntimeException(
                 'PostgreSQL versions earlier than 9.5 are no longer supported, '
                 . 'connected server reports version ' . $version
@@ -127,7 +121,7 @@ class StatementFactory
         $lexerOptions = ['standard_conforming_strings' => 'on' === $standard];
 
         $serverInfo     = $pdo->getAttribute(\PDO::ATTR_SERVER_INFO);
-        $builderOptions = ['escape_unicode' => !str_contains((string) $serverInfo, 'Client Encoding: UTF8')];
+        $builderOptions = ['escape_unicode' => !\str_contains((string) $serverInfo, 'Client Encoding: UTF8')];
 
         return new self(new Parser(new Lexer($lexerOptions)), new SqlBuilderWalker($builderOptions), true);
     }
@@ -276,7 +270,7 @@ class StatementFactory
     {
         if ($list instanceof TargetList) {
             $targetList = $list;
-        } elseif (is_string($list)) {
+        } elseif (\is_string($list)) {
             $targetList = TargetList::createFromString($this->getParser(), $list);
         } else {
             // we don't pass $list since it may contain strings instead of TargetElements,
@@ -287,7 +281,7 @@ class StatementFactory
         $select = new Select($targetList);
         $select->setParser($this->getParser());
 
-        if (!is_string($list) && !($list instanceof TargetList)) {
+        if (!\is_string($list) && !($list instanceof TargetList)) {
             $select->list->replace($list);
         }
         if (null !== $from) {
@@ -314,7 +308,7 @@ class StatementFactory
 
         if ($set instanceof SetClauseList) {
             $setList = $set;
-        } elseif (is_string($set)) {
+        } elseif (\is_string($set)) {
             $setList = $this->getParser()->parseSetClauseList($set);
         } else {
             // we don't pass $set since it may contain strings instead of SetTargetElements,
@@ -325,7 +319,7 @@ class StatementFactory
         $update = new Update($relation, $setList);
         $update->setParser($this->getParser());
 
-        if (!is_string($set) && !($set instanceof SetClauseList)) {
+        if (!\is_string($set) && !($set instanceof SetClauseList)) {
             $update->set->replace($set);
         }
 
@@ -351,7 +345,7 @@ class StatementFactory
     {
         if ($rows instanceof RowList) {
             $rowList = $rows;
-        } elseif (is_string($rows)) {
+        } elseif (\is_string($rows)) {
             $rowList = RowList::createFromString($this->getParser(), $rows);
         } else {
             // we don't pass $rows as it may contain strings/arrays instead of RowExpressions,
@@ -362,7 +356,7 @@ class StatementFactory
         $values = new Values($rowList);
         $values->setParser($this->getParser());
 
-        if (!is_string($rows) && !($rows instanceof RowList)) {
+        if (!\is_string($rows) && !($rows instanceof RowList)) {
             $values->rows->replace($rows);
         }
 

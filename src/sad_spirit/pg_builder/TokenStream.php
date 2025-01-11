@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -50,7 +44,7 @@ class TokenStream implements \Stringable
      */
     public function __toString(): string
     {
-        return implode("\n", $this->tokens);
+        return \implode("\n", $this->tokens);
     }
 
     /**
@@ -201,7 +195,7 @@ class TokenStream implements \Stringable
      */
     public function matchesKeywordSequence(Keyword|array ...$keywords): bool
     {
-        if (null === $this->keyword || $this->current + count($keywords) >= count($this->tokens)) {
+        if (null === $this->keyword || $this->current + \count($keywords) >= \count($this->tokens)) {
             return false;
         }
         $index = 0;
@@ -255,7 +249,7 @@ class TokenStream implements \Stringable
         ) {
             throw exceptions\SyntaxException::expectationFailed(
                 TokenType::KEYWORD,
-                \array_map(fn(Keyword $keyword) => $keyword->value, $keywords),
+                \array_map(fn (Keyword $keyword) => $keyword->value, $keywords),
                 $this->tokens[$this->current],
                 $this->source
             );

@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -133,12 +127,13 @@ class ParseFunctionCallTest extends TestCase
 
     public function testNoParenthesesFunctions(): void
     {
-        $list = $this->parser->parseExpressionList($input = <<<QRY
+        $list = $this->parser->parseExpressionList(
+            $input = <<<QRY
     current_date, current_role, current_user, session_user, user, current_catalog, current_schema, system_user
 QRY
         );
         $expected = [];
-        foreach (array_map('trim', explode(',', $input)) as $item) {
+        foreach (\array_map('trim', \explode(',', $input)) as $item) {
             $expected[] = new SQLValueFunction(SQLValueFunctionName::from($item));
         }
 
@@ -147,7 +142,8 @@ QRY
 
     public function testOptionalParenthesesFunctions(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     current_time, current_timestamp(1), localtime(2), localtimestamp
 QRY
         );
@@ -169,7 +165,8 @@ QRY
 
     public function testExtract(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     extract(epoch from foo), extract(minute from bar), extract('whatever' from baz)
 QRY
         );
@@ -185,7 +182,8 @@ QRY
 
     public function testOverlay(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     overlay('fooxxxbaz' placing 'bar' from 3 for 3),
     overlay('adc' placing 'b' from 2),
     overlay(),
@@ -233,7 +231,8 @@ QRY
 
     public function testSubstring(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     substring(),
     substring(foo := bar),
     substring('foobar'),
@@ -286,7 +285,8 @@ QRY
 
     public function testTrim(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     trim(from ' foo '), trim(leading '_' from '_foo_'), trim(trailing from 'foo '), trim(trailing from 'foo', 'o'),
     trim(from 'foo', 'f', 'o') -- this will ultimately result in error in Postgres, but should parse
 QRY
@@ -329,7 +329,8 @@ QRY
 
     public function testXmlElement(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     xmlelement(name foo, bar, 'content'), xmlelement(name blah, xmlattributes(baz, quux as xyzzy), 'content')
 QRY
         );
@@ -432,7 +433,8 @@ QRY
 
     public function testFunctionsWithKeywordNames(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     coalesce(a, 'b'), greatest('c', d), least(e, f), xmlconcat(x, m, l)
 QRY
         );
@@ -472,7 +474,8 @@ QRY
 
     public function testNamedAndVariadicParameters(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     blah.foo(variadic a), blah.bar(a, variadic b), blah.baz(a, b := c, binary := d)
 QRY
         );
@@ -549,7 +552,8 @@ QRY
 
     public function testAggregateFunctionCalls(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     agg1(all blah), agg2(distinct blahblah), agg3(distinct foo, bar order by foo desc, bar nulls last),
     count (*) filter (where foo > 100), percentile_disc(0.5) within group (order by foo)
 QRY
@@ -605,7 +609,8 @@ QRY
 
     public function testJsonAggregates(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     json_objectagg(k value v), json_arrayagg(v format json encoding utf32 returning blah),
     json_objectagg(k: v null on null) filter (where v > 0) over (win95)
 QRY
@@ -637,7 +642,8 @@ QRY
 
     public function testJsonObjectConstructor(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     json_object(),
     json_object(returning jsonb),
     json_object('{foo,bar}'),
@@ -673,7 +679,8 @@ QRY
 
     public function testJsonArrayConstructor(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     json_array(),
     json_array(returning jsonb),
     json_array(one format json, two null on null),
@@ -708,7 +715,8 @@ QRY
 
     public function testMiscJsonExpressions(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     json_scalar(1), json(null), json('{"foo":1}' format json encoding utf8 without unique),
     json_serialize(null), json_serialize('{"foo":"bar"}' format json encoding utf8 returning bytea format json)
 QRY
@@ -734,7 +742,8 @@ QRY
 
     public function testJsonQueryExpressions(): void
     {
-        $list = $this->parser->parseExpressionList(<<<'QRY'
+        $list = $this->parser->parseExpressionList(
+            <<<'QRY'
     json_exists(null format json, '$'),
     json_exists(jsonb '{"a": 1, "b": 2}', '$.* ? (@ > $x)' passing 1 as x false on error),
     json_value(null::jsonb, '$'),
@@ -857,7 +866,8 @@ QRY
     }
     public function testWindowFunctionCalls(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     foo() over (), bar() over (blah), rank() over (partition by whatever),
     something() over (rows between 5 preceding and unbounded following exclude current row),
     count(bar) filter(where !@#& bar) over (partition by foo),

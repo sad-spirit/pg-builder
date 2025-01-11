@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -256,8 +250,8 @@ class StatementFactoryTest extends TestCase
         string $message = ''
     ): void {
         $this::assertEquals(
-            implode(' ', preg_split('/\s+/', trim($expected))),
-            implode(' ', preg_split('/\s+/', trim($actual))),
+            \implode(' ', \preg_split('/\s+/', \trim($expected))),
+            \implode(' ', \preg_split('/\s+/', \trim($actual))),
             $message
         );
     }
@@ -269,7 +263,8 @@ class StatementFactoryTest extends TestCase
     public function testPDOPrepareCompatibility(): void
     {
         $factory = new StatementFactory(null, null, true);
-        $stmt    = $factory->createFromString(<<<'BLAH'
+        $stmt    = $factory->createFromString(
+            <<<'BLAH'
 select * 
 from foo 
 where bar = $$O'really? \ Yes, really$$ 
@@ -282,7 +277,8 @@ BLAH
             $factory->createFromAST($stmt)->getSql()
         );
 
-        $stmt2 = $factory->createFromString($stmt2Source = <<<'BLAH'
+        $stmt2 = $factory->createFromString(
+            $stmt2Source = <<<'BLAH'
 select * 
 from foo 
 where bar = $$O'really? \ Yes, really$$ 
@@ -307,7 +303,8 @@ BLAH
 
         /** @var StatementFactory $factory */
         foreach ($factories as $factory) {
-            $stmt = $factory->createFromString(<<<'BLAH'
+            $stmt = $factory->createFromString(
+                <<<'BLAH'
 select * 
 from foo 
 where bar = $$O'really? \ Yes, really$$ 
@@ -320,7 +317,8 @@ BLAH
                 $factory->createFromAST($stmt, true)->getSql()
             );
 
-            $stmt2 = $factory->createFromString($stmt2Source = <<<'BLAH'
+            $stmt2 = $factory->createFromString(
+                $stmt2Source = <<<'BLAH'
 select * 
 from foo 
 where bar = $$O'really? \ Yes, really$$ 

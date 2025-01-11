@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -80,7 +74,7 @@ class ParameterWalker extends BlankWalker
         if (isset($this->namedParameterMap[$node->name])) {
             $paramIdx = $this->namedParameterMap[$node->name];
         } else {
-            $paramIdx = count($this->namedParameterMap);
+            $paramIdx = \count($this->namedParameterMap);
             $this->namedParameterMap[$node->name] = $paramIdx;
         }
 
@@ -113,7 +107,7 @@ class ParameterWalker extends BlankWalker
         }
         if ($parent instanceof nodes\expressions\TypecastExpression && empty($this->parameterTypes[$idx])) {
             $this->parameterTypes[$idx] = clone $parent->type;
-        } elseif (!array_key_exists($idx, $this->parameterTypes)) {
+        } elseif (!\array_key_exists($idx, $this->parameterTypes)) {
             $this->parameterTypes[$idx] = null;
         }
     }
@@ -128,7 +122,7 @@ class ParameterWalker extends BlankWalker
 
     public function walkColumnReference(nodes\ColumnReference $node): null
     {
-         /* No Parameters here */
+        /* No Parameters here */
         return null;
     }
 

@@ -1,21 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
- *
- * @noinspection SqlNoDataSourceInspection, SqlResolve
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -57,7 +49,8 @@ class ParameterWalkerTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Mixing named and positional parameters is not allowed');
-        $statement = $this->parser->parseStatement(<<<QRY
+        $statement = $this->parser->parseStatement(
+            <<<QRY
     select foo, bar from foosource where foo = :foo or bar = $1
 QRY
         );
@@ -67,7 +60,8 @@ QRY
 
     public function testReplaceNamedParametersInSelect(): void
     {
-        $statement = $this->parser->parseStatement(<<<QRY
+        $statement = $this->parser->parseStatement(
+            <<<QRY
 with blah as (
     select blahstuff from baseblah where blahid = :cte
 )
@@ -101,7 +95,7 @@ QRY
 
         $map   = $this->walker->getNamedParameterMap();
         $types = $this->walker->getParameterTypes();
-        preg_match_all('#\$\d+#', (string) $statement->dispatch($this->builder), $matches);
+        \preg_match_all('#\$\d+#', (string) $statement->dispatch($this->builder), $matches);
         $this->assertCount(36, $map);
         $this->assertCount(36, $types);
         $this->assertCount(36, $matches[0]);
@@ -114,7 +108,8 @@ QRY
 
     public function testReplaceMultipleOccurences(): void
     {
-        $statement = $this->parser->parseStatement(<<<QRY
+        $statement = $this->parser->parseStatement(
+            <<<QRY
 select foo from foosource where foo ~ :foo
 union all
 select bar from barsource where bar ~ :foo
@@ -125,12 +120,13 @@ QRY
 
         $this->assertCount(1, $this->walker->getNamedParameterMap());
         $this->assertCount(1, $this->walker->getParameterTypes());
-        $this->assertEquals(4, substr_count((string) $statement->dispatch($this->builder), '$1'));
+        $this->assertEquals(4, \substr_count((string) $statement->dispatch($this->builder), '$1'));
     }
 
     public function testReplaceParametersInUpdate(): void
     {
-        $statement = $this->parser->parseStatement(<<<QRY
+        $statement = $this->parser->parseStatement(
+            <<<QRY
 update foo set bar = :bar, baz = :baz where quux = :quux
 QRY
         );
@@ -144,7 +140,8 @@ QRY
 
     public function testReplaceParametersInInsert(): void
     {
-        $statement = $this->parser->parseStatement(<<<QRY
+        $statement = $this->parser->parseStatement(
+            <<<QRY
 insert into foo (bar, baz) values (default, :bar), (:baz, default) on conflict (shit) do update set baz = :baz
 QRY
         );

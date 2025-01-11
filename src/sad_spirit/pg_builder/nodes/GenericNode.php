@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -75,7 +69,7 @@ abstract class GenericNode implements Node
      */
     public function __set(string $name, $value)
     {
-        if (method_exists($this, 'set' . $name)) {
+        if (\method_exists($this, 'set' . $name)) {
             $this->{'set' . $name}($value);
         } else {
             throw new InvalidArgumentException(
@@ -176,9 +170,9 @@ abstract class GenericNode implements Node
     {
         if (!isset(self::$propertyNamesCache[$className = static::class])) {
             self::$propertyNamesCache[$className] = [];
-            foreach (array_keys(get_class_vars($className)) as $name) {
-                if (str_starts_with($name, 'p_')) {
-                    self::$propertyNamesCache[$className][substr($name, 2)] = $name;
+            foreach (\array_keys(\get_class_vars($className)) as $name) {
+                if (\str_starts_with($name, 'p_')) {
+                    self::$propertyNamesCache[$className][\substr($name, 2)] = $name;
                 }
             }
         }
@@ -245,7 +239,7 @@ abstract class GenericNode implements Node
         }
         foreach ($this->propertyNames as $name => $propertyName) {
             if ($oldChild === $this->$propertyName) {
-                if (!method_exists($this, 'set' . $name)) {
+                if (!\method_exists($this, 'set' . $name)) {
                     throw new InvalidArgumentException("Property '{$name}' is read-only");
                 }
                 $this->{'set' . $name}($newChild);
@@ -265,7 +259,7 @@ abstract class GenericNode implements Node
         }
         foreach ($this->propertyNames as $name => $propertyName) {
             if ($child === $this->$propertyName) {
-                if (!method_exists($this, 'set' . $name)) {
+                if (!\method_exists($this, 'set' . $name)) {
                     throw new InvalidArgumentException("Property '{$name}' is read-only");
                 }
                 $this->{'set' . $name}(null);
@@ -298,7 +292,7 @@ abstract class GenericNode implements Node
         if (null !== ($parser = $this->getParser())) {
             return $parser;
         }
-        throw new InvalidArgumentException(sprintf("Passed a string as %s without a Parser available", $as));
+        throw new InvalidArgumentException(\sprintf("Passed a string as %s without a Parser available", $as));
     }
 
     /**

@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -107,7 +101,8 @@ class ParseFromClauseTest extends TestCase
 
     public function testBasicItems(): void
     {
-        $list = $this->parser->parseFromList(<<<QRY
+        $list = $this->parser->parseFromList(
+            <<<QRY
     foo.bar, baz(1, 'string'), (select 'quux') as quux, (select * from unaliased)
 QRY
         );
@@ -135,7 +130,8 @@ QRY
 
     public function testAliasedTables(): void
     {
-        $list = $this->parser->parseFromList(<<<QRY
+        $list = $this->parser->parseFromList(
+            <<<QRY
     foo as fooalias, only barschema.bar baralias, baz * as bazalias (one, two),
     quuxschema.quux * quuxalias (three, four)
 QRY
@@ -164,7 +160,8 @@ QRY
     public function testAliasedFunctions(): void
     {
         // this also checks that keywords are allowed for ColId's
-        $list = $this->parser->parseFromList(<<<QRY
+        $list = $this->parser->parseFromList(
+            <<<QRY
     blah.blah(1, 2, 3) "select" (abort integer, alter text collate foo, begin double precision),
     blahblah(null) as (start character varying, temporary bit)
 QRY
@@ -211,7 +208,8 @@ QRY
 
     public function testJoins(): void
     {
-        $list = $this->parser->parseFromList(<<<QRY
+        $list = $this->parser->parseFromList(
+            <<<QRY
     a as aa natural join b bb left join (c right join d on (true = false)) as joinalias using (blah) as bleh,
     f full outer join g(1) on false <> true cross join lateral (select 'blah') as h
 QRY
@@ -292,7 +290,8 @@ QRY
 
     public function testRowsFrom(): void
     {
-        $list = $this->parser->parseFromList(<<<QRY
+        $list = $this->parser->parseFromList(
+            <<<QRY
     rows from (foo(1) as (fooid integer, fooname text), foo(2)),
     rows from (generate_series(1, 5), generate_series(1,10)) with ordinality
 QRY
@@ -336,7 +335,8 @@ QRY
 
     public function testTableSample(): void
     {
-        $list = $this->parser->parseFromList(<<<QRY
+        $list = $this->parser->parseFromList(
+            <<<QRY
 foo tablesample system (bar.baz * 100),
 quux natural join xyzzy as a (b,c) tablesample bernoulli (50) repeatable (seed)
 QRY
@@ -377,7 +377,8 @@ QRY
     public function testXmlTable(): void
     {
         // from docs
-        $list = $this->parser->parseFromList(<<<QRY
+        $list = $this->parser->parseFromList(
+            <<<QRY
 XMLTABLE(
     '//ROWS/ROW' PASSING data by value
     COLUMNS id int PATH '@id',
@@ -470,7 +471,8 @@ QRY
 
     public function testJsonTable(): void
     {
-        $list = $this->parser->parseFromList(<<<QRY
+        $list = $this->parser->parseFromList(
+            <<<QRY
 json_table(
     '{"foo":"bar"}', '$'
     columns (id for ordinality, foo text)

@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -57,7 +51,7 @@ class Identifier extends GenericNode implements \Stringable
     public static function createFromToken(Token $token): self
     {
         if (!$token->matches(TokenType::IDENTIFIER) && !$token->matches(TokenType::KEYWORD)) {
-            throw new InvalidArgumentException(sprintf(
+            throw new InvalidArgumentException(\sprintf(
                 '%s requires an identifier or keyword token, %s given',
                 self::class,
                 $token->getType()->toString()
@@ -103,11 +97,11 @@ class Identifier extends GenericNode implements \Stringable
         $value = $this->value;
         // We are likely to see the same identifier again, so cache the check results
         if (!isset(self::$needsQuoting[$value])) {
-            self::$needsQuoting[$value] = !preg_match('/^[a-z_][a-z_0-9$]*$/D', $value)
+            self::$needsQuoting[$value] = !\preg_match('/^[a-z_][a-z_0-9$]*$/D', $value)
                                           || (null !== Keyword::tryFrom($value));
         }
         return self::$needsQuoting[$value]
-               ? '"' . str_replace('"', '""', $value) . '"'
+               ? '"' . \str_replace('"', '""', $value) . '"'
                : $value;
     }
 

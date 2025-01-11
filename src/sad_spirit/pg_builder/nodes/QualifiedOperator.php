@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -51,13 +45,13 @@ class QualifiedOperator extends GenericNode implements \Stringable
     {
         $this->generatePropertyNames();
 
-        switch (count($nameParts)) {
+        switch (\count($nameParts)) {
             case 3:
-                $this->p_catalog = $this->expectIdentifier(array_shift($nameParts), 'catalog');
+                $this->p_catalog = $this->expectIdentifier(\array_shift($nameParts), 'catalog');
                 $this->p_catalog->setParentNode($this);
                 // fall-through is intentional
             case 2:
-                $this->p_schema = $this->expectIdentifier(array_shift($nameParts), 'schema');
+                $this->p_schema = $this->expectIdentifier(\array_shift($nameParts), 'schema');
                 if ($this === $this->p_schema->parentNode) {
                     throw new InvalidArgumentException(
                         "Cannot use the same Node for different parts of QualifiedOperator"
@@ -66,13 +60,13 @@ class QualifiedOperator extends GenericNode implements \Stringable
                 $this->p_schema->setParentNode($this);
                 // fall-through is intentional
             case 1:
-                $this->p_operator = $this->expectOperator(array_shift($nameParts));
+                $this->p_operator = $this->expectOperator(\array_shift($nameParts));
                 break;
 
             case 0:
                 throw new InvalidArgumentException(self::class . ' expects operator name parts, none given');
             default:
-                throw new SyntaxException("Too many dots in qualified name: " . implode('.', $nameParts));
+                throw new SyntaxException("Too many dots in qualified name: " . \implode('.', $nameParts));
         }
     }
 
@@ -87,7 +81,7 @@ class QualifiedOperator extends GenericNode implements \Stringable
         try {
             return new Identifier($namePart);
         } catch (\Throwable $e) {
-            throw new InvalidArgumentException(sprintf(
+            throw new InvalidArgumentException(\sprintf(
                 "%s: %s part of operator name could not be converted to Identifier; %s",
                 self::class,
                 $index,
@@ -101,16 +95,16 @@ class QualifiedOperator extends GenericNode implements \Stringable
      */
     private function expectOperator(Identifier|string $namePart): string
     {
-        if (!is_string($namePart)) {
-            throw new InvalidArgumentException(sprintf(
+        if (!\is_string($namePart)) {
+            throw new InvalidArgumentException(\sprintf(
                 '%s requires a string for an operator, %s given',
                 self::class,
                 'object(' . $namePart::class . ')'
             ));
         }
 
-        if (strlen($namePart) !== strspn($namePart, Lexer::CHARS_OPERATOR)) {
-            throw new SyntaxException(sprintf(
+        if (\strlen($namePart) !== \strspn($namePart, Lexer::CHARS_OPERATOR)) {
+            throw new SyntaxException(\sprintf(
                 "%s: '%s' does not look like a valid operator string",
                 self::class,
                 $namePart

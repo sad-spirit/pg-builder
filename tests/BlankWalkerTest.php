@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -187,7 +181,7 @@ QRY
     private function createListOfAllConcreteNodeSubclasses(): array
     {
         $nodes  = [];
-        $srcDir = realpath(dirname(__DIR__) . '/src');
+        $srcDir = \realpath(\dirname(__DIR__) . '/src');
 
         /* @var \SplFileInfo $file */
         foreach (
@@ -196,13 +190,13 @@ QRY
                 \RecursiveIteratorIterator::LEAVES_ONLY
             ) as $file
         ) {
-            if (!$file->isFile() || !preg_match('/\.php$/', (string) $file->getFilename())) {
+            if (!$file->isFile() || !\preg_match('/\.php$/', (string) $file->getFilename())) {
                 continue;
             }
 
-            $className = str_replace('/', '\\', substr((string) $file->getRealPath(), strlen($srcDir) + 1, -4));
-            if (!class_exists($className)) {
-                if (!interface_exists($className, false) && !trait_exists($className, false)) {
+            $className = \str_replace('/', '\\', \substr((string) $file->getRealPath(), \strlen($srcDir) + 1, -4));
+            if (!\class_exists($className)) {
+                if (!\interface_exists($className, false) && !\trait_exists($className, false)) {
                     $this::fail("Autoloading failed for {$className}");
                 }
             } else {
@@ -218,13 +212,13 @@ QRY
 
     private function assertAllNodeSubClassesAreUsed(Statement ...$ast): void
     {
-        preg_match_all('{"(sad_spirit\\\\pg_builder\\\\[^"]+)"}', serialize($ast), $m);
+        \preg_match_all('{"(sad_spirit\\\\pg_builder\\\\[^"]+)"}', \serialize($ast), $m);
 
-        $notFound = array_diff($this->createListOfAllConcreteNodeSubclasses(), $m[1]);
+        $notFound = \array_diff($this->createListOfAllConcreteNodeSubclasses(), $m[1]);
 
         $this::assertEmpty(
             $notFound,
-            "Node subclasses not used in test query: " . implode(', ', $notFound)
+            "Node subclasses not used in test query: " . \implode(', ', $notFound)
         );
     }
 
@@ -241,21 +235,21 @@ QRY
     {
         $parser     = new Parser(new Lexer());
         // @phpstan-ignore callable.nonNativeMethod
-        $statements = array_map($parser->parseStatement(...), $this->sql);
+        $statements = \array_map($parser->parseStatement(...), $this->sql);
 
         $this->assertAllNodeSubClassesAreUsed(...$statements);
 
         $walker = new BlankWalkerImplementation();
-        array_map(function ($statement) use ($walker): void {
+        \array_map(function ($statement) use ($walker): void {
             $statement->dispatch($walker);
         }, $statements);
 
-        preg_match_all('{' . $walker::IDENTIFIER_MASK . '}', implode(" ", $this->sql), $m);
-        $notFound = array_diff($m[0], array_keys($walker->identifiers));
+        \preg_match_all('{' . $walker::IDENTIFIER_MASK . '}', \implode(" ", $this->sql), $m);
+        $notFound = \array_diff($m[0], \array_keys($walker->identifiers));
 
         $this::assertEmpty(
             $notFound,
-            "Names of Identifiers that weren't visited by BlankWalkerImplementation: " . implode(', ', $notFound)
+            "Names of Identifiers that weren't visited by BlankWalkerImplementation: " . \implode(', ', $notFound)
         );
     }
 }

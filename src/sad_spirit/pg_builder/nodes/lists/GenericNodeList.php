@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -203,7 +197,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      */
     public function count(): int
     {
-        return count($this->offsets);
+        return \count($this->offsets);
     }
 
     /**
@@ -227,7 +221,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
             $prepared[] = $this->convertToArray($list, __METHOD__);
         }
 
-        $this->offsets = array_merge($this->offsets, ...$prepared);
+        $this->offsets = \array_merge($this->offsets, ...$prepared);
     }
 
     /**
@@ -258,7 +252,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     {
         if (
             null === ($result = parent::replaceChild($oldChild, $newChild))
-            && false !== ($key = array_search($oldChild, $this->offsets, true))
+            && false !== ($key = \array_search($oldChild, $this->offsets, true))
         ) {
             // Since we found $oldChild in $offsets, $newChild should be of a compatible type
             /** @var T $newChild */
@@ -276,7 +270,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     {
         if (
             null === ($result = parent::removeChild($child))
-            && false !== ($key = array_search($child, $this->offsets, true))
+            && false !== ($key = \array_search($child, $this->offsets, true))
         ) {
             /** @phpstan-var TKey $key */
             $this->offsetUnset($key);
@@ -292,7 +286,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      */
     public function lastKey()
     {
-        return array_key_last($this->offsets);
+        return \array_key_last($this->offsets);
     }
 
     /**
@@ -305,14 +299,14 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      */
     protected function prepareList($array, string $method): iterable
     {
-        if (is_string($array) && $this instanceof Parseable) {
+        if (\is_string($array) && $this instanceof Parseable) {
             $array = $this::createFromString($this->getParserOrFail("an argument to '{$method}'"), $array);
         }
-        if (!is_iterable($array)) {
-            throw new InvalidArgumentException(sprintf(
+        if (!\is_iterable($array)) {
+            throw new InvalidArgumentException(\sprintf(
                 "%s requires either an array or an instance of Traversable, %s given",
                 $method,
-                is_object($array) ? 'object(' . $array::class . ')' : gettype($array)
+                \is_object($array) ? 'object(' . $array::class . ')' : \gettype($array)
             ));
         }
 
@@ -346,7 +340,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      */
     protected function prepareListElement($value): Node
     {
-        if (is_string($value) && $this instanceof ElementParseable) {
+        if (\is_string($value) && $this instanceof ElementParseable) {
             $value = $this->createElementFromString($value);
         }
 
@@ -358,30 +352,30 @@ abstract class GenericNodeList extends GenericNode implements NodeList
             }
         }
         if (!$found) {
-            $shortClasses = array_map(
-                fn($className) => ($pos = strrpos((string) $className, '\\'))
-                    ? substr((string) $className, $pos + 1)
+            $shortClasses = \array_map(
+                fn ($className) => ($pos = \strrpos((string) $className, '\\'))
+                    ? \substr((string) $className, $pos + 1)
                     : $className,
-                array_merge(
+                \array_merge(
                     [static::class],
-                    is_object($value) ? [$value::class] : [],
+                    \is_object($value) ? [$value::class] : [],
                     static::getAllowedElementClasses()
                 )
             );
 
             throw new InvalidArgumentException(
-                is_object($value)
-                ? sprintf(
+                \is_object($value)
+                ? \sprintf(
                     '%1$s can contain only instances of %3$s, instance of %2$s given',
-                    array_shift($shortClasses),
-                    array_shift($shortClasses),
-                    implode(" or ", $shortClasses)
+                    \array_shift($shortClasses),
+                    \array_shift($shortClasses),
+                    \implode(" or ", $shortClasses)
                 )
-                : sprintf(
+                : \sprintf(
                     '%s can contain only instances of %s, %s given',
-                    array_shift($shortClasses),
-                    implode(" or ", $shortClasses),
-                    gettype($value)
+                    \array_shift($shortClasses),
+                    \implode(" or ", $shortClasses),
+                    \gettype($value)
                 )
             );
         }

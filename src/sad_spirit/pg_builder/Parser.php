@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -362,7 +356,7 @@ class Parser
 
         if (!$this->stream->look($lookIdx)->matchesAnyKeyword(Keyword::VALUES, Keyword::SELECT, Keyword::WITH)) {
             $selectLevel = false;
-        } elseif (1 === ($selectLevel = count($openParens))) {
+        } elseif (1 === ($selectLevel = \count($openParens))) {
             return self::PARENTHESES_SELECT;
         }
 
@@ -370,7 +364,7 @@ class Parser
             $token = $this->stream->look(++$lookIdx);
             if (
                 (TokenType::COLON_EQUALS === $token->getType() || TokenType::EQUALS_GREATER == $token->getType())
-                && 1 === count($openParens) && !$selectLevel
+                && 1 === \count($openParens) && !$selectLevel
             ) {
                 return self::PARENTHESES_ARGS;
             }
@@ -387,13 +381,13 @@ class Parser
                     break;
 
                 case ',':
-                    if (1 === count($openParens) && !$selectLevel) {
+                    if (1 === \count($openParens) && !$selectLevel) {
                         return self::PARENTHESES_ROW;
                     }
                     break;
 
                 case ')':
-                    if (1 < count($openParens) && $selectLevel === count($openParens)) {
+                    if (1 < \count($openParens) && $selectLevel === \count($openParens)) {
                         if (
                             $this->stream->look($lookIdx + 1)
                                 ->matchesAnyKeyword(
@@ -415,12 +409,12 @@ class Parser
                             $selectLevel = false;
                         }
                     }
-                    array_pop($openParens);
+                    \array_pop($openParens);
             }
         } while (!empty($openParens) && !$token->matches(TokenType::EOF));
 
         if (!empty($openParens)) {
-            $token = $this->stream->look(array_shift($openParens));
+            $token = $this->stream->look(\array_shift($openParens));
             throw exceptions\SyntaxException::atPosition(
                 "Unbalanced '('",
                 $this->stream->getSource(),
@@ -566,13 +560,13 @@ class Parser
         static $trailingTimezone = null;
 
         if (null === $constNames) {
-            $constNames = array_merge(
+            $constNames = \array_merge(
                 self::STANDARD_TYPES_CHARACTER,
                 self::STANDARD_TYPES_NUMERIC,
                 self::STANDARD_TYPES_DATETIME,
                 [self::STANDARD_TYPES_BIT, self::STANDARD_TYPES_JSON, Keyword::INTERVAL]
             );
-            $trailingTimezone = array_flip(array_map(
+            $trailingTimezone = \array_flip(\array_map(
                 fn (Keyword $keyword): string => $keyword->value,
                 self::STANDARD_TYPES_DATETIME
             ));
@@ -663,8 +657,8 @@ class Parser
     public function __call(string $name, array $arguments): Node
     {
         if (
-            !preg_match('/^parse([a-zA-Z]+)$/', $name, $matches)
-            || !isset(self::CALLABLE[strtolower($matches[1])])
+            !\preg_match('/^parse([a-zA-Z]+)$/', $name, $matches)
+            || !isset(self::CALLABLE[\strtolower($matches[1])])
         ) {
             throw new exceptions\BadMethodCallException("The method '{$name}' is not available");
         }
@@ -672,7 +666,7 @@ class Parser
         if (null !== $this->cache) {
             $source = $arguments[0] instanceof TokenStream ? $arguments[0]->getSource() : (string)$arguments[0];
             try {
-                $cacheItem = $this->cache->getItem('parsetree-v2-' . md5('{' . $name . '}' . $source));
+                $cacheItem = $this->cache->getItem('parsetree-v2-' . \md5('{' . $name . '}' . $source));
                 if ($cacheItem->isHit()) {
                     return clone $cacheItem->get();
                 }
@@ -717,7 +711,7 @@ class Parser
         ) {
             $stmt = $this->SelectStatement();
             if (!empty($withClause)) {
-                if (0 < count($stmt->with)) {
+                if (0 < \count($stmt->with)) {
                     throw new exceptions\SyntaxException('Multiple WITH clauses are not allowed');
                 }
                 $stmt->with = $withClause;
@@ -770,7 +764,7 @@ class Parser
         }
 
         if (!empty($withClause)) {
-            if (0 < count($stmt->with)) {
+            if (0 < \count($stmt->with)) {
                 throw new exceptions\SyntaxException(
                     'Multiple WITH clauses are not allowed'
                 );
@@ -781,7 +775,7 @@ class Parser
         // Per SQL spec ORDER BY and later clauses apply to a result of set operation,
         // not to a single participating SELECT
         if ($this->stream->matchesKeywordSequence(Keyword::ORDER, Keyword::BY)) {
-            if (count($stmt->order) > 0) {
+            if (\count($stmt->order) > 0) {
                 throw exceptions\SyntaxException::atPosition(
                     'Multiple ORDER BY clauses are not allowed',
                     $this->stream->getSource(),
@@ -1436,9 +1430,10 @@ class Parser
         $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
         if (
             $this->stream->matchesAnyType(TokenType::IDENTIFIER, TokenType::COL_NAME_KEYWORD)
-            || ($this->stream->matches(TokenType::UNRESERVED_KEYWORD)
+            || (
+                $this->stream->matches(TokenType::UNRESERVED_KEYWORD)
                 // See comment for opt_existing_window_name production in gram.y
-                && !in_array(
+                && !\in_array(
                     $this->stream->getKeyword(),
                     [Keyword::PARTITION, Keyword::RANGE, Keyword::ROWS, Keyword::GROUPS]
                 )
@@ -1551,7 +1546,7 @@ class Parser
             $terms[] = $this->LogicalExpressionTerm($targetElement);
         }
 
-        if (1 === count($terms)) {
+        if (1 === \count($terms)) {
             return $terms[0];
         }
 
@@ -1571,7 +1566,7 @@ class Parser
             $factors[] = $this->LogicalExpressionFactor($targetElement);
         }
 
-        if (1 === count($factors)) {
+        if (1 === \count($factors)) {
             return $factors[0];
         }
 
@@ -1634,7 +1629,7 @@ class Parser
 
         foreach (self::CHECKS_PATTERN_MATCHING as $checkIdx => $check) {
             if ($this->stream->matchesKeywordSequence(...$check)) {
-                $this->stream->skip(count($check));
+                $this->stream->skip(\count($check));
 
                 $escape = null;
                 if ($checkIdx < 4 && $this->stream->matchesAnyKeyword(...self::SUBQUERY_EXPRESSIONS)) {
@@ -1651,7 +1646,7 @@ class Parser
                 if (Keyword::NOT !== $check[0]) {
                     $negated = false;
                 } else {
-                    array_shift($check);
+                    \array_shift($check);
                     $negated = true;
                 }
 
@@ -1856,7 +1851,7 @@ class Parser
         $term = $this->ArithmeticExpression($restricted, $targetElement);
         // prefix operators are left-associative
         while (!empty($operators)) {
-            $term = new nodes\expressions\OperatorExpression(array_pop($operators), null, $term);
+            $term = new nodes\expressions\OperatorExpression(\array_pop($operators), null, $term);
         }
 
         return $term;
@@ -1933,14 +1928,14 @@ class Parser
             }
 
             foreach (
-                array_merge(
+                \array_merge(
                     $restricted ? [] : self::CHECKS_IS_WHATEVER,
                     [[Keyword::DOCUMENT]]
                 ) as $check
             ) {
                 if ($this->stream->matchesKeywordSequence(...$check)) {
                     $isOperator = [];
-                    for ($i = 0; $i < count($check); $i++) {
+                    for ($i = 0; $i < \count($check); $i++) {
                         $isOperator[] = $this->stream->next()->getValue();
                     }
                     if (['json'] !== $isOperator) {
@@ -2441,7 +2436,7 @@ class Parser
         if (!$operand instanceof nodes\expressions\NumericConstant || '-' !== $operator) {
             return new nodes\expressions\OperatorExpression($operator, null, $operand);
         } elseif ('-' === $operand->value[0]) {
-            return new nodes\expressions\NumericConstant(substr($operand->value, 1));
+            return new nodes\expressions\NumericConstant(\substr($operand->value, 1));
         } else {
             return new nodes\expressions\NumericConstant('-' . $operand->value);
         }
@@ -3216,7 +3211,7 @@ class Parser
         $order       = null;
 
         if ($this->stream->matchesKeywordSequence(Keyword::WITHIN, Keyword::GROUP)) {
-            if (count($function->order) > 0) {
+            if (\count($function->order) > 0) {
                 throw exceptions\SyntaxException::atPosition(
                     'Cannot use multiple ORDER BY clauses with WITHIN GROUP',
                     $this->stream->getSource(),
@@ -3380,11 +3375,11 @@ class Parser
         }
 
         if (
-            TokenType::TYPE_FUNC_NAME_KEYWORD === $firstToken->getType() && 1 < count($funcName)
-            || TokenType::COL_NAME_KEYWORD === $firstToken->getType() && 1 === count($funcName)
+            TokenType::TYPE_FUNC_NAME_KEYWORD === $firstToken->getType() && 1 < \count($funcName)
+            || TokenType::COL_NAME_KEYWORD === $firstToken->getType() && 1 === \count($funcName)
         ) {
             throw exceptions\SyntaxException::atPosition(
-                implode('.', $funcName) . ' is not a valid function name',
+                \implode('.', $funcName) . ' is not a valid function name',
                 $this->stream->getSource(),
                 $firstToken->getPosition()
             );
@@ -4851,7 +4846,7 @@ class Parser
                     \sprintf(
                         "Unexpected %s, expecting one of %s",
                         $checkCase->nameForExceptionMessage(),
-                        \implode(', ', array_map(
+                        \implode(', ', \array_map(
                             fn (enums\JsonBehaviour $behaviour): string => $behaviour->nameForExceptionMessage(),
                             $applicable
                         ))

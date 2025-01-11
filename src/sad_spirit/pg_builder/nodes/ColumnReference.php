@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -53,13 +47,13 @@ class ColumnReference extends GenericNode implements ScalarExpression, \Stringab
     {
         $this->generatePropertyNames();
 
-        switch (count($parts)) {
+        switch (\count($parts)) {
             case 4:
-                $this->p_catalog = $this->expectIdentifier(array_shift($parts), 'catalog');
+                $this->p_catalog = $this->expectIdentifier(\array_shift($parts), 'catalog');
                 $this->p_catalog->setParentNode($this);
                 // fall-through is intentional
             case 3:
-                $this->p_schema = $this->expectIdentifier(array_shift($parts), 'schema');
+                $this->p_schema = $this->expectIdentifier(\array_shift($parts), 'schema');
                 if ($this === $this->p_schema->parentNode) {
                     throw new InvalidArgumentException(
                         "Cannot use the same Node for different parts of ColumnReference"
@@ -68,7 +62,7 @@ class ColumnReference extends GenericNode implements ScalarExpression, \Stringab
                 $this->p_schema->setParentNode($this);
                 // fall-through is intentional
             case 2:
-                $this->p_relation = $this->expectIdentifier(array_shift($parts), 'relation');
+                $this->p_relation = $this->expectIdentifier(\array_shift($parts), 'relation');
                 if ($this === $this->p_relation->parentNode) {
                     throw new InvalidArgumentException(
                         "Cannot use the same Node for different parts of ColumnReference"
@@ -77,7 +71,7 @@ class ColumnReference extends GenericNode implements ScalarExpression, \Stringab
                 $this->p_relation->setParentNode($this);
                 // fall-through is intentional
             case 1:
-                $this->p_column = $this->expectIdentifierOrStar(array_shift($parts));
+                $this->p_column = $this->expectIdentifierOrStar(\array_shift($parts));
                 if ($this === $this->p_column->parentNode) {
                     throw new InvalidArgumentException(
                         "Cannot use the same Node for different parts of ColumnReference"
@@ -89,7 +83,7 @@ class ColumnReference extends GenericNode implements ScalarExpression, \Stringab
             case 0:
                 throw new InvalidArgumentException(self::class . ' constructor expects at least one name part');
             default:
-                throw new SyntaxException("Too many dots in column reference: " . implode('.', $parts));
+                throw new SyntaxException("Too many dots in column reference: " . \implode('.', $parts));
         }
     }
 
@@ -124,7 +118,7 @@ class ColumnReference extends GenericNode implements ScalarExpression, \Stringab
         try {
             return new Identifier($namePart);
         } catch (\Throwable $e) {
-            throw new InvalidArgumentException(sprintf(
+            throw new InvalidArgumentException(\sprintf(
                 "%s: %s part of column reference could not be converted to Identifier; %s",
                 self::class,
                 $index,
@@ -135,7 +129,7 @@ class ColumnReference extends GenericNode implements ScalarExpression, \Stringab
 
     public function __serialize(): array
     {
-        return array_map(
+        return \array_map(
             function ($prop) {
                 if (null !== $this->$prop) {
                     return $this->$prop instanceof Identifier ? $this->$prop->value : '';
@@ -149,7 +143,7 @@ class ColumnReference extends GenericNode implements ScalarExpression, \Stringab
     protected function unserializeProperties(array $properties): void
     {
         $this->generatePropertyNames();
-        array_walk($properties, function ($v, $k): void {
+        \array_walk($properties, function ($v, $k): void {
             if (null !== $v) {
                 $name        = $this->propertyNames[$k];
                 $this->$name = '' === $v ? new Star() : new Identifier($v);

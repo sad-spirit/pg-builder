@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -177,7 +171,7 @@ class BuilderSupportDecorator implements TypeNameNodeHandler, TypeOIDMapperAware
         $inferredTypes = $statement->getParameterTypes();
         $converted     = [];
         foreach ($statement->getNamedParameterMap() as $name => $index) {
-            if (!array_key_exists($name, $parameters)) {
+            if (!\array_key_exists($name, $parameters)) {
                 throw new InvalidArgumentException("Missing parameter name '{$name}'");
             }
             if (!empty($paramTypes[$name])) {
@@ -190,10 +184,10 @@ class BuilderSupportDecorator implements TypeNameNodeHandler, TypeOIDMapperAware
             $converted[$name] = $converter->output($parameters[$name]);
         }
 
-        if (count($converted) < count($parameters)) {
-            $unknown = array_diff(array_keys($parameters), array_keys($converted));
+        if (\count($converted) < \count($parameters)) {
+            $unknown = \array_diff(\array_keys($parameters), \array_keys($converted));
             throw new InvalidArgumentException(
-                "Unknown keys in parameters array: '" . implode("', '", $unknown) . "'"
+                "Unknown keys in parameters array: '" . \implode("', '", $unknown) . "'"
             );
         }
 

@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -66,7 +60,7 @@ class SqlBuilderTest extends TestCase
             'AST of the built statement should be equal to that of the original statement'
         );
 
-        $unserialized = unserialize(serialize($parsed));
+        $unserialized = \unserialize(\serialize($parsed));
         $this::assertEquals(
             $parsed,
             $unserialized,
@@ -76,7 +70,8 @@ class SqlBuilderTest extends TestCase
 
     public function testBuildDeleteStatement(): void
     {
-        $this->assertBuiltStatementProducesTheSameAST(<<<QRY
+        $this->assertBuiltStatementProducesTheSameAST(
+            <<<QRY
 with recursive items (id, title, level, path) as (
     select item_id, item_title, 1,
            array[i.item_id]
@@ -99,7 +94,8 @@ QRY
 
     public function testBuildInsertStatement(): void
     {
-        $this->assertBuiltStatementProducesTheSameAST(<<<QRY
+        $this->assertBuiltStatementProducesTheSameAST(
+            <<<QRY
 with foobar as (
     select idfoo, somefoo from foo
     except
@@ -124,7 +120,8 @@ QRY
 
     public function testBuildMergeStatement(): void
     {
-        $this->assertBuiltStatementProducesTheSameAST(<<<'QRY'
+        $this->assertBuiltStatementProducesTheSameAST(
+            <<<'QRY'
 with "null" as (
     select null as "null", 1 as one
 )
@@ -145,7 +142,8 @@ QRY
 
     public function testBuildSelectStatement(): void
     {
-        $this->assertBuiltStatementProducesTheSameAST(<<<'QRY'
+        $this->assertBuiltStatementProducesTheSameAST(
+            <<<'QRY'
 with xmlstuff as (
     select xmlelement(name foo, bar, 'content'), xmlelement(name blah, xmlattributes(baz, quux as xyzzy), 'content'),
        xmlexists('//foo[text() = ''bar'']' passing by ref '<blah><foo>bar</foo></blah>'),
@@ -251,7 +249,8 @@ QRY
 
     public function testBuildUpdateStatement(): void
     {
-        $this->assertBuiltStatementProducesTheSameAST(<<<QRY
+        $this->assertBuiltStatementProducesTheSameAST(
+            <<<QRY
 with foo as (
     select somefoo from basefoo
 )
@@ -273,7 +272,7 @@ QRY
         ]);
         $this->assertEquals(
             $constants,
-            $this->parser->parseExpressionList(implode(', ', $constants->dispatch($this->builder)))
+            $this->parser->parseExpressionList(\implode(', ', $constants->dispatch($this->builder)))
         );
     }
 
@@ -284,7 +283,8 @@ QRY
      */
     public function testEscapeUnicode(): void
     {
-        $ast = $this->parser->parseStatement(<<<QRY
+        $ast = $this->parser->parseStatement(
+            <<<QRY
     select молодой.слонок носатый, 'на лужайке '' какал \\ смачно'
     from "на"."тракторе" as Егорка join подкрался.незаметно using (большим, ковшом, """чугунным""")
     where схватил.слонка operator (за.#) жопу
@@ -315,7 +315,8 @@ QRY
      */
     public function testFunctionLikeConstructsInFromClauseBug(): void
     {
-        $ast = $this->parser->parseStatement(<<<QRY
+        $ast = $this->parser->parseStatement(
+            <<<QRY
 select *
 from current_user,
      localtimestamp(1),

@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -97,15 +91,15 @@ class NativeStatement
     {
         $positional = [];
         foreach ($this->namedParameterMap as $name => $position) {
-            if (!array_key_exists($name, $parameters)) {
+            if (!\array_key_exists($name, $parameters)) {
                 throw new exceptions\InvalidArgumentException("Missing parameter name '{$name}'");
             }
             $positional[$position] = $parameters[$name];
         }
-        if (count($positional) < count($parameters)) {
-            $unknown = array_diff(array_keys($parameters), array_keys($this->namedParameterMap));
+        if (\count($positional) < \count($parameters)) {
+            $unknown = \array_diff(\array_keys($parameters), \array_keys($this->namedParameterMap));
             throw new exceptions\InvalidArgumentException(
-                "Unknown keys in parameters array: '" . implode("', '", $unknown) . "'"
+                "Unknown keys in parameters array: '" . \implode("', '", $unknown) . "'"
             );
         }
         return $positional;
@@ -123,9 +117,9 @@ class NativeStatement
     {
         $types = $this->parameterTypes;
         foreach ($paramTypes as $key => $type) {
-            if (array_key_exists($key, $types)) {
+            if (\array_key_exists($key, $types)) {
                 $types[$key] = $type;
-            } elseif (array_key_exists($key, $this->namedParameterMap)) {
+            } elseif (\array_key_exists($key, $this->namedParameterMap)) {
                 $types[$this->namedParameterMap[$key]] = $type;
             } else {
                 throw new exceptions\InvalidArgumentException(

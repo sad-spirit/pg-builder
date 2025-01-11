@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -74,8 +68,8 @@ class OperatorExpression extends GenericNode implements ScalarExpression
 
     public function __construct(string|QualifiedOperator $operator, ?ScalarExpression $left, ScalarExpression $right)
     {
-        if (is_string($operator) && strlen($operator) !== strspn($operator, Lexer::CHARS_OPERATOR)) {
-            throw new SyntaxException(sprintf(
+        if (\is_string($operator) && \strlen($operator) !== \strspn($operator, Lexer::CHARS_OPERATOR)) {
+            throw new SyntaxException(\sprintf(
                 "%s: '%s' does not look like a valid operator string",
                 self::class,
                 $operator
@@ -117,7 +111,7 @@ class OperatorExpression extends GenericNode implements ScalarExpression
 
     public function getPrecedence(): int
     {
-        if (!is_string($this->p_operator) || !isset(self::PRECEDENCES[$this->p_operator])) {
+        if (!\is_string($this->p_operator) || !isset(self::PRECEDENCES[$this->p_operator])) {
             return self::PRECEDENCE_GENERIC_OP;
         } elseif (null === $this->p_left && isset(self::PRECEDENCES_UNARY[$this->p_operator])) {
             return self::PRECEDENCES_UNARY[$this->p_operator];
@@ -128,7 +122,7 @@ class OperatorExpression extends GenericNode implements ScalarExpression
 
     public function getAssociativity(): string
     {
-        if (!is_string($this->p_operator)) {
+        if (!\is_string($this->p_operator)) {
             return self::ASSOCIATIVE_LEFT;
         } elseif (null === $this->p_left && isset(self::PRECEDENCES_UNARY[$this->p_operator])) {
             return self::ASSOCIATIVE_RIGHT;

@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -46,10 +40,10 @@ class OverlapsExpression extends GenericNode implements ScalarExpression
         if ($left === $right) {
             throw new InvalidArgumentException("Cannot use the same Node for left and right arguments");
         }
-        if (2 !== count($left)) {
+        if (2 !== \count($left)) {
             throw new InvalidArgumentException("Wrong number of items in the left argument to OVERLAPS");
         }
-        if (2 !== count($right)) {
+        if (2 !== \count($right)) {
             throw new InvalidArgumentException("Wrong number of items in the right argument to OVERLAPS");
         }
 
@@ -64,7 +58,7 @@ class OverlapsExpression extends GenericNode implements ScalarExpression
 
     public function setLeft(RowExpression $left): void
     {
-        if (2 !== count($left)) {
+        if (2 !== \count($left)) {
             throw new InvalidArgumentException("Wrong number of items in the left argument to OVERLAPS");
         }
         $this->setRequiredProperty($this->p_left, $left);
@@ -72,7 +66,7 @@ class OverlapsExpression extends GenericNode implements ScalarExpression
 
     public function setRight(RowExpression $right): void
     {
-        if (2 !== count($right)) {
+        if (2 !== \count($right)) {
             throw new InvalidArgumentException("Wrong number of items in the right argument to OVERLAPS");
         }
         $this->setRequiredProperty($this->p_right, $right);

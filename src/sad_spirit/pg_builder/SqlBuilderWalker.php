@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -67,7 +61,7 @@ class SqlBuilderWalker implements StatementToStringWalker
      */
     public function __construct(array $options = [])
     {
-        $this->options = array_merge($this->options, $options);
+        $this->options = \array_merge($this->options, $options);
 
         $this->dummyTypecast = new nodes\expressions\TypecastExpression(
             new nodes\expressions\StringConstant('dummy'),
@@ -92,8 +86,8 @@ class SqlBuilderWalker implements StatementToStringWalker
      */
     protected function containsCommonClauses(SelectCommon $statement): bool
     {
-        return 0 < count($statement->order)
-               || 0 < count($statement->locking)
+        return 0 < \count($statement->order)
+               || 0 < \count($statement->locking)
                || null !== $statement->limit
                || null !== $statement->offset;
     }
@@ -151,7 +145,7 @@ class SqlBuilderWalker implements StatementToStringWalker
      */
     protected function getIndent(): string
     {
-        return str_repeat((string) $this->options['indent'], $this->indentLevel);
+        return \str_repeat((string) $this->options['indent'], $this->indentLevel);
     }
 
     /**
@@ -171,23 +165,23 @@ class SqlBuilderWalker implements StatementToStringWalker
      */
     protected function implode(string $lead, array $parts, string $separator = ','): string
     {
-        if (0 === count($parts)) {
+        if (0 === \count($parts)) {
             return $lead;
 
         } elseif (!$this->options['linebreak'] || !$this->options['wrap']) {
-            return $lead . implode($separator . ' ', $parts);
+            return $lead . \implode($separator . ' ', $parts);
         }
 
         $lineSep   = $separator . $this->options['linebreak'] . $this->getIndent();
-        $indentLen = strlen($this->getIndent());
-        $string    = $lead . array_shift($parts);
-        $lineLen   = (false === $lastBreak = strrpos($string, (string) $this->options['linebreak']))
-                     ? strlen($string) : strlen($string) - $lastBreak;
-        $sepLen    = strlen($separator) + 1;
+        $indentLen = \strlen($this->getIndent());
+        $string    = $lead . \array_shift($parts);
+        $lineLen   = (false === $lastBreak = \strrpos($string, (string) $this->options['linebreak']))
+                     ? \strlen($string) : \strlen($string) - $lastBreak;
+        $sepLen    = \strlen($separator) + 1;
         foreach ($parts as $part) {
-            $partLen = strlen($part);
-            if (false !== ($lastBreak = strrpos($part, (string) $this->options['linebreak']))) {
-                $firstBreak = strpos($part, (string) $this->options['linebreak']) ?: $lastBreak;
+            $partLen = \strlen($part);
+            if (false !== ($lastBreak = \strrpos($part, (string) $this->options['linebreak']))) {
+                $firstBreak = \strpos($part, (string) $this->options['linebreak']) ?: $lastBreak;
                 if ($lineLen + $firstBreak < $this->options['wrap']) {
                     $string .= $separator . ' ' . $part;
                 } else {
@@ -216,7 +210,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     {
         $indent = $this->getIndent();
         $this->indentLevel++;
-        if (0 < count($statement->order)) {
+        if (0 < \count($statement->order)) {
             $clauses[] = $this->implode($indent . 'order by ', $statement->order->dispatch($this), ',');
         }
         if (null !== $statement->limit) {
@@ -234,7 +228,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         if (null !== $statement->offset) {
             $clauses[] = $indent . 'offset ' . $statement->offset->dispatch($this);
         }
-        if (0 < count($statement->locking)) {
+        if (0 < \count($statement->locking)) {
             $clauses[] = $this->implode($indent, $statement->locking->dispatch($this), '');
         }
         $this->indentLevel--;
@@ -243,7 +237,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkSelectStatement(Select $statement): string
     {
         $clauses = [];
-        if (0 < count($statement->with)) {
+        if (0 < \count($statement->with)) {
             $clauses[] = $statement->with->dispatch($this);
         }
 
@@ -257,26 +251,26 @@ class SqlBuilderWalker implements StatementToStringWalker
         }
         $clauses[] = $this->implode($list, $statement->list->dispatch($this), ',');
 
-        if (0 < count($statement->from)) {
+        if (0 < \count($statement->from)) {
             $clauses[] = $this->implode($indent . 'from ', $statement->from->dispatch($this), ',');
         }
         if (null !== $statement->where->condition) {
             $clauses[] = $indent . 'where ' . $statement->where->dispatch($this);
         }
-        if (0 < count($statement->group)) {
+        if (0 < \count($statement->group)) {
             $clauses[] = $this->implode($indent . 'group by ', $statement->group->dispatch($this), ',');
         }
         if (null !== $statement->having->condition) {
             $clauses[] = $indent . 'having ' . $statement->having->dispatch($this);
         }
-        if (0 < count($statement->window)) {
+        if (0 < \count($statement->window)) {
             $clauses[] = $this->implode($indent . 'window ', $statement->window->dispatch($this), ',');
         }
         $this->indentLevel--;
 
         $this->addCommonSelectClauses($clauses, $statement);
 
-        return implode($this->options['linebreak'] ?: ' ', $clauses);
+        return \implode($this->options['linebreak'] ?: ' ', $clauses);
     }
 
     public function walkSetOpSelectStatement(SetOpSelect $statement): string
@@ -284,7 +278,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         $indent = $this->getIndent();
         $parts  = [];
 
-        if (0 < count($statement->with)) {
+        if (0 < \count($statement->with)) {
             $parts[] = $statement->with->dispatch($this);
         }
 
@@ -318,7 +312,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
         $this->addCommonSelectClauses($parts, $statement);
 
-        return implode($this->options['linebreak'] ?: ' ', $parts);
+        return \implode($this->options['linebreak'] ?: ' ', $parts);
     }
 
     public function walkValuesStatement(Values $statement): string
@@ -328,17 +322,17 @@ class SqlBuilderWalker implements StatementToStringWalker
         $rows = $statement->rows->dispatch($this);
         $this->indentLevel--;
 
-        $parts = [$sql . implode(',' . ($this->options['linebreak'] ?: ' '), $rows)];
+        $parts = [$sql . \implode(',' . ($this->options['linebreak'] ?: ' '), $rows)];
 
         $this->addCommonSelectClauses($parts, $statement);
 
-        return implode($this->options['linebreak'] ?: ' ', $parts);
+        return \implode($this->options['linebreak'] ?: ' ', $parts);
     }
 
     public function walkDeleteStatement(Delete $statement): string
     {
         $clauses = [];
-        if (0 < count($statement->with)) {
+        if (0 < \count($statement->with)) {
             $clauses[] = $statement->with->dispatch($this);
         }
         $indent = $this->getIndent();
@@ -346,24 +340,24 @@ class SqlBuilderWalker implements StatementToStringWalker
         /** @noinspection SqlWithoutWhere, SqlNoDataSourceInspection */
         $clauses[] = $indent . 'delete from ' . $statement->relation->dispatch($this);
 
-        if (0 < count($statement->using)) {
+        if (0 < \count($statement->using)) {
             $clauses[] = $this->implode($indent . 'using ', $statement->using->dispatch($this), ',');
         }
         if (null !== $statement->where->condition) {
             $clauses[] = $indent . 'where ' . $statement->where->dispatch($this);
         }
-        if (0 < count($statement->returning)) {
+        if (0 < \count($statement->returning)) {
             $clauses[] = $this->implode($indent . 'returning ', $statement->returning->dispatch($this), ',');
         }
         $this->indentLevel--;
 
-        return implode($this->options['linebreak'] ?: ' ', $clauses);
+        return \implode($this->options['linebreak'] ?: ' ', $clauses);
     }
 
     public function walkInsertStatement(Insert $statement): string
     {
         $clauses = [];
-        if (0 < count($statement->with)) {
+        if (0 < \count($statement->with)) {
             $clauses[] = $statement->with->dispatch($this);
         }
 
@@ -372,7 +366,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
         /** @noinspection SqlNoDataSourceInspection */
         $clauses[] = $indent . 'insert into ' . $statement->relation->dispatch($this);
-        if (0 < count($statement->cols)) {
+        if (0 < \count($statement->cols)) {
             $clauses[] = $this->implode($this->getIndent() . '(', $statement->cols->dispatch($this), ',') . ')';
         }
         if (null === $statement->values) {
@@ -388,18 +382,18 @@ class SqlBuilderWalker implements StatementToStringWalker
         if (null !== $statement->onConflict) {
             $clauses[] = $indent . 'on conflict ' . $statement->onConflict->dispatch($this);
         }
-        if (0 < count($statement->returning)) {
+        if (0 < \count($statement->returning)) {
             $clauses[] = $this->implode($indent . 'returning ', $statement->returning->dispatch($this), ',');
         }
         $this->indentLevel--;
 
-        return implode($this->options['linebreak'] ?: ' ', $clauses);
+        return \implode($this->options['linebreak'] ?: ' ', $clauses);
     }
 
     public function walkUpdateStatement(Update $statement): string
     {
         $clauses = [];
-        if (0 < count($statement->with)) {
+        if (0 < \count($statement->with)) {
             $clauses[] = $statement->with->dispatch($this);
         }
 
@@ -408,18 +402,18 @@ class SqlBuilderWalker implements StatementToStringWalker
 
         $clauses[] = $indent . 'update ' . $statement->relation->dispatch($this);
         $clauses[] = $this->implode($indent . 'set ', $statement->set->dispatch($this), ',');
-        if (0 < count($statement->from)) {
+        if (0 < \count($statement->from)) {
             $clauses[] = $this->implode($indent . 'from ', $statement->from->dispatch($this), ',');
         }
         if (null !== $statement->where->condition) {
             $clauses[] = $indent . 'where ' . $statement->where->dispatch($this);
         }
-        if (0 < count($statement->returning)) {
+        if (0 < \count($statement->returning)) {
             $clauses[] = $this->implode($indent . 'returning ', $statement->returning->dispatch($this), ',');
         }
         $this->indentLevel--;
 
-        return implode($this->options['linebreak'] ?: ' ', $clauses);
+        return \implode($this->options['linebreak'] ?: ' ', $clauses);
     }
 
     public function walkArrayIndexes(nodes\ArrayIndexes $node): string
@@ -453,8 +447,8 @@ class SqlBuilderWalker implements StatementToStringWalker
         }
         $sql = $node->alias->dispatch($this) . ' '
                . (
-                   0 < count($node->columnAliases)
-                   ? '(' . implode(', ', $node->columnAliases->dispatch($this)) . ') '
+                   0 < \count($node->columnAliases)
+                   ? '(' . \implode(', ', $node->columnAliases->dispatch($this)) . ') '
                    : ''
                )
                . 'as ' . $materialized . '(' . $this->options['linebreak'] . $node->statement->dispatch($this);
@@ -493,40 +487,40 @@ class SqlBuilderWalker implements StatementToStringWalker
             return "{$node->type->value}'{$node->value}'";
         }
 
-        if ($this->options['escape_unicode'] && preg_match('/[\\x80-\\xff]/', $node->value)) {
+        if ($this->options['escape_unicode'] && \preg_match('/[\\x80-\\xff]/', $node->value)) {
             // We generate e'...' string instead of u&'...' one as the latter may be rejected by server
             // if standard_conforming_strings setting is off
             return "e'"
-                . implode('', array_map(function (int $codePoint): string {
+                . \implode('', \array_map(function (int $codePoint): string {
                     if (0x27 === $codePoint) {
                         return "\\'";
                     } elseif (0x5c === $codePoint) {
                         return '\\\\';
                     } elseif ($codePoint < 0x80) {
-                        return chr($codePoint);
+                        return \chr($codePoint);
                     } elseif ($codePoint < 0xFFFF) {
-                        return sprintf('\\u%04x', $codePoint);
+                        return \sprintf('\\u%04x', $codePoint);
                     } else {
-                        return sprintf('\\U%08x', $codePoint);
+                        return \sprintf('\\U%08x', $codePoint);
                     }
                 }, self::utf8ToCodePoints($node->value)))
                 . "'";
         }
 
-        if (!str_contains($node->value, "'") && !str_contains($node->value, '\\')) {
+        if (!\str_contains($node->value, "'") && !\str_contains($node->value, '\\')) {
             return "'" . $node->value . "'";
         }
         // We generate dollar-quoted strings by default as those are more readable, having no escapes.
         // As PDO::prepare() may fail with these, fall back to generating C-style escapes
         if ($this->PDOPrepareCompatibility) {
-            return "e'" . strtr($node->value, ["'" => "\\'", "\\" => "\\\\"]) . "'";
+            return "e'" . \strtr($node->value, ["'" => "\\'", "\\" => "\\\\"]) . "'";
         }
 
-        if (!str_contains($node->value . '$', '$$')) {
+        if (!\str_contains($node->value . '$', '$$')) {
             return '$$' . $node->value . '$$';
         } else {
             $i = 1;
-            while (str_contains($node->value . '$', '$_' . $i . '$')) {
+            while (\str_contains($node->value . '$', '$_' . $i . '$')) {
                 $i++;
             }
             return '$_' . $i . '$' . $node->value . '$_' . $i . '$';
@@ -537,12 +531,12 @@ class SqlBuilderWalker implements StatementToStringWalker
     {
         $arguments = (array)$node->arguments->dispatch($this);
         if ($node->variadic) {
-            $arguments[] = 'variadic ' . array_pop($arguments);
+            $arguments[] = 'variadic ' . \array_pop($arguments);
         }
         return $node->name->dispatch($this) . '('
                . ($node->distinct ? 'distinct ' : '')
-               . implode(', ', $arguments)
-               . (0 < count($node->order) ? ' order by ' . implode(',', $node->order->dispatch($this)) : '')
+               . \implode(', ', $arguments)
+               . (0 < \count($node->order) ? ' order by ' . \implode(',', $node->order->dispatch($this)) : '')
                . ')';
     }
 
@@ -553,28 +547,28 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkSystemFunctionCall(nodes\expressions\SystemFunctionCall $node): string
     {
-        return $node->name->value . '(' . implode(', ', (array)$node->arguments->dispatch($this)) . ')';
+        return $node->name->value . '(' . \implode(', ', (array)$node->arguments->dispatch($this)) . ')';
     }
 
     public function walkIdentifier(nodes\Identifier $node): string
     {
-        if (!$this->options['escape_unicode'] || !preg_match('/[\\x80-\\xff]/', $node->value)) {
+        if (!$this->options['escape_unicode'] || !\preg_match('/[\\x80-\\xff]/', $node->value)) {
             return $node->__toString();
         }
 
         if (!isset($this->escapedUnicodeIdentifiers[$node->value])) {
             $this->escapedUnicodeIdentifiers[$node->value] = 'u&"'
-                . implode('', array_map(function (int $codePoint): string {
+                . \implode('', \array_map(function (int $codePoint): string {
                     if (0x5c === $codePoint) {
                         return '\\\\';
                     } elseif (0x22 === $codePoint) {
                         return '""';
                     } elseif ($codePoint < 0x80) {
-                        return chr($codePoint);
+                        return \chr($codePoint);
                     } elseif ($codePoint < 0xFFFF) {
-                        return sprintf('\\%04x', $codePoint);
+                        return \sprintf('\\%04x', $codePoint);
                     } else {
-                        return sprintf('\\+%06x', $codePoint);
+                        return \sprintf('\\+%06x', $codePoint);
                     }
                 }, self::utf8ToCodePoints($node->value)))
                 . '"';
@@ -601,8 +595,8 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkLockingElement(nodes\LockingElement $node): string
     {
         $sql = 'for ' . $node->strength->value;
-        if (0 < count($node)) {
-            $sql .= ' of ' . implode(', ', $this->walkGenericNodeList($node));
+        if (0 < \count($node)) {
+            $sql .= ' of ' . \implode(', ', $this->walkGenericNodeList($node));
         }
         if ($node->noWait) {
             $sql .= ' nowait';
@@ -619,10 +613,10 @@ class SqlBuilderWalker implements StatementToStringWalker
             $sql .= ' ' . $node->direction->value;
             if (enums\OrderByDirection::USING === $node->direction) {
                 $sql .= ' '  . (
-                            $node->operator instanceof nodes\QualifiedOperator
+                    $node->operator instanceof nodes\QualifiedOperator
                             ? $node->operator->dispatch($this)
                             : $node->operator
-                        );
+                );
             }
         }
         if (null !== $node->nullsOrder) {
@@ -659,7 +653,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         return 'operator('
                . (null !== $node->catalog ? $node->catalog->dispatch($this) . '.' : '')
                . (null !== $node->schema ? $node->schema->dispatch($this) . '.' : '')
-               . ($this->PDOPrepareCompatibility ? strtr($node->operator, ['?' => '??']) : $node->operator) . ')';
+               . ($this->PDOPrepareCompatibility ? \strtr($node->operator, ['?' => '??']) : $node->operator) . ')';
     }
 
     public function walkSetTargetElement(nodes\SetTargetElement $node): string
@@ -679,7 +673,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkMultipleSetClause(nodes\MultipleSetClause $node): string
     {
-        return '(' . implode(', ', $node->columns->dispatch($this)) . ') = '
+        return '(' . \implode(', ', $node->columns->dispatch($this)) . ') = '
                . $node->value->dispatch($this);
     }
 
@@ -703,12 +697,12 @@ class SqlBuilderWalker implements StatementToStringWalker
     {
         $sql = ($node->setOf ? 'setof ' : '')
                . (
-                    $node instanceof nodes\IntervalTypeName
+                   $node instanceof nodes\IntervalTypeName
                     ? 'interval' . (null !== $node->mask ? ' ' . $node->mask->value : '')
                     : $node->name->dispatch($this)
                )
-               . (0 < count($node->modifiers) ? '(' . implode(', ', $node->modifiers->dispatch($this)) . ')' : '');
-        if (0 < count($node->bounds)) {
+               . (0 < \count($node->modifiers) ? '(' . \implode(', ', $node->modifiers->dispatch($this)) . ')' : '');
+        if (0 < \count($node->bounds)) {
             foreach ($node->bounds as $bound) {
                 $sql .= '[' . (-1 === $bound ? '' : $bound) . ']';
             }
@@ -729,16 +723,16 @@ class SqlBuilderWalker implements StatementToStringWalker
         if (null !== $node->refName) {
             $parts[] = $node->refName->dispatch($this);
         }
-        if (0 < count($node->partition)) {
-            $parts[] = 'partition by ' . implode(', ', $node->partition->dispatch($this));
+        if (0 < \count($node->partition)) {
+            $parts[] = 'partition by ' . \implode(', ', $node->partition->dispatch($this));
         }
-        if (0 < count($node->order)) {
-            $parts[] = 'order by ' . implode(', ', $node->order->dispatch($this));
+        if (0 < \count($node->order)) {
+            $parts[] = 'order by ' . \implode(', ', $node->order->dispatch($this));
         }
         if (null !== $node->frame) {
             $parts[] = $node->frame->dispatch($this);
         }
-        return $sql . implode(' ', $parts) . ')';
+        return $sql . \implode(' ', $parts) . ')';
     }
 
     public function walkWindowFrameClause(nodes\WindowFrameClause $node): string
@@ -792,7 +786,7 @@ class SqlBuilderWalker implements StatementToStringWalker
                 $items[] = $item->dispatch($this);
             }
         }
-        return ($keyword ? 'array' : '') . '[' . implode(', ', $items) . ']';
+        return ($keyword ? 'array' : '') . '[' . \implode(', ', $items) . ']';
     }
 
     public function walkArrayExpression(nodes\expressions\ArrayExpression $expression): string
@@ -837,7 +831,7 @@ class SqlBuilderWalker implements StatementToStringWalker
             $clauses[] = 'else ' . $expression->else->dispatch($this);
         }
 
-        return 'case ' . implode(' ', $clauses) . ' end';
+        return 'case ' . \implode(' ', $clauses) . ' end';
     }
 
     public function walkCollateExpression(nodes\expressions\CollateExpression $expression): string
@@ -868,15 +862,15 @@ class SqlBuilderWalker implements StatementToStringWalker
         } else {
             $arguments = (array)$expression->arguments->dispatch($this);
             if ($expression->variadic) {
-                $arguments[] = 'variadic ' . array_pop($arguments);
+                $arguments[] = 'variadic ' . \array_pop($arguments);
             }
             $sql = $expression->name->dispatch($this)
                    . '('
                    . ($expression->distinct ? 'distinct ' : '')
-                   . implode(', ', $arguments)
+                   . \implode(', ', $arguments)
                    . ')'
                    . ' within group (order by '
-                   . implode(', ', $expression->order->dispatch($this)) . ')';
+                   . \implode(', ', $expression->order->dispatch($this)) . ')';
         }
 
         return $sql
@@ -893,7 +887,7 @@ class SqlBuilderWalker implements StatementToStringWalker
             $right .= $this->options['linebreak'] . $this->getIndent() . ')';
 
         } else {
-            $right = '(' . implode(', ', $expression->right->dispatch($this)) . ')';
+            $right = '(' . \implode(', ', $expression->right->dispatch($this)) . ')';
         }
 
         return $this->optionalParentheses($expression->left, $expression, false)
@@ -940,7 +934,7 @@ class SqlBuilderWalker implements StatementToStringWalker
             }
         }
 
-        return implode($delimiter, $items);
+        return \implode($delimiter, $items);
     }
 
     public function walkNormalizeExpression(nodes\expressions\NormalizeExpression $expression): string
@@ -962,14 +956,18 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkOperatorExpression(nodes\expressions\OperatorExpression $expression): string
     {
         return (
-                null === $expression->left
-                ? ''
-                : $this->optionalParentheses($expression->left, $expression, false) . ' '
-            )
+            null === $expression->left
+            ? ''
+            : $this->optionalParentheses($expression->left, $expression, false) . ' '
+        )
             . (
                 $expression->operator instanceof nodes\QualifiedOperator
                 ? $expression->operator->dispatch($this)
-                : ($this->PDOPrepareCompatibility ? strtr($expression->operator, ['?' => '??']) : $expression->operator)
+                : (
+                    $this->PDOPrepareCompatibility
+                        ? \strtr($expression->operator, ['?' => '??'])
+                        : $expression->operator
+                )
             )
             . ' ' . $this->optionalParentheses($expression->right, $expression, true);
     }
@@ -995,7 +993,7 @@ class SqlBuilderWalker implements StatementToStringWalker
                . ($expression->not ? ' not ' : ' ') . $expression->operator->value . ' '
                . $this->optionalParentheses($expression->pattern, $expression, true)
                . (
-                    null !== $expression->escape
+                   null !== $expression->escape
                     ? ' escape ' . $this->optionalParentheses($expression->escape, $expression, true)
                     : ''
                );
@@ -1014,10 +1012,10 @@ class SqlBuilderWalker implements StatementToStringWalker
     {
         if ($expression->getParentNode() instanceof nodes\lists\RowList) {
             return $this->implode($this->getIndent() . '(', $this->walkGenericNodeList($expression), ',') . ')';
-        } elseif (count($expression) < 2) {
-            return 'row(' . implode(', ', $this->walkGenericNodeList($expression)) . ')';
+        } elseif (\count($expression) < 2) {
+            return 'row(' . \implode(', ', $this->walkGenericNodeList($expression)) . ')';
         } else {
-            return '(' . implode(', ', $this->walkGenericNodeList($expression)) . ')';
+            return '(' . \implode(', ', $this->walkGenericNodeList($expression)) . ')';
         }
     }
 
@@ -1076,14 +1074,14 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkConstantTypecastExpression(nodes\expressions\ConstantTypecastExpression $expression): string
     {
-        $modifiers = 0 < count($expression->type->modifiers)
+        $modifiers = 0 < \count($expression->type->modifiers)
                      ? ' (' . \implode(', ', $expression->type->modifiers->dispatch($this)) . ')'
                      : '';
         return (
-                $expression->type instanceof nodes\IntervalTypeName
-                ? 'interval' . (null === $expression->type->mask ? $modifiers : '')
-                : $expression->type->name->dispatch($this) . $modifiers
-            )
+            $expression->type instanceof nodes\IntervalTypeName
+            ? 'interval' . (null === $expression->type->mask ? $modifiers : '')
+            : $expression->type->name->dispatch($this) . $modifiers
+        )
             . ' ' . $expression->argument->dispatch($this)
             . (
                 $expression->type instanceof nodes\IntervalTypeName && null !== $expression->type->mask
@@ -1094,7 +1092,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkGroupingExpression(nodes\expressions\GroupingExpression $expression): string
     {
-        return 'grouping(' . implode(', ', $this->walkGenericNodeList($expression)) . ')';
+        return 'grouping(' . \implode(', ', $this->walkGenericNodeList($expression)) . ')';
     }
 
 
@@ -1121,7 +1119,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         $items = [];
         /* @var nodes\ScalarExpression $argument */
         foreach ($list as $key => $argument) {
-            if (is_int($key)) {
+            if (\is_int($key)) {
                 $items[] = $argument->dispatch($this);
             } else {
                 $items[] = $key . ' := ' . $argument->dispatch($this);
@@ -1145,8 +1143,8 @@ class SqlBuilderWalker implements StatementToStringWalker
         return ' as'
                . (null !== $rangeItem->tableAlias ? ' ' . $rangeItem->tableAlias->dispatch($this) : '')
                . (
-                    null !== $rangeItem->columnAliases
-                    ? ' (' . implode(', ', $rangeItem->columnAliases->dispatch($this)) . ')'
+                   null !== $rangeItem->columnAliases
+                    ? ' (' . \implode(', ', $rangeItem->columnAliases->dispatch($this)) . ')'
                     : ''
                );
     }
@@ -1161,7 +1159,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkRowsFrom(nodes\range\RowsFrom $rangeItem): string
     {
         return ($rangeItem->lateral ? 'lateral ' : '') . 'rows from('
-               . implode(', ', $rangeItem->functions->dispatch($this)) . ')'
+               . \implode(', ', $rangeItem->functions->dispatch($this)) . ')'
                . ($rangeItem->withOrdinality ? ' with ordinality' : '')
                . $this->getFromItemAliases($rangeItem);
     }
@@ -1170,8 +1168,8 @@ class SqlBuilderWalker implements StatementToStringWalker
     {
         return $node->function->dispatch($this)
                . (
-                   count($node->columnAliases) > 0
-                   ? ' as (' . implode(', ', $node->columnAliases->dispatch($this)) . ')'
+                   \count($node->columnAliases) > 0
+                   ? ' as (' . \implode(', ', $node->columnAliases->dispatch($this)) . ')'
                    : ''
                );
     }
@@ -1235,7 +1233,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     {
         return $rangeItem->relation->dispatch($this)
                . ' tablesample ' . $rangeItem->method->dispatch($this)
-               . ' (' . implode(', ', $rangeItem->arguments->dispatch($this)) . ')'
+               . ' (' . \implode(', ', $rangeItem->arguments->dispatch($this)) . ')'
                . (
                    null === $rangeItem->repeatable
                    ? ''
@@ -1247,11 +1245,11 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkXmlElement(nodes\xml\XmlElement $xml): string
     {
         $sql = 'xmlelement(name ' . $xml->name->dispatch($this);
-        if (0 < count($xml->attributes)) {
-            $sql .= ', xmlattributes(' . implode(', ', $xml->attributes->dispatch($this)) . ')';
+        if (0 < \count($xml->attributes)) {
+            $sql .= ', xmlattributes(' . \implode(', ', $xml->attributes->dispatch($this)) . ')';
         }
-        if (0 < count($xml->content)) {
-            $sql .= ', ' . implode(', ', $xml->content->dispatch($this));
+        if (0 < \count($xml->content)) {
+            $sql .= ', ' . \implode(', ', $xml->content->dispatch($this));
         }
         return $sql . ')';
     }
@@ -1265,7 +1263,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkXmlForest(nodes\xml\XmlForest $xml): string
     {
-        return 'xmlforest(' . implode(', ', $this->walkGenericNodeList($xml)) . ')';
+        return 'xmlforest(' . \implode(', ', $this->walkGenericNodeList($xml)) . ')';
     }
 
     public function walkXmlParse(nodes\xml\XmlParse $xml): string
@@ -1298,12 +1296,12 @@ class SqlBuilderWalker implements StatementToStringWalker
     {
         $this->indentLevel++;
         $lines = [($table->lateral ? 'lateral ' : '') . 'xmltable('];
-        if (0 < count($table->namespaces)) {
+        if (0 < \count($table->namespaces)) {
             $lines[] = $this->getIndent() . 'xmlnamespaces(';
 
             $this->indentLevel++;
             $glue = $this->options['linebreak'] ? ',' . $this->options['linebreak'] . $this->getIndent() : ', ';
-            $lines[] = $this->getIndent() . implode($glue, $this->walkGenericNodeList($table->namespaces));
+            $lines[] = $this->getIndent() . \implode($glue, $this->walkGenericNodeList($table->namespaces));
             $this->indentLevel--;
 
             $lines[] = $this->getIndent() . '),';
@@ -1314,11 +1312,11 @@ class SqlBuilderWalker implements StatementToStringWalker
         $glue    = $this->options['linebreak']
                    ? ',' . $this->options['linebreak'] . $this->getIndent() . '        ' // let's align columns
                    : ', ';
-        $lines[] = $this->getIndent() . 'columns ' . implode($glue, $this->walkGenericNodeList($table->columns));
+        $lines[] = $this->getIndent() . 'columns ' . \implode($glue, $this->walkGenericNodeList($table->columns));
 
         $this->indentLevel--;
 
-        return implode($this->options['linebreak'] ?: ' ', $lines)
+        return \implode($this->options['linebreak'] ?: ' ', $lines)
                . $this->options['linebreak'] . $this->getIndent() . ')'
                . $this->getFromItemAliases($table);
     }
@@ -1372,24 +1370,24 @@ class SqlBuilderWalker implements StatementToStringWalker
 
             $this->indentLevel--;
 
-            $sql .= implode($this->options['linebreak'] ?: ' ', $clauses);
+            $sql .= \implode($this->options['linebreak'] ?: ' ', $clauses);
         }
         return $sql;
     }
 
     public function walkIndexParameters(nodes\IndexParameters $parameters): string
     {
-        return '(' . implode(', ', $this->walkGenericNodeList($parameters)) . ')'
+        return '(' . \implode(', ', $this->walkGenericNodeList($parameters)) . ')'
                . (null === $parameters->where->condition ? '' : ' where ' . $parameters->where->dispatch($this));
     }
 
     public function walkIndexElement(nodes\IndexElement $element): string
     {
         return (
-                $element->expression instanceof nodes\Identifier
-                ? $element->expression->dispatch($this)
-                : '(' . $element->expression->dispatch($this) . ')'
-            )
+            $element->expression instanceof nodes\Identifier
+            ? $element->expression->dispatch($this)
+            : '(' . $element->expression->dispatch($this) . ')'
+        )
             . (null === $element->collation ? '' : ' collate ' . $element->collation->dispatch($this))
             . (null === $element->opClass ? '' : ' ' . $element->opClass->dispatch($this))
             . (null === $element->direction ? '' : ' ' . $element->direction->value)
@@ -1404,12 +1402,12 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkCubeOrRollupClause(nodes\group\CubeOrRollupClause $clause): string
     {
-        return $clause->type->value . '(' . implode(', ', $this->walkGenericNodeList($clause)) . ')';
+        return $clause->type->value . '(' . \implode(', ', $this->walkGenericNodeList($clause)) . ')';
     }
 
     public function walkGroupingSetsClause(nodes\group\GroupingSetsClause $clause): string
     {
-        return 'grouping sets(' . implode(', ', $this->walkGenericNodeList($clause)) . ')';
+        return 'grouping sets(' . \implode(', ', $this->walkGenericNodeList($clause)) . ')';
     }
 
     public function walkGroupByClause(nodes\group\GroupByClause $clause): array
@@ -1450,7 +1448,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkMergeStatement(Merge $statement): string
     {
         $clauses = [];
-        if (0 < count($statement->with)) {
+        if (0 < \count($statement->with)) {
             $clauses[] = $statement->with->dispatch($this);
         }
 
@@ -1467,7 +1465,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
         $this->indentLevel--;
 
-        return implode($this->options['linebreak'] ?: ' ', $clauses);
+        return \implode($this->options['linebreak'] ?: ' ', $clauses);
     }
 
     public function walkMergeDelete(nodes\merge\MergeDelete $clause): string
@@ -1483,7 +1481,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
         $lines = [
             (
-                0 === count($clause->cols)
+                0 === \count($clause->cols)
                 ? $this->getIndent() . 'insert'
                 : $this->implode($this->getIndent() . 'insert (', $clause->cols->dispatch($this)) . ')'
             )
@@ -1491,7 +1489,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         ];
         $lines[] = $clause->values->dispatch($this);
 
-        return implode($this->options['linebreak'] ?: ' ', $lines);
+        return \implode($this->options['linebreak'] ?: ' ', $lines);
     }
 
     public function walkMergeUpdate(nodes\merge\MergeUpdate $clause): string
@@ -1515,7 +1513,7 @@ class SqlBuilderWalker implements StatementToStringWalker
                    ? $this->getIndent() . 'do nothing'
                    : $clause->action->dispatch($this);
 
-        return implode($this->options['linebreak'] ?: ' ', $lines);
+        return \implode($this->options['linebreak'] ?: ' ', $lines);
     }
 
     public function walkMergeWhenNotMatched(nodes\merge\MergeWhenNotMatched $clause): string
@@ -1529,7 +1527,7 @@ class SqlBuilderWalker implements StatementToStringWalker
                    ? $this->getIndent() . 'do nothing'
                    : $clause->action->dispatch($this);
 
-        return implode($this->options['linebreak'] ?: ' ', $lines);
+        return \implode($this->options['linebreak'] ?: ' ', $lines);
     }
 
     public function walkIsJsonExpression(nodes\expressions\IsJsonExpression $expression): string
@@ -1597,7 +1595,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkJsonArrayAgg(nodes\json\JsonArrayAgg $expression): string
     {
         return 'json_arrayagg(' . $expression->value->dispatch($this)
-            . (null === $expression->order ? '' : ' order by ' . implode(', ', $expression->order->dispatch($this)))
+            . (null === $expression->order ? '' : ' order by ' . \implode(', ', $expression->order->dispatch($this)))
             . $this->jsonOnNullClause($expression->absentOnNull)
             . $this->walkCommonJsonAggregateFields($expression);
     }
@@ -1630,7 +1628,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkJsonObject(nodes\json\JsonObject $expression): string
     {
-        return 'json_object(' . implode(', ', $expression->arguments->dispatch($this))
+        return 'json_object(' . \implode(', ', $expression->arguments->dispatch($this))
             . $this->jsonOnNullClause($expression->absentOnNull)
             . $this->jsonUniqueKeysClause($expression->uniqueKeys)
             . (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
@@ -1666,9 +1664,9 @@ class SqlBuilderWalker implements StatementToStringWalker
         return $expression->context->dispatch($this)
             . ', ' . $expression->path->dispatch($this)
             . (
-            0 === count($expression->passing)
+                0 === \count($expression->passing)
                 ? ''
-                : ' passing ' . implode(', ', $expression->passing->dispatch($this))
+                : ' passing ' . \implode(', ', $expression->passing->dispatch($this))
             );
     }
 
@@ -1726,7 +1724,7 @@ class SqlBuilderWalker implements StatementToStringWalker
             . ', ' . $rangeItem->path->dispatch($this)
             . (null === $rangeItem->pathName ? '' : ' as ' . $rangeItem->pathName->dispatch($this));
 
-        if (0 < count($rangeItem->passing)) {
+        if (0 < \count($rangeItem->passing)) {
             $lines[] = $this->implode($this->getIndent() . 'passing ', $rangeItem->passing->dispatch($this), ',');
         }
 
@@ -1740,7 +1738,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
         $this->indentLevel--;
 
-        $sql = implode($this->options['linebreak'] ?: ' ', $lines)
+        $sql = \implode($this->options['linebreak'] ?: ' ', $lines)
             . $this->options['linebreak'] . $this->getIndent() . ')';
         if ($rangeItem->tableAlias || $rangeItem->columnAliases) {
             $sql .= $this->getFromItemAliases($rangeItem);
@@ -1755,7 +1753,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         $glue = $this->options['linebreak']
             ? ',' . $this->options['linebreak'] . $this->getIndent()
             : ', ';
-        $result = $this->getIndent() . implode($glue, $this->walkGenericNodeList($columns));
+        $result = $this->getIndent() . \implode($glue, $this->walkGenericNodeList($columns));
         $this->indentLevel--;
 
         return $result;
@@ -1793,7 +1791,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         $lines[] = $this->walkJsonColumnDefinitionList($column->columns);
         $lines[] = $this->getIndent() . ')';
 
-        return implode($this->options['linebreak'] ?: ' ', $lines);
+        return \implode($this->options['linebreak'] ?: ' ', $lines);
     }
 
     /**
@@ -1806,20 +1804,20 @@ class SqlBuilderWalker implements StatementToStringWalker
     {
         $codePoints = [];
 
-        for ($i = 0, $length = strlen($string); $i < $length; $i++) {
-            $code = ord($string[$i]);
+        for ($i = 0, $length = \strlen($string); $i < $length; $i++) {
+            $code = \ord($string[$i]);
             if ($code < 0x80) {
                 $codePoint = $code;
 
             } elseif (0xC0 === ($code & 0xE0)) {
                 if (
                     $i >= $length - 1
-                    || 0x80 !== (ord($string[$i + 1]) & 0xC0)
+                    || 0x80 !== (\ord($string[$i + 1]) & 0xC0)
                 ) {
                     throw new exceptions\InvalidArgumentException('Invalid UTF-8: incomplete multibyte character');
                 }
 
-                $codePoint = (($code & 0x1F) << 6) + (ord($string[++$i]) & 0x3F);
+                $codePoint = (($code & 0x1F) << 6) + (\ord($string[++$i]) & 0x3F);
 
                 if ($codePoint < 0x80) {
                     throw new exceptions\InvalidArgumentException('Invalid UTF-8: overlong encoding');
@@ -1828,13 +1826,13 @@ class SqlBuilderWalker implements StatementToStringWalker
             } elseif (0xE0 === ($code & 0xF0)) {
                 if (
                     $i >= $length - 2
-                    || 0x80 !== (ord($string[$i + 1]) & 0xC0)
-                    || 0x80 !== (ord($string[$i + 2]) & 0xC0)
+                    || 0x80 !== (\ord($string[$i + 1]) & 0xC0)
+                    || 0x80 !== (\ord($string[$i + 2]) & 0xC0)
                 ) {
                     throw new exceptions\InvalidArgumentException('Invalid UTF-8: incomplete multibyte character');
                 }
 
-                $codePoint = (($code & 0xF) << 12) + ((ord($string[++$i]) & 0x3F) << 6) + (ord($string[++$i]) & 0x3F);
+                $codePoint = (($code & 0xF) << 12) + ((\ord($string[++$i]) & 0x3F) << 6) + (\ord($string[++$i]) & 0x3F);
 
                 if ($codePoint < 0x800) {
                     throw new exceptions\InvalidArgumentException('Invalid UTF-8: overlong encoding');
@@ -1845,15 +1843,15 @@ class SqlBuilderWalker implements StatementToStringWalker
             } elseif (0xF0 === ($code & 0xF8)) {
                 if (
                     $i >= $length - 3
-                    || 0x80 !== (ord($string[$i + 1]) & 0xC0)
-                    || 0x80 !== (ord($string[$i + 2]) & 0xC0)
-                    || 0x80 !== (ord($string[$i + 3]) & 0xC0)
+                    || 0x80 !== (\ord($string[$i + 1]) & 0xC0)
+                    || 0x80 !== (\ord($string[$i + 2]) & 0xC0)
+                    || 0x80 !== (\ord($string[$i + 3]) & 0xC0)
                 ) {
                     throw new exceptions\InvalidArgumentException('Invalid UTF-8: incomplete multibyte character');
                 }
 
-                $codePoint = (($code & 0x7) << 18) + ((ord($string[++$i]) & 0x3F) << 12)
-                             + ((ord($string[++$i]) & 0x3F) << 6) + (ord($string[++$i]) & 0x3F);
+                $codePoint = (($code & 0x7) << 18) + ((\ord($string[++$i]) & 0x3F) << 12)
+                             + ((\ord($string[++$i]) & 0x3F) << 6) + (\ord($string[++$i]) & 0x3F);
 
                 if ($codePoint < 0x10000) {
                     throw new exceptions\InvalidArgumentException('Invalid UTF-8: overlong encoding');

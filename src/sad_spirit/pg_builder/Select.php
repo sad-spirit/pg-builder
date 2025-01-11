@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -78,11 +72,11 @@ class Select extends SelectCommon
     public function setDistinct(string|bool|ExpressionList|null $distinct): void
     {
         $distinct ??= false;
-        if (is_string($distinct)) {
+        if (\is_string($distinct)) {
             $distinct = ExpressionList::createFromString($this->getParserOrFail('DISTINCT clause'), $distinct);
         }
 
-        if (is_bool($this->p_distinct)) {
+        if (\is_bool($this->p_distinct)) {
             if ($distinct instanceof ExpressionList) {
                 $distinct->setParentNode($this);
             }

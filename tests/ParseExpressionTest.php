@@ -1,19 +1,13 @@
 <?php
 
-/**
- * Query builder for Postgres backed by SQL parser
+/*
+ * This file is part of sad_spirit/pg_builder:
+ * query builder for Postgres backed by SQL parser
  *
- * LICENSE
+ * (c) Alexey Borzov <avb@php.net>
  *
- * This source file is subject to BSD 2-Clause License that is bundled
- * with this package in the file LICENSE and available at the URL
- * https://raw.githubusercontent.com/sad-spirit/pg-builder/master/LICENSE
- *
- * @package   sad_spirit\pg_builder
- * @copyright 2014-2024 Alexey Borzov
- * @author    Alexey Borzov <avb@php.net>
- * @license   https://opensource.org/licenses/BSD-2-Clause BSD 2-Clause license
- * @link      https://github.com/sad-spirit/pg-builder
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -98,7 +92,8 @@ class ParseExpressionTest extends TestCase
 
     public function testParseExpressionAtoms(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     'foo', bar.baz, array[1,2], array[[1,2],[3,4]], row(3,4), $1.blah, :foo, null,
     grouping(a, b), ary[1:], ary[1]
 QRY
@@ -135,7 +130,8 @@ QRY
 
     public function testParentheses(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     (1), (2,3), (foo(4,5)).bar, (array[6,7])[1], ((select 1), 2), (select 1), ((((select 1)) order by 1) limit 1)
 QRY
         );
@@ -185,7 +181,8 @@ QRY
 
     public function testLogicalExpression(): void
     {
-        $expr = $this->parser->parseExpression(<<<QRY
+        $expr = $this->parser->parseExpression(
+            <<<QRY
     a and not b or not not c and d or e
 QRY
         );
@@ -215,7 +212,8 @@ QRY
 
     public function testPatternMatching(): void
     {
-        $expr = $this->parser->parseExpression(<<<QRY
+        $expr = $this->parser->parseExpression(
+            <<<QRY
     'foo' LIKE 'bar' > 'baz' noT ILIke 'quux' escape '!'
 QRY
         );
@@ -239,7 +237,8 @@ QRY
         );
 
         $this->expectException(SyntaxException::class);
-        $this->parser->parseExpression(<<<QRY
+        $this->parser->parseExpression(
+            <<<QRY
     'foo' like 'bar' like 'baz'
 QRY
         );
@@ -247,7 +246,8 @@ QRY
 
     public function testOverlaps(): void
     {
-        $expr = $this->parser->parseExpression(<<<QRY
+        $expr = $this->parser->parseExpression(
+            <<<QRY
     (foo, bar) overlaps row(baz, quux)
 QRY
         );
@@ -269,7 +269,8 @@ QRY
             SyntaxException::class
         );
         $this->expectExceptionMessage('Wrong number of items');
-        $this->parser->parseExpression(<<<QRY
+        $this->parser->parseExpression(
+            <<<QRY
     row(foo) overlaps (bar, baz)
 QRY
         );
@@ -277,7 +278,8 @@ QRY
 
     public function testBetween(): void
     {
-        $expression = $this->parser->parseExpression(<<<QRY
+        $expression = $this->parser->parseExpression(
+            <<<QRY
     foo between 'bar' and 'baz' and foofoo NOT BETWEEN symmetric 'quux' and 'xyzzy'
 QRY
         );
@@ -305,7 +307,8 @@ QRY
 
     public function testIn(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     foo in ('foo', 'bar') in (true, false), bar not in (select 'baz')
 QRY
         );
@@ -339,7 +342,8 @@ QRY
 
     public function testSubqueryExpressions(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     foo < any(select otherfoo from foosource), bar like all(select barpattern from barsource),
     baz = some(array[one, two]), foo = any(array[bar,baz]) = quux
 QRY
@@ -393,7 +397,8 @@ QRY
 
     public function testGenericOperator(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     w # @ v ? u, ! q, r operator(blah.###) s
 QRY
         );
@@ -433,7 +438,7 @@ QRY
         $this::expectException(SyntaxException::class);
         $this::expectExceptionMessage($message);
 
-        if (is_array($expression)) {
+        if (\is_array($expression)) {
             new QualifiedOperator(...$expression);
         } else {
             $this->parser->parseExpression($expression);
@@ -451,7 +456,8 @@ QRY
 
     public function testIsWhatever(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     foo is null isnull, bar is not null notnull, 'foo' is distinct from 'bar',
     'xml' is not document, foobar is normalized, barbaz is not nfkc normalized
 QRY
@@ -499,7 +505,8 @@ QRY
 
     public function testIsJson(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     foo is json, bar is json without unique, baz is not json array, quux is json object with unique keys
 QRY
         );
@@ -532,7 +539,8 @@ QRY
 
     public function testArithmetic(): void
     {
-        $expr = $this->parser->parseExpressionList(<<<QRY
+        $expr = $this->parser->parseExpressionList(
+            <<<QRY
     1 + -2 * 3 ^ - 3 ^ 3 - 5 / 6
 QRY
         );
@@ -571,7 +579,8 @@ QRY
 
     public function testCaseExpression(): void
     {
-        $list = $this->parser->parseExpressionList(<<<QRY
+        $list = $this->parser->parseExpressionList(
+            <<<QRY
     case foo when 'bar' then 10 when 'baz' then 100 else 1 end,
     case when foo = 'bar' then 10 when foo = 'baz' then 100 else 1 end
 QRY
