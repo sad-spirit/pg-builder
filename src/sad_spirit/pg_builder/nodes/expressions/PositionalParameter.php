@@ -25,24 +25,17 @@ use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents a positional '$1' query parameter
- *
- * @property-read int $position
  */
 class PositionalParameter extends Parameter
 {
-    protected int $p_position;
-
-    /** @var array<string, string> */
-    protected array $propertyNames = [
-        'position' => 'p_position'
-    ];
+    public readonly int $position;
 
     public function __construct(int $position)
     {
         if (0 >= $position) {
             throw new InvalidArgumentException("Position should be positive");
         }
-        $this->p_position = $position;
+        $this->position = $position;
     }
 
     public function dispatch(TreeWalker $walker): mixed
@@ -52,11 +45,11 @@ class PositionalParameter extends Parameter
 
     public function __serialize(): array
     {
-        return [$this->p_position];
+        return [$this->position];
     }
 
     public function __unserialize(array $data): void
     {
-        [$this->p_position] = $data;
+        [$this->position] = $data;
     }
 }

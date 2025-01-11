@@ -37,20 +37,15 @@ use sad_spirit\pg_builder\nodes\{
 
 /**
  * Abstract base class for nodes representing a constant (a literal value)
- *
- * @property-read string $value String value of constant
  */
 abstract class Constant extends GenericNode implements ScalarExpression
 {
     use NonRecursiveNode;
     use ExpressionAtom;
 
-    protected string $p_value;
-
-    /** @var array<string, string> */
-    protected array $propertyNames = [
-        'value' => 'p_value'
-    ];
+    public function __construct(public readonly string $value)
+    {
+    }
 
     /**
      * Creates an instance of proper Constant subclass based on given Token
@@ -110,11 +105,11 @@ abstract class Constant extends GenericNode implements ScalarExpression
 
     public function __serialize(): array
     {
-        return [$this->p_value];
+        return [$this->value];
     }
 
     public function __unserialize(array $data): void
     {
-        [$this->p_value] = $data;
+        [$this->value] = $data;
     }
 }

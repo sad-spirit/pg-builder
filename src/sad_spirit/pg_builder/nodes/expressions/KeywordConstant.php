@@ -30,7 +30,7 @@ class KeywordConstant extends Constant
 {
     public function __construct(ConstantName $value)
     {
-        $this->p_value = $value->value;
+        parent::__construct($value->value);
     }
 
     public function dispatch(TreeWalker $walker): mixed

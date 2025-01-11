@@ -48,7 +48,7 @@ REGEXP;
         ) {
             throw new InvalidArgumentException(self::class . " expects a numeric string");
         }
-        $this->p_value = $value;
+        parent::__construct($value);
     }
 
     public function dispatch(TreeWalker $walker): mixed

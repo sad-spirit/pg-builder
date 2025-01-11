@@ -26,21 +26,13 @@ use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents a string constant (including bit-strings)
- *
- * @property-read StringConstantType $type
  */
 class StringConstant extends Constant
 {
-    protected StringConstantType $p_type;
-
-    /** @var array<string, string> */
-    protected array $propertyNames = [
-        'value' => 'p_value',
-        'type'  => 'p_type'
-    ];
-
-    public function __construct(string $value, StringConstantType $type = StringConstantType::CHARACTER)
-    {
+    public function __construct(
+        string $value,
+        public readonly StringConstantType $type = StringConstantType::CHARACTER
+    ) {
         if (StringConstantType::BINARY === $type && preg_match('/[^01]/', $value, $m)) {
             throw new InvalidArgumentException("Invalid binary digit {$m[0]}");
         }
@@ -48,8 +40,7 @@ class StringConstant extends Constant
             throw new InvalidArgumentException("Invalid hexadecimal digit {$m[0]}");
         }
 
-        $this->p_value = $value;
-        $this->p_type  = $type;
+        parent::__construct($value);
     }
 
     public function dispatch(TreeWalker $walker): mixed
@@ -59,11 +50,12 @@ class StringConstant extends Constant
 
     public function __serialize(): array
     {
-        return [$this->p_type, $this->p_value];
+        return [$this->type, $this->value];
     }
 
     public function __unserialize(array $data): void
     {
-        [$this->p_type, $this->p_value] = $data;
+        [$this->type, $value] = $data;
+        parent::__unserialize([$value]);
     }
 }

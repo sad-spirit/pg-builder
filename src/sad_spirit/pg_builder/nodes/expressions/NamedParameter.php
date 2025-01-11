@@ -24,17 +24,10 @@ use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents a named ':foo' query parameter
- *
- * @property-read string $name
  */
 class NamedParameter extends Parameter
 {
-    /** @var array<string, string> */
-    protected array $propertyNames = [
-        'name' => 'p_name'
-    ];
-
-    public function __construct(protected string $p_name)
+    public function __construct(public readonly string $name)
     {
     }
 
@@ -45,11 +38,11 @@ class NamedParameter extends Parameter
 
     public function __serialize(): array
     {
-        return [$this->p_name];
+        return [$this->name];
     }
 
     public function __unserialize(array $data): void
     {
-        [$this->p_name] = $data;
+        [$this->name] = $data;
     }
 }

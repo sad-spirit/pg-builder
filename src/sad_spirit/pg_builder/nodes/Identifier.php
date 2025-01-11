@@ -30,19 +30,12 @@ use sad_spirit\pg_builder\{
 
 /**
  * Represents an identifier (e.g. column name or field name)
- *
- * @property-read string $value
  */
 class Identifier extends GenericNode implements \Stringable
 {
     use NonRecursiveNode;
 
-    protected string $p_value;
-
-    /** @var array<string, string> */
-    protected array $propertyNames = [
-        'value' => 'p_value'
-    ];
+    public readonly string $value;
 
     /**
      * Cache of check results ["identifier value" => "needs double quotes?"]
@@ -55,7 +48,7 @@ class Identifier extends GenericNode implements \Stringable
         if ('' === $value) {
             throw new InvalidArgumentException("Identifier cannot be an empty string");
         }
-        $this->p_value = $value;
+        $this->value = $value;
     }
 
     /**
@@ -88,7 +81,7 @@ class Identifier extends GenericNode implements \Stringable
      */
     public function __serialize(): array
     {
-        return [$this->p_value];
+        return [$this->value];
     }
 
     /**
@@ -97,7 +90,7 @@ class Identifier extends GenericNode implements \Stringable
      */
     public function __unserialize(array $data): void
     {
-        [$this->p_value] = $data;
+        [$this->value] = $data;
     }
 
     /**
@@ -107,7 +100,7 @@ class Identifier extends GenericNode implements \Stringable
      */
     public function __toString(): string
     {
-        $value = $this->p_value;
+        $value = $this->value;
         // We are likely to see the same identifier again, so cache the check results
         if (!isset(self::$needsQuoting[$value])) {
             self::$needsQuoting[$value] = !preg_match('/^[a-z_][a-z_0-9$]*$/D', $value)
