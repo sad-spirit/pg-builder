@@ -362,58 +362,65 @@ class Parser
 
         do {
             $token = $this->stream->look(++$lookIdx);
-            if (
-                (TokenType::COLON_EQUALS === $token->getType() || TokenType::EQUALS_GREATER == $token->getType())
-                && 1 === \count($openParens) && !$selectLevel
-            ) {
-                return self::PARENTHESES_ARGS;
-            }
-            if (!$token->matches(TokenType::SPECIAL_CHAR)) {
+            if ($token instanceof tokens\EOFToken) {
+                break;
+            } elseif (!$token instanceof tokens\StringToken) {
                 continue;
             }
-            switch ($token->getValue()) {
-                case '[':
-                    $lookIdx = $this->skipParentheses($lookIdx, true) - 1;
+
+            switch ($token->getType()) {
+                case TokenType::SPECIAL_CHAR:
+                    switch ($token->getValue()) {
+                        case '[':
+                            $lookIdx = $this->skipParentheses($lookIdx, true) - 1;
+                            break;
+
+                        case '(':
+                            $openParens[] = $lookIdx;
+                            break;
+
+                        case ',':
+                            if (1 === \count($openParens) && !$selectLevel) {
+                                return self::PARENTHESES_ROW;
+                            }
+                            break;
+
+                        case ')':
+                            if (1 < \count($openParens) && $selectLevel === \count($openParens)) {
+                                if (
+                                    $this->stream->look($lookIdx + 1)
+                                        ->matchesAnyKeyword(
+                                            Keyword::UNION,
+                                            Keyword::INTERSECT,
+                                            Keyword::EXCEPT,
+                                            Keyword::ORDER,
+                                            Keyword::LIMIT,
+                                            Keyword::OFFSET,
+                                            Keyword::FOR /* ...update */,
+                                            Keyword::FETCH /* SQL:2008 limit */
+                                        )
+                                    || $this->stream->look($lookIdx + 1)
+                                        ->matches(TokenType::SPECIAL_CHAR, ')')
+                                ) {
+                                    // this addresses stuff like ((select 1) order by 1)
+                                    $selectLevel--;
+                                } else {
+                                    $selectLevel = false;
+                                }
+                            }
+                            \array_pop($openParens);
+                    }
                     break;
 
-                case '(':
-                    $openParens[] = $lookIdx;
-                    break;
-
-                case ',':
+                case TokenType::COLON_EQUALS:
+                case TokenType::EQUALS_GREATER:
                     if (1 === \count($openParens) && !$selectLevel) {
-                        return self::PARENTHESES_ROW;
+                        return self::PARENTHESES_ARGS;
                     }
-                    break;
-
-                case ')':
-                    if (1 < \count($openParens) && $selectLevel === \count($openParens)) {
-                        if (
-                            $this->stream->look($lookIdx + 1)
-                                ->matchesAnyKeyword(
-                                    Keyword::UNION,
-                                    Keyword::INTERSECT,
-                                    Keyword::EXCEPT,
-                                    Keyword::ORDER,
-                                    Keyword::LIMIT,
-                                    Keyword::OFFSET,
-                                    Keyword::FOR /* ...update */,
-                                    Keyword::FETCH /* SQL:2008 limit */
-                                )
-                            || $this->stream->look($lookIdx + 1)
-                                ->matches(TokenType::SPECIAL_CHAR, ')')
-                        ) {
-                            // this addresses stuff like ((select 1) order by 1)
-                            $selectLevel--;
-                        } else {
-                            $selectLevel = false;
-                        }
-                    }
-                    \array_pop($openParens);
             }
-        } while (!empty($openParens) && !$token->matches(TokenType::EOF));
+        } while ([] !== $openParens);
 
-        if (!empty($openParens)) {
+        if ([] !== $openParens) {
             $token = $this->stream->look(\array_shift($openParens));
             throw exceptions\SyntaxException::atPosition(
                 "Unbalanced '('",
@@ -2458,31 +2465,41 @@ class Parser
     {
         switch ($keyword = $this->stream->matchesAnyKeyword(...self::ATOM_KEYWORDS)) {
             case null:
-                $token = $this->stream->getCurrent();
-                if (0 === ($token->getType()->value & self::ATOM_SPECIAL_TYPES)) {
+                $token     = $this->stream->getCurrent();
+                $tokenType = $token->getType();
+                if (0 === ($tokenType->value & self::ATOM_SPECIAL_TYPES)) {
                     break;
                 }
-                if ($token->matches(TokenType::SPECIAL_CHAR, '(')) {
-                    switch ($this->checkContentsOfParentheses()) {
-                        case self::PARENTHESES_ROW:
-                            return $this->RowConstructor();
-
-                        case self::PARENTHESES_SELECT:
-                            $atom = new nodes\expressions\SubselectExpression($this->SelectWithParentheses());
+                switch ($tokenType) {
+                    case TokenType::SPECIAL_CHAR:
+                        if ('(' !== $token->getValue()) {
                             break;
+                        }
+                        switch ($this->checkContentsOfParentheses()) {
+                            case self::PARENTHESES_ROW:
+                                return $this->RowConstructor();
 
-                        case self::PARENTHESES_EXPRESSION:
-                        default:
-                            $this->stream->next();
-                            $atom = $this->Expression();
-                            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
-                    }
+                            case self::PARENTHESES_SELECT:
+                                $atom = new nodes\expressions\SubselectExpression($this->SelectWithParentheses());
+                                break;
 
-                } elseif ($token->matches(TokenType::PARAMETER)) {
-                    $atom = nodes\expressions\Parameter::createFromToken($this->stream->next());
+                            case self::PARENTHESES_EXPRESSION:
+                            default:
+                                $this->stream->next();
+                                $atom = $this->Expression();
+                                $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
+                        }
+                        break;
 
-                } elseif ($token->matches(TokenType::LITERAL)) {
-                    return nodes\expressions\Constant::createFromToken($this->stream->next());
+                    case TokenType::POSITIONAL_PARAM:
+                    case TokenType::NAMED_PARAM:
+                        $atom = nodes\expressions\Parameter::createFromToken($this->stream->next());
+                        break;
+
+                    default:
+                        if ($token->matches(TokenType::LITERAL)) {
+                            return nodes\expressions\Constant::createFromToken($this->stream->next());
+                        }
                 }
                 break;
 
