@@ -20,6 +20,12 @@ namespace sad_spirit\pg_builder;
 class Lexer
 {
     /**
+     * Symbols that should be considered whitespace by type converters
+     * https://git.postgresql.org/gitweb/?p=postgresql.git;a=commitdiff;h=ae6d06f09684d8f8a7084514c9b35a274babca61
+     */
+    public const WHITESPACE = " \n\r\t\v\f";
+
+    /**
      * Characters that may appear in operators
      */
     public const CHARS_OPERATOR = '~!@#^&|`?+-*/%<>=';
@@ -39,7 +45,8 @@ class Lexer
         'f'  => "\f",
         'n'  => "\n",
         'r'  => "\r",
-        't'  => "\t"
+        't'  => "\t",
+        'v'  => "\v"
     ];
 
     private string $source;
@@ -140,7 +147,7 @@ REGEXP;
     public function tokenize(string $sql): TokenStream
     {
         $this->source   = $sql;
-        $this->position = \strspn($this->source, " \r\n\t\f", 0);
+        $this->position = \strspn($this->source, self::WHITESPACE, 0);
         $this->length   = \strlen($sql);
         $this->tokens   = [];
         $this->unescape = false;
@@ -310,7 +317,7 @@ REGEXP;
             }
 
             // skip whitespace
-            $this->position += \strspn($this->source, " \r\n\t\f", $this->position);
+            $this->position += \strspn($this->source, self::WHITESPACE, $this->position);
         }
     }
 
@@ -415,7 +422,7 @@ REGEXP;
         }
 
         $value  = '';
-        $concat = '[ \t\f]* (?: --[^\n\r]* )? [\n\r] (?> [ \t\n\r\f]+ | --[^\n\r]*[\n\r] )*' . $regex;
+        $concat = '[ \t\f\v]* (?: --[^\n\r]* )? [\n\r] (?> [ \t\n\r\f\v]+ | --[^\n\r]*[\n\r] )*' . $regex;
         do {
             if ($regex === $regexNoQuotes) {
                 $value .= $m[1];

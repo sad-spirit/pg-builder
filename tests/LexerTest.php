@@ -42,7 +42,7 @@ class LexerTest extends TestCase
 
     public function testTokenTypes(): void
     {
-        $stream = $this->lexer->tokenize("sElEcT 'select' \"select\", FOO + 1.2 - 3., 4 ! <> :foo, $1::integer");
+        $stream = $this->lexer->tokenize("sElEcT\t'select'\v\"select\",\fFOO + 1.2 - 3., 4 ! <> :foo, $1::integer");
 
         $stream->expect(TokenType::KEYWORD, 'select');
         $stream->expect(TokenType::STRING, 'select');
@@ -101,8 +101,8 @@ QRY
         return [
             [
                 <<<QRY
-'foo'
-    'bar' -- a comment
+'foo'\t \v
+ \f   'bar' -- a comment
 'baz'
 QRY
                 , ['foobarbaz']
@@ -335,7 +335,7 @@ QRY
             ["e''''",                                                                     "'"],
             ["e'\\'\\''",                                                                 "''"],
 
-            ["e'\\n \\t\\z'",                                                             "\n \tz"],
+            ["e'\\n \\t\\b\\v\\f\\z'",                                                    "\n \t\10\v\fz"],
 
             ["e'\\xd0\\274\\320\\xbe\\320\\273\\xd0\\276\\320\\xb4\\320\\276\\xd0\\271'", 'молодой'],
             ["e'\\u0441\\u043b\\u043e\\u043d\\U0000043e\\u043a'",                         'слонок'],
