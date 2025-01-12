@@ -101,6 +101,7 @@ class Lexer
 
         $uniqueSpecialChars         = \array_unique(\str_split(self::CHARS_SPECIAL . self::CHARS_OPERATOR));
         $quotedSpecialChars         = \preg_quote(\implode('', $uniqueSpecialChars));
+        $identifier                 = "[A-Za-z\\x80-\\xff_][A-Za-z\\x80-\\xff_0-9$]*";
         $this->baseRegexp           = <<<REGEXP
 { 
     --  |                           # start of single-line comment
@@ -110,10 +111,10 @@ class Lexer
     ([bBeEnNxX])' |                 # string literal with prefix, group 1
 
     # positional parameter or dollar-quoted string, groups 2, 3 (junk test), 4
-    \\$(?: ( \d+ ) ( [A-Za-z\\x80-\\xFF_] )? | ( (?: [A-Za-z\\x80-\\xFF_][A-Za-z\\x80-\\xFF_0-9]*)? )\\$ ) |
+    \\$(?: ( \d+ ) ( $identifier )? | ( (?: $identifier )? )\\$ ) |
 
     # typecast, named function argument or named parameter, group 5 
-    : (?: = | : | ( [A-Za-z\\x80-\\xFF_][A-Za-z\\x80-\\xFF_0-9]* ) ) |
+    : (?: = | : | ( $identifier ) ) |
 
     # numeric constant, groups 6, 7 (junk test)
     (
@@ -122,14 +123,14 @@ class Lexer
             (?: \d(?: _?\d )* (?: \. (?!\.) (?: \d(?: _?\d )* )? )? | \.\d(?: _?\d )*)  # decimal literal
             (?: [Ee][-+]?\d(?: _? \d)* )?                                               # followed by possible exponent
         )
-        ( [A-Za-z\\x80-\\xFF_] )? 
+        ( $identifier )? 
     ) |
 
     [uU]&["'] |                     # string/identifier with unicode escapes
     \.\. |                          # double dot (error outside of PL/PgSQL)
-    ([$quotedSpecialChars]) |     # everything that looks, well, special, group 8
+    ([$quotedSpecialChars]) |       # everything that looks, well, special, group 8
     
-    ( [A-Za-z\\x80-\\xff_][A-Za-z\\x80-\\xff_0-9$]* ) # identifier, obviously, group 9
+    ( $identifier )                 # identifier, obviously, group 9
 }Ax
 REGEXP;
     }

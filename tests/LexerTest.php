@@ -305,6 +305,14 @@ QRY
         $this->lexer->tokenize($sql);
     }
 
+    public function testMultibyteJunkAfterNumericLiterals(): void
+    {
+        $this::expectException(SyntaxException::class);
+        $this::expectExceptionMessage("Trailing junk after numeric literal: '123упс'");
+
+        $this->lexer->tokenize("123упс");
+    }
+
     public function testDisallowJunkAfterPositionalParameters(): void
     {
         $this::expectException(SyntaxException::class);
