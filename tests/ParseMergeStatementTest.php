@@ -37,6 +37,7 @@ use sad_spirit\pg_builder\nodes\{
 use sad_spirit\pg_builder\nodes\expressions\{
     IsDistinctFromExpression,
     KeywordConstant,
+    MergeAction,
     NumericConstant,
     OperatorExpression,
     StringConstant
@@ -86,7 +87,8 @@ when not matched and one = 2 then
 when matched and baz <> 'quux' then
     update set baz = 'xyzzy'
 when matched then 
-    delete 
+    delete
+returning bar.*, merge_action()
 QRY
         );
 
@@ -121,6 +123,9 @@ QRY
         );
 
         $built->when[] = new MergeWhenMatched(null, new MergeDelete());
+
+        $built->returning[] = new TargetElement(new ColumnReference('bar', '*'));
+        $built->returning[] = new TargetElement(new MergeAction());
 
         $this::assertEquals($built, $parsed);
     }

@@ -96,9 +96,11 @@ class Parser
         Keyword::TRIM, Keyword::NULLIF, Keyword::COALESCE, Keyword::GREATEST, Keyword::LEAST, Keyword::XMLCONCAT,
         Keyword::XMLELEMENT, Keyword::XMLEXISTS, Keyword::XMLFOREST, Keyword::XMLPARSE, Keyword::XMLPI,
         Keyword::XMLROOT, Keyword::XMLSERIALIZE, Keyword::NORMALIZE,
-        // new JSON functions in Postgres 15+, json_func_expr production
+        // new JSON functions in Postgres 16+, json_func_expr production
         Keyword::JSON_OBJECT, Keyword::JSON_ARRAY, Keyword::JSON, Keyword::JSON_SCALAR, Keyword::JSON_SERIALIZE,
-        Keyword::JSON_EXISTS, Keyword::JSON_VALUE, Keyword::JSON_QUERY
+        Keyword::JSON_EXISTS, Keyword::JSON_VALUE, Keyword::JSON_QUERY,
+        // function for RETURNING clause of MERGE, since Postgres 17
+        Keyword::MERGE_ACTION
     ];
 
     /**
@@ -2832,7 +2834,7 @@ class Parser
         return new nodes\expressions\SQLValueFunction($funcName, $modifier);
     }
 
-    protected function SystemFunctionCall(): ?nodes\FunctionLike
+    protected function SystemFunctionCall(): nodes\FunctionLike|nodes\ScalarExpression|null
     {
         if (null === $funcName = $this->stream->matchesAnyKeyword(...self::SYSTEM_FUNCTIONS)) {
             return null;
@@ -2995,6 +2997,10 @@ class Parser
             case Keyword::JSON_VALUE:
             case Keyword::JSON_QUERY:
                 $funcNode = $this->JsonQueryFunction($funcName->value);
+                break;
+
+            case Keyword::MERGE_ACTION:
+                $funcNode = new nodes\expressions\MergeAction();
                 break;
 
             default: // 'coalesce', 'greatest', 'least', 'xmlconcat'
@@ -3211,7 +3217,7 @@ class Parser
     }
 
     protected function convertSpecialFunctionCallToFunctionExpression(
-        nodes\FunctionLike $function
+        nodes\FunctionLike|nodes\ScalarExpression $function
     ): nodes\ScalarExpression {
         if ($function instanceof nodes\ScalarExpression) {
             return $function;
@@ -3304,7 +3310,7 @@ class Parser
         return $this->WindowSpecification();
     }
 
-    protected function SpecialFunctionCall(): ?nodes\FunctionLike
+    protected function SpecialFunctionCall(): nodes\FunctionLike|nodes\ScalarExpression|null
     {
         $funcNode = $this->SQLValueFunction()
                     ?? $this->SystemFunctionCall();
@@ -4381,6 +4387,12 @@ class Parser
         $this->stream->expectKeyword(Keyword::ON);
 
         $merge = new Merge($relation, $using, $this->Expression(), $this->MergeWhenList());
+
+        if (Keyword::RETURNING === $this->stream->getKeyword()) {
+            $this->stream->next();
+            $merge->returning->replace($this->TargetList());
+        }
+
         if (!empty($withClause)) {
             $merge->with = $withClause;
         }

@@ -16,6 +16,7 @@ namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_builder\nodes\{
     ScalarExpression,
+    lists\TargetList,
     merge\MergeWhenList,
     range\FromElement,
     range\UpdateOrDeleteTarget
@@ -28,10 +29,12 @@ use sad_spirit\pg_builder\nodes\{
  * @property FromElement          $using
  * @property ScalarExpression     $on
  * @property MergeWhenList        $when
+ * @property TargetList           $returning
  */
 class Merge extends Statement
 {
     protected MergeWhenList $p_when;
+    protected TargetList $p_returning;
 
     public function __construct(
         protected UpdateOrDeleteTarget $p_relation,
@@ -46,6 +49,9 @@ class Merge extends Statement
 
         $this->p_when = $when ?? new MergeWhenList();
         $this->p_when->setParentNode($this);
+
+        $this->p_returning = new TargetList();
+        $this->p_returning->setParentNode($this);
     }
 
     public function setRelation(UpdateOrDeleteTarget $relation): void

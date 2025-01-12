@@ -1468,6 +1468,9 @@ class SqlBuilderWalker implements StatementToStringWalker
         foreach ($statement->when as $when) {
             $clauses[] = $indent . $when->dispatch($this);
         }
+        if (0 < \count($statement->returning)) {
+            $clauses[] = $this->implode($indent . 'returning ', $statement->returning->dispatch($this), ',');
+        }
 
         $this->indentLevel--;
 
@@ -1534,6 +1537,11 @@ class SqlBuilderWalker implements StatementToStringWalker
                    : $clause->action->dispatch($this);
 
         return \implode($this->options['linebreak'] ?: ' ', $lines);
+    }
+
+    public function walkMergeAction(nodes\expressions\MergeAction $action): mixed
+    {
+        return 'merge_action()';
     }
 
     public function walkIsJsonExpression(nodes\expressions\IsJsonExpression $expression): string

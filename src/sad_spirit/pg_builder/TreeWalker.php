@@ -867,6 +867,13 @@ interface TreeWalker
     public function walkMergeWhenNotMatched(nodes\merge\MergeWhenNotMatched $clause): mixed;
 
     /**
+     * Visits the node representing `merge_action()` construct
+     *
+     * @since 3.0.0
+     */
+    public function walkMergeAction(nodes\expressions\MergeAction $action): mixed;
+
+    /**
      * Visits the node representing "foo ... IS [NOT] JSON ..." expression
      *
      * @param nodes\expressions\IsJsonExpression $expression

@@ -868,6 +868,7 @@ abstract class BlankWalker implements TreeWalker
         $statement->using->dispatch($this);
         $statement->on->dispatch($this);
         $statement->when->dispatch($this);
+        $statement->returning->dispatch($this);
         return null;
     }
 
@@ -916,6 +917,11 @@ abstract class BlankWalker implements TreeWalker
         if (null !== $clause->action) {
             $clause->action->dispatch($this);
         }
+        return null;
+    }
+
+    public function walkMergeAction(nodes\expressions\MergeAction $action): mixed
+    {
         return null;
     }
 

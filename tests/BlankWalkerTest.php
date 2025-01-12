@@ -169,7 +169,8 @@ when not matched and m7 = 2 then
 when matched and m10 <> 'quux' then
     update set m11 = 'xyzzy'
 when matched then 
-    delete     
+    delete
+returning m12, merge_action()
 QRY
     ];
 
