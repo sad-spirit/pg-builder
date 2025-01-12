@@ -2411,10 +2411,20 @@ class Parser
     protected function AtTimeZoneExpression(bool $targetElement): nodes\ScalarExpression
     {
         $left = $this->CollateExpression($targetElement);
-        if ($this->stream->matchesKeywordSequence(Keyword::AT, Keyword::TIME, Keyword::ZONE)) {
-            $this->stream->skip(3);
-            return new nodes\expressions\AtTimeZoneExpression($left, $this->CollateExpression($targetElement));
+
+        if (Keyword::AT === $this->stream->getKeyword()) {
+            if (Keyword::LOCAL === $this->stream->look()->getKeyword()) {
+                $this->stream->skip(2);
+                return new nodes\expressions\AtLocalExpression($left);
+            } elseif (
+                Keyword::TIME === $this->stream->look()->getKeyword()
+                && Keyword::ZONE === $this->stream->look(2)->getKeyword()
+            ) {
+                $this->stream->skip(3);
+                return new nodes\expressions\AtTimeZoneExpression($left, $this->CollateExpression($targetElement));
+            }
         }
+
         return $left;
     }
 

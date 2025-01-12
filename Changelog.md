@@ -6,19 +6,28 @@ The package now requires PHP 8.2+ and Postgres 12+.
 
 ### Added
 
-Support for new syntax of Postgres 17
- * SQL/JSON functions
-   * `json()` produces json values from text, bytea, json or jsonb values, represented by 
-     `nodes\json\JsonConstructor`.
-   * `json_scalar()` produces a json value from any scalar sql value, represented by
-     `nodes\json\JsonScalar`.
-   * `json_serialize()` produces text or bytea from json or jsonb input, represented by
-     `nodes\json\JsonSerialize`
-   * `json_exists()`, `json_query()`, `json_value()` for querying JSON data using jsonpath expressions.
-     Represented by `nodes\json\JsonExists`, `nodes\json\JsonQuery`,
-     `nodes\json\JsonValue`, respectively.
-   * `json_table()` allows JSON data to be converted into a relational view and used a FROM clause,
-     represented by `nodes\range\JsonTable` and related classes. 
+* Tested on PHP 8.4 and Postgres 17
+* Support for new syntax of Postgres 17
+  * SQL/JSON functions
+    * `json()` produces json values from text, bytea, json or jsonb values, represented by 
+      `nodes\json\JsonConstructor`.
+    * `json_scalar()` produces a json value from any scalar sql value, represented by
+      `nodes\json\JsonScalar`.
+    * `json_serialize()` produces text or bytea from json or jsonb input, represented by
+      `nodes\json\JsonSerialize`
+    * `json_exists()`, `json_query()`, `json_value()` for querying JSON data using jsonpath expressions.
+      Represented by `nodes\json\JsonExists`, `nodes\json\JsonQuery`,
+      `nodes\json\JsonValue`, respectively.
+    * `json_table()` allows JSON data to be converted into a relational view and used a FROM clause,
+      represented by `nodes\range\JsonTable` and related classes.
+  * `AT LOCAL` expression for converting a timestamp to session time zone, represented by
+    `nodes\expressions\AtLocalExpression`.
+
+### Changed
+ * Consistently follow Postgres 17 in what is considered a whitespace character: space, `\r`, `\n`, `\t`, `\v`, `\f`.
+ * Native `public readonly` properties are used in `nodes\Identifier`, `nodes\expressions\Constant`,
+   `nodes\expressions\Parameter`, and their subclasses instead of magic ones.
+ * Enums are used throughout package instead of string constants. Migration TBD.
 
 ### Removed
 
@@ -27,6 +36,7 @@ Support for new syntax of Postgres 17
    * `$resultTypes` parameter for `NativeStatement::executePrepared()`. The types should be
      passed to `NativeStatement::prepare()`.
  * `Node` classes no longer implement deprecated `Serializable` interface.
+ * `Keywords` class (replaced by `Keyword` enum).
 
 ### Fixed
  
@@ -35,6 +45,8 @@ Support for new syntax of Postgres 17
  * Some keywords (`AND`, `BETWEEN`, `COLLATE`, `ILIKE`, `IN`, `IS`, `LIKE`, `OR`) that can be used in Postgres
    as column aliases without `AS` keyword caused syntax exceptions when used
    in such a way, e.g. `SELECT NULL AND` (this returns a null column aliased `and` in Postgres).
+ * Lexer matches a complete identifier in "junk after number" tests. Previously only a single byte was matched,
+   so the error message could possibly contain a partial multibyte character. Same fix as in Postgres 17.
 
 ## [2.4.0] - 2024-05-27
 

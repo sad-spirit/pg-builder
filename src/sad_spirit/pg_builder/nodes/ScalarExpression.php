@@ -89,7 +89,7 @@ interface ScalarExpression extends Node
     public const PRECEDENCE_EXPONENTIATION = 150;
 
     /**
-     * Precedence for AT TIME ZONE expression
+     * Precedence for AT TIME ZONE / AT LOCAL expression
      */
     public const PRECEDENCE_TIME_ZONE      = 160;
 

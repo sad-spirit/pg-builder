@@ -94,6 +94,7 @@ select distinct on (e1) e2.e3, e4.e5[e6], (e7.e8).e9, $1.e10, array[[e11,2],[3,e
        e37.e38[:], e39.e40[e41:], e42.e43[: e44],
        e45 at time zone e46,
        (e47, 2) overlaps (e48, 3),
+       e60 at local,
        current_user,
        extract(epoch from f20),
        overlay(f21 placing f22 from f23 for f24),

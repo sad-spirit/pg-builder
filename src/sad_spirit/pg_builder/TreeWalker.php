@@ -327,6 +327,15 @@ interface TreeWalker
     public function walkAtTimeZoneExpression(nodes\expressions\AtTimeZoneExpression $expression): mixed;
 
     /**
+     * Visits the node representin "... AT LOCAL" expression
+     *
+     * Syntax added in PostgreSQL 17
+     *
+     * @since 3.0.0
+     */
+    public function walkAtLocalExpression(nodes\expressions\AtLocalExpression $expression): mixed;
+
+    /**
      * Visits the node representing "... BETWEEN ... AND ..." expression
      *
      * @param nodes\expressions\BetweenExpression $expression

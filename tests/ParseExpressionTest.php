@@ -51,6 +51,7 @@ use sad_spirit\pg_builder\nodes\lists\{
 };
 use sad_spirit\pg_builder\nodes\expressions\{
     ArrayComparisonExpression,
+    AtLocalExpression,
     AtTimeZoneExpression,
     IsDistinctFromExpression,
     IsExpression,
@@ -75,8 +76,7 @@ use sad_spirit\pg_builder\nodes\expressions\{
     StringConstant,
     SubselectExpression,
     WhenExpression,
-    GroupingExpression
-};
+    GroupingExpression};
 
 /**
  * Tests parsing all possible scalar expressions
@@ -625,6 +625,14 @@ QRY
         $this->assertEquals(
             new AtTimeZoneExpression(new ColumnReference('foo', 'bar'), new StringConstant('baz')),
             $this->parser->parseExpression("foo.bar at time zone 'baz'")
+        );
+    }
+
+    public function testAtLocal(): void
+    {
+        $this::assertEquals(
+            new AtLocalExpression(new ColumnReference('foo', 'bar')),
+            $this->parser->parseExpression("foo.bar at local")
         );
     }
 

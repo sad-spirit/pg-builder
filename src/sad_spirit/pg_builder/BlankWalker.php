@@ -367,6 +367,12 @@ abstract class BlankWalker implements TreeWalker
         return null;
     }
 
+    public function walkAtLocalExpression(nodes\expressions\AtLocalExpression $expression): mixed
+    {
+        $expression->argument->dispatch($this);
+        return null;
+    }
+
     public function walkBetweenExpression(nodes\expressions\BetweenExpression $expression): mixed
     {
         $expression->argument->dispatch($this);
