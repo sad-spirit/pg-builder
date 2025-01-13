@@ -14,11 +14,13 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
     Lexer,
     Parser,
-    SqlBuilderWalker
+    SqlBuilderWalker,
+    exceptions\SyntaxException
 };
 use sad_spirit\pg_builder\nodes\{
     expressions\StringConstant,
@@ -341,5 +343,26 @@ QRY
             $this->parser->parseStatement($built),
             'AST of the built statement should be equal to that of the original statement'
         );
+    }
+
+    /**
+     * Disallow stuff from func_expr_windowless that is immediately rejected by C code
+     */
+    #[DataProvider('disallowedFunctionLikeConstructsProvider')]
+    public function testDisallowedFunctionLikeConstructsInFromClause(string $disallowed): void
+    {
+        $this::expectException(SyntaxException::class);
+        $this::expectExceptionMessage('cannot be used in FROM clause');
+
+        $this->parser->parseFromList($disallowed);
+    }
+
+    public static function disallowedFunctionLikeConstructsProvider(): array
+    {
+        return [
+            ['merge_action()'],
+            ['json_arrayagg(foo order by bar)'],
+            ['rows from (json_objectagg(k value v))']
+        ];
     }
 }

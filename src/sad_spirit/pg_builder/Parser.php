@@ -3745,11 +3745,19 @@ class Parser
     protected function RangeFunctionCall(): nodes\range\FunctionFromElement
     {
         if (!$this->stream->matchesKeywordSequence(Keyword::ROWS, Keyword::FROM)) {
-            $reference = new nodes\range\FunctionCall(
-                $this->SpecialFunctionCall()
+            // gram.y allows JSON aggregates and similar stuff here, but they are rejected by C code afterwards
+            $token    = $this->stream->getCurrent();
+            $function = $this->SpecialFunctionCall()
                 ?? $this->JsonAggregateFunc(true)
-                ?? $this->GenericFunctionCall()
-            );
+                ?? $this->GenericFunctionCall();
+            if (!$function instanceof nodes\FunctionLike) {
+                throw exceptions\SyntaxException::atPosition(
+                    "Expression cannot be used in FROM clause",
+                    $this->stream->getSource(),
+                    $token->getPosition()
+                );
+            }
+            $reference = new nodes\range\FunctionCall($function);
         } else {
             $this->stream->skip(2);
             $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
@@ -3777,9 +3785,17 @@ class Parser
 
     protected function RowsFromElement(): nodes\range\RowsFromElement
     {
+        $token    = $this->stream->getCurrent();
         $function = $this->SpecialFunctionCall()
             ?? $this->JsonAggregateFunc(true)
             ?? $this->GenericFunctionCall();
+        if (!$function instanceof nodes\FunctionLike) {
+            throw exceptions\SyntaxException::atPosition(
+                "Expression cannot be used in FROM clause",
+                $this->stream->getSource(),
+                $token->getPosition()
+            );
+        }
 
         if (Keyword::AS !== $this->stream->getKeyword()) {
             $aliases = null;

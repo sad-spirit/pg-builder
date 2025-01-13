@@ -16,7 +16,6 @@ namespace sad_spirit\pg_builder\nodes\json;
 
 use sad_spirit\pg_builder\nodes\{
     ExpressionAtom,
-    FunctionLike,
     GenericNode,
     ScalarExpression,
     WindowDefinition
@@ -28,7 +27,7 @@ use sad_spirit\pg_builder\nodes\{
  * @property ScalarExpression|null $filter
  * @property WindowDefinition|null $over
  */
-abstract class JsonAggregate extends GenericNode implements ScalarExpression, FunctionLike
+abstract class JsonAggregate extends GenericNode implements ScalarExpression
 {
     use ExpressionAtom;
     use AbsentOnNullProperty;
