@@ -84,10 +84,14 @@ using "null"
 on bar.id is not distinct from "null"
 when not matched and one = 2 then
     insert (baz) overriding system value values ('quux')
+when not matched by target and one > 2 then
+    insert (baz) values ('duh')
 when matched and baz <> 'quux' then
     update set baz = 'xyzzy'
 when matched then 
     delete
+when not matched by source then
+    update set baz = 'blah'
 returning bar.*, merge_action()
 QRY
         );
@@ -115,6 +119,14 @@ QRY
             )
         );
 
+        $built->when[] = new MergeWhenNotMatched(
+            new OperatorExpression('>', new ColumnReference('one'), new NumericConstant('2')),
+            new MergeInsert(
+                new SetTargetList([new SetTargetElement('baz')]),
+                new MergeValues([new StringConstant('duh')])
+            )
+        );
+
         $built->when[] = new MergeWhenMatched(
             new OperatorExpression('<>', new ColumnReference('baz'), new StringConstant('quux')),
             new MergeUpdate(new SetClauseList([
@@ -123,6 +135,14 @@ QRY
         );
 
         $built->when[] = new MergeWhenMatched(null, new MergeDelete());
+
+        $built->when[] = new MergeWhenMatched(
+            null,
+            new MergeUpdate(new SetClauseList([
+                new SingleSetClause(new SetTargetElement(new Identifier('baz')), new StringConstant('blah'))
+            ])),
+            false
+        );
 
         $built->returning[] = new TargetElement(new ColumnReference('bar', '*'));
         $built->returning[] = new TargetElement(new MergeAction());

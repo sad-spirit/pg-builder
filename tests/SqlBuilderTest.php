@@ -33,15 +33,8 @@ use sad_spirit\pg_builder\nodes\{
  */
 class SqlBuilderTest extends TestCase
 {
-    /**
-     * @var Parser
-     */
-    protected $parser;
-
-    /**
-     * @var SqlBuilderWalker
-     */
-    protected $builder;
+    protected Parser $parser;
+    protected SqlBuilderWalker $builder;
 
     protected function setUp(): void
     {
@@ -130,12 +123,17 @@ using "null"
 on bar.id is not distinct from "null"
 when not matched and one = 2 then
     insert (baz) overriding system value values ('quux')
+when not matched by target and one > 2 then
+    insert (baz) values ('duh')
 when not matched and two = 1 then
     insert default values
 when matched and baz <> 'quux' then
     update set baz = 'xyzzy'
 when matched then 
     delete
+when not matched by source then
+    update set baz = 'blah'
+returning bar.*, merge_action()
 QRY
         );
     }

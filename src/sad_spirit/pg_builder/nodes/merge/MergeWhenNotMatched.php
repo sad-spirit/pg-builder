@@ -19,7 +19,7 @@ use sad_spirit\pg_builder\Node;
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
- * Represents a "WHEN NOT MATCHED" clause of MERGE statement
+ * Represents a `WHEN NOT MATCHED [BY TARGET]` clause of `MERGE` statement
  *
  * @property MergeInsert|null $action
  */
@@ -31,7 +31,7 @@ class MergeWhenNotMatched extends MergeWhenClause
     {
         if (null !== $action && !($action instanceof MergeInsert)) {
             throw new InvalidArgumentException(\sprintf(
-                'Only INSERT action is possible for "WHEN NOT MATCHED" clause, object(%s) given',
+                'Only INSERT action is possible for "WHEN NOT MATCHED [BY TARGET]" clause, object(%s) given',
                 $action::class
             ));
         }

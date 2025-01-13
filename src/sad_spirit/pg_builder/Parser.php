@@ -4419,6 +4419,16 @@ class Parser
         }
         $this->stream->expectKeyword(Keyword::MATCHED);
 
+        $matchedBySource = true;
+        if (!$matched && $this->stream->matchesKeywordSequence(Keyword::BY, [Keyword::SOURCE, Keyword::TARGET])) {
+            $this->stream->next();
+            // "BY TARGET" is noise, "BY SOURCE" should generate MergeWhenMatched instead of MergeWhenNotMatched
+            if (Keyword::SOURCE === $this->stream->next()->getKeyword()) {
+                $matched         = true;
+                $matchedBySource = false;
+            }
+        }
+
         if (Keyword::AND !== $this->stream->getKeyword()) {
             $condition = null;
         } else {
@@ -4428,7 +4438,7 @@ class Parser
 
         $this->stream->expectKeyword(Keyword::THEN);
         return $matched
-            ? new nodes\merge\MergeWhenMatched($condition, $this->MergeWhenMatchedAction())
+            ? new nodes\merge\MergeWhenMatched($condition, $this->MergeWhenMatchedAction(), $matchedBySource)
             : new nodes\merge\MergeWhenNotMatched($condition, $this->MergeWhenNotMatchedAction());
     }
 

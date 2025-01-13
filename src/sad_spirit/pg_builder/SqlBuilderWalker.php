@@ -1514,7 +1514,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkMergeWhenMatched(nodes\merge\MergeWhenMatched $clause): string
     {
         $lines = [
-            'when matched'
+            ($clause->matchedBySource ? 'when matched' : 'when not matched by source')
             . (null === $clause->condition ? '' : ' and ' . $clause->condition->dispatch($this))
             . ' then'
         ];

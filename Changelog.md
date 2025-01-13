@@ -6,7 +6,6 @@ The package now requires PHP 8.2+ and Postgres 12+.
 
 ### Added
 
-* Tested on PHP 8.4 and Postgres 17
 * Support for new syntax of Postgres 17
   * SQL/JSON functions
     * `json()` produces json values from text, bytea, json or jsonb values, represented by 
@@ -24,14 +23,20 @@ The package now requires PHP 8.2+ and Postgres 12+.
     * It is now possible to use `MERGE` statements in `WITH` clauses.
     * Support `RETURNING` clause in `MERGE`, represented by `$returning` property of `Merge` class,
       `merge_action()` construct that can be used in that clause, represented by `nodes\expressions\MergeAction`.
+    * Support `WHEN NOT MATCHED BY SOURCE` actions which operate on rows that exist in the target relation, but
+      not in the data source. Represented by a new `$matchedBySource` property of existing 
+      `nodes\merge\MergeWhenMatched` class.
   * `AT LOCAL` expression for converting a timestamp to session time zone, represented by
     `nodes\expressions\AtLocalExpression`.
+* Tested on PHP 8.4 and Postgres 17
 
 ### Changed
  * Consistently follow Postgres 17 in what is considered a whitespace character: space, `\r`, `\n`, `\t`, `\v`, `\f`.
  * Native `public readonly` properties are used in `nodes\Identifier`, `nodes\expressions\Constant`,
    `nodes\expressions\Parameter`, and their subclasses instead of magic ones.
  * Enums are used throughout package instead of string constants. Migration TBD.
+ * Added typehints for arguments and return values where not previously possible,
+   e.g. `self|string|ScalarExpression|null` for an argument of `nodes\WhereOrHavingClause::and()`.
 
 ### Removed
 
