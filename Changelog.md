@@ -20,6 +20,10 @@ The package now requires PHP 8.2+ and Postgres 12+.
       `nodes\json\JsonValue`, respectively.
     * `json_table()` allows JSON data to be converted into a relational view and used a FROM clause,
       represented by `nodes\range\JsonTable` and related classes.
+  * `MERGE` statement improvements
+    * It is now possible to use `MERGE` statements in `WITH` clauses.
+    * Support `RETURNING` clause in `MERGE`, represented by `$returning` property of `Merge` class,
+      `merge_action()` construct that can be used in that clause, represented by `nodes\expressions\MergeAction`.
   * `AT LOCAL` expression for converting a timestamp to session time zone, represented by
     `nodes\expressions\AtLocalExpression`.
 

@@ -82,6 +82,18 @@ w9 as (
 w10 as materialized (
     select f1.f2(variadic f3), f4.f5(f6, variadic f7), f8.f9(f10, b := f11, binary := f12)
     from f13(1, f14) as f15 (f16)
+),
+w18 as (
+    merge into m1 as m2
+    using m3
+    on m4.m5 is not distinct from m6
+    when not matched and m7 = 2 then
+        insert (m8) overriding system value values (m9)
+    when matched and m10 <> 'quux' then
+        update set m11 = 'xyzzy'
+    when matched then 
+        delete
+    returning m12, merge_action()
 )
 select distinct on (e1) e2.e3, e4.e5[e6], (e7.e8).e9, $1.e10, array[[e11,2],[3,e12]], row(e13,:foo),
        1 + e14 * 3, (1 + e15) * 3, e16 between e17 and e18,
@@ -159,18 +171,6 @@ order by 1 using operator(e56.>>>) nulls first, e57 desc
 limit e58
 offset e59
 for no key update of s77, s78 for share of s79 skip locked
-QRY
-        , <<<'QRY'
-merge into m1 as m2
-using m3
-on m4.m5 is not distinct from m6
-when not matched and m7 = 2 then
-    insert (m8) overriding system value values (m9)
-when matched and m10 <> 'quux' then
-    update set m11 = 'xyzzy'
-when matched then 
-    delete
-returning m12, merge_action()
 QRY
     ];
 
