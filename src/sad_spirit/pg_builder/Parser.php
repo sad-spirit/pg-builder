@@ -104,32 +104,32 @@ class Parser
     ];
 
     /**
-     * Returned by {@link checkContentsOfParentheses()} if subquery is found
+     * Returned by {@see checkContentsOfParentheses()} if subquery is found
      */
     private const PARENTHESES_SELECT     = 'select';
 
     /**
-     * Returned by {@link checkContentsOfParentheses()} if row constructor (=expression list) is found
+     * Returned by {@see checkContentsOfParentheses()} if row constructor (=expression list) is found
      */
     private const PARENTHESES_ROW        = 'row';
 
     /**
-     * Returned by {@link checkContentsOfParentheses()} if parentheses contain a named function argument
+     * Returned by {@see checkContentsOfParentheses()} if parentheses contain a named function argument
      */
     private const PARENTHESES_ARGS       = 'args';
 
     /**
-     * Returned by {@link checkContentsOfParentheses()} if parentheses contain a scalar expression
+     * Returned by {@see checkContentsOfParentheses()} if parentheses contain a scalar expression
      */
     private const PARENTHESES_EXPRESSION = 'expression';
 
     /**
-     * Passed to {@link UpdateOrDeleteTarget()} to set expected format, allows only relation alias
+     * Passed to {@see UpdateOrDeleteTarget()} to set expected format, allows only relation alias
      */
     private const RELATION_FORMAT_UPDATE = 'update';
 
     /**
-     * Passed to {@link UpdateOrDeleteTarget()} to set expected format, allows only relation alias (which can be SET)
+     * Passed to {@see UpdateOrDeleteTarget()} to set expected format, allows only relation alias (which can be SET)
      */
     private const RELATION_FORMAT_DELETE = 'delete';
 
@@ -225,7 +225,7 @@ class Parser
     ];
 
     /**
-     * Keyword sequence checks for {@link WindowFrameBound()} method
+     * Keyword sequence checks for {@see WindowFrameBound()} method
      */
     private const CHECKS_FRAME_BOUND = [
         [Keyword::UNBOUNDED, Keyword::PRECEDING],
@@ -234,7 +234,7 @@ class Parser
     ];
 
     /**
-     * Keyword sequence checks for {@link PatternMatchingExpression()} method
+     * Keyword sequence checks for {@see PatternMatchingExpression()} method
      */
     private const CHECKS_PATTERN_MATCHING = [
         [Keyword::LIKE],
@@ -247,7 +247,7 @@ class Parser
     ];
 
     /**
-     * Keyword sequence checks for {@link IsWhateverExpression()} method
+     * Keyword sequence checks for {@see IsWhateverExpression()} method
      */
     private const CHECKS_IS_WHATEVER = [
         [Keyword::NULL],
@@ -260,7 +260,7 @@ class Parser
     ];
 
     /**
-     * Keywords that can appear in {@link ExpressionAtom()} on their own right
+     * Keywords that can appear in {@see ExpressionAtom()} on their own right
      */
     private const ATOM_KEYWORDS = [
         Keyword::ROW, Keyword::ARRAY, Keyword::EXISTS, Keyword::CASE, Keyword::GROUPING,
@@ -268,14 +268,14 @@ class Parser
     ];
 
     /**
-     * A bit mask of Token types that are checked first in {@link ExpressionAtom()}
+     * A bit mask of Token types that are checked first in {@see ExpressionAtom()}
      */
     private const ATOM_SPECIAL_TYPES = TokenType::SPECIAL->value
         | TokenType::PARAMETER->value
         | TokenType::LITERAL->value;
 
     /**
-     * Token types that can appear as the first part of an Identifier in {@link NamedExpressionAtom()}
+     * Token types that can appear as the first part of an Identifier in {@see NamedExpressionAtom()}
      */
     private const ATOM_IDENTIFIER_TYPES = [
         TokenType::IDENTIFIER,

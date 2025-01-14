@@ -767,7 +767,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     }
 
     /**
-     * Used by {@link walkArrayExpression} to enable adding of array keyword only to outermost array literal
+     * Used by {@see walkArrayExpression} to enable adding of array keyword only to outermost array literal
      *
      * @param nodes\expressions\ArrayExpression $expression
      * @param bool $keyword
