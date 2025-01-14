@@ -72,14 +72,13 @@ class StatementFactory
      *
      * @param Connection $connection If Connection has a DB metadata cache object, that cache will also be used
      *                               in Parser for storing ASTs
-     * @return self
      */
     public static function forConnection(Connection $connection): self
     {
         $serverVersion = \pg_parameter_status($connection->getNative(), 'server_version');
-        if (\version_compare($serverVersion, '9.5', '<')) {
+        if (\version_compare($serverVersion, '12', '<')) {
             throw new exceptions\RuntimeException(
-                'PostgreSQL versions earlier than 9.5 are no longer supported, '
+                'PostgreSQL versions earlier than 12 are no longer supported, '
                 . 'connected server reports version ' . $serverVersion
             );
         }
@@ -98,9 +97,6 @@ class StatementFactory
 
     /**
      * Creates an instance of StatementFactory based on properties of PDO connection object
-     *
-     * @param \PDO $pdo
-     * @return self
      */
     public static function forPDO(\PDO $pdo): self
     {
@@ -110,9 +106,9 @@ class StatementFactory
                 'Connection to PostgreSQL server expected, given PDO object reports ' . $driver . ' driver'
             );
         }
-        if (\version_compare($version = $pdo->getAttribute(\PDO::ATTR_SERVER_VERSION), '9.5', '<')) {
+        if (\version_compare($version = $pdo->getAttribute(\PDO::ATTR_SERVER_VERSION), '12', '<')) {
             throw new exceptions\RuntimeException(
-                'PostgreSQL versions earlier than 9.5 are no longer supported, '
+                'PostgreSQL versions earlier than 12 are no longer supported, '
                 . 'connected server reports version ' . $version
             );
         }
@@ -128,8 +124,6 @@ class StatementFactory
 
     /**
      * Returns the Parser for converting SQL fragments to ASTs
-     *
-     * @return Parser
      */
     public function getParser(): Parser
     {
@@ -138,8 +132,6 @@ class StatementFactory
 
     /**
      * Returns the SQL builder object
-     *
-     * @return StatementToStringWalker
      */
     public function getBuilder(): StatementToStringWalker
     {
@@ -149,8 +141,6 @@ class StatementFactory
     /**
      * Creates an AST representing a complete statement from SQL string
      *
-     * @param string $sql
-     * @return Statement
      * @throws exceptions\SyntaxException
      */
     public function createFromString(string $sql): Statement
@@ -165,11 +155,9 @@ class StatementFactory
     /**
      * Creates an object containing SQL statement string and parameter mappings from AST
      *
-     * @param Statement $ast
      * @param bool $forcePDOPrepareCompatibility Whether generated SQL should be compatible with \PDO::prepare()
      *             even if {@see $PDOCompatible} was not set or the query does not contain placeholders,
      *             {@see https://github.com/sad-spirit/pg-builder/issues/15 issue #15}
-     * @return NativeStatement
      */
     public function createFromAST(Statement $ast, bool $forcePDOPrepareCompatibility = false): NativeStatement
     {
@@ -187,11 +175,8 @@ class StatementFactory
 
     /**
      * Creates a DELETE statement object
-     *
-     * @param string|UpdateOrDeleteTarget $from
-     * @return Delete
      */
-    public function delete($from): Delete
+    public function delete(UpdateOrDeleteTarget|string $from): Delete
     {
         if ($from instanceof UpdateOrDeleteTarget) {
             $relation = $from;
@@ -207,11 +192,8 @@ class StatementFactory
 
     /**
      * Creates an INSERT statement object
-     *
-     * @param string|QualifiedName|InsertTarget $into
-     * @return Insert
      */
-    public function insert($into): Insert
+    public function insert(QualifiedName|InsertTarget|string $into): Insert
     {
         if ($into instanceof InsertTarget) {
             $relation = $into;
@@ -229,14 +211,12 @@ class StatementFactory
 
     /**
      * Creates a MERGE statement object
-     *
-     * @param UpdateOrDeleteTarget|string $into
-     * @param FromElement|string          $using
-     * @param ScalarExpression|string     $on
-     * @return Merge
      */
-    public function merge($into, $using, $on): Merge
-    {
+    public function merge(
+        UpdateOrDeleteTarget|string $into,
+        FromElement|string $using,
+        ScalarExpression|string $on
+    ): Merge {
         if ($into instanceof UpdateOrDeleteTarget) {
             $relation = $into;
         } else {
@@ -264,9 +244,8 @@ class StatementFactory
      *
      * @param string|iterable<TargetElement|string>    $list
      * @param string|iterable<FromElement|string>|null $from
-     * @return Select
      */
-    public function select($list, $from = null): Select
+    public function select(string|iterable $list, string|iterable|null $from = null): Select
     {
         if ($list instanceof TargetList) {
             $targetList = $list;
@@ -294,11 +273,10 @@ class StatementFactory
     /**
      * Creates an UPDATE statement object
      *
-     * @param string|UpdateOrDeleteTarget                               $table
+     * @param UpdateOrDeleteTarget|string                               $table
      * @param string|iterable<SingleSetClause|MultipleSetClause|string> $set
-     * @return Update
      */
-    public function update($table, $set): Update
+    public function update(UpdateOrDeleteTarget|string $table, string|iterable $set): Update
     {
         if ($table instanceof UpdateOrDeleteTarget) {
             $relation = $table;
@@ -339,9 +317,8 @@ class StatementFactory
      * will produce a VALUES statement with two rows, each having a single element.
      *
      * @param string|iterable<RowExpression|string|iterable<ScalarExpression|SetToDefault|string>> $rows
-     * @return Values
      */
-    public function values($rows): Values
+    public function values(string|iterable $rows): Values
     {
         if ($rows instanceof RowList) {
             $rowList = $rows;
