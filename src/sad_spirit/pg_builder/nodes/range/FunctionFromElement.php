@@ -44,7 +44,7 @@ abstract class FunctionFromElement extends LateralFromElement
      * @param Identifier|null                          $tableAlias
      * @param IdentifierList|ColumnDefinitionList|null $columnAliases
      */
-    public function setAlias(?Identifier $tableAlias = null, ?NodeList $columnAliases = null): void
+    public function setAlias(?Identifier $tableAlias, ?NodeList $columnAliases = null): void
     {
         $this->setTableAlias($tableAlias);
         $this->setColumnAliases($columnAliases);

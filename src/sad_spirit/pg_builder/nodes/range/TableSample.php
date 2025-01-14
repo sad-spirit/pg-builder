@@ -71,7 +71,7 @@ class TableSample extends FromElement
         $this->setProperty($this->p_repeatable, $repeatable);
     }
 
-    public function setAlias(?Identifier $tableAlias = null, ?NodeList $columnAliases = null): void
+    public function setAlias(?Identifier $tableAlias, ?NodeList $columnAliases = null): void
     {
         $this->p_relation->setAlias($tableAlias, $columnAliases);
     }

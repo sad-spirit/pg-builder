@@ -59,7 +59,7 @@ class OnConflictClause extends GenericNode
     /**
      * Sets the Node for conflicting constraint name / index parameters
      */
-    public function setTarget(IndexParameters|Identifier|null $target = null): void
+    public function setTarget(IndexParameters|Identifier|null $target): void
     {
         if (OnConflictAction::UPDATE === $this->p_action && null === $target) {
             throw new InvalidArgumentException("Target must be provided for ON CONFLICT ... DO UPDATE clause");

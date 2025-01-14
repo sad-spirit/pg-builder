@@ -55,7 +55,7 @@ class WhereOrHavingClause extends GenericNode
      *
      * @return $this
      */
-    public function setCondition(string|null|self|ScalarExpression $condition = null): self
+    public function setCondition(string|null|self|ScalarExpression $condition): self
     {
         $this->setProperty($this->p_condition, $this->normalizeCondition($condition));
         return $this;
