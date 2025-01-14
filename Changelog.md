@@ -18,7 +18,7 @@ please consult the [upgrade instructions](./Upgrading.md).
     * `json_exists()`, `json_query()`, `json_value()` for querying JSON data using jsonpath expressions.
       Represented by `nodes\json\JsonExists`, `nodes\json\JsonQuery`,
       `nodes\json\JsonValue`, respectively.
-    * `json_table()` allows JSON data to be converted into a relational view and used a FROM clause,
+    * `json_table()` allows JSON data to be converted into a relational view and used in a `FROM` clause,
       represented by `nodes\range\JsonTable` and related classes.
   * `MERGE` statement improvements
     * It is now possible to use `MERGE` statements in `WITH` clauses.
@@ -33,12 +33,14 @@ please consult the [upgrade instructions](./Upgrading.md).
 
 ### Changed
  * Consistently follow Postgres 17 in what is considered a whitespace character: space, `\r`, `\n`, `\t`, `\v`, `\f`.
- * Native `public readonly` properties are used in `nodes\Identifier`, `nodes\expressions\Constant`,
-   `nodes\expressions\Parameter`, and their subclasses instead of magic ones.
  * Enums are used throughout package instead of string constants, see the [upgrade instructions](Upgrading.md).
  * Added typehints for arguments and return values where not previously possible,
    e.g. `self|string|ScalarExpression|null` for an argument of `nodes\WhereOrHavingClause::and()`.
- * `Token` class was converted to an interface with several implementations
+ * Arguments for setter methods no longer have default (usually `null`) values. These values should be passed
+   explicitly, though the recommended way is to use magic properties rather than setters.
+ * Native `public readonly` properties are used in `nodes\Identifier`, `nodes\expressions\Constant`,
+   `nodes\expressions\Parameter`, and their subclasses instead of magic ones.
+ * `Token` class was converted to an interface with several implementations.
 
 ### Removed
 
@@ -46,7 +48,8 @@ please consult the [upgrade instructions](./Upgrading.md).
    * `ParserAwareTypeConverterFactory` class, `BuilderSupportDecorator` should be used instead.
    * `$resultTypes` parameter for `NativeStatement::executePrepared()`. The types should be
      passed to `NativeStatement::prepare()`.
- * `Node` classes no longer implement deprecated `Serializable` interface.
+ * `nodes\GenericNode` no longer implements deprecated `Serializable` interface, `serialize()` and
+   `unserialize()` methods were removed from it and its subclasses.
  * `Keywords` class (replaced by `Keyword` enum, see the [upgrade instructions](Upgrading.md)).
 
 ### Fixed
@@ -58,6 +61,9 @@ please consult the [upgrade instructions](./Upgrading.md).
    in such a way, e.g. `SELECT NULL AND` (this returns a null column aliased `and` in Postgres).
  * Lexer matches a complete identifier in "junk after number" tests. Previously only a single byte was matched,
    so the error message could possibly contain a partial multibyte character. Same fix as in Postgres 17.
+ * `nodes\json\JsonArrayAgg` and `nodes\json\JsonObjectAgg` no longer implement `FunctionLike` as they cannot be used
+   in `FROM` clause. An exception will be thrown if they (or the new `nodes\expressions\MergeAction`) appear when
+   parsing the `FROM` clause.
 
 ## [2.4.0] - 2024-05-27
 
