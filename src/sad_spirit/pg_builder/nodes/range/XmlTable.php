@@ -34,12 +34,13 @@ class XmlTable extends LateralFromElement
 {
     protected ScalarExpression $p_rowExpression;
     protected ScalarExpression $p_documentExpression;
+    protected XmlColumnList $p_columns;
     protected XmlNamespaceList $p_namespaces;
 
     public function __construct(
         ScalarExpression $rowExpression,
         ScalarExpression $documentExpression,
-        protected XmlColumnList $p_columns,
+        XmlColumnList $columns,
         ?XmlNamespaceList $namespaces = null
     ) {
         if ($rowExpression === $documentExpression) {
@@ -53,6 +54,8 @@ class XmlTable extends LateralFromElement
 
         $this->p_documentExpression = $documentExpression;
         $this->p_documentExpression->setParentNode($this);
+
+        $this->p_columns = $columns;
         $this->p_columns->setParentNode($this);
 
         $this->p_namespaces = $namespaces ?? new XmlNamespaceList();

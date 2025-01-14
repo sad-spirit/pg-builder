@@ -29,10 +29,17 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class MultipleSetClause extends GenericNode
 {
-    public function __construct(protected SetTargetList $p_columns, protected ScalarExpression $p_value)
+    protected SetTargetList $p_columns;
+    protected ScalarExpression $p_value;
+
+    public function __construct(SetTargetList $columns, ScalarExpression $value)
     {
         $this->generatePropertyNames();
+
+        $this->p_columns = $columns;
         $this->p_columns->setParentNode($this);
+
+        $this->p_value = $value;
         $this->p_value->setParentNode($this);
     }
 

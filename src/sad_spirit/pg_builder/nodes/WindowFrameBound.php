@@ -28,11 +28,13 @@ use sad_spirit\pg_builder\{
  */
 class WindowFrameBound extends GenericNode
 {
+    protected WindowFrameDirection $p_direction;
     protected ?ScalarExpression $p_value = null;
 
-    public function __construct(protected WindowFrameDirection $p_direction, ?ScalarExpression $value = null)
+    public function __construct(WindowFrameDirection $direction, ?ScalarExpression $value = null)
     {
         $this->generatePropertyNames();
+        $this->p_direction = $direction;
         $this->setValue($value);
     }
 

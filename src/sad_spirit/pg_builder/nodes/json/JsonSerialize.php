@@ -32,9 +32,13 @@ class JsonSerialize extends GenericNode implements ScalarExpression, FunctionLik
     use ExpressionAtom;
     use ReturningProperty;
 
-    public function __construct(protected JsonFormattedValue $p_expression, ?JsonReturning $returning = null)
+    protected JsonFormattedValue $p_expression;
+
+    public function __construct(JsonFormattedValue $expression, ?JsonReturning $returning = null)
     {
         $this->generatePropertyNames();
+
+        $this->p_expression = $expression;
         $this->p_expression->setParentNode($this);
 
         if (null !== $returning) {

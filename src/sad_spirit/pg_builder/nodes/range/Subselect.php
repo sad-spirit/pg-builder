@@ -24,9 +24,13 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class Subselect extends LateralFromElement
 {
-    public function __construct(protected SelectCommon $p_query)
+    protected SelectCommon $p_query;
+
+    public function __construct(SelectCommon $query)
     {
         $this->generatePropertyNames();
+
+        $this->p_query = $query;
         $this->p_query->setParentNode($this);
     }
 

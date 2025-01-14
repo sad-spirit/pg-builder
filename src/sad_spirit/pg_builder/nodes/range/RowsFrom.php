@@ -24,9 +24,13 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class RowsFrom extends FunctionFromElement
 {
-    public function __construct(protected RowsFromList $p_functions)
+    protected RowsFromList $p_functions;
+
+    public function __construct(RowsFromList $functions)
     {
         $this->generatePropertyNames();
+
+        $this->p_functions = $functions;
         $this->p_functions->setParentNode($this);
     }
 

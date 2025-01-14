@@ -32,14 +32,16 @@ use sad_spirit\pg_builder\{
  */
 class WindowFrameClause extends GenericNode
 {
+    protected WindowFrameMode $p_type;
     protected WindowFrameBound $p_start;
     protected ?WindowFrameBound $p_end = null;
+    protected ?WindowFrameExclusion $p_exclusion = null;
 
     public function __construct(
-        protected WindowFrameMode $p_type,
+        WindowFrameMode $type,
         WindowFrameBound $start,
         ?WindowFrameBound $end = null,
-        protected ?WindowFrameExclusion $p_exclusion = null
+        ?WindowFrameExclusion $exclusion = null
     ) {
         $this->generatePropertyNames();
 
@@ -69,6 +71,9 @@ class WindowFrameClause extends GenericNode
                 throw new InvalidArgumentException("Frame starting from following row cannot have preceding rows");
             }
         }
+
+        $this->p_type = $type;
+        $this->p_exclusion = $exclusion;
 
         $this->p_start = $start;
         $this->p_start->setParentNode($this);

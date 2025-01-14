@@ -28,11 +28,14 @@ use sad_spirit\pg_builder\{
  */
 class JsonFormattedValue extends GenericNode
 {
+    protected ScalarExpression $p_expression;
     protected JsonFormat|null $p_format = null;
 
-    public function __construct(protected ScalarExpression $p_expression, ?JsonFormat $format = null)
+    public function __construct(ScalarExpression $expression, ?JsonFormat $format = null)
     {
         $this->generatePropertyNames();
+
+        $this->p_expression = $expression;
         $this->p_expression->setParentNode($this);
 
         if (null !== $format) {

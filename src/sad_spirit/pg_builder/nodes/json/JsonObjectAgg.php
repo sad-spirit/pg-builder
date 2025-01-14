@@ -29,8 +29,10 @@ class JsonObjectAgg extends JsonAggregate
 {
     use UniqueKeysProperty;
 
+    protected JsonKeyValue $p_keyValue;
+
     public function __construct(
-        protected JsonKeyValue $p_keyValue,
+        JsonKeyValue $keyValue,
         ?bool $absentOnNull = null,
         ?bool $uniqueKeys = null,
         ?JsonReturning $returning = null,
@@ -38,6 +40,8 @@ class JsonObjectAgg extends JsonAggregate
         ?WindowDefinition $over = null
     ) {
         parent::__construct($absentOnNull, $returning, $filter, $over);
+
+        $this->p_keyValue = $keyValue;
         $this->p_keyValue->setParentNode($this);
 
         $this->p_uniqueKeys = $uniqueKeys;

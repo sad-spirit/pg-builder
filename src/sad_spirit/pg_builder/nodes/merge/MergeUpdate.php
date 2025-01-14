@@ -27,9 +27,13 @@ use sad_spirit\pg_builder\nodes\{
  */
 class MergeUpdate extends GenericNode
 {
-    public function __construct(protected SetClauseList $p_set)
+    protected SetClauseList $p_set;
+
+    public function __construct(SetClauseList $set)
     {
         $this->generatePropertyNames();
+
+        $this->p_set = $set;
         $this->p_set->setParentNode($this);
     }
 

@@ -31,15 +31,18 @@ use sad_spirit\pg_builder\nodes\lists\ExpressionList;
  */
 class InExpression extends NegatableExpression
 {
-    public function __construct(
-        protected ScalarExpression $p_left,
-        protected SelectCommon|ExpressionList $p_right,
-        bool $not = false
-    ) {
+    protected ScalarExpression $p_left;
+    protected SelectCommon|ExpressionList $p_right;
+
+    public function __construct(ScalarExpression $left, SelectCommon|ExpressionList $right, bool $not = false)
+    {
         $this->generatePropertyNames();
 
-        $this->p_right->setParentNode($this);
+        $this->p_left = $left;
         $this->p_left->setParentNode($this);
+
+        $this->p_right = $right;
+        $this->p_right->setParentNode($this);
 
         $this->p_not = $not;
     }

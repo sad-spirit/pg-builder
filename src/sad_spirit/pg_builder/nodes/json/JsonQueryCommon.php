@@ -35,15 +35,21 @@ abstract class JsonQueryCommon extends GenericNode implements ScalarExpression, 
 {
     use ExpressionAtom;
 
+    protected JsonFormattedValue $p_context;
+    protected ScalarExpression $p_path;
     protected JsonArgumentList $p_passing;
 
     public function __construct(
-        protected JsonFormattedValue $p_context,
-        protected ScalarExpression $p_path,
+        JsonFormattedValue $context,
+        ScalarExpression $path,
         ?JsonArgumentList $passing = null
     ) {
         $this->generatePropertyNames();
+
+        $this->p_context = $context;
         $this->p_context->setParentNode($this);
+
+        $this->p_path = $path;
         $this->p_path->setParentNode($this);
 
         $this->p_passing = $passing ?? new JsonArgumentList();

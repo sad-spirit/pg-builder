@@ -28,11 +28,14 @@ use sad_spirit\pg_builder\{
  */
 class JsonReturning extends GenericNode
 {
+    protected TypeName $p_type;
     protected ?JsonFormat $p_format = null;
 
-    public function __construct(protected TypeName $p_type, ?JsonFormat $format = null)
+    public function __construct(TypeName $type, ?JsonFormat $format = null)
     {
         $this->generatePropertyNames();
+
+        $this->p_type = $type;
         $this->p_type->setParentNode($this);
 
         if (null !== $format) {

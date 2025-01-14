@@ -31,10 +31,15 @@ class GroupByClause extends GroupByList implements Parseable
 {
     use HasBothPropsAndOffsets;
 
-    public function __construct($list = null, protected bool $p_distinct = false)
+    protected bool $p_distinct;
+
+    public function __construct($list = null, bool $distinct = false)
     {
         $this->generatePropertyNames();
+
         parent::__construct($list);
+
+        $this->p_distinct = $distinct;
     }
 
     public function setDistinct(bool $distinct): void

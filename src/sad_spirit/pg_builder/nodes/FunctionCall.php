@@ -37,13 +37,15 @@ class FunctionCall extends GenericNode implements FunctionLike
 {
     protected QualifiedName $p_name;
     protected FunctionArgumentList|Star $p_arguments;
+    protected bool $p_distinct;
+    protected bool $p_variadic;
     protected OrderByList $p_order;
 
     public function __construct(
         string|QualifiedName $funcName,
         FunctionArgumentList|Star|null $arguments = null,
-        protected bool $p_distinct = false,
-        protected bool $p_variadic = false,
+        bool $distinct = false,
+        bool $variadic = false,
         ?OrderByList $orderBy = null
     ) {
         if (\is_string($funcName)) {
@@ -67,6 +69,9 @@ class FunctionCall extends GenericNode implements FunctionLike
 
         $this->p_order = $orderBy ?? new OrderByList();
         $this->p_order->setParentNode($this);
+
+        $this->p_distinct = $distinct;
+        $this->p_variadic = $variadic;
     }
 
     public function dispatch(TreeWalker $walker): mixed

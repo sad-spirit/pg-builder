@@ -42,9 +42,15 @@ class ExtractExpression extends GenericNode implements ScalarExpression, Functio
 {
     use ExpressionAtom;
 
-    public function __construct(protected string|ExtractPart $p_field, protected ScalarExpression $p_source)
+    protected ExtractPart|string $p_field;
+    protected ScalarExpression $p_source;
+
+    public function __construct(string|ExtractPart $field, ScalarExpression $source)
     {
         $this->generatePropertyNames();
+
+        $this->p_field  = $field;
+        $this->p_source = $source;
         $this->p_source->setParentNode($this);
     }
 

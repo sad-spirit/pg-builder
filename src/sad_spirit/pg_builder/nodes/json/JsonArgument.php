@@ -21,15 +21,22 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing an element of PASSING clause of various JSON expressions
  *
- * @property JsonFormattedValue  $value
- * @property Identifier $alias
+ * @property JsonFormattedValue $value
+ * @property Identifier         $alias
  */
 class JsonArgument extends GenericNode
 {
-    public function __construct(protected JsonFormattedValue $p_value, protected Identifier $p_alias)
+    protected JsonFormattedValue $p_value;
+    protected Identifier $p_alias;
+
+    public function __construct(JsonFormattedValue $value, Identifier $alias)
     {
         $this->generatePropertyNames();
+
+        $this->p_value = $value;
         $this->p_value->setParentNode($this);
+
+        $this->p_alias = $alias;
         $this->p_alias->setParentNode($this);
     }
 

@@ -36,15 +36,15 @@ class XmlElement extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
+    protected Identifier $p_name;
     protected TargetList $p_attributes;
     protected ExpressionList $p_content;
 
-    public function __construct(
-        protected Identifier $p_name,
-        ?TargetList $attributes = null,
-        ?ExpressionList $content = null
-    ) {
+    public function __construct(Identifier $name, ?TargetList $attributes = null, ?ExpressionList $content = null)
+    {
         $this->generatePropertyNames();
+
+        $this->p_name = $name;
         $this->p_name->setParentNode($this);
 
         $this->p_attributes = $attributes ?? new TargetList();

@@ -34,13 +34,23 @@ class XmlParse extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
+    protected XmlOption $p_documentOrContent;
+    protected ScalarExpression $p_argument;
+    protected bool $p_preserveWhitespace;
+
     public function __construct(
-        protected XmlOption $p_documentOrContent,
-        protected ScalarExpression $p_argument,
-        protected bool $p_preserveWhitespace = false
+        XmlOption $documentOrContent,
+        ScalarExpression $argument,
+        bool $preserveWhitespace = false
     ) {
         $this->generatePropertyNames();
+
+        $this->p_documentOrContent = $documentOrContent;
+
+        $this->p_argument = $argument;
         $this->p_argument->setParentNode($this);
+
+        $this->p_preserveWhitespace = $preserveWhitespace;
     }
 
     public function setArgument(ScalarExpression $argument): void

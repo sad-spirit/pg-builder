@@ -30,10 +30,17 @@ class RelationReference extends FromElement
 {
     use NonRecursiveNode;
 
-    public function __construct(protected QualifiedName $p_name, protected ?bool $p_inherit = null)
+    protected QualifiedName $p_name;
+    protected ?bool $p_inherit;
+
+    public function __construct(QualifiedName $name, ?bool $inherit = null)
     {
         $this->generatePropertyNames();
+
+        $this->p_name = $name;
         $this->p_name->setParentNode($this);
+
+        $this->p_inherit = $inherit;
     }
 
     public function dispatch(TreeWalker $walker): mixed

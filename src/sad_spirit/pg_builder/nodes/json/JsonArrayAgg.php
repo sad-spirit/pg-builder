@@ -29,10 +29,11 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class JsonArrayAgg extends JsonAggregate
 {
+    protected JsonFormattedValue $p_value;
     protected ?OrderByList $p_order = null;
 
     public function __construct(
-        protected JsonFormattedValue $p_value,
+        JsonFormattedValue $value,
         ?OrderByList $order = null,
         ?bool $absentOnNull = null,
         ?JsonReturning $returning = null,
@@ -40,6 +41,8 @@ class JsonArrayAgg extends JsonAggregate
         ?WindowDefinition $over = null
     ) {
         parent::__construct($absentOnNull, $returning, $filter, $over);
+
+        $this->p_value = $value;
         $this->p_value->setParentNode($this);
 
         if (null !== $order) {

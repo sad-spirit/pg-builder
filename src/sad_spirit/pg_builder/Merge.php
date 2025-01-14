@@ -33,18 +33,27 @@ use sad_spirit\pg_builder\nodes\{
  */
 class Merge extends Statement
 {
+    protected UpdateOrDeleteTarget $p_relation;
+    protected FromElement $p_using;
+    protected ScalarExpression $p_on;
     protected MergeWhenList $p_when;
     protected TargetList $p_returning;
 
     public function __construct(
-        protected UpdateOrDeleteTarget $p_relation,
-        protected FromElement $p_using,
-        protected ScalarExpression $p_on,
+        UpdateOrDeleteTarget $relation,
+        FromElement $using,
+        ScalarExpression $on,
         ?MergeWhenList $when = null
     ) {
         parent::__construct();
+
+        $this->p_relation = $relation;
         $this->p_relation->setParentNode($this);
+
+        $this->p_using    = $using;
         $this->p_using->setParentNode($this);
+
+        $this->p_on       = $on;
         $this->p_on->setParentNode($this);
 
         $this->p_when = $when ?? new MergeWhenList();

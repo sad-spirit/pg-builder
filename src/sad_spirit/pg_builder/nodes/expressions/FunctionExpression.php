@@ -39,6 +39,7 @@ class FunctionExpression extends FunctionCall implements ScalarExpression
 
     protected ScalarExpression|null $p_filter = null;
     protected WindowDefinition|null $p_over = null;
+    protected bool $p_withinGroup;
 
     public function __construct(
         string|QualifiedName $funcName,
@@ -46,11 +47,13 @@ class FunctionExpression extends FunctionCall implements ScalarExpression
         bool $distinct = false,
         bool $variadic = false,
         ?OrderByList $orderBy = null,
-        protected bool $p_withinGroup = false,
+        bool $withinGroup = false,
         ?ScalarExpression $filter = null,
         ?WindowDefinition $over = null
     ) {
         parent::__construct($funcName, $arguments, $distinct, $variadic, $orderBy);
+
+        $this->p_withinGroup = $withinGroup;
 
         if (null !== $filter) {
             $this->p_filter = $filter;

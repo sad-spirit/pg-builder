@@ -29,10 +29,17 @@ use sad_spirit\pg_builder\{
  */
 class CollateExpression extends GenericNode implements ScalarExpression
 {
-    public function __construct(protected ScalarExpression $p_argument, protected QualifiedName $p_collation)
+    protected ScalarExpression $p_argument;
+    protected QualifiedName $p_collation;
+
+    public function __construct(ScalarExpression $argument, QualifiedName $collation)
     {
         $this->generatePropertyNames();
+
+        $this->p_argument = $argument;
         $this->p_argument->setParentNode($this);
+
+        $this->p_collation = $collation;
         $this->p_collation->setParentNode($this);
     }
 

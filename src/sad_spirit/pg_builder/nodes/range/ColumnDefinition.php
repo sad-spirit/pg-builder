@@ -34,15 +34,18 @@ class ColumnDefinition extends GenericNode
 {
     use NonRecursiveNode;
 
+    protected Identifier $p_name;
+    protected TypeName $p_type;
     protected ?QualifiedName $p_collation = null;
 
-    public function __construct(
-        protected Identifier $p_name,
-        protected TypeName $p_type,
-        ?QualifiedName $collation = null
-    ) {
+    public function __construct(Identifier $name, TypeName $type, ?QualifiedName $collation = null)
+    {
         $this->generatePropertyNames();
+
+        $this->p_name = $name;
         $this->p_name->setParentNode($this);
+
+        $this->p_type = $type;
         $this->p_type->setParentNode($this);
 
         if (null !== $collation) {

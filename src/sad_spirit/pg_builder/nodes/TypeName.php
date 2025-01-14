@@ -34,14 +34,17 @@ class TypeName extends GenericNode
         setParentNode as private setParentNodeImpl;
     }
 
+    protected QualifiedName $p_name;
     protected bool $p_setOf = false;
     /** @var array<int,int> */
     protected array $p_bounds = [];
     protected ?TypeModifierList $p_modifiers = null;
 
-    public function __construct(protected QualifiedName $p_name, ?TypeModifierList $typeModifiers = null)
+    public function __construct(QualifiedName $name, ?TypeModifierList $typeModifiers = null)
     {
         $this->generatePropertyNames();
+
+        $this->p_name = $name;
         $this->p_name->setParentNode($this);
 
         $this->p_modifiers = $typeModifiers ?? new TypeModifierList();

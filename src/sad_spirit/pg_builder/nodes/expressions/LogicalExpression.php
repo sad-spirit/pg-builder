@@ -35,18 +35,19 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
     protected array $propertyNames = [
         'operator' => 'p_operator'
     ];
+    protected LogicalOperator $p_operator;
 
     /**
      * LogicalExpression constructor
      *
      * @param null|string|iterable<ScalarExpression> $terms
-     * @param LogicalOperator $p_operator
+     * @param LogicalOperator $operator
      */
-    public function __construct(
-        string|iterable|null $terms = null,
-        protected LogicalOperator $p_operator = LogicalOperator::AND
-    ) {
+    public function __construct(string|iterable|null $terms = null, LogicalOperator $operator = LogicalOperator::AND)
+    {
         parent::__construct($terms);
+
+        $this->p_operator = $operator;
     }
 
     public function dispatch(TreeWalker $walker): mixed

@@ -36,12 +36,13 @@ class PatternMatchingExpression extends NegatableExpression
 {
     protected ScalarExpression $p_argument;
     protected ScalarExpression $p_pattern;
+    protected PatternPredicate $p_operator;
     protected ?ScalarExpression $p_escape = null;
 
     public function __construct(
         ScalarExpression $argument,
         ScalarExpression $pattern,
-        protected PatternPredicate $p_operator = PatternPredicate::LIKE,
+        PatternPredicate $operator = PatternPredicate::LIKE,
         bool $not = false,
         ?ScalarExpression $escape = null
     ) {
@@ -56,6 +57,8 @@ class PatternMatchingExpression extends NegatableExpression
 
         $this->p_pattern = $pattern;
         $this->p_pattern->setParentNode($this);
+
+        $this->p_operator = $operator;
 
         if (null !== $escape) {
             $this->p_escape = $escape;

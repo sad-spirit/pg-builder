@@ -27,10 +27,15 @@ use sad_spirit\pg_builder\{
  */
 class UpdateOrDeleteTarget extends InsertTarget
 {
-    public function __construct(QualifiedName $relation, ?Identifier $alias = null, protected ?bool $p_inherit = null)
+    protected ?bool $p_inherit;
+
+    public function __construct(QualifiedName $relation, ?Identifier $alias = null, ?bool $inherit = null)
     {
         $this->generatePropertyNames();
+
         parent::__construct($relation, $alias);
+
+        $this->p_inherit = $inherit;
     }
 
     public function dispatch(TreeWalker $walker): mixed

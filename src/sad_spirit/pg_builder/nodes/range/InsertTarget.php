@@ -35,11 +35,14 @@ class InsertTarget extends GenericNode
 {
     use NonRecursiveNode;
 
+    protected QualifiedName $p_relation;
     protected ?Identifier $p_alias = null;
 
-    public function __construct(protected QualifiedName $p_relation, ?Identifier $alias = null)
+    public function __construct(QualifiedName $relation, ?Identifier $alias = null)
     {
         $this->generatePropertyNames();
+
+        $this->p_relation = $relation;
         $this->p_relation->setParentNode($this);
 
         if (null !== $alias) {

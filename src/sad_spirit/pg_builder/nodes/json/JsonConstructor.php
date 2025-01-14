@@ -32,9 +32,13 @@ class JsonConstructor extends GenericNode implements ScalarExpression, FunctionL
     use ExpressionAtom;
     use UniqueKeysProperty;
 
-    public function __construct(protected JsonFormattedValue $p_expression, ?bool $uniqueKeys = null)
+    protected JsonFormattedValue $p_expression;
+
+    public function __construct(JsonFormattedValue $expression, ?bool $uniqueKeys = null)
     {
         $this->generatePropertyNames();
+
+        $this->p_expression = $expression;
         $this->p_expression->setParentNode($this);
 
         $this->p_uniqueKeys = $uniqueKeys;

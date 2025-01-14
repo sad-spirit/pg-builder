@@ -33,9 +33,13 @@ class JsonFormat extends GenericNode
 {
     use NonRecursiveNode;
 
-    public function __construct(protected ?JsonEncoding $p_encoding = null)
+    protected ?JsonEncoding $p_encoding = null;
+
+    public function __construct(?JsonEncoding $encoding = null)
     {
         $this->generatePropertyNames();
+
+        $this->p_encoding = $encoding;
     }
 
     public function dispatch(TreeWalker $walker): mixed

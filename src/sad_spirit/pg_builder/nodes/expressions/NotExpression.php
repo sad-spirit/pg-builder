@@ -25,9 +25,13 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class NotExpression extends GenericNode implements ScalarExpression
 {
-    public function __construct(protected ScalarExpression $p_argument)
+    protected ScalarExpression $p_argument;
+
+    public function __construct(ScalarExpression $argument)
     {
         $this->generatePropertyNames();
+
+        $this->p_argument = $argument;
         $this->p_argument->setParentNode($this);
     }
 

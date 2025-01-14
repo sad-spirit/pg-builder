@@ -31,11 +31,14 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class RowsFromElement extends GenericNode
 {
+    protected FunctionLike $p_function;
     protected ColumnDefinitionList $p_columnAliases;
 
-    public function __construct(protected FunctionLike $p_function, ?ColumnDefinitionList $columnAliases = null)
+    public function __construct(FunctionLike $function, ?ColumnDefinitionList $columnAliases = null)
     {
         $this->generatePropertyNames();
+
+        $this->p_function = $function;
         $this->p_function->setParentNode($this);
 
         $this->p_columnAliases = $columnAliases ?? new ColumnDefinitionList();

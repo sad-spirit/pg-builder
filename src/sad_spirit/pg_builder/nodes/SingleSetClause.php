@@ -24,11 +24,14 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class SingleSetClause extends GenericNode
 {
+    protected SetTargetElement $p_column;
     protected ScalarExpression|SetToDefault $p_value;
 
-    public function __construct(protected SetTargetElement $p_column, ScalarExpression|SetToDefault $value)
+    public function __construct(SetTargetElement $column, ScalarExpression|SetToDefault $value)
     {
         $this->generatePropertyNames();
+
+        $this->p_column = $column;
         $this->p_column->setParentNode($this);
 
         $this->p_value = $value;

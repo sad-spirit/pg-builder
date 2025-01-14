@@ -35,25 +35,33 @@ use sad_spirit\pg_builder\{
  */
 class IndexElement extends GenericNode
 {
-    protected ?QualifiedName $p_collation = null;
-    protected ?QualifiedName $p_opClass = null;
+    protected Identifier|ScalarExpression $p_expression;
+    protected ?QualifiedName $p_collation;
+    protected ?QualifiedName $p_opClass;
+    protected ?IndexElementDirection $p_direction;
+    protected ?NullsOrder $p_nullsOrder;
 
     public function __construct(
-        protected ScalarExpression|Identifier $p_expression,
+        ScalarExpression|Identifier $expression,
         ?QualifiedName $collation = null,
         ?QualifiedName $opClass = null,
-        protected ?IndexElementDirection $p_direction = null,
-        protected ?NullsOrder $p_nullsOrder = null
+        ?IndexElementDirection $direction = null,
+        ?NullsOrder $nullsOrder = null
     ) {
         if (null !== $collation && $collation === $opClass) {
             throw new InvalidArgumentException("Cannot use the same Node for collation and opClass");
         }
 
         $this->generatePropertyNames();
+
+        $this->p_expression = $expression;
         $this->p_expression->setParentNode($this);
 
         $this->setProperty($this->p_collation, $collation);
         $this->setProperty($this->p_opClass, $opClass);
+
+        $this->p_direction  = $direction;
+        $this->p_nullsOrder = $nullsOrder;
     }
 
     /**

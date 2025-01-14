@@ -24,9 +24,13 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class FunctionCall extends FunctionFromElement
 {
-    public function __construct(protected FunctionLike $p_function)
+    protected FunctionLike $p_function;
+
+    public function __construct(FunctionLike $function)
     {
         $this->generatePropertyNames();
+
+        $this->p_function = $function;
         $this->p_function->setParentNode($this);
     }
 

@@ -29,11 +29,14 @@ use sad_spirit\pg_builder\{
  */
 class XmlNamespace extends GenericNode
 {
+    protected ScalarExpression $p_value;
     protected ?Identifier $p_alias = null;
 
-    public function __construct(protected ScalarExpression $p_value, ?Identifier $alias = null)
+    public function __construct(ScalarExpression $value, ?Identifier $alias = null)
     {
         $this->generatePropertyNames();
+
+        $this->p_value = $value;
         $this->p_value->setParentNode($this);
 
         if (null !== $alias) {

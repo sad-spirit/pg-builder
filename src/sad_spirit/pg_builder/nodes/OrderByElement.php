@@ -31,13 +31,15 @@ use sad_spirit\pg_builder\{
  */
 class OrderByElement extends GenericNode
 {
+    protected ScalarExpression $p_expression;
     protected ?OrderByDirection $p_direction = null;
+    protected ?NullsOrder $p_nullsOrder = null;
     protected string|QualifiedOperator|null $p_operator;
 
     public function __construct(
-        protected ScalarExpression $p_expression,
+        ScalarExpression $expression,
         ?OrderByDirection $direction = null,
-        protected ?NullsOrder $p_nullsOrder = null,
+        ?NullsOrder $nullsOrder = null,
         string|QualifiedOperator|null $operator = null
     ) {
         if (OrderByDirection::USING === $direction && null === $operator) {
@@ -45,9 +47,12 @@ class OrderByElement extends GenericNode
         }
 
         $this->generatePropertyNames();
+
+        $this->p_expression = $expression;
         $this->p_expression->setParentNode($this);
 
         $this->p_direction  = $direction;
+        $this->p_nullsOrder = $nullsOrder;
 
         $this->p_operator   = $operator;
         if ($this->p_operator instanceof QualifiedOperator) {

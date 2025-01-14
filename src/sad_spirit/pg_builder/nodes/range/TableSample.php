@@ -33,17 +33,26 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class TableSample extends FromElement
 {
+    protected RelationReference $p_relation;
+    protected QualifiedName $p_method;
+    protected ExpressionList $p_arguments;
     protected ?ScalarExpression $p_repeatable = null;
 
     public function __construct(
-        protected RelationReference $p_relation,
-        protected QualifiedName $p_method,
-        protected ExpressionList $p_arguments,
+        RelationReference $relation,
+        QualifiedName $method,
+        ExpressionList $arguments,
         ?ScalarExpression $repeatable = null
     ) {
         $this->generatePropertyNames();
+
+        $this->p_relation = $relation;
         $this->p_relation->setParentNode($this);
+
+        $this->p_method = $method;
         $this->p_method->setParentNode($this);
+
+        $this->p_arguments = $arguments;
         $this->p_arguments->setParentNode($this);
 
         if (null !== $repeatable) {

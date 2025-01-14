@@ -24,11 +24,14 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class TargetElement extends GenericNode
 {
+    protected ScalarExpression $p_expression;
     protected Identifier|null $p_alias = null;
 
-    public function __construct(protected ScalarExpression $p_expression, ?Identifier $alias = null)
+    public function __construct(ScalarExpression $expression, ?Identifier $alias = null)
     {
         $this->generatePropertyNames();
+
+        $this->p_expression = $expression;
         $this->p_expression->setParentNode($this);
 
         $this->setProperty($this->p_alias, $alias);

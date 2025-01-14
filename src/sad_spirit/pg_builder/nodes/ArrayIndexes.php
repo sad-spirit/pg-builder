@@ -28,17 +28,19 @@ class ArrayIndexes extends GenericNode
 {
     protected ScalarExpression|null $p_lower;
     protected ScalarExpression|null $p_upper;
+    protected bool $p_isSlice = false;
 
     public function __construct(
         ?ScalarExpression $lower = null,
         ?ScalarExpression $upper = null,
-        protected bool $p_isSlice = false
+        bool $isSlice = false
     ) {
         $this->generatePropertyNames();
 
         if (null !== $lower && $upper === $lower) {
             throw new InvalidArgumentException("Cannot use the same Node for upper and lower bounds");
         }
+        $this->p_isSlice = $isSlice;
         $this->setUpper($upper);
         $this->setLower($lower);
     }

@@ -25,14 +25,17 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class JsonArraySubselect extends JsonArray
 {
+    protected SelectCommon $p_query;
     protected ?JsonFormat $p_format = null;
 
     public function __construct(
-        protected SelectCommon $p_query,
+        SelectCommon $query,
         ?JsonFormat $format = null,
         ?JsonReturning $returning = null
     ) {
         parent::__construct($returning);
+
+        $this->p_query = $query;
         $this->p_query->setParentNode($this);
 
         if (null !== $format) {

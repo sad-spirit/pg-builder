@@ -31,6 +31,8 @@ class Indirection extends NonAssociativeList implements ScalarExpression
 {
     use HasBothPropsAndOffsets;
 
+    protected ScalarExpression $p_expression;
+
     protected static function getAllowedElementClasses(): array
     {
         return [
@@ -44,12 +46,15 @@ class Indirection extends NonAssociativeList implements ScalarExpression
      * Indirection constructor
      *
      * @param iterable<Identifier|ArrayIndexes|Star> $indirection
-     * @param ScalarExpression $p_expression
+     * @param ScalarExpression $expression
      */
-    public function __construct($indirection, protected ScalarExpression $p_expression)
+    public function __construct($indirection, ScalarExpression $expression)
     {
         $this->generatePropertyNames();
+
         parent::__construct($indirection);
+
+        $this->p_expression = $expression;
         $this->p_expression->setParentNode($this);
     }
 

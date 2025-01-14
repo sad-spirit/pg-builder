@@ -30,13 +30,16 @@ class JsonNestedColumns extends GenericNode implements JsonColumnDefinition
 {
     protected ?Identifier $p_pathName = null;
     protected JsonColumnDefinitionList $p_columns;
+    protected StringConstant $p_path;
 
     public function __construct(
-        protected StringConstant $p_path,
+        StringConstant $path,
         ?Identifier $pathName = null,
         ?JsonColumnDefinitionList $columns = null
     ) {
         $this->generatePropertyNames();
+
+        $this->p_path = $path;
         $this->p_path->setParentNode($this);
 
         if (null !== $pathName) {

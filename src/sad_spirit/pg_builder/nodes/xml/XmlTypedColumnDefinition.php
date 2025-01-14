@@ -32,14 +32,16 @@ use sad_spirit\pg_builder\{
  */
 class XmlTypedColumnDefinition extends XmlColumnDefinition
 {
+    protected TypeName $p_type;
     protected ?ScalarExpression $p_path = null;
     protected ?ScalarExpression $p_default = null;
+    protected ?bool $p_nullable;
 
     public function __construct(
         Identifier $name,
-        protected TypeName $p_type,
+        TypeName $type,
         ?ScalarExpression $path = null,
-        protected ?bool $p_nullable = null,
+        ?bool $nullable = null,
         ?ScalarExpression $default = null
     ) {
         if (null !== $path && $path === $default) {
@@ -47,7 +49,11 @@ class XmlTypedColumnDefinition extends XmlColumnDefinition
         }
 
         parent::__construct($name);
+
+        $this->p_type = $type;
         $this->p_type->setParentNode($this);
+
+        $this->p_nullable = $nullable;
 
         if (null !== $path) {
             $this->p_path = $path;

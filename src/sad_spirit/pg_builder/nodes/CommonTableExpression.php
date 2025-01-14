@@ -40,25 +40,32 @@ use sad_spirit\pg_builder\nodes\{
 class CommonTableExpression extends GenericNode
 {
     protected Statement $p_statement;
+    protected Identifier $p_alias;
     protected IdentifierList $p_columnAliases;
+    protected ?bool $p_materialized = null;
     protected ?SearchClause $p_search = null;
     protected ?CycleClause $p_cycle = null;
 
     public function __construct(
         Statement $statement,
-        protected Identifier $p_alias,
+        Identifier $alias,
         ?IdentifierList $columnAliases = null,
-        protected ?bool $p_materialized = null,
+        ?bool $materialized = null,
         ?SearchClause $search = null,
         ?CycleClause $cycle = null
     ) {
         $this->generatePropertyNames();
+
         $this->p_statement = $statement;
         $this->p_statement->setParentNode($this);
+
+        $this->p_alias = $alias;
         $this->p_alias->setParentNode($this);
 
         $this->p_columnAliases = $columnAliases ?? new IdentifierList();
         $this->p_columnAliases->setParentNode($this);
+
+        $this->p_materialized = $materialized;
 
         if (null !== $search) {
             $this->p_search = $search;

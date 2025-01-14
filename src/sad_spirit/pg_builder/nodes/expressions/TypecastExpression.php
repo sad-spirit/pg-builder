@@ -36,12 +36,15 @@ use sad_spirit\pg_builder\{
 class TypecastExpression extends GenericNode implements ScalarExpression, FunctionLike
 {
     protected ?ScalarExpression $p_argument = null;
+    protected TypeName $p_type;
 
-    public function __construct(ScalarExpression $argument, protected TypeName $p_type)
+    public function __construct(ScalarExpression $argument, TypeName $type)
     {
         $this->generatePropertyNames();
 
         $this->setArgument($argument);
+
+        $this->p_type = $type;
         $this->p_type->setParentNode($this);
     }
 

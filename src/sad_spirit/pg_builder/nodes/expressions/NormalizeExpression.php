@@ -37,10 +37,17 @@ class NormalizeExpression extends GenericNode implements ScalarExpression, Funct
 {
     use ExpressionAtom;
 
-    public function __construct(protected ScalarExpression $p_argument, protected ?NormalizeForm $p_form = null)
+    protected ScalarExpression $p_argument;
+    protected ?NormalizeForm $p_form;
+
+    public function __construct(ScalarExpression $argument, ?NormalizeForm $form = null)
     {
         $this->generatePropertyNames();
+
+        $this->p_argument = $argument;
         $this->p_argument->setParentNode($this);
+
+        $this->p_form = $form;
     }
 
     public function setArgument(ScalarExpression $argument): void

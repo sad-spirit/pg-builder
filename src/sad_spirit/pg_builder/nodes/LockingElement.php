@@ -32,8 +32,9 @@ class LockingElement extends NonAssociativeList
     use NonRecursiveNode;
     use HasBothPropsAndOffsets;
 
-    protected bool $p_noWait = false;
-    protected bool $p_skipLocked = false;
+    protected LockingStrength $p_strength;
+    protected bool $p_noWait;
+    protected bool $p_skipLocked;
 
     protected static function getAllowedElementClasses(): array
     {
@@ -43,13 +44,13 @@ class LockingElement extends NonAssociativeList
     /**
      * Constructor for LockingElement
      *
-     * @param LockingStrength $p_strength
+     * @param LockingStrength      $strength
      * @param array<QualifiedName> $relations
      * @param bool                 $noWait
      * @param bool                 $skipLocked
      */
     public function __construct(
-        protected LockingStrength $p_strength,
+        LockingStrength $strength,
         array $relations = [],
         bool $noWait = false,
         bool $skipLocked = false
@@ -59,6 +60,8 @@ class LockingElement extends NonAssociativeList
         }
 
         $this->generatePropertyNames();
+
+        $this->p_strength   = $strength;
         $this->p_noWait     = $noWait;
         $this->p_skipLocked = $skipLocked;
         parent::__construct($relations);

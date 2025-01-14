@@ -39,8 +39,9 @@ class JoinExpression extends FromElement
     protected bool $p_natural = false;
     protected ?UsingClause $p_using = null;
     protected ?ScalarExpression $p_on = null;
+    protected JoinType $p_type;
 
-    public function __construct(FromElement $left, FromElement $right, protected JoinType $p_type = JoinType::INNER)
+    public function __construct(FromElement $left, FromElement $right, JoinType $type = JoinType::INNER)
     {
         if ($left === $right) {
             throw new InvalidArgumentException("Cannot use the same Node for both sides of JOIN");
@@ -53,6 +54,8 @@ class JoinExpression extends FromElement
 
         $this->p_right = $right;
         $this->p_right->setParentNode($this);
+
+        $this->p_type = $type;
     }
 
     public function setLeft(FromElement $left): void
