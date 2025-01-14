@@ -2,7 +2,8 @@
 
 ## [Unreleased]
 
-The package now requires PHP 8.2+ and Postgres 12+.
+The package now requires PHP 8.2+ and Postgres 12+. BC breaks are possible due to new language features being used,
+please consult the [upgrade instructions](./Upgrading.md).
 
 ### Added
 
@@ -34,9 +35,10 @@ The package now requires PHP 8.2+ and Postgres 12+.
  * Consistently follow Postgres 17 in what is considered a whitespace character: space, `\r`, `\n`, `\t`, `\v`, `\f`.
  * Native `public readonly` properties are used in `nodes\Identifier`, `nodes\expressions\Constant`,
    `nodes\expressions\Parameter`, and their subclasses instead of magic ones.
- * Enums are used throughout package instead of string constants. Migration TBD.
+ * Enums are used throughout package instead of string constants, see the [upgrade instructions](Upgrading.md).
  * Added typehints for arguments and return values where not previously possible,
    e.g. `self|string|ScalarExpression|null` for an argument of `nodes\WhereOrHavingClause::and()`.
+ * `Token` class was converted to an interface with several implementations
 
 ### Removed
 
@@ -45,7 +47,7 @@ The package now requires PHP 8.2+ and Postgres 12+.
    * `$resultTypes` parameter for `NativeStatement::executePrepared()`. The types should be
      passed to `NativeStatement::prepare()`.
  * `Node` classes no longer implement deprecated `Serializable` interface.
- * `Keywords` class (replaced by `Keyword` enum).
+ * `Keywords` class (replaced by `Keyword` enum, see the [upgrade instructions](Upgrading.md)).
 
 ### Fixed
  
