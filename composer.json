@@ -33,8 +33,7 @@
     },
     "autoload":     {
         "psr-4":    {
-            "sad_spirit\\pg_builder\\":         "src/sad_spirit/pg_builder",
-            "sad_spirit\\pg_builder\\rector\\": "rector/"
+            "sad_spirit\\pg_builder\\": "src/sad_spirit/pg_builder"
         }
     },
     "autoload-dev": {

@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [3.0.0-beta] - 2025-01-15
 
 The package now requires PHP 8.2+ and Postgres 12+. BC breaks are possible due to new language features being used,
 please consult the [upgrade instructions](./Upgrading.md).
@@ -428,4 +428,4 @@ Initial release on GitHub
 [2.3.0]: https://github.com/sad-spirit/pg-builder/compare/v2.3.0-beta...v2.3.0
 [2.3.1]: https://github.com/sad-spirit/pg-builder/compare/v2.3.0...v2.3.1
 [2.4.0]: https://github.com/sad-spirit/pg-builder/compare/v2.3.1...v2.4.0
-[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v2.4.0...HEAD
+[3.0.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v2.4.0...v3.0.0-beta

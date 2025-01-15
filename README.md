@@ -4,7 +4,8 @@
 
 [![Static Analysis](https://github.com/sad-spirit/pg-builder/actions/workflows/static-analysis.yml/badge.svg?branch=master)](https://github.com/sad-spirit/pg-builder/actions/workflows/static-analysis.yml)
 
-> Note: master branch is being upgraded for PHP 8.2+ and new syntax of Postgres 17.
+> Note: master branch contains code for an upcoming 3.0 version that requires PHP 8.2+ and supports new syntax of Postgres 17.
+> 
 > [Branch 2.x](../../tree/2.x) contains the stable version supporting PHP 7.2+ and Postgres 16.
 
 This is a query builder for Postgres with a twist: it contains a partial<sup>[1](#footnote1)</sup> reimplementation of PostgreSQL's own
@@ -16,11 +17,25 @@ query parser. This sets it aside from the usual breed of "write-only" query buil
 * AST can be analyzed and transformed, the package takes advantage of this to allow named parameters like
   `:foo` instead of standard PostgreSQL's positional parameters `$1` and to infer parameters' types
   from SQL typecasts.
-* Almost all syntax available for `SELECT` (and `VALUES`) / `INSERT` / `UPDATE` / `DELETE` / `MERGE` in PostgreSQL 16
+* Almost all syntax available for `SELECT` (and `VALUES`) / `INSERT` / `UPDATE` / `DELETE` / `MERGE` in PostgreSQL 17
   is supported, query being built is automatically checked for correct syntax.
 
 Substantial effort was made to optimise parsing, but not parsing is faster anyway, so there are means to cache parts 
 of AST and the resultant query.
+
+## Installation
+
+Require the package with composer:
+```
+composer require "sad_spirit/pg_builder:^3"
+```
+pg_builder requires at least PHP 8.2. Either [native pgsql extension](https://php.net/manual/en/book.pgsql.php) with 
+[pg_wrapper](https://github.com/sad-spirit/pg-wrapper) package or [PDO](https://www.php.net/manual/en/book.pdo.php)
+with pgsql support can be used to run the built queries.
+
+Minimum supported PostgreSQL version is 12.
+
+It is highly recommended to use [PSR-6 compatible](https://www.php-fig.org/psr/psr-6/) cache in production.
 
 ## Usage example
 

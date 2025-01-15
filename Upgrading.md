@@ -1,9 +1,9 @@
 # Upgrading from 2.x to 3.0
 
 The main user-facing issues are
- * Classes supporting integration with `sad_spirit\pg_wrapper` had deprecated features removed;
+ * Deprecated features used for integration with `sad_spirit\pg_wrapper` were removed;
  * Public properties of several `Node` implementations changed type from `string` to enums;
- * Removed default values for setter method arguments; 
+ * Removed default values for setter method arguments;
  * Additional typehints, especially for `TreeWalker`.
 
 The changes to classes used in `Lexer` and `Parser` are documented for completeness but are unlikely to cause issues.
@@ -131,17 +131,18 @@ Additionally
 ## Removed default values for arguments of setter methods
 
 Implicitly nullable parameters were [deprecated in PHP 8.4](https://www.php.net/manual/en/migration84.deprecated.php),
-thus argument typehints were changed to explicitly nullable and their default `null` values were removed,
-```PHP
-$bar->setFoo();
-```
-looks weird unlike more explicit
+thus argument typehints were changed to explicitly nullable and their default `null` values were removed, as
+more explicit
 ```PHP
 $bar->setFoo(null);
 ```
+looks easier to understand than
+```PHP
+$bar->setFoo();
+```
 Some of the setter methods had defaults other than `null`, these were also removed.
 
-Note that it was never recommended to directly call the below methods, except `Node::setParentNode()`:
+Note that it is not recommended to directly call the below methods, except `Node::setParentNode()`:
 they are currently used to support writable magic properties, but that implementation detail may change.
 ```PHP
 // Calling setter method, not recommended
@@ -203,6 +204,20 @@ Methods that changed signatures:
    * `public function setNullable(?bool $nullable = null): void` -> `public function setNullable(?bool $nullable): void`
    * `public function setDefault(ScalarExpression $default = null): void` -> `public function setDefault(?ScalarExpression $default): void`
 
+## Additional typehints
+
+Typehints were added throughout the package where not previously possible (union types, mostly). This should not cause
+problems as the methods usually accept the same values, the only difference being `TypeError` thrown instead of
+`InvalidArgumentException` for incorrect ones.
+
+### `TreeWalker` implementations
+
+Methods defined in `TreeWalker` interface now have explicit `mixed` return typehints. As `BlankWalker` class
+implementing this interface can and will be extended by custom classes created by users of the package,
+errors are possible if
+ * These classes redefine `TreeWalker` methods with `void` return type;
+ * Nothing is returned from overridden `TreeWalker` methods.
+
 ## Changed `Parser`-related features
 
 ### `Token` class -> interface
@@ -259,3 +274,16 @@ previously available in `Keywords` class are now in this enum.
   ```PHP
   Keyword::AND->isBareLabel();
   ```
+
+### `TokenStream` changes
+
+Method `matchesKeyword()` was removed, two new methods are available
+ * `getKeyword(): ?Keyword` - returns the `Keyword` for the current `Token`, `null` if none. This is used in `Parser`
+   to check for a single keyword.
+ * `matchesAnyKeyword(Keyword ...$keywords): ?Keyword` - checks current `Keyword` against the list, 
+   returns matched `Keyword` or `null` if no match. This is used to check for several possible keywords.
+
+Method `matchesKeywordSequence()` now accepts `Keyword` cases instead of strings.
+
+Added `expectKeyword(Keyword ...$keywords): Keyword` method that matches current `Keyword` against a list,
+either returns the matched one or throws `SyntaxException` if no match.
