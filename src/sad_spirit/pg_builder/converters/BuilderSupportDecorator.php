@@ -76,11 +76,9 @@ class BuilderSupportDecorator implements TypeNameNodeHandler, TypeOIDMapperAware
         return $this->wrapped->getConverterForPHPValue($value);
     }
 
-    public function setConnection(Connection $connection): TypeConverterFactory
+    public function setConnection(Connection $connection): void
     {
         $this->wrapped->setConnection($connection);
-
-        return $this;
     }
 
     public function getConverterForTypeNameNode(TypeName $typeName): TypeConverter
