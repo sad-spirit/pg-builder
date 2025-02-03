@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.0.0-beta.2] - 2025-02-03
+
+* Upgraded psalm to version 6, fixed newly discovered issues
+* `\sad_spirit\pg_builder\converters\BuilderSupportDecorator::setConnection()` now has a return typehint of `void`,
+  this follows changes to `TypeConverterFactory` interface in 3.0.0-beta.2 of `sad_spirit/pg_wrapper` package
+
 ## [3.0.0-beta] - 2025-01-15
 
 The package now requires PHP 8.2+ and Postgres 12+. BC breaks are possible due to new language features being used,
@@ -429,3 +435,4 @@ Initial release on GitHub
 [2.3.1]: https://github.com/sad-spirit/pg-builder/compare/v2.3.0...v2.3.1
 [2.4.0]: https://github.com/sad-spirit/pg-builder/compare/v2.3.1...v2.4.0
 [3.0.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v2.4.0...v3.0.0-beta
+[3.0.0-beta.2]: https://github.com/sad-spirit/pg-builder/compare/v3.0.0-beta...v3.0.0-beta.2
