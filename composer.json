@@ -29,7 +29,7 @@
         "sad_spirit/pg_wrapper": "^3.0@beta",
         "psr/cache":             "^3",
         "phpstan/phpstan":       "^2",
-        "vimeo/psalm":           "^5.26"
+        "vimeo/psalm":           "^6"
     },
     "autoload":     {
         "psr-4":    {

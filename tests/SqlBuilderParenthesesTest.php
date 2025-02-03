@@ -53,7 +53,7 @@ class SqlBuilderParenthesesTest extends TestCase
 
     private function normalizeWhitespace(string $string): string
     {
-        return \implode(' ', \preg_split('/\s+/', \trim($string)));
+        return \implode(' ', \preg_split('/\s+/', \trim($string)) ?: []);
     }
 
     protected function assertStringsEqualIgnoringWhitespace(

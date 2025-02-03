@@ -19,30 +19,12 @@
     </projectFiles>
 
     <issueHandlers>
-        <InaccessibleProperty>
-            <errorLevel type="suppress">
-                <!-- https://github.com/vimeo/psalm/issues/5009 -->
-                <!-- https://github.com/vimeo/psalm/issues/5156 -->
-                <file name="src/sad_spirit/pg_builder/nodes/ColumnReference.php"/>
-                <file name="src/sad_spirit/pg_builder/nodes/QualifiedName.php"/>
-                <file name="src/sad_spirit/pg_builder/nodes/QualifiedOperator.php"/>
-            </errorLevel>
-        </InaccessibleProperty>
-
         <InvalidArrayOffset>
             <errorLevel type="suppress">
                 <!-- https://github.com/vimeo/psalm/issues/5672 -->
                 <file name="src/sad_spirit/pg_builder/enums/JsonBehaviour.php"/>
             </errorLevel>
         </InvalidArrayOffset>
-
-        <InvalidCatch>
-            <errorLevel type="suppress">
-                <!-- Doesn't like catching \Psr\Cache\InvalidArgumentException that does not extend \Throwable -->
-                <file name="src/sad_spirit/pg_builder/Parser.php"/>
-                <referencedClass name="\Psr\Cache\InvalidArgumentException"/>
-            </errorLevel>
-        </InvalidCatch>
 
         <InvalidEnumCaseValue>
             <errorLevel type="suppress">
@@ -70,6 +52,15 @@
                 <file name="src/sad_spirit/pg_builder/nodes/range/FunctionFromElement.php"/>
             </errorLevel>
         </NonInvariantDocblockPropertyType>
+
+        <PossiblyNullArgument>
+            <errorLevel type="suppress">
+                <file name="src/sad_spirit/pg_builder/nodes/ColumnReference.php"/>
+                <file name="src/sad_spirit/pg_builder/nodes/QualifiedName.php"/>
+                <file name="src/sad_spirit/pg_builder/nodes/QualifiedOperator.php"/>
+                <referencedFunction name="array_shift"/>
+            </errorLevel>
+        </PossiblyNullArgument>
 
         <!-- Ignore these in tests, whatever we access is guaranteed to be not null -->
         <PossiblyNullArrayAccess>

@@ -368,7 +368,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
                 ? \sprintf(
                     '%1$s can contain only instances of %3$s, instance of %2$s given',
                     \array_shift($shortClasses),
-                    \array_shift($shortClasses),
+                    \array_shift($shortClasses) ?? '',
                     \implode(" or ", $shortClasses)
                 )
                 : \sprintf(

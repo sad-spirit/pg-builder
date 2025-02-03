@@ -183,7 +183,9 @@ QRY
     private function createListOfAllConcreteNodeSubclasses(): array
     {
         $nodes  = [];
-        $srcDir = \realpath(\dirname(__DIR__) . '/src');
+        if (false === $srcDir = \realpath(\dirname(__DIR__) . '/src')) {
+            $this::fail('Could not open src directory');
+        }
 
         /* @var \SplFileInfo $file */
         foreach (

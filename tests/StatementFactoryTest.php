@@ -250,8 +250,8 @@ class StatementFactoryTest extends TestCase
         string $message = ''
     ): void {
         $this::assertEquals(
-            \implode(' ', \preg_split('/\s+/', \trim($expected))),
-            \implode(' ', \preg_split('/\s+/', \trim($actual))),
+            \implode(' ', \preg_split('/\s+/', \trim($expected)) ?: []),
+            \implode(' ', \preg_split('/\s+/', \trim($actual)) ?: []),
             $message
         );
     }
