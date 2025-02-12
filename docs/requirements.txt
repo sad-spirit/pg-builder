@@ -1,0 +1,2 @@
+Sphinx==7.4.5
+sphinx_rtd_theme==3.0.2

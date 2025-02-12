@@ -4,3 +4,4 @@ cache/
 /tests/.phpunit.result.cache
 /vendor
 composer.lock
+/docs/_build/

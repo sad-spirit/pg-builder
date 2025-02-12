@@ -1,0 +1,11 @@
+.wy-nav-content {
+    max-width: 1050px;
+}
+
+.rst-content table.docutils td {
+    vertical-align: top;
+}
+
+.wy-table-responsive table td {
+    white-space: inherit;
+}
