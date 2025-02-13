@@ -1,3 +1,5 @@
+.. _statement-factory:
+
 =================================
 ``StatementFactory`` helper class
 =================================

@@ -12,3 +12,4 @@ queries in Postgres 17 is supported with minor omissions.
 
    overview
    statement-factory
+   statements
