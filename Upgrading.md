@@ -128,6 +128,16 @@ The following properties/arguments were converted:
 Additionally
  * `nodes\range\FromElement`: `$joinType` argument to `join()` is now `enums\JoinType`
 
+## Conversion of precedence and associativity data to enums
+
+* Relative precedence of `SelectCommon` subclasses is now represented by int-backed `enums\SetOperatorPrecedence`,
+  `SelectCommon::getPrecedence()` returns a case of that enum instead of `int`.
+* Relative precedence of `nodes\ScalarExpression` implementations is now represented by
+  int-backed `enums\ScalarExpressionPrecedence`, `getPrecedence()` methods of `ScalarExpression` implementations
+  now return a case of that enum instead of `int`.
+* Associativity of `nodes\ScalarExpression` implementations is represented by `enums\ScalarExpressionAssociativity`,
+  `getAssociativity()` methods of `ScalarExpression` implementations now return a case of that enum instead of `string`.
+
 ## Removed default values for arguments of setter methods
 
 Implicitly nullable parameters were [deprecated in PHP 8.4](https://www.php.net/manual/en/migration84.deprecated.php),

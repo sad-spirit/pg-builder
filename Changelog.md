@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+* Use int-backed `enums\SetOperatorPrecedence` and `enums\ScalarExpressionPrecedence` for specifying relative
+  precedences of `SelectCommon` and `nodes\ScalarExpression` nodes, respectively.
+* Use `enums\ScalarExpressionAssociativity` enum for specifying associativity of `nodes\ScalarExpression`
+  implementations.
+* Better typehints for base interfaces and classes.
+
 ## [3.0.0-beta.2] - 2025-02-03
 
 * Upgraded psalm to version 6, fixed newly discovered issues
@@ -436,3 +444,4 @@ Initial release on GitHub
 [2.4.0]: https://github.com/sad-spirit/pg-builder/compare/v2.3.1...v2.4.0
 [3.0.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v2.4.0...v3.0.0-beta
 [3.0.0-beta.2]: https://github.com/sad-spirit/pg-builder/compare/v3.0.0-beta...v3.0.0-beta.2
+[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v3.0.0-beta.2...HEAD
