@@ -1,3 +1,5 @@
+.. _statements:
+
 =====================
 ``Statement`` classes
 =====================
@@ -11,10 +13,10 @@ Class hierarchy
 ===============
 
 ``Node``
-    Common interface for all nodes in Abstract Syntax Tree.
+    :ref:`Common interface <base-node>` for all nodes in Abstract Syntax Tree.
 
         ``nodes\GenericNode``
-            Common base class for all implementations of ``Node`` within package.
+            :ref:`Common base class<base-generic-node>` for all implementations of ``Node`` within package.
 
                 ``Statement``
                     Abstract base class for statements. Loosely corresponds to ``PreparableStmt`` production
@@ -66,13 +68,15 @@ read-only otherwise.
         $select->setDistinct(true);
 
 If the clause is a list of items, like ``FROM``, then the corresponding property is usually read-only and
-is an implementation of ``NodeList`` and consequently ``\ArrayAccess``.
+is an :ref:`implementation of NodeList <base-nodelist>` and consequently ``\ArrayAccess``.
 The items in the list may be modified as array offsets:
 
 .. code-block:: php
 
     $select->from[0] = 'foo as bar';
     unset($select->from[1]);
+
+.. _statements-base:
 
 ``Statement`` methods and properties
 ====================================
