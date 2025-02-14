@@ -27,7 +27,7 @@ abstract class GenericNode implements Node
 {
     /**
      * Mapping ["class name" => ["magic property" => "actual protected property"]]
-     * @var array<string, array>
+     * @var array<class-string, array<string, string>>
      */
     private static array $propertyNamesCache = [];
 
@@ -46,11 +46,9 @@ abstract class GenericNode implements Node
     /**
      * Variable overloading, exposes values of protected properties having 'p_' name prefix
      *
-     * @param string $name
-     * @return mixed
      * @throws InvalidArgumentException
      */
-    public function __get(string $name)
+    public function __get(string $name): mixed
     {
         if (isset($this->propertyNames[$name])) {
             return $this->{$this->propertyNames[$name]};
@@ -62,12 +60,9 @@ abstract class GenericNode implements Node
     /**
      * Variable overloading, allows setting the $prop property if corresponding setProp() method is defined
      *
-     * @param string $name
-     * @param mixed  $value
-     * @return void
      * @throws InvalidArgumentException
      */
-    public function __set(string $name, $value)
+    public function __set(string $name, mixed $value): void
     {
         if (\method_exists($this, 'set' . $name)) {
             $this->{'set' . $name}($value);
@@ -82,11 +77,8 @@ abstract class GenericNode implements Node
 
     /**
      * Variable overloading, checks the existence of protected property corresponding to magic one
-     *
-     * @param string $name
-     * @return bool
      */
-    public function __isset(string $name)
+    public function __isset(string $name): bool
     {
         return isset($this->propertyNames[$name]);
     }
@@ -111,7 +103,6 @@ abstract class GenericNode implements Node
 
     /**
      * GenericNode only serializes its magic properties by default
-     * @return array
      */
     public function __serialize(): array
     {
@@ -120,7 +111,6 @@ abstract class GenericNode implements Node
 
     /**
      * GenericNode only unserializes its magic properties by default
-     * @param array $data
      */
     public function __unserialize(array $data): void
     {
@@ -201,9 +191,7 @@ abstract class GenericNode implements Node
                     }
                 } while ($check = $check->getparentNode());
             }
-            if (null !== $this->parentNode) {
-                $this->parentNode->removeChild($this);
-            }
+            $this->parentNode?->removeChild($this);
             $this->parentNode = $parent;
 
         } finally {
@@ -274,22 +262,15 @@ abstract class GenericNode implements Node
      */
     public function getParser(): ?Parser
     {
-        if (null === $this->parentNode) {
-            return null;
-        } else {
-            return $this->parentNode->getParser();
-        }
+        return $this->parentNode?->getParser();
     }
 
     /**
      * Returns the Parser or throws an Exception if one is not available
-     *
-     * @param string $as
-     * @return Parser
      */
     protected function getParserOrFail(string $as): Parser
     {
-        if (null !== ($parser = $this->getParser())) {
+        if (null !== $parser = $this->getParser()) {
             return $parser;
         }
         throw new InvalidArgumentException(\sprintf("Passed a string as %s without a Parser available", $as));

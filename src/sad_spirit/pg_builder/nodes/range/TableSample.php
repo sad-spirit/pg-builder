@@ -76,7 +76,7 @@ class TableSample extends FromElement
         $this->p_relation->setAlias($tableAlias, $columnAliases);
     }
 
-    public function __get(string $name)
+    public function __get(string $name): mixed
     {
         if ('tableAlias' === $name || 'columnAliases' === $name) {
             return $this->p_relation->__get($name);
@@ -85,7 +85,7 @@ class TableSample extends FromElement
         }
     }
 
-    public function __set(string $name, $value)
+    public function __set(string $name, mixed $value): void
     {
         if ('tableAlias' === $name || 'columnAliases' === $name) {
             $this->p_relation->__set($name, $value);
@@ -94,7 +94,7 @@ class TableSample extends FromElement
         }
     }
 
-    public function __isset(string $name)
+    public function __isset(string $name): bool
     {
         if ('tableAlias' === $name || 'columnAliases' === $name) {
             return true;

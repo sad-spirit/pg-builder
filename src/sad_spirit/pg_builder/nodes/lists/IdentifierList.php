@@ -36,7 +36,7 @@ class IdentifierList extends NonAssociativeList
 
     protected function prepareListElement($value): Node
     {
-        if (!$value instanceof Identifier) {
+        if (\is_string($value)) {
             $value = new Identifier($value);
         }
         return parent::prepareListElement($value);

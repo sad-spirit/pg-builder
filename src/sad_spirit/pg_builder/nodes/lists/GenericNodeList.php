@@ -46,7 +46,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     /**
      * Instances of these classes / interfaces will be allowed as list elements (Node is always checked)
      *
-     * @return string[]
+     * @return class-string[]
      */
     protected static function getAllowedElementClasses(): array
     {
@@ -87,7 +87,6 @@ abstract class GenericNodeList extends GenericNode implements NodeList
 
     /**
      * GenericNodeList only serializes its $offsets property by default
-     * @return array
      */
     public function __serialize(): array
     {
@@ -96,7 +95,6 @@ abstract class GenericNodeList extends GenericNode implements NodeList
 
     /**
      * GenericNodeList only unserializes its $offsets property by default
-     * @param array $data
      */
     public function __unserialize(array $data): void
     {
@@ -284,7 +282,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      *
      * @return TKey|null
      */
-    public function lastKey()
+    public function lastKey(): string|int|null
     {
         return \array_key_last($this->offsets);
     }
@@ -321,7 +319,6 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * it is not checked further in merge() / replace()
      *
      * @param TListInput $list
-     * @param string     $method
      * @return array<TKey, T>
      */
     abstract protected function convertToArray($list, string $method): array;
