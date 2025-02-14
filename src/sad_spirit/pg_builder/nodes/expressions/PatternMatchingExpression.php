@@ -15,10 +15,12 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
-    TreeWalker,
+    enums\ScalarExpressionAssociativity,
     enums\PatternPredicate,
+    enums\ScalarExpressionPrecedence,
     exceptions\InvalidArgumentException,
-    nodes\ScalarExpression
+    nodes\ScalarExpression,
+    TreeWalker
 };
 
 /**
@@ -87,13 +89,13 @@ class PatternMatchingExpression extends NegatableExpression
         return $walker->walkPatternMatchingExpression($this);
     }
 
-    public function getPrecedence(): int
+    public function getPrecedence(): ScalarExpressionPrecedence
     {
-        return self::PRECEDENCE_PATTERN;
+        return ScalarExpressionPrecedence::PATTERN;
     }
 
-    public function getAssociativity(): string
+    public function getAssociativity(): ScalarExpressionAssociativity
     {
-        return self::ASSOCIATIVE_NONE;
+        return ScalarExpressionAssociativity::NONE;
     }
 }

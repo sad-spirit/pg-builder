@@ -15,6 +15,8 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
+    enums\ScalarExpressionAssociativity,
+    enums\ScalarExpressionPrecedence,
     exceptions\InvalidArgumentException,
     nodes\GenericNode,
     nodes\ScalarExpression,
@@ -77,13 +79,13 @@ class OverlapsExpression extends GenericNode implements ScalarExpression
         return $walker->walkOverlapsExpression($this);
     }
 
-    public function getPrecedence(): int
+    public function getPrecedence(): ScalarExpressionPrecedence
     {
-        return self::PRECEDENCE_OVERLAPS;
+        return ScalarExpressionPrecedence::OVERLAPS;
     }
 
-    public function getAssociativity(): string
+    public function getAssociativity(): ScalarExpressionAssociativity
     {
-        return self::ASSOCIATIVE_NONE;
+        return ScalarExpressionAssociativity::NONE;
     }
 }

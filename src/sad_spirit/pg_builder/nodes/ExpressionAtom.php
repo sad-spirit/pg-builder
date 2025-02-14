@@ -14,30 +14,31 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes;
 
+use sad_spirit\pg_builder\enums\ScalarExpressionAssociativity;
+use sad_spirit\pg_builder\enums\ScalarExpressionPrecedence;
+
 /**
  * Implements getPrecedence() and getAssociativity() methods suitable for expression "atoms"
  *
  * Atoms correspond to c_expr production in PostgreSQL's grammar
+ *
+ * @psalm-require-implements ScalarExpression
  */
 trait ExpressionAtom
 {
     /**
-     * Atoms have highest precedence and generally do not require parentheses added when building SQL
-     *
-     * @return int
+     * Atoms have the highest precedence and generally do not require parentheses added when building SQL
      */
-    public function getPrecedence(): int
+    public function getPrecedence(): ScalarExpressionPrecedence
     {
-        return ScalarExpression::PRECEDENCE_ATOM;
+        return ScalarExpressionPrecedence::ATOM;
     }
 
     /**
      * Associativity does not really make sense for atoms
-     *
-     * @return string
      */
-    public function getAssociativity(): string
+    public function getAssociativity(): ScalarExpressionAssociativity
     {
-        return ScalarExpression::ASSOCIATIVE_NONE;
+        return ScalarExpressionAssociativity::NONE;
     }
 }

@@ -17,6 +17,8 @@ namespace sad_spirit\pg_builder\nodes\expressions;
 use sad_spirit\pg_builder\{
     TreeWalker,
     enums\LogicalOperator,
+    enums\ScalarExpressionAssociativity,
+    enums\ScalarExpressionPrecedence,
     nodes\HasBothPropsAndOffsets,
     nodes\ScalarExpression
 };
@@ -55,16 +57,16 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
         return $walker->walkLogicalExpression($this);
     }
 
-    public function getPrecedence(): int
+    public function getPrecedence(): ScalarExpressionPrecedence
     {
         return match ($this->p_operator) {
-            LogicalOperator::AND => self::PRECEDENCE_AND,
-            LogicalOperator::OR => self::PRECEDENCE_OR
+            LogicalOperator::AND => ScalarExpressionPrecedence::AND,
+            LogicalOperator::OR => ScalarExpressionPrecedence::OR
         };
     }
 
-    public function getAssociativity(): string
+    public function getAssociativity(): ScalarExpressionAssociativity
     {
-        return self::ASSOCIATIVE_LEFT;
+        return ScalarExpressionAssociativity::LEFT;
     }
 }

@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
+use sad_spirit\pg_builder\enums\ScalarExpressionAssociativity;
+use sad_spirit\pg_builder\enums\ScalarExpressionPrecedence;
 use sad_spirit\pg_builder\nodes\GenericNode;
 use sad_spirit\pg_builder\nodes\ScalarExpression;
 
@@ -39,13 +41,13 @@ abstract class AtExpression extends GenericNode implements ScalarExpression
         $this->setRequiredProperty($this->p_argument, $argument);
     }
 
-    public function getPrecedence(): int
+    public function getPrecedence(): ScalarExpressionPrecedence
     {
-        return ScalarExpression::PRECEDENCE_TIME_ZONE;
+        return ScalarExpressionPrecedence::TIME_ZONE;
     }
 
-    public function getAssociativity(): string
+    public function getAssociativity(): ScalarExpressionAssociativity
     {
-        return ScalarExpression::ASSOCIATIVE_LEFT;
+        return ScalarExpressionAssociativity::LEFT;
     }
 }

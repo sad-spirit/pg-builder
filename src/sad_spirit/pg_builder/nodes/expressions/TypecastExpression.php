@@ -15,6 +15,8 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
+    enums\ScalarExpressionAssociativity,
+    enums\ScalarExpressionPrecedence,
     nodes\FunctionLike,
     nodes\GenericNode,
     nodes\TypeName,
@@ -63,13 +65,13 @@ class TypecastExpression extends GenericNode implements ScalarExpression, Functi
         return $walker->walkTypecastExpression($this);
     }
 
-    public function getPrecedence(): int
+    public function getPrecedence(): ScalarExpressionPrecedence
     {
-        return self::PRECEDENCE_TYPECAST;
+        return ScalarExpressionPrecedence::TYPECAST;
     }
 
-    public function getAssociativity(): string
+    public function getAssociativity(): ScalarExpressionAssociativity
     {
-        return self::ASSOCIATIVE_LEFT;
+        return ScalarExpressionAssociativity::LEFT;
     }
 }

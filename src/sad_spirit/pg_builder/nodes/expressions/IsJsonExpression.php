@@ -14,9 +14,13 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\enums\IsJsonType;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    enums\IsJsonType,
+    enums\ScalarExpressionAssociativity,
+    enums\ScalarExpressionPrecedence,
+    nodes\ScalarExpression,
+    TreeWalker
+};
 
 /**
  * AST node representing "foo ... IS [NOT] JSON ..." expression with all bells and whistles
@@ -69,13 +73,13 @@ class IsJsonExpression extends NegatableExpression
         return $walker->walkIsJsonExpression($this);
     }
 
-    public function getPrecedence(): int
+    public function getPrecedence(): ScalarExpressionPrecedence
     {
-        return self::PRECEDENCE_IS;
+        return ScalarExpressionPrecedence::IS;
     }
 
-    public function getAssociativity(): string
+    public function getAssociativity(): ScalarExpressionAssociativity
     {
-        return self::ASSOCIATIVE_NONE;
+        return ScalarExpressionAssociativity::NONE;
     }
 }

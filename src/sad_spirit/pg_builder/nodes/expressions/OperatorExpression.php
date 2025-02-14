@@ -15,6 +15,8 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
+    enums\ScalarExpressionAssociativity,
+    enums\ScalarExpressionPrecedence,
     exceptions\InvalidArgumentException,
     exceptions\SyntaxException,
     nodes\GenericNode,
@@ -39,27 +41,27 @@ use sad_spirit\pg_builder\{
 class OperatorExpression extends GenericNode implements ScalarExpression
 {
     private const PRECEDENCES = [
-        '='  => self::PRECEDENCE_COMPARISON,
-        '<'  => self::PRECEDENCE_COMPARISON,
-        '>'  => self::PRECEDENCE_COMPARISON,
-        '<=' => self::PRECEDENCE_COMPARISON,
-        '>=' => self::PRECEDENCE_COMPARISON,
-        '!=' => self::PRECEDENCE_COMPARISON,
-        '<>' => self::PRECEDENCE_COMPARISON,
+        '='  => ScalarExpressionPrecedence::COMPARISON,
+        '<'  => ScalarExpressionPrecedence::COMPARISON,
+        '>'  => ScalarExpressionPrecedence::COMPARISON,
+        '<=' => ScalarExpressionPrecedence::COMPARISON,
+        '>=' => ScalarExpressionPrecedence::COMPARISON,
+        '!=' => ScalarExpressionPrecedence::COMPARISON,
+        '<>' => ScalarExpressionPrecedence::COMPARISON,
 
-        '+'  => self::PRECEDENCE_ADDITION,
-        '-'  => self::PRECEDENCE_ADDITION,
+        '+'  => ScalarExpressionPrecedence::ADDITION,
+        '-'  => ScalarExpressionPrecedence::ADDITION,
 
-        '*'  => self::PRECEDENCE_MULTIPLICATION,
-        '/'  => self::PRECEDENCE_MULTIPLICATION,
-        '%'  => self::PRECEDENCE_MULTIPLICATION,
+        '*'  => ScalarExpressionPrecedence::MULTIPLICATION,
+        '/'  => ScalarExpressionPrecedence::MULTIPLICATION,
+        '%'  => ScalarExpressionPrecedence::MULTIPLICATION,
 
-        '^' => self::PRECEDENCE_EXPONENTIATION
+        '^' => ScalarExpressionPrecedence::EXPONENTIATION
     ];
 
     private const PRECEDENCES_UNARY = [
-        '+' => self::PRECEDENCE_UNARY_MINUS,
-        '-' => self::PRECEDENCE_UNARY_MINUS
+        '+' => ScalarExpressionPrecedence::UNARY_MINUS,
+        '-' => ScalarExpressionPrecedence::UNARY_MINUS
     ];
 
     protected ScalarExpression|null $p_left = null;
@@ -109,10 +111,10 @@ class OperatorExpression extends GenericNode implements ScalarExpression
         return $walker->walkOperatorExpression($this);
     }
 
-    public function getPrecedence(): int
+    public function getPrecedence(): ScalarExpressionPrecedence
     {
         if (!\is_string($this->p_operator) || !isset(self::PRECEDENCES[$this->p_operator])) {
-            return self::PRECEDENCE_GENERIC_OP;
+            return ScalarExpressionPrecedence::GENERIC_OP;
         } elseif (null === $this->p_left && isset(self::PRECEDENCES_UNARY[$this->p_operator])) {
             return self::PRECEDENCES_UNARY[$this->p_operator];
         } else {
@@ -120,19 +122,19 @@ class OperatorExpression extends GenericNode implements ScalarExpression
         }
     }
 
-    public function getAssociativity(): string
+    public function getAssociativity(): ScalarExpressionAssociativity
     {
         if (!\is_string($this->p_operator)) {
-            return self::ASSOCIATIVE_LEFT;
+            return ScalarExpressionAssociativity::LEFT;
         } elseif (null === $this->p_left && isset(self::PRECEDENCES_UNARY[$this->p_operator])) {
-            return self::ASSOCIATIVE_RIGHT;
+            return ScalarExpressionAssociativity::RIGHT;
         } elseif (
             !isset(self::PRECEDENCES[$this->p_operator])
-            || self::PRECEDENCE_COMPARISON !== self::PRECEDENCES[$this->p_operator]
+            || ScalarExpressionPrecedence::COMPARISON !== self::PRECEDENCES[$this->p_operator]
         ) {
-            return self::ASSOCIATIVE_LEFT;
+            return ScalarExpressionAssociativity::LEFT;
         } else {
-            return self::ASSOCIATIVE_NONE;
+            return ScalarExpressionAssociativity::NONE;
         }
     }
 }

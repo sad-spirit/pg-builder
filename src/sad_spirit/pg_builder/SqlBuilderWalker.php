@@ -100,17 +100,18 @@ class SqlBuilderWalker implements StatementToStringWalker
         nodes\ScalarExpression $expression,
         bool $right = false
     ): bool {
-        $argumentPrecedence   = $argument->getPrecedence();
-        $expressionPrecedence = $expression->getPrecedence();
+        $argumentPrecedence   = $argument->getPrecedence()->value;
+        $expressionPrecedence = $expression->getPrecedence()->value;
 
         if ($expression instanceof nodes\expressions\BetweenExpression) {
             // to be on a safe side, wrap just about everything in parentheses, it is quite
             // difficult to distinguish between a_expr and b_expr at this stage
-            return $argumentPrecedence < ($right ? $expression::PRECEDENCE_TYPECAST : $expressionPrecedence);
+            return $argumentPrecedence
+                < ($right ? enums\ScalarExpressionPrecedence::TYPECAST->value : $expressionPrecedence);
 
         } elseif ($expression instanceof nodes\Indirection) {
             if ($expression[0] instanceof nodes\ArrayIndexes) {
-                return $argumentPrecedence < $expression::PRECEDENCE_ATOM;
+                return $argumentPrecedence < enums\ScalarExpressionPrecedence::ATOM->value;
             } else {
                 return !($argument instanceof nodes\expressions\Parameter
                          || $argument instanceof nodes\expressions\SubselectExpression
@@ -119,9 +120,9 @@ class SqlBuilderWalker implements StatementToStringWalker
         }
 
         return match ($expression->getAssociativity()) {
-            $expression::ASSOCIATIVE_RIGHT => $argumentPrecedence < $expressionPrecedence
+            enums\ScalarExpressionAssociativity::RIGHT => $argumentPrecedence < $expressionPrecedence
                || !$right && $argumentPrecedence === $expressionPrecedence,
-            $expression::ASSOCIATIVE_LEFT => $argumentPrecedence < $expressionPrecedence
+            enums\ScalarExpressionAssociativity::LEFT => $argumentPrecedence < $expressionPrecedence
                || $right && $argumentPrecedence === $expressionPrecedence,
             default => $argumentPrecedence <= $expressionPrecedence
         };
@@ -217,7 +218,7 @@ class SqlBuilderWalker implements StatementToStringWalker
             if (!$statement->limitWithTies) {
                 $clauses[] = $indent . 'limit ' . $statement->limit->dispatch($this);
             } else {
-                $parentheses = $statement->limit->getPrecedence() < nodes\ScalarExpression::PRECEDENCE_ATOM;
+                $parentheses = $statement->limit->getPrecedence()->value < enums\ScalarExpressionPrecedence::ATOM->value;
                 $clauses[]   = $indent . 'fetch first '
                                . ($parentheses ? '(' : '')
                                . $statement->limit->dispatch($this)
@@ -284,7 +285,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
         if (
             $this->containsCommonClauses($statement->left)
-            || $statement->left->getPrecedence() < $statement->getPrecedence()
+            || $statement->left->getPrecedence()->value < $statement->getPrecedence()->value
         ) {
             $this->indentLevel++;
             $part = $indent . '(' . $this->options['linebreak'] . $statement->left->dispatch($this);
@@ -299,7 +300,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
         if (
             $this->containsCommonClauses($statement->right)
-            || $statement->right->getPrecedence() <= $statement->getPrecedence()
+            || $statement->right->getPrecedence()->value <= $statement->getPrecedence()->value
         ) {
             $this->indentLevel++;
             $part = $indent . '(' . $this->options['linebreak'] . $statement->right->dispatch($this);
@@ -928,7 +929,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         $items = [];
         /* @var nodes\ScalarExpression $item */
         foreach ($expression as $item) {
-            if ($item->getPrecedence() >= $expression->getPrecedence()) {
+            if ($item->getPrecedence()->value >= $expression->getPrecedence()->value) {
                 $items[] = $item->dispatch($this);
             } elseif (!$verbose) {
                 $items[] = '(' . $item->dispatch($this) . ')';

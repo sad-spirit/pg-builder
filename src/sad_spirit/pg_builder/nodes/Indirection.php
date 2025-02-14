@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes;
 
+use sad_spirit\pg_builder\enums\ScalarExpressionAssociativity;
+use sad_spirit\pg_builder\enums\ScalarExpressionPrecedence;
 use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 use sad_spirit\pg_builder\TreeWalker;
 
@@ -68,14 +70,14 @@ class Indirection extends NonAssociativeList implements ScalarExpression
         return $walker->walkIndirection($this);
     }
 
-    public function getPrecedence(): int
+    public function getPrecedence(): ScalarExpressionPrecedence
     {
         // actual precedence depends on contents of $nodes
-        return self::PRECEDENCE_ATOM;
+        return ScalarExpressionPrecedence::ATOM;
     }
 
-    public function getAssociativity(): string
+    public function getAssociativity(): ScalarExpressionAssociativity
     {
-        return self::ASSOCIATIVE_LEFT;
+        return ScalarExpressionAssociativity::LEFT;
     }
 }

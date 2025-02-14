@@ -16,6 +16,8 @@ namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
     enums\BetweenPredicate,
+    enums\ScalarExpressionAssociativity,
+    enums\ScalarExpressionPrecedence,
     nodes\ScalarExpression,
     exceptions\InvalidArgumentException,
     TreeWalker
@@ -87,13 +89,13 @@ class BetweenExpression extends NegatableExpression
         return $walker->walkBetweenExpression($this);
     }
 
-    public function getPrecedence(): int
+    public function getPrecedence(): ScalarExpressionPrecedence
     {
-        return self::PRECEDENCE_BETWEEN;
+        return ScalarExpressionPrecedence::BETWEEN;
     }
 
-    public function getAssociativity(): string
+    public function getAssociativity(): ScalarExpressionAssociativity
     {
-        return self::ASSOCIATIVE_NONE;
+        return ScalarExpressionAssociativity::NONE;
     }
 }

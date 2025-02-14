@@ -14,9 +14,13 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\nodes\GenericNode;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    enums\ScalarExpressionAssociativity,
+    enums\ScalarExpressionPrecedence,
+    nodes\GenericNode,
+    nodes\ScalarExpression,
+    TreeWalker
+};
 
 /**
  * AST node representing logical NOT operator applied to an expression
@@ -45,13 +49,13 @@ class NotExpression extends GenericNode implements ScalarExpression
         return $walker->walkNotExpression($this);
     }
 
-    public function getPrecedence(): int
+    public function getPrecedence(): ScalarExpressionPrecedence
     {
-        return self::PRECEDENCE_NOT;
+        return ScalarExpressionPrecedence::NOT;
     }
 
-    public function getAssociativity(): string
+    public function getAssociativity(): ScalarExpressionAssociativity
     {
-        return self::ASSOCIATIVE_RIGHT;
+        return ScalarExpressionAssociativity::RIGHT;
     }
 }

@@ -14,9 +14,13 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder\nodes\expressions;
 
-use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
-use sad_spirit\pg_builder\nodes\ScalarExpression;
-use sad_spirit\pg_builder\TreeWalker;
+use sad_spirit\pg_builder\{
+    enums\ScalarExpressionAssociativity,
+    enums\ScalarExpressionPrecedence,
+    exceptions\InvalidArgumentException,
+    nodes\ScalarExpression,
+    TreeWalker
+};
 
 /**
  * AST node representing "foo IS [NOT] DISTINCT FROM bar" expression
@@ -61,13 +65,13 @@ class IsDistinctFromExpression extends NegatableExpression
         return $walker->walkIsDistinctFromExpression($this);
     }
 
-    public function getPrecedence(): int
+    public function getPrecedence(): ScalarExpressionPrecedence
     {
-        return self::PRECEDENCE_IS;
+        return ScalarExpressionPrecedence::IS;
     }
 
-    public function getAssociativity(): string
+    public function getAssociativity(): ScalarExpressionAssociativity
     {
-        return self::ASSOCIATIVE_NONE;
+        return ScalarExpressionAssociativity::NONE;
     }
 }

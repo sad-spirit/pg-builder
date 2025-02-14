@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder;
 
+use sad_spirit\pg_builder\enums\SetOperatorPrecedence;
 use sad_spirit\pg_builder\nodes\{
     ScalarExpression,
     lists\LockList,
@@ -32,21 +33,6 @@ use sad_spirit\pg_builder\enums\SetOperator;
  */
 abstract class SelectCommon extends Statement
 {
-    /**
-     * Precedence for UNION [ALL] and EXCEPT [ALL] set operations
-     */
-    protected const PRECEDENCE_SETOP_UNION     = 1;
-
-    /**
-     * Precedence for INTERSECT [ALL] set operation
-     */
-    protected const PRECEDENCE_SETOP_INTERSECT = 2;
-
-    /**
-     * Precedence for a base SELECT / VALUES statement in set operations
-     */
-    protected const PRECEDENCE_SETOP_SELECT    = 3;
-
     protected OrderByList $p_order;
     protected ?ScalarExpression $p_limit = null;
     protected bool $p_limitWithTies = false;
@@ -151,11 +137,9 @@ abstract class SelectCommon extends Statement
 
     /**
      * Returns the relative precedence for this SelectCommon instance in set operations
-     *
-     * @return int One of PRECEDENCE_SETOP_* constants
      */
-    public function getPrecedence(): int
+    public function getPrecedence(): SetOperatorPrecedence
     {
-        return self::PRECEDENCE_SETOP_SELECT;
+        return SetOperatorPrecedence::SELECT;
     }
 }

@@ -15,6 +15,8 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder\nodes\expressions;
 
 use sad_spirit\pg_builder\{
+    enums\ScalarExpressionAssociativity,
+    enums\ScalarExpressionPrecedence,
     nodes\GenericNode,
     nodes\QualifiedName,
     nodes\ScalarExpression,
@@ -53,13 +55,13 @@ class CollateExpression extends GenericNode implements ScalarExpression
         return $walker->walkCollateExpression($this);
     }
 
-    public function getPrecedence(): int
+    public function getPrecedence(): ScalarExpressionPrecedence
     {
-        return self::PRECEDENCE_COLLATE;
+        return ScalarExpressionPrecedence::COLLATE;
     }
 
-    public function getAssociativity(): string
+    public function getAssociativity(): ScalarExpressionAssociativity
     {
-        return self::ASSOCIATIVE_LEFT;
+        return ScalarExpressionAssociativity::LEFT;
     }
 }

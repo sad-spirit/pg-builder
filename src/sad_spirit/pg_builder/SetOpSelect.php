@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_builder\enums\SetOperator;
+use sad_spirit\pg_builder\enums\SetOperatorPrecedence;
 
 /**
  * Represents a set operator (UNION, INTERSECT, EXCEPT) applied to two select statements
@@ -61,16 +62,16 @@ class SetOpSelect extends SelectCommon
         return $walker->walkSetOpSelectStatement($this);
     }
 
-    public function getPrecedence(): int
+    public function getPrecedence(): SetOperatorPrecedence
     {
         return match ($this->p_operator) {
             SetOperator::UNION,
             SetOperator::UNION_ALL,
             SetOperator::EXCEPT,
-            SetOperator::EXCEPT_ALL => self::PRECEDENCE_SETOP_UNION,
+            SetOperator::EXCEPT_ALL => SetOperatorPrecedence::UNION,
 
             SetOperator::INTERSECT,
-            SetOperator::INTERSECT_ALL => self::PRECEDENCE_SETOP_INTERSECT
+            SetOperator::INTERSECT_ALL => SetOperatorPrecedence::INTERSECT
         };
     }
 }

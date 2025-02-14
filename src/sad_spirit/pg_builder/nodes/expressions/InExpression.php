@@ -17,6 +17,8 @@ namespace sad_spirit\pg_builder\nodes\expressions;
 use sad_spirit\pg_builder\{
     SelectCommon,
     TreeWalker,
+    enums\ScalarExpressionAssociativity,
+    enums\ScalarExpressionPrecedence,
     nodes\ScalarExpression
 };
 use sad_spirit\pg_builder\nodes\lists\ExpressionList;
@@ -65,13 +67,13 @@ class InExpression extends NegatableExpression
         return $walker->walkInExpression($this);
     }
 
-    public function getPrecedence(): int
+    public function getPrecedence(): ScalarExpressionPrecedence
     {
-        return self::PRECEDENCE_IN;
+        return ScalarExpressionPrecedence::IN;
     }
 
-    public function getAssociativity(): string
+    public function getAssociativity(): ScalarExpressionAssociativity
     {
-        return self::ASSOCIATIVE_NONE;
+        return ScalarExpressionAssociativity::NONE;
     }
 }
