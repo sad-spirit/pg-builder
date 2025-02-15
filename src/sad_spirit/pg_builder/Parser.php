@@ -993,7 +993,7 @@ class Parser
         return new nodes\CommonTableExpression($statement, $alias, $columnAliases, $materialized, $search, $cycle);
     }
 
-    public function SearchClause(): nodes\cte\SearchClause
+    protected function SearchClause(): nodes\cte\SearchClause
     {
         $this->stream->expectKeyword(Keyword::SEARCH);
         $first = $this->stream->expectKeyword(Keyword::BREADTH, Keyword::DEPTH);
@@ -1008,7 +1008,7 @@ class Parser
         return new nodes\cte\SearchClause(Keyword::BREADTH === $first, $trackColumns, $sequenceColumn);
     }
 
-    public function CycleClause(): nodes\cte\CycleClause
+    protected function CycleClause(): nodes\cte\CycleClause
     {
         $this->stream->expectKeyword(Keyword::CYCLE);
         $trackColumns = $this->ColIdList();
@@ -2571,7 +2571,7 @@ class Parser
     /**
      * Represents AexprConst production from the grammar, used only in CYCLE clause currently
      */
-    public function ConstantExpression(): nodes\expressions\Constant|nodes\expressions\ConstantTypecastExpression
+    protected function ConstantExpression(): nodes\expressions\Constant|nodes\expressions\ConstantTypecastExpression
     {
         if (
             $this->stream->matchesAnyKeyword(Keyword::NULL, Keyword::TRUE, Keyword::FALSE)
@@ -4682,7 +4682,7 @@ class Parser
         return $expression;
     }
 
-    public function JsonArrayConstructor(): nodes\json\JsonArray
+    protected function JsonArrayConstructor(): nodes\json\JsonArray
     {
         if (self::PARENTHESES_SELECT === $this->checkContentsOfParentheses(-1)) {
             return new nodes\json\JsonArraySubselect(
@@ -4704,7 +4704,7 @@ class Parser
         );
     }
 
-    public function JsonObjectConstructor(): nodes\FunctionLike
+    protected function JsonObjectConstructor(): nodes\FunctionLike
     {
         if ($this->stream->matchesSpecialChar(')')) {
             return new nodes\json\JsonObject();
@@ -4757,7 +4757,7 @@ class Parser
     }
 
 
-    public function JsonQueryFunction(string $funcName): nodes\json\JsonQueryCommon
+    protected function JsonQueryFunction(string $funcName): nodes\json\JsonQueryCommon
     {
         $context = $this->JsonFormattedValue();
         $this->stream->expect(TokenType::SPECIAL_CHAR, ',');

@@ -2,11 +2,19 @@
 
 ## [Unreleased]
 
+### Changed
+
 * Use int-backed `enums\SetOperatorPrecedence` and `enums\ScalarExpressionPrecedence` for specifying relative
   precedences of `SelectCommon` and `nodes\ScalarExpression` nodes, respectively.
 * Use `enums\ScalarExpressionAssociativity` enum for specifying associativity of `nodes\ScalarExpression`
   implementations.
 * Better typehints for base interfaces and classes.
+
+### Fixed
+
+* Methods of `Parser` that were erroneously marked as `public` were changed to intended `protected`:
+  `SearchClause()`, `CycleClause()`, `ConstantExpression()`, `JsonArrayConstructor()`, `JsonObjectConstructor()`,
+  `JsonQueryFunction()`  
 
 ## [3.0.0-beta.2] - 2025-02-03
 
