@@ -160,8 +160,6 @@ class WhereOrHavingClause extends GenericNode
      * $select->where->and('foo')->and($select->where->nested('bar')->or('baz'));
      * </code>
      * will yield 'foo and (bar or baz)'.
-     *
-     * @return WhereOrHavingClause
      */
     public function nested(self|string|ScalarExpression $condition): self
     {

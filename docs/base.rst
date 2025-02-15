@@ -1,8 +1,8 @@
 .. _base:
 
-===========================
-Base classes and interfaces
-===========================
+================================
+Base node classes and interfaces
+================================
 
 ``\sad_spirit\pg_builder\Node`` is an interface implemented by all AST
 nodes. Its descendant ``\sad_spirit\pg_builder\NodeList`` is a interface
@@ -181,7 +181,7 @@ Additionally, ``GenericNode`` implements the following magic methods:
     :ref:`parent node references <base-parent>`
 
 ``__serialize()`` / ``__unserialize()``
-    These are needed to support caching of ASTs.
+    These are needed to support :ref:`caching of ASTs <parsing-cache>`.
 
 .. _base-nodelist:
 

@@ -90,6 +90,8 @@ Constructor arguments
 ``getParser()`` and ``getBuilder()``
     These are self-explanatory, returning properties set in the constructor.
 
+.. _statement-factory-conversion:
+
 Conversion methods
 ==================
 
@@ -108,6 +110,8 @@ These use ``Parser`` and ``SqlBuilderWalker`` to convert query from SQL string t
     with ``\PDO::prepare()`` even if ``$PDOCompatible`` flag was not passed to constructor or if the query
     does not contain parameter placeholders,
     see `the relevant issue <https://github.com/sad-spirit/pg-builder/issues/15>`__.
+
+.. _statement-factory-builders:
 
 Creating ``Statement``\ s
 =========================

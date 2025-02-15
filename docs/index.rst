@@ -14,3 +14,5 @@ queries in Postgres 17 is supported with minor omissions.
    statement-factory
    statements
    base
+   helpers
+   parsing

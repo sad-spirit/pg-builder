@@ -1,8 +1,8 @@
 .. _statements:
 
-=====================
-``Statement`` classes
-=====================
+===================================
+Classes representing SQL statements
+===================================
 
 Subclasses of ``\sad_spirit\pg_builder\Statement`` represent the complete SQL statements.
 Their instances are usually created by :ref:`StatementFactory methods <statement-factory>`.
@@ -228,6 +228,8 @@ are accessible as array offsets. It also has a writable boolean ``$recursive`` p
 ``$locking: nodes\lists\LockList``
     Locking clause of ``SELECT`` statement, consisting of e.g. ``FOR UPDATE ...`` clauses. ``LockList``
     is essentially an array containing only instances of ``nodes\LockingElement``.
+
+.. _statements-select-set:
 
 Methods for set operators
 ~~~~~~~~~~~~~~~~~~~~~~~~~
