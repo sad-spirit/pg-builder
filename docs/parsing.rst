@@ -39,7 +39,7 @@ Several dozens of such methods are defined, e.g.
     :ref:`StatementFactory::createFromString() <statement-factory-conversion>`.
 
 ``parseTypeName(string|TokenStream $input): nodes\TypeName``
-    Parses a type name. Used by :ref:`converters\BuilderSupportDecorator <queries>` so that it can handle any type name
+    Parses a type name. Used by :ref:`converters\\BuilderSupportDecorator <queries>` so that it can handle any type name
     Postgres itself can.
 
 Other ``parse*()`` methods are used by ``Node`` implementations that accept strings for their properties or array

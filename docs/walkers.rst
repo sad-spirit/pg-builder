@@ -141,7 +141,7 @@ This class is used internally by :ref:`StatementFactory::createFromAST() <statem
 
 - Replace named parameters by positional ones;
 - Infer parameter types from SQL typecasts. Type info can later be used
-  by :ref:`converters\BuilderSupportDecorator <queries>` for converting parameters.
+  by :ref:`converters\\BuilderSupportDecorator <queries>` for converting parameters.
 
 Using named parameters like ``:foo`` instead of standard PostgreSQL's positional ``$1`` has obvious benefits
 when query is being built: it is far easier to create unique parameter names than to assign successive
