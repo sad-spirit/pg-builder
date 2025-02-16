@@ -23,20 +23,6 @@ query parser. This sets it aside from the usual breed of "write-only" query buil
 Substantial effort was made to optimise parsing, but not parsing is faster anyway, so there are means to cache parts 
 of AST and the resultant query.
 
-## Installation
-
-Require the package with composer:
-```
-composer require "sad_spirit/pg_builder:^3"
-```
-pg_builder requires at least PHP 8.2. Either [native pgsql extension](https://php.net/manual/en/book.pgsql.php) with 
-[pg_wrapper](https://github.com/sad-spirit/pg-wrapper) package or [PDO](https://www.php.net/manual/en/book.pdo.php)
-with pgsql support can be used to run the built queries.
-
-Minimum supported PostgreSQL version is 12.
-
-It is highly recommended to use [PSR-6 compatible](https://www.php-fig.org/psr/psr-6/) cache in production.
-
 ## Usage example
 
 ```PHP
@@ -139,9 +125,23 @@ limit 5
 ```
 if targeting PDO
 
+## Installation
+
+Require the package with composer:
+```
+composer require "sad_spirit/pg_builder:^3"
+```
+pg_builder requires at least PHP 8.2. Either [native pgsql extension](https://php.net/manual/en/book.pgsql.php) with
+[pg_wrapper](https://github.com/sad-spirit/pg-wrapper) package or [PDO](https://www.php.net/manual/en/book.pdo.php)
+with pgsql support can be used to run the built queries.
+
+Minimum supported PostgreSQL version is 12.
+
+It is highly recommended to use [PSR-6 compatible](https://www.php-fig.org/psr/psr-6/) cache in production.
+
 ## Documentation
 
-Is in the [wiki](https://github.com/sad-spirit/pg-builder/wiki)
+For in-depth description of package features, visit [pg_builder manual](https://pg-builder.readthedocs.io/).
 
 ---
 <a name="footnote1">1</a>: "Partial" here means the following: PostgreSQL grammar file `src/backend/parser/gram.y` is about 19K lines long. 

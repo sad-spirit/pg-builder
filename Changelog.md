@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+Package manual is now published on [Read the Docs](https://pg-builder.readthedocs.io)
+
 ### Changed
 
 * Use int-backed `enums\SetOperatorPrecedence` and `enums\ScalarExpressionPrecedence` for specifying relative
