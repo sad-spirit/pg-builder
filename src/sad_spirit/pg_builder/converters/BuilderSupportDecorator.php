@@ -25,8 +25,7 @@ use sad_spirit\pg_builder\nodes\{
 };
 use sad_spirit\pg_wrapper\{
     Connection,
-    TypeConverter,
-    TypeConverterFactory
+    TypeConverter
 };
 use sad_spirit\pg_wrapper\converters\{
     DefaultTypeConverterFactory,
@@ -90,7 +89,7 @@ class BuilderSupportDecorator implements TypeNameNodeHandler, TypeOIDMapperAware
         );
     }
 
-    public function createTypeNameNodeForOID($oid): TypeName
+    public function createTypeNameNodeForOID(int|string $oid): TypeName
     {
         if ($this->getOIDMapper()->isArrayTypeOID($oid, $baseTypeOid)) {
             $node = $this->createTypeNameNodeForOID($baseTypeOid);
@@ -124,8 +123,6 @@ class BuilderSupportDecorator implements TypeNameNodeHandler, TypeOIDMapperAware
      * a converter for the given database type
      *
      * @param class-string $className
-     * @param string       $type
-     * @param string       $schema
      */
     public function registerClassMapping(string $className, string $type, string $schema = 'pg_catalog'): void
     {
@@ -136,8 +133,7 @@ class BuilderSupportDecorator implements TypeNameNodeHandler, TypeOIDMapperAware
      * Registers a converter for a known named type
      *
      * @param class-string<TypeConverter>|callable|TypeConverter $converter
-     * @param string|string[]                     $type
-     * @param string                              $schema
+     * @param string|string[] $type
      */
     public function registerConverter(
         callable|TypeConverter|string $converter,
@@ -157,7 +153,6 @@ class BuilderSupportDecorator implements TypeNameNodeHandler, TypeOIDMapperAware
      * $stmt->execute($factory->convertParameters($native, $params));
      * </code>
      *
-     * @param NativeStatement      $statement
      * @param array<string, mixed> $parameters
      * @param array<string, mixed> $paramTypes Additional parameter types, values from this array will take precedence
      *                                         over types from $statement->getParameterTypes()

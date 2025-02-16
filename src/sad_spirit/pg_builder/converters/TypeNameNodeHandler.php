@@ -27,9 +27,6 @@ interface TypeNameNodeHandler extends TypeConverterFactory
      * Returns a converter for query builder's TypeName node
      *
      * Usually this will come from a typecast applied to a query parameter and extracted by ParameterWalker
-     *
-     * @param TypeName $typeName
-     * @return TypeConverter
      */
     public function getConverterForTypeNameNode(TypeName $typeName): TypeConverter;
 
@@ -37,7 +34,6 @@ interface TypeNameNodeHandler extends TypeConverterFactory
      * Returns TypeName node for query AST based on provided type OID
      *
      * @param int|numeric-string $oid
-     * @return TypeName
      */
-    public function createTypeNameNodeForOID($oid): TypeName;
+    public function createTypeNameNodeForOID(int|string $oid): TypeName;
 }
