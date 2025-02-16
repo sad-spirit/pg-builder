@@ -135,7 +135,7 @@ are accessible as array offsets. It also has a writable boolean ``$recursive`` p
     and behaves like an array containing only instances of ``nodes\range\FromElement``.
 
 ``$where: nodes\WhereOrHavingClause``
-    ``WHERE`` clause of ``DELETE``. ``$where`` property is read-only, but has helper methods for
+    ``WHERE`` clause of ``DELETE``. ``$where`` property is read-only, but has :ref:`helper methods <helpers>` for
     building the ``WHERE`` clause.
 
 ``$returning: nodes\lists\TargetList``

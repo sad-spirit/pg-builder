@@ -109,10 +109,10 @@ Usually you work with node's children through exposed properties, but
 ``removeChild()``
     Removes the child ``Node`` (more precisely, tries to store a ``null`` in a relevant property).
 
-These methods are useful for applications that transform AST: e.g. when ``ParameterWalker`` instance needs to replace
-a node for a named parameter ``:foo`` with a node for a positional parameter ``$1`` it just calls ``replaceChild()``
-on the ``Parameter``'s parent node. It doesn't care about that node's type and doesn't know to what property of
-the parent the ``Parameter`` node is mapped.
+These methods are useful for applications that transform AST: e.g. when
+:ref:`ParameterWalker instance <walkers-parameters>` needs to replace a node for a named parameter ``:foo`` with a node
+for a positional parameter ``$1`` it just calls ``replaceChild()`` on the ``Parameter``'s parent node.
+It doesn't care about that node's type and doesn't know to what property of the parent the ``Parameter`` node is mapped.
 
 ``nodes\ScalarExpression`` interface
 ------------------------------------

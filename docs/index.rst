@@ -16,3 +16,6 @@ queries in Postgres 17 is supported with minor omissions.
    base
    helpers
    parsing
+   walkers
+   queries
+   exceptions

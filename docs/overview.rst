@@ -67,7 +67,8 @@ Usage
 Start building a query
 ----------------------
 
-There are three ways to start building a query with **pg_builder**. The first one involves ``StatementFactory``
+There are three ways to start building a query with **pg_builder**. The first one
+:ref:`involves StatementFactory <statement-factory>`
 and will be immediately familiar to users of more traditional query builders:
 
 .. code-block:: php
@@ -78,8 +79,8 @@ and will be immediately familiar to users of more traditional query builders:
         ->select('foo_id as id, foo_title, foo_description', 'foo');
 
 What's may be less familiar is that we are passing the list of columns as string instead of the usual array.
-The resultant ``$select`` statement, however, won't contain that string, it will contain several ``Node``\ s
-representing target fields (and relations in ``FROM``).
+The resultant :ref:`$select statement <statements>`, however, won't contain that string, it will contain several
+``Node``\ s representing target fields (and relations in ``FROM``).
 
 Those ``Node``\ s can also be created manually and that represents the second way to build a query:
 
@@ -107,7 +108,7 @@ However it is extremely verbose and you are unlikely to do this very often, if e
 .. tip::
 
     The code that allows us to add query parts as strings but have a tree representing the query as a result
-    is a reimplementation of PostgreSQL's parser.
+    is a :ref:`reimplementation of PostgreSQL's parser <parsing>`.
 
 The third way that is unique to **pg_builder** is starting from a manually written query
 
@@ -127,7 +128,8 @@ Add elements to the query
 -------------------------
 
 Various clauses of ``SELECT`` statement are exposed as properties of ``$select`` object.
-Those are either directly writable or behave like arrays or have some helper methods for manipulation:
+Those are either directly writable or :ref:`behave like arrays <base-nodelist>`
+or :ref:`have some helper methods <helpers>` for manipulation:
 
 .. code-block:: php
 
@@ -226,7 +228,8 @@ or using ``SqlBuilderWalker`` this can be done in a bit more readable way
                   && 'count(*)' === $select->list[0]->dispatch(new SqlBuilderWalker());
 
 It is sometimes needed to analyze the whole AST rather than a single known part of it:
-you can use an implementation of ``TreeWalker`` for this. For example, the ``ParameterWalker`` class of the package
+you can use an :ref:`implementation of TreeWalker <walkers>` for this.
+For example, the ``ParameterWalker`` class of the package
 processes the query and replaces named parameters ``:foo`` that are not natively supported by PostgreSQL
 to native positional parameters and infers the parameters' types from SQL typecasts.
 
@@ -240,8 +243,8 @@ This is as simple as (if using ``StatementFactory``)
    $native = $factory->createFromAST($select);
 
 Under the hood this uses another implementation of ``TreeWalker``: ``SqlBuilderWalker``. The returned value
-is not a ``string`` but an instance of ``NativeStatement`` object. It contains both the generated SQL and
-info on query parameters extracted using the ``ParameterWalker`` mentioned above.
+is not a ``string`` but an instance of :ref:`NativeStatement object <queries-nativestatement>`.
+It contains both the generated SQL and info on query parameters extracted using the ``ParameterWalker`` mentioned above.
 
 Execute the generated SQL
 -------------------------

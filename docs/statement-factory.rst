@@ -8,6 +8,8 @@
 It also takes care of properly configuring objects needed to create these statements based on PostgreSQL connection,
 if one is given.
 
+It is recommended to use this class as an entrypoint to **pg_builder** features and to pass it as a dependency.
+
 Public API
 ==========
 
@@ -66,7 +68,8 @@ Constructor methods and getters
 ===============================
 
 Constructor arguments
-    ``__construct()`` accepts an instance of ``Parser`` and an implementation of ``StatementToStringWalker``,
+    ``__construct()`` accepts an :ref:`instance of Parser <parsing>` and an
+    :ref:`implementation of StatementToStringWalker <walkers-interface>`,
     the latter is implemented by ``SqlBuilderWalker``. If these are not provided, default instances will be created.
 
     ``$PDOCompatible`` flag triggers generating queries targeting PDO rather than native pgsql extension. Specifically,
@@ -98,13 +101,14 @@ Conversion methods
 These use ``Parser`` and ``SqlBuilderWalker`` to convert query from SQL string to AST and back:
 
 ``createFromString()``
-    Creates an AST representing a complete statement from SQL string. Returns an instance of ``Statement`` subclass,
+    Creates an AST representing a complete statement from SQL string. Returns an
+    :ref:`instance of Statement subclass <statements>`,
     already having an instance of ``Parser`` added to it (so it can accept strings as query parts).
 
 ``createFromAST()``
     Creates an object containing SQL statement string and parameter mappings from AST. The
-    returned ``NativeStatement`` object can be easily cached to prevent re-running expensive parsing and
-    building operations.
+    returned :ref:`NativeStatement object <queries-nativestatement>` can be cached to prevent re-running expensive
+    parsing and building operations.
 
     If ``$forcePDOPrepareCompatibility`` flag is ``true``, then generated SQL will be compatible
     with ``\PDO::prepare()`` even if ``$PDOCompatible`` flag was not passed to constructor or if the query

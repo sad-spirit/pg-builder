@@ -39,7 +39,7 @@ Several dozens of such methods are defined, e.g.
     :ref:`StatementFactory::createFromString() <statement-factory-conversion>`.
 
 ``parseTypeName(string|TokenStream $input): nodes\TypeName``
-    Parses a type name. Used by ``converters\BuilderSupportDecorator`` so that it can handle any type name
+    Parses a type name. Used by :ref:`converters\BuilderSupportDecorator <queries>` so that it can handle any type name
     Postgres itself can.
 
 Other ``parse*()`` methods are used by ``Node`` implementations that accept strings for their properties or array
@@ -62,6 +62,9 @@ to its ``setCache(CacheItemPoolInterface $cache): void`` method.
     $parser->setCache(new AnotherCacheImplementation());
 
 ASTs will be stored in cache under keys having ``parsetree-`` prefix.
+
+.. tip::
+    Unserializing AST is at least 4-5 times faster than creating it from SQL. Use cache if possible.
 
 .. _parsing-lexer:
 
@@ -268,7 +271,7 @@ in ``src/backend/parser/gram.y`` file of Postgres sources, but the implementatio
 
 .. note::
 
-    The part that is reimplemented starts about the ``PreparableStmt`` production in ``gram.y``.
+    The part that is reimplemented starts around the ``PreparableStmt`` production in ``gram.y``.
 
 Differences from Postgres parser: the following constructs are not
 supported
