@@ -107,7 +107,8 @@ These use ``Parser`` and ``SqlBuilderWalker`` to convert query from SQL string t
 
 ``createFromAST()``
     Creates an object containing SQL statement string and parameter mappings from AST. The
-    returned :ref:`NativeStatement object <queries-nativestatement>` can be cached to prevent re-running expensive
+    returned :ref:`NativeStatement object <queries-nativestatement>` can be
+    :ref:`cached <queries-nativestatement-caching>` to prevent re-running expensive
     parsing and building operations.
 
     If ``$forcePDOPrepareCompatibility`` flag is ``true``, then generated SQL will be compatible

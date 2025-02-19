@@ -179,6 +179,8 @@ outputs
      string(4) "int4"
    }
 
+.. _walkers-sql:
+
 ``SqlBuilderWalker`` class
 ==========================
 
