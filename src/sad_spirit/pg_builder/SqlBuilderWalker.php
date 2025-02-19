@@ -521,10 +521,10 @@ class SqlBuilderWalker implements StatementToStringWalker
             return '$$' . $node->value . '$$';
         } else {
             $i = 1;
-            while (\str_contains($node->value . '$', '$_' . $i . '$')) {
+            while (\str_contains($node->value . '$', '$_' . (string)$i . '$')) {
                 $i++;
             }
-            return '$_' . $i . '$' . $node->value . '$_' . $i . '$';
+            return \sprintf('$_%1$d$%2$s$_%1$d$', $i, $node->value);
         }
     }
 
@@ -633,7 +633,7 @@ class SqlBuilderWalker implements StatementToStringWalker
 
     public function walkPositionalParameter(nodes\expressions\PositionalParameter $node): string
     {
-        return '$' . $node->position;
+        return '$' . (string)$node->position;
     }
 
     public function walkQualifiedName(nodes\QualifiedName $node): string

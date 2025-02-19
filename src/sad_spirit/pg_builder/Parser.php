@@ -741,7 +741,7 @@ class Parser
 
         } else {
             throw new exceptions\SyntaxException(
-                'Unexpected ' . $this->stream->getCurrent()
+                'Unexpected ' . $this->stream->getCurrent()->__toString()
                 . ', expecting SELECT / INSERT / UPDATE / DELETE / MERGE statement'
             );
         }
@@ -1977,7 +1977,7 @@ class Parser
                 );
             }
 
-            throw new exceptions\SyntaxException('Unexpected ' . $this->stream->getCurrent());
+            throw new exceptions\SyntaxException('Unexpected ' . $this->stream->getCurrent()->__toString());
         }
 
         return $operand;
@@ -2253,7 +2253,7 @@ class Parser
                     Keyword::DAY => $this->stream->expectKeyword(Keyword::HOUR, Keyword::MINUTE, Keyword::SECOND),
                     Keyword::HOUR => $this->stream->expectKeyword(Keyword::MINUTE, Keyword::SECOND),
                     Keyword::MINUTE => $this->stream->expectKeyword(Keyword::SECOND),
-                    default => throw new exceptions\SyntaxException('Unexpected ' . $toToken)
+                    default => throw new exceptions\SyntaxException('Unexpected ' . $toToken->__toString())
                 };
                 $second     = Keyword::SECOND === $end;
                 $trailing[] = $end;
@@ -2355,7 +2355,7 @@ class Parser
 
         } else {
             throw new exceptions\SyntaxException(
-                "Expecting a constant or an identifier, got " . $this->stream->getCurrent()
+                "Expecting a constant or an identifier, got " . $this->stream->getCurrent()->__toString()
             );
         }
     }
@@ -2800,7 +2800,9 @@ class Parser
             );
         }
 
-        throw new exceptions\SyntaxException('Expecting type name, got ' . $this->stream->getCurrent());
+        throw new exceptions\SyntaxException(
+            'Expecting type name, got ' . $this->stream->getCurrent()->__toString()
+        );
     }
 
     protected function GenericLeadingTypecast(array $identifiers): nodes\expressions\TypecastExpression

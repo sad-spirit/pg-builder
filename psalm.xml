@@ -5,6 +5,7 @@
     sealAllMethods="true"
     findUnusedCode="false"
     findUnusedBaselineEntry="true"
+    ensureOverrideAttribute="false"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
@@ -19,6 +20,17 @@
     </projectFiles>
 
     <issueHandlers>
+        <InaccessibleProperty>
+            <errorLevel type="suppress">
+                <!-- Bug https://github.com/vimeo/psalm/issues/5156 reappeared -->
+                <file name="src/sad_spirit/pg_builder/Insert.php"/>
+                <file name="src/sad_spirit/pg_builder/SelectCommon.php"/>
+                <file name="src/sad_spirit/pg_builder/nodes/ColumnReference.php"/>
+                <file name="src/sad_spirit/pg_builder/nodes/QualifiedName.php"/>
+                <file name="src/sad_spirit/pg_builder/nodes/QualifiedOperator.php"/>
+            </errorLevel>
+        </InaccessibleProperty>
+        
         <InvalidArrayOffset>
             <errorLevel type="suppress">
                 <!-- https://github.com/vimeo/psalm/issues/5672 -->
