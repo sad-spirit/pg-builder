@@ -139,9 +139,10 @@ We only had to override the method of ``TreeWalker`` dealing with ``RelationRefe
 
 This class is used internally by :ref:`StatementFactory::createFromAST() <statement-factory-conversion>` to
 
-- Replace named parameters by positional ones;
+- Ensure that the statement contains either only named or only positional parameters;
+- Replace named parameters by positional ones when not targeting PDO;
 - Infer parameter types from SQL typecasts. Type info can later be used
-  by :ref:`converters\\BuilderSupportDecorator <queries>` for converting parameters.
+  by :ref:`converters\\BuilderSupportDecorator <queries-types>` for converting parameters.
 
 Using named parameters like ``:foo`` instead of standard PostgreSQL's positional ``$1`` has obvious benefits
 when query is being built: it is far easier to create unique parameter names than to assign successive
