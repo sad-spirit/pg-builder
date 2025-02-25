@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [3.0.0] - 2025-02-25
 
 Package manual is now published on [Read the Docs](https://pg-builder.readthedocs.io)
 
@@ -454,4 +454,4 @@ Initial release on GitHub
 [2.4.0]: https://github.com/sad-spirit/pg-builder/compare/v2.3.1...v2.4.0
 [3.0.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v2.4.0...v3.0.0-beta
 [3.0.0-beta.2]: https://github.com/sad-spirit/pg-builder/compare/v3.0.0-beta...v3.0.0-beta.2
-[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v3.0.0-beta.2...HEAD
+[3.0.0]: https://github.com/sad-spirit/pg-builder/compare/v3.0.0-beta.2...v3.0.0

@@ -1,12 +1,7 @@
 # sad_spirit/pg_builder
 
 [![Continuous Integration](https://github.com/sad-spirit/pg-builder/actions/workflows/continuous-integration.yml/badge.svg?branch=master)](https://github.com/sad-spirit/pg-builder/actions/workflows/continuous-integration.yml)
-
 [![Static Analysis](https://github.com/sad-spirit/pg-builder/actions/workflows/static-analysis.yml/badge.svg?branch=master)](https://github.com/sad-spirit/pg-builder/actions/workflows/static-analysis.yml)
-
-> Note: master branch contains code for an upcoming 3.0 version that requires PHP 8.2+ and supports new syntax of Postgres 17.
-> 
-> [Branch 2.x](../../tree/2.x) contains the stable version supporting PHP 7.2+ and Postgres 16.
 
 This is a query builder for Postgres with a twist: it contains a partial<sup>[1](#footnote1)</sup> reimplementation of PostgreSQL's own
 query parser. This sets it aside from the usual breed of "write-only" query builders:
