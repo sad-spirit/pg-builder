@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.0] - 2025-05-28
+
+### Changed
+
+* `converters\BuilderSupportDecorator` now implements the new `ConfigurableTypeConverterFactory` interface
+  from `sad_spirit/pg_wrapper` package and uses that interface as a type-hint for the factory being decorated
+  instead of a concrete implementation (`DefaultTypeConverterFactory`).
+
 ## [3.0.0] - 2025-02-25
 
 Package manual is now published on [Read the Docs](https://pg-builder.readthedocs.io)
@@ -455,3 +463,4 @@ Initial release on GitHub
 [3.0.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v2.4.0...v3.0.0-beta
 [3.0.0-beta.2]: https://github.com/sad-spirit/pg-builder/compare/v3.0.0-beta...v3.0.0-beta.2
 [3.0.0]: https://github.com/sad-spirit/pg-builder/compare/v3.0.0-beta.2...v3.0.0
+[3.1.0]: https://github.com/sad-spirit/pg-builder/compare/v3.0.0...v3.1.0
