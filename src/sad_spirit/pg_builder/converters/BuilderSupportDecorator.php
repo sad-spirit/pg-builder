@@ -28,13 +28,13 @@ use sad_spirit\pg_wrapper\{
     TypeConverter
 };
 use sad_spirit\pg_wrapper\converters\{
-    DefaultTypeConverterFactory,
+    ConfigurableTypeConverterFactory,
     TypeOIDMapper,
-    TypeOIDMapperAware
+    containers\ArrayConverter
 };
 
 /**
- * A decorator around DefaultTypeConverterFactory supporting pg_builder features
+ * A decorator around ConfigurableTypeConverterFactory supporting pg_builder features
  *
  * Implements support for TypeName nodes and uses Parser for processing type names provided as strings.
  * Using a decorator allows us to wrap e.g. an instance of DefaultTypeConverterFactory pre-configured to handle
@@ -42,7 +42,7 @@ use sad_spirit\pg_wrapper\converters\{
  *
  * @since 2.2.0
  */
-class BuilderSupportDecorator implements TypeNameNodeHandler, TypeOIDMapperAware
+class BuilderSupportDecorator implements ConfigurableTypeConverterFactory, TypeNameNodeHandler
 {
     /**
      * Mapping "type name as string" => Type name processed by Parser
@@ -50,7 +50,7 @@ class BuilderSupportDecorator implements TypeNameNodeHandler, TypeOIDMapperAware
      */
     private array $parsedNames = [];
 
-    public function __construct(private readonly DefaultTypeConverterFactory $wrapped, private readonly Parser $parser)
+    public function __construct(private readonly ConfigurableTypeConverterFactory $wrapped, private readonly Parser $parser)
     {
     }
 
@@ -82,11 +82,11 @@ class BuilderSupportDecorator implements TypeNameNodeHandler, TypeOIDMapperAware
 
     public function getConverterForTypeNameNode(TypeName $typeName): TypeConverter
     {
-        return $this->wrapped->getConverterForQualifiedName(
+        $baseConverter = $this->wrapped->getConverterForQualifiedName(
             $typeName->name->relation->value,
-            $typeName->name->schema !== null ? $typeName->name->schema->value : null,
-            \count($typeName->bounds) > 0
+            $typeName->name->schema?->value,
         );
+        return 0 === \count($typeName->bounds) ? $baseConverter : new ArrayConverter($baseConverter);
     }
 
     public function createTypeNameNodeForOID(int|string $oid): TypeName
@@ -116,31 +116,22 @@ class BuilderSupportDecorator implements TypeNameNodeHandler, TypeOIDMapperAware
         return $this->wrapped->getOIDMapper();
     }
 
-    /**
-     * Registers a mapping between PHP class and database type name
-     *
-     * If an instance of the given class will later be provided to getConverterForPHPValue(), that method will return
-     * a converter for the given database type
-     *
-     * @param class-string $className
-     */
     public function registerClassMapping(string $className, string $type, string $schema = 'pg_catalog'): void
     {
         $this->wrapped->registerClassMapping($className, $type, $schema);
     }
 
-    /**
-     * Registers a converter for a known named type
-     *
-     * @param class-string<TypeConverter>|callable|TypeConverter $converter
-     * @param string|string[] $type
-     */
     public function registerConverter(
         callable|TypeConverter|string $converter,
         array|string $type,
         string $schema = 'pg_catalog'
     ): void {
         $this->wrapped->registerConverter($converter, $type, $schema);
+    }
+
+    public function getConverterForQualifiedName(string $typeName, ?string $schemaName = null): TypeConverter
+    {
+        return $this->wrapped->getConverterForQualifiedName($typeName, $schemaName);
     }
 
     /**
