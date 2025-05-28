@@ -124,6 +124,91 @@ The helper methods use mappings shown above to convert / update parameters and p
 
 It is rarely needed to call the above methods directly as query execution methods do that themselves.
 
+.. _queries-types:
+
+Converting types for query parameters
+=====================================
+
+Type conversion itself is implemented in **pg_wrapper** package, additional code is only needed to make it
+understand types represented by ``nodes\TypeName``. These are extracted from typecasts in SQL strings:
+``foo::bar`` or ``cast(foo as bar)``.
+
+Additionally, a convenience ``convertParameters()`` method allows batch-converting parameters for
+``\PDOStatement::execute()``.
+
+``converters\TypeNameNodeHandler`` interface
+--------------------------------------------
+
+.. note::
+    This interface will likely be changed to extend ``ConfigurableTypeConverterFactory`` in the next major release,
+    so implement that if you are creating a custom implementation of ``TypeNameNodeHandler``.
+
+This interface extends ``TypeConverterFactory`` from
+`sad_spirit/pg_wrapper <https://github.com/sad-spirit/pg-wrapper>`__ package
+and defines methods for working with ``TypeName`` nodes
+
+.. code-block:: php
+
+    namespace sad_spirit\pg_builder\converters;
+
+    use sad_spirit\pg_builder\nodes\TypeName;
+    use sad_spirit\pg_wrapper\TypeConverter;
+    use sad_spirit\pg_wrapper\TypeConverterFactory;
+
+    interface TypeNameNodeHandler extends TypeConverterFactory
+    {
+        public function getConverterForTypeNameNode(TypeName $typeName) : TypeConverter;
+        public function createTypeNameNodeForOID(int|numeric-string $oid) : TypeName;
+    }
+
+``getConverterForTypeNameNode()``
+    This method should be called from ``getConverterForTypeSpecification()`` when it receives a ``TypeName`` as
+    an argument. Usually that ``TypeName`` will be extracted by ``ParameterWalker``
+    from the typecast node within query AST.
+
+``createTypeNameNodeForOID()``
+    This method can be used when building queries to add explicit typecasts for columns based on table metadata.
+    It is used that way throughout `sad_spirit/pg_gateway <https://github.com/sad-spirit/pg-gateway>`__ package.
+
+``converters\BuilderSupportDecorator`` class
+--------------------------------------------
+
+This class implements the above interface and decorates an implementation of ``ConfigurableTypeConverterFactory``
+interface from `sad_spirit/pg_wrapper <https://github.com/sad-spirit/pg-wrapper>`__ package
+(this implementation will most likely be an instance of ``DefaultTypeConverterFactory``).
+
+.. code-block:: php
+
+    namespace sad_spirit\pg_builder\converters;
+
+    class BuilderSupportDecorator implements ConfigurableTypeConverterFactory, TypeNameNodeHandler
+    {
+        public function __construct(
+            private readonly ConfigurableTypeConverterFactory $wrapped,
+            private readonly Parser $parser
+        );
+
+        // Convenience method for PDO
+        public function convertParameters(
+            NativeStatement $statement,
+            array<string, mixed> $parameters,
+            array<string, mixed> $paramTypes = []
+        ) : array<string, ?string>;
+
+        // Methods from TypeNameNodeHandler omitted
+        // Methods from ConfigurableTypeConverterFactory omitted
+    }
+
+A ``Parser`` instance passed to the constructor is used to parse type names provided as strings instead of
+the implementation in ``$wrapped``. This way any type name understood by Postgres itself will be understood by
+``BuilderSupportDecorator``.
+
+``getConverterForTypeSpecification()`` accepts instances of ``nodes\TypeName`` in addition to what
+``$wrapped`` itself accepts.
+
+Finally, ``convertParameters()`` is used to generate database string representations of PHP values, these can be
+passed to ``\PDOStatement::execute()``.
+
 Executing queries using pg_wrapper
 ==================================
 
@@ -237,8 +322,8 @@ outputting, obviously
 
 .. _queries-nativestatement-caching:
 
-Caching ``NativeStatement``\ s
-==============================
+Caching ``NativeStatement`` instances
+=====================================
 
 .. note::
 
@@ -293,91 +378,3 @@ The suggested approach is to assign keys to the query parts and then generate st
 
 `sad_spirit/pg_gateway package <https://github.com/sad-spirit/pg-gateway>`__ uses the above approach which usually
 allows skipping the whole parse / build process for the queries.
-
-.. _queries-types:
-
-Converting types for query parameters
-=====================================
-
-Type conversion itself is implemented in **pg_wrapper** package, additional code is only needed to make it
-understand types represented by ``nodes\TypeName``. These are extracted from typecasts in SQL strings:
-``foo::bar`` or ``cast(foo as bar)``.
-
-Additionally, a convenience ``convertParameters()`` method allows batch-converting parameters for
-``\PDOStatement::execute()``.
-
-``converters\TypeNameNodeHandler`` interface
---------------------------------------------
-
-This interface extends ``TypeConverterFactory`` from
-`sad_spirit/pg_wrapper <https://github.com/sad-spirit/pg-wrapper>`__ package
-and defines methods for working with ``TypeName`` nodes
-
-.. code-block:: php
-
-    namespace sad_spirit\pg_builder\converters;
-
-    use sad_spirit\pg_builder\nodes\TypeName;
-    use sad_spirit\pg_wrapper\TypeConverter;
-    use sad_spirit\pg_wrapper\TypeConverterFactory;
-
-    interface TypeNameNodeHandler extends TypeConverterFactory
-    {
-        public function getConverterForTypeNameNode(TypeName $typeName) : TypeConverter;
-        public function createTypeNameNodeForOID(int|numeric-string $oid) : TypeName;
-    }
-
-``getConverterForTypeNameNode()``
-    This method should be called from ``getConverterForTypeSpecification()`` when it receives a ``TypeName`` as
-    an argument. Usually that ``TypeName`` will be extracted by ``ParameterWalker``
-    from the typecast node within query AST.
-
-``createTypeNameNodeForOID()``
-    This method can be used when building queries to add explicit typecasts for columns based on table metadata.
-    It is used that way throughout `sad_spirit/pg_gateway <https://github.com/sad-spirit/pg-gateway>`__ package.
-
-``converters\BuilderSupportDecorator`` class
---------------------------------------------
-
-This class implements the above interface and decorates an instance of ``DefaultTypeConverterFactory`` class from
-`sad_spirit/pg_wrapper <https://github.com/sad-spirit/pg-wrapper>`__ package
-
-.. code-block:: php
-
-    namespace sad_spirit\pg_builder\converters;
-
-    class BuilderSupportDecorator implements TypeNameNodeHandler, TypeOIDMapperAware
-    {
-        public function __construct(
-            private readonly DefaultTypeConverterFactory $wrapped,
-            private readonly Parser $parser
-        );
-
-        // Methods from TypeNameNodeHandler omitted
-        // Methods from TypeOIDMapperAware omitted
-
-        // Forwarded to methods of decorated DefaultTypeConverterFactory
-        public function registerClassMapping(string $className, string $type, string $schema = 'pg_catalog') : void;
-        public function registerConverter(
-            callable|TypeConverter|string $converter,
-            array|string $type,
-            string $schema = 'pg_catalog'
-        ) : void;
-
-        // Convenience method for PDO
-        public function convertParameters(
-            NativeStatement $statement,
-            array<string, mixed> $parameters,
-            array<string, mixed> $paramTypes = []
-        ) : array<string, ?string>;
-    }
-
-A ``Parser`` instance passed to the constructor is used to parse type names provided as strings, so that Factory
-will understand any type name Postgres itself can. This replaces a far simpler parser implemented in
-``DefaultTypeConverterFactory``.
-
-``getConverterForTypeSpecification()`` accepts instances of ``nodes\TypeName`` in addition to what
-``DefaultTypeConverterFactory`` itself accepts.
-
-Finally, ``convertParameters()`` is used to generate database string representations of PHP values, these can be
-passed to ``\PDOStatement::execute()``.

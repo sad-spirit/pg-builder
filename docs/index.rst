@@ -11,6 +11,7 @@ queries in Postgres 17 is supported with minor omissions.
    :caption: Contents:
 
    overview
+   workflow
    statement-factory
    statements
    base
@@ -19,3 +20,4 @@ queries in Postgres 17 is supported with minor omissions.
    walkers
    queries
    exceptions
+   parser-internals
