@@ -37,8 +37,11 @@ abstract class GenericNode implements Node
      */
     protected array $propertyNames = [];
 
-    /** Link to the Node containing current one */
-    protected ?Node $parentNode = null;
+    /**
+     * Link to the Node containing current one
+     * @var \WeakReference<Node>|null
+     */
+    protected ?\WeakReference $parentNode = null;
 
     /** Flag for preventing endless recursion in {@see setParentNode()} */
     protected bool $settingParentNode = false;
@@ -92,7 +95,7 @@ abstract class GenericNode implements Node
             if ($this->$name instanceof Node) {
                 $this->$name = clone $this->$name;
                 if ($this->$name instanceof self) {
-                    $this->$name->parentNode = $this;
+                    $this->$name->parentNode = \WeakReference::create($this);
                 } else {
                     $this->$name->setParentNode($this);
                 }
@@ -140,7 +143,7 @@ abstract class GenericNode implements Node
         $this->generatePropertyNames();
         foreach ($properties as $k => $v) {
             if ($v instanceof self) {
-                $v->parentNode = $this;
+                $v->parentNode = \WeakReference::create($this);
             } elseif ($v instanceof Node) {
                 $v->setParentNode($this);
             }
@@ -175,7 +178,7 @@ abstract class GenericNode implements Node
     public function setParentNode(?Node $parent): void
     {
         // no-op? recursion?
-        if ($parent === $this->parentNode || $this->settingParentNode) {
+        if ($parent === $this->parentNode?->get() || $this->settingParentNode) {
             return;
         }
 
@@ -191,8 +194,8 @@ abstract class GenericNode implements Node
                     }
                 } while ($check = $check->getparentNode());
             }
-            $this->parentNode?->removeChild($this);
-            $this->parentNode = $parent;
+            $this->parentNode?->get()?->removeChild($this);
+            $this->parentNode = $parent ? \WeakReference::create($parent) : null;
 
         } finally {
             $this->settingParentNode = false;
@@ -204,7 +207,7 @@ abstract class GenericNode implements Node
      */
     public function getParentNode(): ?Node
     {
-        return $this->parentNode;
+        return $this->parentNode?->get();
     }
 
     /**
@@ -262,7 +265,7 @@ abstract class GenericNode implements Node
      */
     public function getParser(): ?Parser
     {
-        return $this->parentNode?->getParser();
+        return $this->parentNode?->get()?->getParser();
     }
 
     /**

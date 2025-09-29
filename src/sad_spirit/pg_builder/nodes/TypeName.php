@@ -53,7 +53,7 @@ class TypeName extends GenericNode
 
     public function setSetOf(bool $setOf): void
     {
-        if ($setOf && $this->parentNode instanceof ConstantTypecastExpression) {
+        if ($setOf && $this->getParentNode() instanceof ConstantTypecastExpression) {
             throw new InvalidArgumentException('Type names with SETOF cannot be used in constant type cast');
         }
         $this->p_setOf = $setOf;
@@ -66,7 +66,7 @@ class TypeName extends GenericNode
      */
     public function setBounds(array $bounds): void
     {
-        if ([] !== $bounds && $this->parentNode instanceof ConstantTypecastExpression) {
+        if ([] !== $bounds && $this->getParentNode() instanceof ConstantTypecastExpression) {
             throw new InvalidArgumentException('Type names with array bounds cannot be used in constant type cast');
         }
         $this->p_bounds = [];

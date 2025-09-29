@@ -27,9 +27,9 @@ trait NonRecursiveNode
 {
     /**
      * Link to the Node containing current one
-     * @var Node|null
+     * @var \WeakReference<Node>|null
      */
-    protected ?Node $parentNode = null;
+    protected ?\WeakReference $parentNode = null;
 
     /**
      * Flag for preventing endless recursion in setParentNode()
@@ -43,14 +43,14 @@ trait NonRecursiveNode
     public function setParentNode(?Node $parent): void
     {
         // no-op? recursion?
-        if ($parent === $this->parentNode || $this->settingParentNode) {
+        if ($parent === $this->parentNode?->get() || $this->settingParentNode) {
             return;
         }
 
         $this->settingParentNode = true;
         try {
-            $this->parentNode?->removeChild($this);
-            $this->parentNode = $parent;
+            $this->parentNode?->get()?->removeChild($this);
+            $this->parentNode = $parent ? \WeakReference::create($parent) : null;
 
         } finally {
             $this->settingParentNode = false;

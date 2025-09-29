@@ -78,7 +78,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
         foreach ($this->offsets as &$node) {
             $node = clone $node;
             if ($node instanceof GenericNode) {
-                $node->parentNode = $this;
+                $node->parentNode = \WeakReference::create($this);
             } else {
                 $node->setParentNode($this);
             }
@@ -110,7 +110,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     {
         foreach ($this->offsets as $node) {
             if ($node instanceof GenericNode) {
-                $node->parentNode = $this;
+                $node->parentNode = \WeakReference::create($this);
             } else {
                 $node->setParentNode($this);
             }

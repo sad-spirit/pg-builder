@@ -80,7 +80,7 @@ class WhereOrHavingClause extends GenericNode
             ) {
                 // nested condition, should always wrap in LogicalExpression
                 $this->p_condition = new LogicalExpression([$condition], LogicalOperator::AND);
-                $this->p_condition->parentNode = $this;
+                $this->p_condition->parentNode = \WeakReference::create($this);
             } else {
                 $this->p_condition = $condition;
                 $this->p_condition->setParentNode($this);
@@ -89,7 +89,7 @@ class WhereOrHavingClause extends GenericNode
         } else {
             if (!$this->p_condition instanceof LogicalExpression) {
                 $this->p_condition = new LogicalExpression([$this->p_condition], LogicalOperator::AND);
-                $this->p_condition->parentNode = $this;
+                $this->p_condition->parentNode = \WeakReference::create($this);
             }
             if (
                 LogicalOperator::AND === $this->p_condition->operator
@@ -136,7 +136,7 @@ class WhereOrHavingClause extends GenericNode
                 || LogicalOperator::OR !== $this->p_condition->operator
             ) {
                 $this->p_condition = new LogicalExpression([$this->p_condition], LogicalOperator::OR);
-                $this->p_condition->parentNode = $this;
+                $this->p_condition->parentNode = \WeakReference::create($this);
             }
 
             if ($condition instanceof LogicalExpression && LogicalOperator::OR === $condition->operator) {
@@ -165,7 +165,7 @@ class WhereOrHavingClause extends GenericNode
     {
         $condition = new self($this->normalizeCondition($condition));
         // $condition should have access to a Parser instance
-        $condition->parentNode = $this;
+        $condition->parentNode = \WeakReference::create($this);
 
         return $condition;
     }

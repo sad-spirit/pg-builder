@@ -53,9 +53,9 @@ class Update extends Statement
         $this->p_returning = new TargetList();
         $this->p_where     = new WhereOrHavingClause();
 
-        $this->p_from->parentNode      = $this;
-        $this->p_returning->parentNode = $this;
-        $this->p_where->parentNode     = $this;
+        $this->p_from->parentNode      = \WeakReference::create($this);
+        $this->p_returning->parentNode = \WeakReference::create($this);
+        $this->p_where->parentNode     = \WeakReference::create($this);
     }
 
     public function dispatch(TreeWalker $walker): mixed

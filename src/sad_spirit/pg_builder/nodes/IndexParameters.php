@@ -49,7 +49,7 @@ class IndexParameters extends NonAssociativeList implements Parseable, ElementPa
         $this->generatePropertyNames();
         parent::__construct($list);
         $this->p_where = new WhereOrHavingClause();
-        $this->p_where->parentNode = $this;
+        $this->p_where->parentNode = \WeakReference::create($this);
     }
 
     public static function createFromString(Parser $parser, string $sql): self

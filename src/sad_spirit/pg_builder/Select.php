@@ -59,11 +59,11 @@ class Select extends SelectCommon
         $this->p_having = new WhereOrHavingClause();
         $this->p_window = new WindowList();
 
-        $this->p_from->parentNode   = $this;
-        $this->p_where->parentNode  = $this;
-        $this->p_group->parentNode  = $this;
-        $this->p_having->parentNode = $this;
-        $this->p_window->parentNode = $this;
+        $this->p_from->parentNode   = \WeakReference::create($this);
+        $this->p_where->parentNode  = \WeakReference::create($this);
+        $this->p_group->parentNode  = \WeakReference::create($this);
+        $this->p_having->parentNode = \WeakReference::create($this);
+        $this->p_window->parentNode = \WeakReference::create($this);
     }
 
     /**

@@ -51,8 +51,8 @@ class Insert extends Statement
         $this->p_cols      = new SetTargetList();
         $this->p_returning = new TargetList();
 
-        $this->p_cols->parentNode      = $this;
-        $this->p_returning->parentNode = $this;
+        $this->p_cols->parentNode      = \WeakReference::create($this);
+        $this->p_returning->parentNode = \WeakReference::create($this);
     }
 
     public function setValues(?SelectCommon $values): void

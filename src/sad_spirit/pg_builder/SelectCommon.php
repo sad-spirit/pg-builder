@@ -44,10 +44,10 @@ abstract class SelectCommon extends Statement
         parent::__construct();
 
         $this->p_order = new OrderByList();
-        $this->p_order->parentNode = $this;
+        $this->p_order->parentNode = \WeakReference::create($this);
 
         $this->p_locking = new LockList();
-        $this->p_locking->parentNode = $this;
+        $this->p_locking->parentNode = \WeakReference::create($this);
     }
 
     /**
@@ -117,7 +117,7 @@ abstract class SelectCommon extends Statement
         if (\is_string($select)) {
             $select = $this->getParserOrFail('a SELECT statement')->parseSelectStatement($select);
         }
-        if (null === $this->parentNode) {
+        if (null === $parentNode = $this->getParentNode()) {
             $setOpSelect = new SetOpSelect($this, $select, $operator);
 
         } else {
@@ -125,7 +125,7 @@ abstract class SelectCommon extends Statement
             // control reaches replaceChild() $this will not be a child of parentNode anymore.
             $dummy       = new Select(new nodes\lists\TargetList());
             /** @var SetOpSelect $setOpSelect  */
-            $setOpSelect = $this->parentNode->replaceChild($this, new SetOpSelect($dummy, $select, $operator));
+            $setOpSelect = $parentNode->replaceChild($this, new SetOpSelect($dummy, $select, $operator));
             $setOpSelect->replaceChild($dummy, $this);
         }
         if (null !== ($parser = $this->getParser())) {

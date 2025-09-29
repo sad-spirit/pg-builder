@@ -51,7 +51,7 @@ class QualifiedName extends GenericNode implements \Stringable
                 // fall-through is intentional
             case 2:
                 $this->p_schema = $this->expectIdentifier(\array_shift($nameParts), 'schema');
-                if ($this === $this->p_schema->parentNode) {
+                if ($this === $this->p_schema->getParentNode()) {
                     throw new InvalidArgumentException(
                         "Cannot use the same Node for different parts of QualifiedName"
                     );
@@ -60,7 +60,7 @@ class QualifiedName extends GenericNode implements \Stringable
                 // fall-through is intentional
             case 1:
                 $this->p_relation = $this->expectIdentifier(\array_shift($nameParts), 'relation');
-                if ($this === $this->p_relation->parentNode) {
+                if ($this === $this->p_relation->getParentNode()) {
                     throw new InvalidArgumentException(
                         "Cannot use the same Node for different parts of QualifiedName"
                     );
@@ -110,7 +110,7 @@ class QualifiedName extends GenericNode implements \Stringable
             if (null !== $v) {
                 $name = $this->propertyNames[$k];
                 $this->$name = new Identifier($v);
-                $this->$name->parentNode = $this;
+                $this->$name->parentNode = \WeakReference::create($this);
             }
         });
     }

@@ -81,7 +81,7 @@ abstract class FromElement extends GenericNode
         if (\is_string($fromElement)) {
             $fromElement = $this->getParserOrFail('a FROM element')->parseFromElement($fromElement);
         }
-        if (null === $this->parentNode) {
+        if (null === $parentNode = $this->getParentNode()) {
             return new JoinExpression($this, $fromElement, $joinType);
 
         } else {
@@ -89,7 +89,7 @@ abstract class FromElement extends GenericNode
             // control reaches replaceChild() $this will not be a child of parentNode anymore.
             $dummy = new RelationReference(new QualifiedName('dummy'));
             /** @var JoinExpression $join */
-            $join  = $this->parentNode->replaceChild(
+            $join  = $parentNode->replaceChild(
                 $this,
                 new JoinExpression($dummy, $fromElement, $joinType)
             );

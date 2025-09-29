@@ -35,7 +35,7 @@ abstract class Statement extends GenericNode
         $this->generatePropertyNames();
 
         $this->p_with = new WithClause();
-        $this->p_with->parentNode = $this;
+        $this->p_with->parentNode = \WeakReference::create($this);
     }
 
     public function setWith(WithClause $with): void
@@ -58,8 +58,9 @@ abstract class Statement extends GenericNode
     public function getParser(): ?Parser
     {
         if (
-            null === $this->parser && null !== $this->parentNode
-            && null !== ($parser = $this->parentNode->getParser())
+            null === $this->parser
+            && null !== ($parentNode = $this->getParentNode())
+            && null !== ($parser = $parentNode->getParser())
         ) {
             $this->setParser($parser);
         }
@@ -70,8 +71,9 @@ abstract class Statement extends GenericNode
     {
         parent::setParentNode($parent);
         if (
-            null === $this->parser && null !== $this->parentNode
-            && null !== ($parser = $this->parentNode->getParser())
+            null === $this->parser
+            && null !== ($parentNode = $this->getParentNode())
+            && null !== ($parser = $parentNode->getParser())
         ) {
             $this->setParser($parser);
         }

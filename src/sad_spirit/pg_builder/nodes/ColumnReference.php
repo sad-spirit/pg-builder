@@ -54,7 +54,7 @@ class ColumnReference extends GenericNode implements ScalarExpression, \Stringab
                 // fall-through is intentional
             case 3:
                 $this->p_schema = $this->expectIdentifier(\array_shift($parts), 'schema');
-                if ($this === $this->p_schema->parentNode) {
+                if ($this === $this->p_schema->getParentNode()) {
                     throw new InvalidArgumentException(
                         "Cannot use the same Node for different parts of ColumnReference"
                     );
@@ -63,7 +63,7 @@ class ColumnReference extends GenericNode implements ScalarExpression, \Stringab
                 // fall-through is intentional
             case 2:
                 $this->p_relation = $this->expectIdentifier(\array_shift($parts), 'relation');
-                if ($this === $this->p_relation->parentNode) {
+                if ($this === $this->p_relation->getParentNode()) {
                     throw new InvalidArgumentException(
                         "Cannot use the same Node for different parts of ColumnReference"
                     );
@@ -72,7 +72,7 @@ class ColumnReference extends GenericNode implements ScalarExpression, \Stringab
                 // fall-through is intentional
             case 1:
                 $this->p_column = $this->expectIdentifierOrStar(\array_shift($parts));
-                if ($this === $this->p_column->parentNode) {
+                if ($this === $this->p_column->getParentNode()) {
                     throw new InvalidArgumentException(
                         "Cannot use the same Node for different parts of ColumnReference"
                     );
@@ -147,7 +147,7 @@ class ColumnReference extends GenericNode implements ScalarExpression, \Stringab
             if (null !== $v) {
                 $name        = $this->propertyNames[$k];
                 $this->$name = '' === $v ? new Star() : new Identifier($v);
-                $this->$name->parentNode = $this;
+                $this->$name->parentNode = \WeakReference::create($this);
             }
         });
     }

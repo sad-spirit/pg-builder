@@ -16,9 +16,9 @@ namespace sad_spirit\pg_builder\tests\nodes;
 
 use PHPUnit\Framework\TestCase;
 use sad_spirit\pg_builder\{
-    nodes\QualifiedName,
-    nodes\WithClause,
-    StatementFactory
+    Lexer,
+    Parser,
+    nodes\WithClause
 };
 
 /**
@@ -27,18 +27,19 @@ use sad_spirit\pg_builder\{
 class WithClauseTest extends TestCase
 {
     private WithClause $withClause;
+    private Parser $parser;
 
     protected function setUp(): void
     {
-        // We need a parser available for the tests
-        $this->withClause = (new StatementFactory())->insert(new QualifiedName('foo'))->with;
+        $this->withClause = new WithClause();
+        $this->parser = new Parser(new Lexer());
     }
 
     public function testReplaceResetsRecursiveProperty(): void
     {
         $this::assertFalse($this->withClause->recursive);
 
-        $this->withClause->replace(
+        $this->withClause->replace($this->parser->parseWithClause(
             <<<QRY
 with recursive bar (val) as (
     select 1 as val
@@ -47,31 +48,31 @@ with recursive bar (val) as (
     from bar
 )
 QRY
-        );
+        ));
         $this::assertTrue($this->withClause->recursive);
 
-        $this->withClause->replace(
+        $this->withClause->replace($this->parser->parseWithClause(
             <<<QRY
 with baz (val) as (
     select 1 as val
 ) 
 QRY
-        );
+        ));
         $this::assertFalse($this->withClause->recursive);
     }
 
     public function testMergeSetsRecursiveProperty(): void
     {
-        $this->withClause->merge(
+        $this->withClause->merge($this->parser->parseWithClause(
             <<<QRY
 with quux (xyzzy) as (
     select 2 as xyzzy
 )
 QRY
-        );
+        ));
         $this::assertFalse($this->withClause->recursive);
 
-        $this->withClause->merge(
+        $this->withClause->merge($this->parser->parseWithClause(
             <<<QRY
 with recursive bar (val) as (
     select 1 as val
@@ -80,16 +81,16 @@ with recursive bar (val) as (
     from bar
 )
 QRY
-        );
+        ));
         $this::assertTrue($this->withClause->recursive);
 
-        $this->withClause->merge(
+        $this->withClause->merge($this->parser->parseWithClause(
             <<<QRY
 with baz (val) as (
     select 1 as val
 ) 
 QRY
-        );
+        ));
         $this::assertTrue($this->withClause->recursive);
     }
 }
