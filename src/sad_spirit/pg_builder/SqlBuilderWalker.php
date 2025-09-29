@@ -218,7 +218,8 @@ class SqlBuilderWalker implements StatementToStringWalker
             if (!$statement->limitWithTies) {
                 $clauses[] = $indent . 'limit ' . $statement->limit->dispatch($this);
             } else {
-                $parentheses = $statement->limit->getPrecedence()->value < enums\ScalarExpressionPrecedence::ATOM->value;
+                $parentheses = $statement->limit->getPrecedence()->value
+                               < enums\ScalarExpressionPrecedence::ATOM->value;
                 $clauses[]   = $indent . 'fetch first '
                                . ($parentheses ? '(' : '')
                                . $statement->limit->dispatch($this)

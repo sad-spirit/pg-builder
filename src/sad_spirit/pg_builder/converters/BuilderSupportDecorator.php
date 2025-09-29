@@ -50,8 +50,10 @@ class BuilderSupportDecorator implements ConfigurableTypeConverterFactory, TypeN
      */
     private array $parsedNames = [];
 
-    public function __construct(private readonly ConfigurableTypeConverterFactory $wrapped, private readonly Parser $parser)
-    {
+    public function __construct(
+        private readonly ConfigurableTypeConverterFactory $wrapped,
+        private readonly Parser $parser
+    ) {
     }
 
     public function getConverterForTypeSpecification($type): TypeConverter
