@@ -152,6 +152,7 @@ enum Keyword: string
     case ENCODING          = 'encoding';
     case ENCRYPTED         = 'encrypted';
     case END               = 'end';
+    case ENFORCED          = 'enforced';
     case ENUM              = 'enum';
     case ERROR             = 'error';
     case ESCAPE            = 'escape';
@@ -306,6 +307,7 @@ enum Keyword: string
     case NULLS             = 'nulls';
     case NUMERIC           = 'numeric';
     case OBJECT            = 'object';
+    case OBJECTS           = 'objects';
     case OF                = 'of';
     case OFF               = 'off';
     case OFFSET            = 'offset';
@@ -337,6 +339,7 @@ enum Keyword: string
     case PASSING           = 'passing';
     case PASSWORD          = 'password';
     case PATH              = 'path';
+    case PERIOD            = 'period';
     case PLACING           = 'placing';
     case PLAN              = 'plan';
     case PLANS             = 'plans';
@@ -361,7 +364,6 @@ enum Keyword: string
     case READ              = 'read';
     case REAL              = 'real';
     case REASSIGN          = 'reassign';
-    case RECHECK           = 'recheck';
     case RECURSIVE         = 'recursive';
     case REF               = 'ref';
     case REFERENCES        = 'references';
@@ -489,6 +491,7 @@ enum Keyword: string
     case VERSION           = 'version';
     case VIEW              = 'view';
     case VIEWS             = 'views';
+    case VIRTUAL           = 'virtual';
     case VOLATILE          = 'volatile';
     case WHEN              = 'when';
     case WHERE             = 'where';
