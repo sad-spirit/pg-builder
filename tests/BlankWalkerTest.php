@@ -68,7 +68,7 @@ w6 (w7, w8) as (
     from u14
     where u15.u16 = u17.u18 and
           u19.u20 in (select s32 from s33)
-    returning u21, u22 operator(u23.#@!) u24 as u25
+    returning with (old as u21, new as u22) u23, u24 operator(u25.#@!) u26 as u27
 ), 
 w9 as (
     select xmlelement(name x1, x2, 'content'), xmlelement(name x3, xmlattributes(x4, x5 as x6), x7),

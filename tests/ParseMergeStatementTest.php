@@ -30,6 +30,7 @@ use sad_spirit\pg_builder\nodes\{
     CommonTableExpression,
     Identifier,
     QualifiedName,
+    ReturningClause,
     SetTargetElement,
     SingleSetClause,
     TargetElement
@@ -92,7 +93,7 @@ when matched then
     delete
 when not matched by source then
     update set baz = 'blah'
-returning bar.*, merge_action()
+returning with (old as older, new as newer) bar.*, merge_action()
 QRY
         );
 
@@ -144,8 +145,14 @@ QRY
             false
         );
 
-        $built->returning[] = new TargetElement(new ColumnReference('bar', '*'));
-        $built->returning[] = new TargetElement(new MergeAction());
+        $built->returning->replace(new ReturningClause(
+            [
+                new TargetElement(new ColumnReference('bar', '*')),
+                new TargetElement(new MergeAction())
+            ],
+            new Identifier('older'),
+            new Identifier('newer')
+        ));
 
         $this::assertEquals($built, $parsed);
     }

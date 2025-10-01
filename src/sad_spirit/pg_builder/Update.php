@@ -15,9 +15,9 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_builder\nodes\{
+    ReturningClause,
     WhereOrHavingClause,
     lists\FromList,
-    lists\TargetList,
     lists\SetClauseList,
     range\UpdateOrDeleteTarget
 };
@@ -29,7 +29,7 @@ use sad_spirit\pg_builder\nodes\{
  * @property      SetClauseList        $set
  * @property      FromList             $from
  * @property-read WhereOrHavingClause  $where
- * @property      TargetList           $returning
+ * @property      ReturningClause      $returning
  */
 class Update extends Statement
 {
@@ -37,7 +37,7 @@ class Update extends Statement
     protected SetClauseList $p_set;
     protected FromList $p_from;
     protected WhereOrHavingClause $p_where;
-    protected TargetList $p_returning;
+    protected ReturningClause $p_returning;
 
     public function __construct(UpdateOrDeleteTarget $relation, SetClauseList $set)
     {
@@ -50,7 +50,7 @@ class Update extends Statement
         $this->p_set = $set;
 
         $this->p_from      = new FromList();
-        $this->p_returning = new TargetList();
+        $this->p_returning = new ReturningClause();
         $this->p_where     = new WhereOrHavingClause();
 
         $this->p_from->parentNode      = \WeakReference::create($this);

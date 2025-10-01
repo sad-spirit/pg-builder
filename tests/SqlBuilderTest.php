@@ -82,7 +82,7 @@ delete from only tree_items as foo using item_properties as bar
 where foo.item_id in (select id from items) and
       foo.item_id = bar.item_id and
       bar.property_type = 'blah'
-returning *
+returning with (old as older) *
 QRY
         );
     }
@@ -108,7 +108,7 @@ on conflict (id, (name || surname) collate "zz_ZZ" asc nulls last) where not ble
     set name = excluded.name,
         surname = excluded.surname || ' (formerly ' || blah.surname || ')'
     where something is distinct from anything
-returning *
+returning with (new as newer) *
 QRY
         );
     }
@@ -135,7 +135,7 @@ when matched then
     delete
 when not matched by source then
     update set baz = 'blah'
-returning bar.*, merge_action()
+returning with (old as older, new as newer) bar.*, merge_action()
 QRY
         );
     }
@@ -259,7 +259,7 @@ update bar baralias set blah.one = 'blah', blahblah = default, (baz[1], quux) = 
 from baz
 where baz.id = baralias.baz_id and
       baz.foovalue in (select somefoo from foo)
-returning *
+returning with (old as older, new as newer) *
 QRY
         );
     }

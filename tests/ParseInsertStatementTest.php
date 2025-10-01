@@ -30,6 +30,7 @@ use sad_spirit\pg_builder\nodes\{
     expressions\NumericConstant,
     expressions\OperatorExpression,
     expressions\StringConstant,
+    ReturningClause,
     Star,
     WithClause,
     QualifiedName,
@@ -85,7 +86,7 @@ select id, blah
 from foo, bar
 where id < blah
 on conflict do nothing
-returning *
+returning with (new as newer) *
 QRY
         );
 
@@ -98,7 +99,11 @@ QRY
             )
         ]);
         $built->overriding = InsertOverriding::SYSTEM;
-        $built->returning->replace([new Star()]);
+        $built->returning->replace(new ReturningClause(
+            [new Star()],
+            null,
+            new Identifier('newer')
+        ));
         $built->onConflict = new OnConflictClause(OnConflictAction::NOTHING);
 
         $foo = new Select(new TargetList([

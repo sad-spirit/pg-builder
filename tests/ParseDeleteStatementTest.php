@@ -25,12 +25,13 @@ use sad_spirit\pg_builder\exceptions\NotImplementedException;
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
     CommonTableExpression,
-    expressions\OperatorExpression,
+    ReturningClause,
     Star,
     WithClause,
     QualifiedName,
     TargetElement,
     Identifier,
+    expressions\OperatorExpression,
     lists\IdentifierList,
     lists\TargetList,
     range\RelationReference,
@@ -59,7 +60,7 @@ with foo (id) as (
 delete from bar
 using foo
 where foo.id = bar.foo_id
-returning *
+returning with (old as older) *
 QRY
         );
 
@@ -72,7 +73,7 @@ QRY
             new ColumnReference('foo', 'id'),
             new ColumnReference('bar', 'foo_id')
         );
-        $built->returning->merge(new TargetList([new Star()]));
+        $built->returning->replace(new ReturningClause([new Star()], new Identifier('older')));
 
         $cte = new Select(new TargetList([
             new TargetElement(new ColumnReference('somefoo'))

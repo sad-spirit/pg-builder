@@ -15,10 +15,10 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_builder\nodes\{
-    lists\TargetList,
+    OnConflictClause,
+    ReturningClause,
     lists\SetTargetList,
-    range\InsertTarget,
-    OnConflictClause
+    range\InsertTarget
 };
 use sad_spirit\pg_builder\enums\InsertOverriding;
 
@@ -30,7 +30,7 @@ use sad_spirit\pg_builder\enums\InsertOverriding;
  * @property      SelectCommon|null     $values
  * @property      InsertOverriding|null $overriding
  * @property      OnConflictClause|null $onConflict
- * @property      TargetList            $returning
+ * @property      ReturningClause       $returning
  */
 class Insert extends Statement
 {
@@ -39,7 +39,7 @@ class Insert extends Statement
     protected ?SelectCommon $p_values = null;
     protected ?InsertOverriding $p_overriding = null;
     protected ?OnConflictClause $p_onConflict = null;
-    protected TargetList $p_returning;
+    protected ReturningClause $p_returning;
 
     public function __construct(InsertTarget $relation)
     {
@@ -49,7 +49,7 @@ class Insert extends Statement
         $this->p_relation = $relation;
 
         $this->p_cols      = new SetTargetList();
-        $this->p_returning = new TargetList();
+        $this->p_returning = new ReturningClause();
 
         $this->p_cols->parentNode      = \WeakReference::create($this);
         $this->p_returning->parentNode = \WeakReference::create($this);

@@ -1151,4 +1151,12 @@ abstract class BlankWalker implements TreeWalker
         $column->columns->dispatch($this);
         return null;
     }
+
+    public function walkReturningClause(nodes\ReturningClause $clause): mixed
+    {
+        $clause->oldAlias?->dispatch($this);
+        $clause->newAlias?->dispatch($this);
+        $this->walkGenericNodeList($clause);
+        return null;
+    }
 }

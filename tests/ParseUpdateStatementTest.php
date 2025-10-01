@@ -25,6 +25,7 @@ use sad_spirit\pg_builder\{
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
     CommonTableExpression,
+    ReturningClause,
     Star,
     WithClause,
     QualifiedName,
@@ -157,7 +158,7 @@ update bar
 set blah = foo.blah
 from foo
 where foo.id = bar.foo_id
-returning *
+returning with (old as older, new as newer) *
 QRY
         );
 
@@ -178,7 +179,11 @@ QRY
             new ColumnReference('foo', 'id'),
             new ColumnReference('bar', 'foo_id')
         );
-        $built->returning->replace([new Star()]);
+        $built->returning->replace(new ReturningClause(
+            [new Star()],
+            new Identifier('older'),
+            new Identifier('newer')
+        ));
 
         $cte = new Select(new TargetList([
             new TargetElement(new ColumnReference('somefoo'))

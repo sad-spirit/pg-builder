@@ -69,6 +69,7 @@ use Psr\Cache\InvalidArgumentException;
  * @method nodes\TypeName                   parseTypeName($input)
  * @method nodes\merge\MergeWhenList        parseMergeWhenList($input)
  * @method nodes\merge\MergeWhenClause      parseMergeWhenClause($input)
+ * @method nodes\ReturningClause            parseReturningClause($input)
  */
 class Parser
 {
@@ -329,7 +330,8 @@ class Parser
         'xmlcolumndefinition'        => true,
         'typename'                   => true,
         'mergewhenlist'              => true,
-        'mergewhenclause'            => true
+        'mergewhenclause'            => true,
+        'returningclause'            => true
     ];
 
     private TokenStream $stream;
@@ -864,7 +866,7 @@ class Parser
 
         if (Keyword::RETURNING === $this->stream->getKeyword()) {
             $this->stream->next();
-            $stmt->returning->replace($this->TargetList());
+            $stmt->returning->replace($this->ReturningClause());
         }
 
         return $stmt;
@@ -899,7 +901,7 @@ class Parser
         }
         if (Keyword::RETURNING === $this->stream->getKeyword()) {
             $this->stream->next();
-            $stmt->returning->replace($this->TargetList());
+            $stmt->returning->replace($this->ReturningClause());
         }
 
         return $stmt;
@@ -932,7 +934,7 @@ class Parser
         }
         if (Keyword::RETURNING === $this->stream->getKeyword()) {
             $this->stream->next();
-            $stmt->returning->replace($this->TargetList());
+            $stmt->returning->replace($this->ReturningClause());
         }
 
         return $stmt;
@@ -4408,7 +4410,7 @@ class Parser
 
         if (Keyword::RETURNING === $this->stream->getKeyword()) {
             $this->stream->next();
-            $merge->returning->replace($this->TargetList());
+            $merge->returning->replace($this->ReturningClause());
         }
 
         if (!empty($withClause)) {
@@ -5053,5 +5055,46 @@ class Parser
         }
 
         return new nodes\range\json\JsonNestedColumns($path, $pathName, $this->JsonTableColumnsClause());
+    }
+
+    protected function ReturningClause(): nodes\ReturningClause
+    {
+        $oldAlias = null;
+        $newAlias = null;
+        if (Keyword::WITH === $this->stream->getKeyword()) {
+            $this->stream->next();
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
+
+            $this->ReturningClauseOption($oldAlias, $newAlias);
+            while ($this->stream->matchesSpecialChar(',')) {
+                $this->stream->next();
+                $this->ReturningClauseOption($oldAlias, $newAlias);
+            }
+
+            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
+        }
+        return new nodes\ReturningClause($this->TargetList(), $oldAlias, $newAlias);
+    }
+
+    protected function ReturningClauseOption(?nodes\Identifier &$oldAlias, ?nodes\Identifier &$newAlias): void
+    {
+        $token   = $this->stream->getCurrent();
+        $keyword = $this->stream->expectKeyword(Keyword::OLD, Keyword::NEW);
+        $this->stream->expectKeyword(Keyword::AS);
+
+        if (
+            Keyword::OLD === $keyword && null !== $oldAlias
+            || Keyword::NEW === $keyword && null !== $newAlias
+        ) {
+            throw exceptions\SyntaxException::atPosition(
+                \sprintf('%s cannot be specified multiple times', \strtoupper($keyword->value)),
+                $this->stream->getSource(),
+                $token->getPosition()
+            );
+        } elseif (Keyword::OLD === $keyword) {
+            $oldAlias = $this->ColId();
+        } else {
+            $newAlias = $this->ColId();
+        }
     }
 }

@@ -16,8 +16,8 @@ namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_builder\nodes\{
     lists\FromList,
-    lists\TargetList,
     range\UpdateOrDeleteTarget,
+    ReturningClause,
     WhereOrHavingClause
 };
 
@@ -27,14 +27,14 @@ use sad_spirit\pg_builder\nodes\{
  * @property-read UpdateOrDeleteTarget $relation
  * @property      FromList             $using
  * @property-read WhereOrHavingClause  $where
- * @property      TargetList           $returning
+ * @property      ReturningClause      $returning
  */
 class Delete extends Statement
 {
     protected UpdateOrDeleteTarget $p_relation;
     protected FromList $p_using;
     protected WhereOrHavingClause $p_where;
-    protected TargetList $p_returning;
+    protected ReturningClause $p_returning;
 
     public function __construct(UpdateOrDeleteTarget $relation)
     {
@@ -44,7 +44,7 @@ class Delete extends Statement
         $this->p_relation = $relation;
 
         $this->p_using     = new FromList();
-        $this->p_returning = new TargetList();
+        $this->p_returning = new ReturningClause();
         $this->p_where     = new WhereOrHavingClause();
 
         $this->p_using->parentNode     = \WeakReference::create($this);

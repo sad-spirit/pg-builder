@@ -349,7 +349,7 @@ class SqlBuilderWalker implements StatementToStringWalker
             $clauses[] = $indent . 'where ' . $statement->where->dispatch($this);
         }
         if (0 < \count($statement->returning)) {
-            $clauses[] = $this->implode($indent . 'returning ', $statement->returning->dispatch($this), ',');
+            $clauses[] = \substr($statement->returning->dispatch($this), \strlen((string)$this->options['indent']));
         }
         $this->indentLevel--;
 
@@ -385,7 +385,7 @@ class SqlBuilderWalker implements StatementToStringWalker
             $clauses[] = $indent . 'on conflict ' . $statement->onConflict->dispatch($this);
         }
         if (0 < \count($statement->returning)) {
-            $clauses[] = $this->implode($indent . 'returning ', $statement->returning->dispatch($this), ',');
+            $clauses[] = \substr($statement->returning->dispatch($this), \strlen((string)$this->options['indent']));
         }
         $this->indentLevel--;
 
@@ -411,7 +411,7 @@ class SqlBuilderWalker implements StatementToStringWalker
             $clauses[] = $indent . 'where ' . $statement->where->dispatch($this);
         }
         if (0 < \count($statement->returning)) {
-            $clauses[] = $this->implode($indent . 'returning ', $statement->returning->dispatch($this), ',');
+            $clauses[] = \substr($statement->returning->dispatch($this), \strlen((string)$this->options['indent']));
         }
         $this->indentLevel--;
 
@@ -1471,7 +1471,7 @@ class SqlBuilderWalker implements StatementToStringWalker
             $clauses[] = $indent . $when->dispatch($this);
         }
         if (0 < \count($statement->returning)) {
-            $clauses[] = $this->implode($indent . 'returning ', $statement->returning->dispatch($this), ',');
+            $clauses[] = \substr($statement->returning->dispatch($this), \strlen((string)$this->options['indent']));
         }
 
         $this->indentLevel--;
@@ -1808,6 +1808,24 @@ class SqlBuilderWalker implements StatementToStringWalker
         $lines[] = $this->getIndent() . ')';
 
         return \implode($this->options['linebreak'] ?: ' ', $lines);
+    }
+
+    public function walkReturningClause(nodes\ReturningClause $clause): string
+    {
+        $prefix = $this->getIndent() . 'returning ';
+
+        if (null !== $clause->oldAlias || null !== $clause->newAlias) {
+            $aliases = [];
+            if (null !== $clause->oldAlias) {
+                $aliases[] = 'old as ' . $clause->oldAlias->dispatch($this);
+            }
+            if (null !== $clause->newAlias) {
+                $aliases[] = 'new as ' . $clause->newAlias->dispatch($this);
+            }
+            $prefix .= 'with (' . \implode(', ', $aliases) . ') ';
+        }
+
+        return $this->implode($prefix, $this->walkGenericNodeList($clause), ',');
     }
 
     /**
