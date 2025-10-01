@@ -926,4 +926,11 @@ interface TreeWalker
      * @since 3.0.0
      */
     public function walkJsonNestedColumns(nodes\range\json\JsonNestedColumns $column): mixed;
+
+    /**
+     * Visits the node representing a RETURNING clause of DML statement
+     *
+     * @since 3.2.0
+     */
+    public function walkReturningClause(nodes\ReturningClause $clause): mixed;
 }
