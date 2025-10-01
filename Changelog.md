@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+
+* Support for new syntax of PostgreSQL 18:
+  * Aliases for `OLD` and `NEW` in `RETURNING` clause of DML statements. The `RETURNING` clause is now represented
+    by `nodes\ReturningClause` class that extends `nodes\lists\TargetList` and adds `$oldAlias` and `$newAlias`
+    properties for the relevant aliases.
+
 ### Changed
 
 * Parent node is now kept as a `WeakReference` internally by `nodes\GenericNode` subclasses, this prevents
