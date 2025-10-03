@@ -228,6 +228,13 @@ REGEXP;
                         $this->position
                     );
                 }
+                if ($m[2] !== (string)((int)$m[2] & 0x7fffffff)) {
+                    throw exceptions\SyntaxException::atPosition(
+                        "Parameter number too large: '$m[2]'",
+                        $this->source,
+                        $this->position
+                    );
+                }
                 $this->tokens[] = new tokens\StringToken(TokenType::POSITIONAL_PARAM, $m[2], $this->position);
                 $this->position += \strlen($m[0]);
 

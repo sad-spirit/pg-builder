@@ -337,6 +337,14 @@ QRY
         );
     }
 
+    #[DataProvider('invalidParameterNumbersProvider')]
+    public function testOverflowOfParameterNumbers(string $parameter): void
+    {
+        $this::expectException(SyntaxException::class);
+        $this::expectExceptionMessage("Parameter number too large");
+        $this->lexer->tokenize('$' . $parameter);
+    }
+
     public static function validCStyleEscapesProvider(): array
     {
         return [
@@ -466,6 +474,14 @@ QRY
             ['1_000.'],
             ['.000_005'],
             ['1_000.5e0_1']
+        ];
+    }
+
+    public static function invalidParameterNumbersProvider(): array
+    {
+        return [
+            ['2147483648'],
+            ['4294967297']
         ];
     }
 }

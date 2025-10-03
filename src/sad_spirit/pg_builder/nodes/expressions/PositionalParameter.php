@@ -27,7 +27,9 @@ class PositionalParameter extends Parameter
     public function __construct(int $position)
     {
         if (0 >= $position) {
-            throw new InvalidArgumentException("Position should be positive");
+            throw new InvalidArgumentException("Parameter number should be positive");
+        } elseif (2147483647 < $position) {
+            throw new InvalidArgumentException("Parameter number outside int32 range");
         }
         $this->position = $position;
     }
