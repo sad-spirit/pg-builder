@@ -23,3 +23,9 @@ parameters:
 			message: "#^Parameter &\\$property by-ref type of method sad_spirit\\\\pg_builder\\\\nodes\\\\GenericNode::setRequiredProperty\\(\\)#"
 			count: 1
 			path: src/sad_spirit/pg_builder/nodes/GenericNode.php
+
+		# Some questionable errors from phpstan 2.1.30
+		-
+			message: "#^Property sad_spirit\\\\pg_builder\\\\tests\\\\nodes\\\\GenericNodeListTest::\\$nodeList in isset\\(\\) is not nullable nor uninitialized\\.$#"
+			count: 3
+			path: tests/nodes/GenericNodeListTest.php
