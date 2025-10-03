@@ -13,6 +13,7 @@
 
 * Parent node is now kept as a `WeakReference` internally by `nodes\GenericNode` subclasses, this prevents
   circular references and allows garbage collection of AST fragments that were removed from the tree.
+* Disallow parameter numbers outside int32 range, this follows a fix in Postgres 18.
 
 ## [3.1.0] - 2025-05-28
 
