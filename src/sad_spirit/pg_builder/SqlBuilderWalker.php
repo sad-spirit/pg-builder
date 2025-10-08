@@ -1627,7 +1627,7 @@ class SqlBuilderWalker implements StatementToStringWalker
     public function walkJsonArrayValueList(nodes\json\JsonArrayValueList $expression): string
     {
         return 'json_array('
-            . $this->implode(', ', $expression->arguments->dispatch($this))
+            . \implode(', ', $expression->arguments->dispatch($this))
             . $this->jsonOnNullClause($expression->absentOnNull)
             . (null === $expression->returning ? '' : ' ' . $expression->returning->dispatch($this))
             . ')';

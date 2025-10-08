@@ -190,6 +190,7 @@ select distinct on (something) quux.one, xyzzy.two[1], (quux.three).four, $1.bla
        '{}' is json object with unique keys, 'blah' is not json,
        json_arrayagg(ary order by something returning blah) over (win95),
        json_objectagg(k: v null on null) filter (where v <> 0),
+       json_array(1, 2, null, 3 absent on null returning jsonb),
        json_array(values (2), (1), (3) returning bytea),
        json_object(k: v, kk value vv with unique keys),
        json('{"foo":1}' format json encoding utf8 without unique),
