@@ -364,6 +364,8 @@ enum Keyword: string
     case READ              = 'read';
     case REAL              = 'real';
     case REASSIGN          = 'reassign';
+    // The keyword was removed in Postgres 18. Keep it while we support version 17 and below.
+    case RECHECK           = 'recheck';
     case RECURSIVE         = 'recursive';
     case REF               = 'ref';
     case REFERENCES        = 'references';
