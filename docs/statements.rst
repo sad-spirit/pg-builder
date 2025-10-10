@@ -138,9 +138,10 @@ are accessible as array offsets. It also has a writable boolean ``$recursive`` p
     ``WHERE`` clause of ``DELETE``. ``$where`` property is read-only, but has :ref:`helper methods <helpers>` for
     building the ``WHERE`` clause.
 
-``$returning: nodes\lists\TargetList``
+``$returning: nodes\ReturningClause``
     ``RETURNING`` clause of ``DELETE``. If present, ``DELETE`` will return values based on each
-    deleted row. ``TargetList`` is essentially an array containing only instances of ``nodes\TargetElement``.
+    deleted row. ``ReturningClause`` is essentially an array containing only instances of ``nodes\TargetElement``
+    with additional properties representing aliases for ``OLD`` and ``NEW`` in Postgres 18+.
 
 ``Insert`` properties
 =====================
@@ -162,10 +163,11 @@ are accessible as array offsets. It also has a writable boolean ``$recursive`` p
     ``ON CONFLICT`` clause used  to specify an alternative action to raising a unique constraint or
     exclusion constraint violation error. The property is writable.
 
-``$returning: nodes\lists\TargetList``
+``$returning: nodes\ReturningClause``
     ``RETURNING`` clause of ``INSERT``, if present ``INSERT`` will return values based on each
     inserted (or maybe updated in case of ``ON CONFLICT ... DO UPDATE``)
-    row. ``TargetList`` is essentially an array containing only instances of ``nodes\TargetElement``.
+    row. ``ReturningClause`` is essentially an array containing only instances of ``nodes\TargetElement``
+    with additional properties representing aliases for ``OLD`` and ``NEW`` in Postgres 18+.
 
 ``Merge`` properties
 =====================
@@ -183,9 +185,9 @@ are accessible as array offsets. It also has a writable boolean ``$recursive`` p
     List of ``WHEN`` conditions for ``MERGE``. ``MergeWhenList`` behaves like an array containing only instances
     of ``nodes\merge\MergeWhenClause``.
 
-``$returning: nodes\lists\TargetList``
+``$returning: nodes\ReturningClause``
     ``RETURNING`` clause of ``MERGE``.
-    ``TargetList`` behaves like an array containing only instances of ``nodes\TargetElement``.
+    ``ReturningClause`` behaves like an array containing only instances of ``nodes\TargetElement``.
 
 ``Update`` properties
 =====================
@@ -204,9 +206,9 @@ are accessible as array offsets. It also has a writable boolean ``$recursive`` p
 ``$where: WhereOrHavingClause``
     ``WHERE`` clause of ``UPDATE``.
 
-``$returning: nodes\lists\TargetList``
+``$returning: nodes\ReturningClause``
     ``RETURNING`` clause of ``UPDATE``, if present ``UPDATE`` will return values based on each updated row.
-    ``TargetList`` is essentially an array containing only instances of ``nodes\TargetElement``.
+    ``ReturningClause`` is essentially an array containing only instances of ``nodes\TargetElement``.
 
 ``SelectCommon`` methods and properties
 =======================================
@@ -284,7 +286,8 @@ will output
 
 ``$list: nodes\lists\TargetList``
     List of columns returned by ``SELECT``. ``TargetList`` behaves like an array containing only
-    instances of ``nodes\TargetElement``, it is also used for ``RETURNING`` clauses of data-modifying statements.
+    instances of ``nodes\TargetElement``, its subclass is also used for ``RETURNING`` clauses
+    of data-modifying statements.
 
 ``$distinct: bool|nodes\lists\ExpressionList``
     ``true`` here represents ``DISTINCT`` clause, list of expressions - ``DISTINCT ON (...)`` clause.

@@ -288,7 +288,8 @@ all of them implement ``Parseable`` and ``ElementParseable`` interfaces:
 +--------------------------------+-----------------------------------------------------------------------------------+
 | ``nodes\lists\SetTargetList``  | instances of ``nodes\SetTargetElement``                                           |
 +--------------------------------+-----------------------------------------------------------------------------------+
-| ``nodes\lists\TargetList``     | instances of ``nodes\TargetElement`` or ``nodes\Star``                            |
+| ``nodes\lists\TargetList``,    | instances of ``nodes\TargetElement`` or ``nodes\Star``                            |
+| ``nodes\ReturningClause``      |                                                                                   |
 +--------------------------------+-----------------------------------------------------------------------------------+
 | ``nodes\lists\WindowList``     | instances of ``nodes\WindowDefinition``                                           |
 +--------------------------------+-----------------------------------------------------------------------------------+
