@@ -81,7 +81,7 @@ You may need to set options via ``Lexer``'s constructor, however:
 
 ``'standard_conforming_strings'``
     Has the same meaning as `postgresql.conf parameter
-    <https://www.postgresql.org/docs/current/static/runtime-config-compatible.html#GUC-STANDARD-CONFORMING-STRINGS>`__
+    <https://www.postgresql.org/docs/current/runtime-config-compatible.html#GUC-STANDARD-CONFORMING-STRINGS>`__
     of the same name: when ``true`` (default), then backslashes in ``'...'`` strings are treated literally,
     when ``false`` they are treated as escape characters. Backslashes in ``e'...'`` strings are
     always treated as escape characters, of course.

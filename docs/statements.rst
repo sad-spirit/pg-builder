@@ -83,7 +83,7 @@ The items in the list may be modified as array offsets:
 
 ``$with: nodes\WithClause``
     A writable property that represents a ``WITH`` clause containing
-    `Common Table Expressions <https://www.postgresql.org/docs/current/static/queries-with.html>`__
+    `Common Table Expressions <https://www.postgresql.org/docs/current/queries-with.html>`__
     attached to a primary statement.
 
 ``setParser(Parser $parser)``

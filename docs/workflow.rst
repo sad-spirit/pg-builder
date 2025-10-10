@@ -124,7 +124,7 @@ Of course, you can directly add parts of the query as ``Node`` implementations r
 
     If you make a typo in the table's name, the package won't catch it, as it does not try to check database's metadata.
     In PostgreSQL itself this is done in query
-    `transformation process <https://www.postgresql.org/docs/current/static/parser-stage.html>`__
+    `transformation process <https://www.postgresql.org/docs/current/parser-stage.html>`__
     which starts after the parsing.
 
 Analyze and transform the query

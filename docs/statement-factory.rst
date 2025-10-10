@@ -86,7 +86,7 @@ Constructor arguments
     The following settings will be configured:
 
     - ``Lexer`` instance used by ``Parser`` will follow server's `standard_conforming_strings
-      setting <https://www.postgresql.org/docs/current/static/runtime-config-compatible.html#GUC-STANDARD-CONFORMING-STRINGS>`__.
+      setting <https://www.postgresql.org/docs/current/runtime-config-compatible.html#GUC-STANDARD-CONFORMING-STRINGS>`__.
     - If ``client_encoding`` is anything but ``UTF-8`` then ``SqlBuilderWalker`` will have ``escape_unicode`` enabled.
     - Additionally, ``Parser`` will reuse the metadata cache of ``Connection`` for caching ASTs, if available.
 
