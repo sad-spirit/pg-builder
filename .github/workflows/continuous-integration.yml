@@ -15,9 +15,9 @@ jobs:
       matrix:
         postgres-version: ['12', '18']
         operating-system: ['ubuntu-latest']
-        php-version: ['8.2', '8.3', '8.4']
+        php-version: ['8.2', '8.3', '8.4', '8.5']
         include:
-          - php-version: '8.4'
+          - php-version: '8.5'
             composer-flags: '--ignore-platform-req=php+'
 
     name: CI on ${{ matrix.operating-system }} with PHP ${{ matrix.php-version }} and PostgreSQL ${{ matrix.postgres-version }}
