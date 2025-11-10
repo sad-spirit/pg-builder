@@ -56,7 +56,7 @@ class BuilderSupportDecorator implements ConfigurableTypeConverterFactory, TypeN
     ) {
     }
 
-    public function getConverterForTypeSpecification($type): TypeConverter
+    public function getConverterForTypeSpecification(mixed $type): TypeConverter
     {
         if ($type instanceof TypeName) {
             return $this->getConverterForTypeNameNode($type);
@@ -67,12 +67,12 @@ class BuilderSupportDecorator implements ConfigurableTypeConverterFactory, TypeN
         }
     }
 
-    public function getConverterForTypeOID($oid): TypeConverter
+    public function getConverterForTypeOID(int|string $oid): TypeConverter
     {
         return $this->wrapped->getConverterForTypeOID($oid);
     }
 
-    public function getConverterForPHPValue($value): TypeConverter
+    public function getConverterForPHPValue(mixed $value): TypeConverter
     {
         return $this->wrapped->getConverterForPHPValue($value);
     }
