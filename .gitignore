@@ -1,7 +1,7 @@
 .idea/
 cache/
 /tests/config.php
-/tests/.phpunit.result.cache
+/tests/.phpunit.cache/
 /vendor
 composer.lock
 /docs/_build/
