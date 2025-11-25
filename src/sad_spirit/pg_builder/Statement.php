@@ -53,7 +53,6 @@ abstract class Statement extends GenericNode
 
     /**
      * Returns the parser
-     * @return Parser|null
      */
     public function getParser(): ?Parser
     {

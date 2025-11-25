@@ -138,7 +138,6 @@ class NativeStatement
      * @param array $paramTypes  Parameter types (keys can be either names or positions), types from this
      *                           array take precedence over types from $parameterTypes property
      * @param array $resultTypes Result types to pass to Result (keys can be either names or positions)
-     * @return Result
      * @throws ServerException
      * @throws exceptions\InvalidArgumentException
      */
@@ -172,7 +171,6 @@ class NativeStatement
      * @param array      $paramTypes  Parameter types (keys can be either names or positions), types from this
      *                                array take precedence over types from $parameterTypes property
      * @param array      $resultTypes Result types to pass to Result instances
-     * @return PreparedStatement
      */
     public function prepare(Connection $connection, array $paramTypes = [], array $resultTypes = []): PreparedStatement
     {
@@ -198,7 +196,6 @@ class NativeStatement
      * Executes the prepared statement using only the given parameters (requires prepare() to be called first)
      *
      * @param array $params Parameters (keys are treated as names unless $namedParameterMap is empty)
-     * @return Result
      * @throws exceptions\RuntimeException
      * @throws ServerException
      */

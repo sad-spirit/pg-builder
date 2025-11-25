@@ -22,8 +22,6 @@ interface Parseable
     /**
      * Parses the SQL returning an AST for the relevant element
      *
-     * @param Parser $parser
-     * @param string $sql
      * @return self
      * @throws exceptions\SyntaxException
      */

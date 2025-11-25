@@ -80,9 +80,6 @@ class SqlBuilderWalker implements StatementToStringWalker
      * Nodes with these clauses should be always wrapped in parentheses when used in
      * set operations, as per spec these clauses apply to a result of set operation rather
      * than to its operands
-     *
-     * @param SelectCommon $statement
-     * @return bool
      */
     protected function containsCommonClauses(SelectCommon $statement): bool
     {
@@ -162,7 +159,6 @@ class SqlBuilderWalker implements StatementToStringWalker
      * @param string   $lead      Leading keywords for expression list, e.g. 'select ' or 'order by '
      * @param string[] $parts     Array of expressions
      * @param string   $separator String to use for separating expressions
-     * @return string
      */
     protected function implode(string $lead, array $parts, string $separator = ','): string
     {
@@ -769,11 +765,10 @@ class SqlBuilderWalker implements StatementToStringWalker
     }
 
     /**
-     * Used by {@see walkArrayExpression} to enable adding of array keyword only to outermost array literal
+     * Recursive part of building an array literal
      *
-     * @param nodes\expressions\ArrayExpression $expression
-     * @param bool $keyword
-     * @return string
+     * Used by {@see SqlBuilderWalker::walkArrayExpression} to enable adding of `array` keyword only
+     * to outermost array literal
      */
     protected function recursiveArrayExpression(
         nodes\expressions\ArrayExpression $expression,
@@ -1831,7 +1826,6 @@ class SqlBuilderWalker implements StatementToStringWalker
     /**
      * Returns an array of code points corresponding to characters in UTF-8 string
      *
-     * @param string $string
      * @return int[]
      */
     protected static function utf8ToCodePoints(string $string): array

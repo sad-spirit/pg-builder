@@ -25,7 +25,8 @@ use sad_spirit\pg_builder\{
 /**
  * AST node representing "foo IS [NOT] keyword" expression
  *
- * Allowed keywords are TRUE / FALSE / NULL / UNKNOWN / DOCUMENT / [NFC|NFD|NFKC|NFKD] NORMALIZED
+ * Allowed keywords are `TRUE` / `FALSE` / `NULL` / `UNKNOWN` / `DOCUMENT` / `[NFC|NFD|NFKC|NFKD] NORMALIZED`,
+ * these are represented as cases of `IsPredicate` enum.
  *
  * @property ScalarExpression $argument
  * @property IsPredicate      $what

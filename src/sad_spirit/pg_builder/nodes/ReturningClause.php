@@ -22,8 +22,8 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * Represents a RETURNING clause in Postgres 18+
  *
- * Before Postgres 18 there was no difference between this and the target list of SELECT,
- * since version 18 it is possible to specify aliases for NEW and OLD in RETURNING clause.
+ * Before Postgres 18 there was no difference between this and the target list of `SELECT`,
+ * since version 18 it is possible to specify aliases for `NEW` and `OLD` in `RETURNING` clause.
  *
  * @property Identifier|null $oldAlias
  * @property Identifier|null $newAlias

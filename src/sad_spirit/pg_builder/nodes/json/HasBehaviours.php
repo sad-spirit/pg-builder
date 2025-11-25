@@ -28,11 +28,6 @@ trait HasBehaviours
 {
     /**
      * Sets the value for "ON EMPTY" / "ON ERROR" behaviour clause
-     *
-     * @param JsonBehaviour|ScalarExpression|null $property
-     * @param bool                                $onEmpty
-     * @param JsonBehaviour|ScalarExpression|null $value
-     * @return void
      */
     final protected function setBehaviour(
         JsonBehaviour|ScalarExpression|null &$property,

@@ -41,7 +41,6 @@ abstract class FunctionFromElement extends LateralFromElement
      *
      * Unlike aliases for a table in FROM, column aliases here can specify types
      *
-     * @param Identifier|null                          $tableAlias
      * @param IdentifierList|ColumnDefinitionList|null $columnAliases
      */
     public function setAlias(?Identifier $tableAlias, ?NodeList $columnAliases = null): void

@@ -40,7 +40,6 @@ class UsingClause extends IdentifierList implements Parseable
      * Constructor
      *
      * @param iterable<Identifier|string>|null $list
-     * @param Identifier|string|null           $alias
      */
     public function __construct($list = null, Identifier|string|null $alias = null)
     {

@@ -49,7 +49,6 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
      * WithClause constructor
      *
      * @param string|null|iterable<CommonTableExpression|string> $commonTableExpressions
-     * @param bool                                               $recursive
      */
     public function __construct(iterable|string|null $commonTableExpressions = null, bool $recursive = false)
     {

@@ -138,8 +138,6 @@ REGEXP;
     /**
      * Tokenizes the input string
      *
-     * @param string $sql
-     * @return TokenStream
      * @throws exceptions\NotImplementedException
      * @throws exceptions\SyntaxException
      *
@@ -332,7 +330,7 @@ REGEXP;
     /**
      * Processes a double-quoted identifier
      *
-     * @param bool $unicode Whether this is a u&"..." identifier
+     * @param bool $unicode Whether this is a `u&"..."` identifier
      * @throws exceptions\SyntaxException
      */
     private function lexDoubleQuoted(bool $unicode = false): void
@@ -362,7 +360,6 @@ REGEXP;
     /**
      * Processes a dollar-quoted string
      *
-     * @param string $delimiter
      * @throws exceptions\SyntaxException
      */
     private function lexDollarQuoted(string $delimiter): void
@@ -612,9 +609,9 @@ REGEXP;
     /**
      * Processes Unicode escapes in u&'...' string literals and u&"..." identifiers
      *
-     * Handles possible trailing UESCAPE clauses, replaces TYPE_UNICODE_* tokens with simple
-     * TYPE_STRING and TYPE_IDENTIFIER ones having Unicode escapes in their values replaced by UTF-8 representations.
-     * Similar to what base_yylex() function in PostgreSQL's /src/backend/parser/parser.c does.
+     * Handles possible trailing `UESCAPE` clauses, replaces `TokenType::UNICODE_*` tokens with simple
+     * `TokenType::STRING` and `TokenType::IDENTIFIER` ones having Unicode escapes in their values replaced by
+     * UTF-8 representations.Similar to what `base_yylex()` function in PostgreSQL's `src/backend/parser/parser.c` does.
      */
     private function unescapeUnicodeTokens(): void
     {
@@ -669,12 +666,12 @@ REGEXP;
     /**
      * Replaces Unicode escapes in values of string or identifier Tokens
      *
-     * This is a bit more complex than replaceEscapeSequences() as the escapes may specify UTF-16 surrogate pairs
+     * This is a bit more complex than `replaceEscapeSequences()` as the escapes may specify UTF-16 surrogate pairs
      * that should be combined into single codepoint.
      *
-     * @param Token  $token      The whole Token is needed to be able to use its position in exception messages
-     * @param string $escapeChar Value of escape character provided by UESCAPE 'X' clause, if present
-     * @return string value of Token with Unicode escapes replaced by their UTF-8 equivalents
+     * @param Token  $token      The whole `Token` is needed to be able to use its position in exception messages
+     * @param string $escapeChar Value of escape character provided by `UESCAPE 'X'` clause, if present
+     * @return string value of `Token` with Unicode escapes replaced by their UTF-8 equivalents
      */
     private function unescapeUnicode(Token $token, string $escapeChar = '\\'): string
     {
@@ -731,10 +728,6 @@ REGEXP;
     /**
      * Converts a Unicode code point that can be a part of surrogate pair to its UTF-8 encoded representation
      *
-     * @param int $codepoint
-     * @param int $position
-     * @param int $basePosition
-     * @return string
      * @throws exceptions\SyntaxException
      */
     private function handlePossibleSurrogatePairs(int $codepoint, int $position, int $basePosition): string

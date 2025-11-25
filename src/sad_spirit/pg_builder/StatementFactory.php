@@ -48,10 +48,10 @@ class StatementFactory
     /**
      * Constructor, sets objects to parse and build SQL
      *
-     * @param Parser|null                  $parser        A Parser instance with default settings will be used
+     * @param Parser|null                  $parser        A `Parser` instance with default settings will be used
      *                                                    if not given
-     * @param StatementToStringWalker|null $builder       Usually an instance of SqlBuilderWalker.
-     *                                                    An instance of SqlBuilderWalker with default settings
+     * @param StatementToStringWalker|null $builder       Usually an instance of `SqlBuilderWalker`.
+     *                                                    An instance of `SqlBuilderWalker` with default settings
      *                                                    will be used if not given.
      * @param bool                         $PDOCompatible Whether to generate SQL suitable for PDO rather than
      *                                                    for native pgsql extension: named parameters
@@ -155,9 +155,9 @@ class StatementFactory
     /**
      * Creates an object containing SQL statement string and parameter mappings from AST
      *
-     * @param bool $forcePDOPrepareCompatibility Whether generated SQL should be compatible with \PDO::prepare()
-     *             even if {@see $PDOCompatible} was not set or the query does not contain placeholders,
-     *             {@see https://github.com/sad-spirit/pg-builder/issues/15 issue #15}
+     * @param bool $forcePDOPrepareCompatibility Whether generated SQL should be compatible with `\PDO::prepare()`
+     *             even if {@see StatementFactory::$PDOCompatible} was not set or the query does not contain
+     *             placeholders, see {@link https://github.com/sad-spirit/pg-builder/issues/15 issue #15}
      */
     public function createFromAST(Statement $ast, bool $forcePDOPrepareCompatibility = false): NativeStatement
     {
@@ -307,14 +307,20 @@ class StatementFactory
     /**
      * Creates a VALUES statement object
      *
-     * Take care when passing arrays/iterators here. As VALUES statement may contain several rows, an outer array
+     * Take care when passing arrays/iterators here. As `VALUES` statement may contain several rows, an outer array
      * will be for rows rather than for elements within row, thus
-     * <code>$factory->values([new StringConstant('foo'), new StringConstant('bar')]);</code>
+     * ```PHP
+     * $factory->values([new StringConstant('foo'), new StringConstant('bar')]);
+     * ```
      * will fail,
-     * <code>$factory->values([[new StringConstant('foo'), new StringConstant('bar')]]);</code>
-     * will produce a VALUES statement with one row containing two elements, and
-     * <code>$factory->values([[new StringConstant('foo')], [new StringConstant('bar')]]);</code>
-     * will produce a VALUES statement with two rows, each having a single element.
+     * ```PHP
+     * $factory->values([[new StringConstant('foo'), new StringConstant('bar')]]);
+     * ```
+     * will produce a `VALUES` statement with one row containing two elements, and
+     * ```PHP
+     * $factory->values([[new StringConstant('foo')], [new StringConstant('bar')]]);
+     * ```
+     * will produce a `VALUES` statement with two rows, each having a single element.
      *
      * @param string|iterable<RowExpression|string|iterable<ScalarExpression|SetToDefault|string>> $rows
      */

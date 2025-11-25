@@ -28,69 +28,69 @@ use Psr\Cache\InvalidArgumentException;
  * more are available to facilitate parsing of expression parts rather than complete
  * SQL statements.
  *
- * @method Statement                        parseStatement($input)
- * @method SelectCommon                     parseSelectStatement($input)
- * @method nodes\lists\ExpressionList       parseExpressionList($input)
- * @method nodes\ScalarExpression           parseExpression($input)
- * @method nodes\expressions\RowExpression  parseRowConstructor($input)
- * @method nodes\expressions\RowExpression  parseRowConstructorNoKeyword($input)
- * @method nodes\lists\RowList              parseRowList($input)
- * @method nodes\lists\TargetList           parseTargetList($input)
- * @method nodes\TargetElement              parseTargetElement($input)
- * @method nodes\lists\FromList             parseFromList($input)
- * @method nodes\range\FromElement          parseFromElement($input)
- * @method nodes\lists\OrderByList          parseOrderByList($input)
- * @method nodes\OrderByElement             parseOrderByElement($input)
- * @method nodes\lists\WindowList           parseWindowList($input)
- * @method nodes\WindowDefinition           parseWindowDefinition($input)
- * @method nodes\LockingElement             parseLockingElement($input)
- * @method nodes\lists\LockList             parseLockingList($input)
- * @method nodes\range\UpdateOrDeleteTarget parseRelationExpressionOptAlias($input)
- * @method nodes\range\InsertTarget         parseInsertTarget($input)
- * @method nodes\QualifiedName              parseQualifiedName($input)
- * @method nodes\lists\SetClauseList        parseSetClauseList($input)
- * @method nodes\SingleSetClause|nodes\MultipleSetClause parseSetClause($input)
- * @method nodes\lists\SetTargetList        parseInsertTargetList($input)
- * @method nodes\SetTargetElement           parseSetTargetElement($input)
- * @method nodes\ScalarExpression           parseExpressionWithDefault($input)
- * @method nodes\WithClause                 parseWithClause($input)
- * @method nodes\CommonTableExpression      parseCommonTableExpression($input)
- * @method nodes\lists\IdentifierList       parseColIdList($input)
- * @method nodes\range\UsingClause          parseUsingClause($input)
- * @method nodes\OnConflictClause           parseOnConflict($input)
- * @method nodes\IndexParameters            parseIndexParameters($input)
- * @method nodes\IndexElement               parseIndexElement($input)
- * @method nodes\group\GroupByClause        parseGroupByClause($input)
- * @method nodes\ScalarExpression|nodes\group\GroupByElement parseGroupByElement($input)
- * @method nodes\xml\XmlNamespaceList       parseXmlNamespaceList($input)
- * @method nodes\xml\XmlNamespace           parseXmlNamespace($input)
- * @method nodes\xml\XmlColumnList          parseXmlColumnList($input)
- * @method nodes\xml\XmlColumnDefinition    parseXmlColumnDefinition($input)
- * @method nodes\TypeName                   parseTypeName($input)
- * @method nodes\merge\MergeWhenList        parseMergeWhenList($input)
- * @method nodes\merge\MergeWhenClause      parseMergeWhenClause($input)
- * @method nodes\ReturningClause            parseReturningClause($input)
+ * @method Statement                        parseStatement(string|TokenStream $input)
+ * @method SelectCommon                     parseSelectStatement(string|TokenStream $input)
+ * @method nodes\lists\ExpressionList       parseExpressionList(string|TokenStream $input)
+ * @method nodes\ScalarExpression           parseExpression(string|TokenStream $input)
+ * @method nodes\expressions\RowExpression  parseRowConstructor(string|TokenStream $input)
+ * @method nodes\expressions\RowExpression  parseRowConstructorNoKeyword(string|TokenStream $input)
+ * @method nodes\lists\RowList              parseRowList(string|TokenStream $input)
+ * @method nodes\lists\TargetList           parseTargetList(string|TokenStream $input)
+ * @method nodes\TargetElement              parseTargetElement(string|TokenStream $input)
+ * @method nodes\lists\FromList             parseFromList(string|TokenStream $input)
+ * @method nodes\range\FromElement          parseFromElement(string|TokenStream $input)
+ * @method nodes\lists\OrderByList          parseOrderByList(string|TokenStream $input)
+ * @method nodes\OrderByElement             parseOrderByElement(string|TokenStream $input)
+ * @method nodes\lists\WindowList           parseWindowList(string|TokenStream $input)
+ * @method nodes\WindowDefinition           parseWindowDefinition(string|TokenStream $input)
+ * @method nodes\LockingElement             parseLockingElement(string|TokenStream $input)
+ * @method nodes\lists\LockList             parseLockingList(string|TokenStream $input)
+ * @method nodes\range\UpdateOrDeleteTarget parseRelationExpressionOptAlias(string|TokenStream $input)
+ * @method nodes\range\InsertTarget         parseInsertTarget(string|TokenStream $input)
+ * @method nodes\QualifiedName              parseQualifiedName(string|TokenStream $input)
+ * @method nodes\lists\SetClauseList        parseSetClauseList(string|TokenStream $input)
+ * @method nodes\SingleSetClause|nodes\MultipleSetClause parseSetClause(string|TokenStream $input)
+ * @method nodes\lists\SetTargetList        parseInsertTargetList(string|TokenStream $input)
+ * @method nodes\SetTargetElement           parseSetTargetElement(string|TokenStream $input)
+ * @method nodes\ScalarExpression           parseExpressionWithDefault(string|TokenStream $input)
+ * @method nodes\WithClause                 parseWithClause(string|TokenStream $input)
+ * @method nodes\CommonTableExpression      parseCommonTableExpression(string|TokenStream $input)
+ * @method nodes\lists\IdentifierList       parseColIdList(string|TokenStream $input)
+ * @method nodes\range\UsingClause          parseUsingClause(string|TokenStream $input)
+ * @method nodes\OnConflictClause           parseOnConflict(string|TokenStream $input)
+ * @method nodes\IndexParameters            parseIndexParameters(string|TokenStream $input)
+ * @method nodes\IndexElement               parseIndexElement(string|TokenStream $input)
+ * @method nodes\group\GroupByClause        parseGroupByClause(string|TokenStream $input)
+ * @method nodes\ScalarExpression|nodes\group\GroupByElement parseGroupByElement(string|TokenStream $input)
+ * @method nodes\xml\XmlNamespaceList       parseXmlNamespaceList(string|TokenStream $input)
+ * @method nodes\xml\XmlNamespace           parseXmlNamespace(string|TokenStream $input)
+ * @method nodes\xml\XmlColumnList          parseXmlColumnList(string|TokenStream $input)
+ * @method nodes\xml\XmlColumnDefinition    parseXmlColumnDefinition(string|TokenStream $input)
+ * @method nodes\TypeName                   parseTypeName(string|TokenStream $input)
+ * @method nodes\merge\MergeWhenList        parseMergeWhenList(string|TokenStream $input)
+ * @method nodes\merge\MergeWhenClause      parseMergeWhenClause(string|TokenStream $input)
+ * @method nodes\ReturningClause            parseReturningClause(string|TokenStream $input)
  */
 class Parser
 {
     /**
      * Mathematical operators
      *
-     * mathOp production from gram.y
+     * `mathOp` production from `gram.y`
      */
     private const MATH_OPERATORS = ['+', '-', '*', '/', '%', '^', '<', '>', '=', '<=', '>=', '!=', '<>'];
 
     /**
      * Subquery expressions that can appear at right side of most scalar operators
      *
-     * sub_type production from gram.y
+     * `sub_type` production `from gram.y`
      */
     private const SUBQUERY_EXPRESSIONS = [Keyword::ANY, Keyword::ALL, Keyword::SOME];
 
     /**
      * Known system functions that must appear with parentheses
      *
-     * From func_expr_common_subexpr production in gram.y
+     * From `func_expr_common_subexpr` production in `gram.y`
      */
     private const SYSTEM_FUNCTIONS = [
         Keyword::CAST, Keyword::EXTRACT, Keyword::OVERLAY, Keyword::POSITION, Keyword::SUBSTRING, Keyword::TREAT,
@@ -105,32 +105,32 @@ class Parser
     ];
 
     /**
-     * Returned by {@see checkContentsOfParentheses()} if subquery is found
+     * Returned by checkContentsOfParentheses() if subquery is found
      */
     private const PARENTHESES_SELECT     = 'select';
 
     /**
-     * Returned by {@see checkContentsOfParentheses()} if row constructor (=expression list) is found
+     * Returned by checkContentsOfParentheses() if row constructor (=expression list) is found
      */
     private const PARENTHESES_ROW        = 'row';
 
     /**
-     * Returned by {@see checkContentsOfParentheses()} if parentheses contain a named function argument
+     * Returned by checkContentsOfParentheses() if parentheses contain a named function argument
      */
     private const PARENTHESES_ARGS       = 'args';
 
     /**
-     * Returned by {@see checkContentsOfParentheses()} if parentheses contain a scalar expression
+     * Returned by checkContentsOfParentheses() if parentheses contain a scalar expression
      */
     private const PARENTHESES_EXPRESSION = 'expression';
 
     /**
-     * Passed to {@see UpdateOrDeleteTarget()} to set expected format, allows only relation alias
+     * Passed to UpdateOrDeleteTarget() to set expected format, allows only relation alias
      */
     private const RELATION_FORMAT_UPDATE = 'update';
 
     /**
-     * Passed to {@see UpdateOrDeleteTarget()} to set expected format, allows only relation alias (which can be SET)
+     * Passed to UpdateOrDeleteTarget() to set expected format, allows only relation alias (which can be SET)
      */
     private const RELATION_FORMAT_DELETE = 'delete';
 
@@ -226,7 +226,7 @@ class Parser
     ];
 
     /**
-     * Keyword sequence checks for {@see WindowFrameBound()} method
+     * Keyword sequence checks for WindowFrameBound() method
      */
     private const CHECKS_FRAME_BOUND = [
         [Keyword::UNBOUNDED, Keyword::PRECEDING],
@@ -235,7 +235,7 @@ class Parser
     ];
 
     /**
-     * Keyword sequence checks for {@see PatternMatchingExpression()} method
+     * Keyword sequence checks for PatternMatchingExpression() method
      */
     private const CHECKS_PATTERN_MATCHING = [
         [Keyword::LIKE],
@@ -248,7 +248,7 @@ class Parser
     ];
 
     /**
-     * Keyword sequence checks for {@see IsWhateverExpression()} method
+     * Keyword sequence checks for IsWhateverExpression() method
      */
     private const CHECKS_IS_WHATEVER = [
         [Keyword::NULL],
@@ -261,7 +261,7 @@ class Parser
     ];
 
     /**
-     * Keywords that can appear in {@see ExpressionAtom()} on their own right
+     * Keywords that can appear in ExpressionAtom() on their own right
      */
     private const ATOM_KEYWORDS = [
         Keyword::ROW, Keyword::ARRAY, Keyword::EXISTS, Keyword::CASE, Keyword::GROUPING,
@@ -269,14 +269,14 @@ class Parser
     ];
 
     /**
-     * A bit mask of Token types that are checked first in {@see ExpressionAtom()}
+     * A bit mask of Token types that are checked first in ExpressionAtom()
      */
     private const ATOM_SPECIAL_TYPES = TokenType::SPECIAL->value
         | TokenType::PARAMETER->value
         | TokenType::LITERAL->value;
 
     /**
-     * Token types that can appear as the first part of an Identifier in {@see NamedExpressionAtom()}
+     * Token types that can appear as the first part of an Identifier in NamedExpressionAtom()
      */
     private const ATOM_IDENTIFIER_TYPES = [
         TokenType::IDENTIFIER,
@@ -340,9 +340,9 @@ class Parser
      * Guesses the type of parenthesised expression
      *
      * Parentheses may contain
-     *  * expressions: (foo + bar)
-     *  * row constructors: (foo, bar)
-     *  * subselects (select foo, bar)
+     *  * expressions: `(foo + bar)`
+     *  * row constructors: `(foo, bar)`
+     *  * subselects `(select foo, bar)`
      *
      * @param int $lookIdx Where to start looking for parentheses (defaults to current position)
      * @return null|string Either of 'select', 'row' or 'expression'. Null if stream was not on opening parenthesis
@@ -439,9 +439,9 @@ class Parser
     /**
      * Skips the expression enclosed in parentheses
      *
-     * @param int  $start  Starting lookahed position in token stream
+     * @param int  $start  Starting lookahead position in token stream
      * @param bool $square Whether we are skipping square brackets [] rather than ()
-     * @return int Position after the closing ']' or ')'
+     * @return int Position after the closing `]` or `)`
      * @throws exceptions\SyntaxException in case of unclosed parentheses
      */
     private function skipParentheses(int $start, bool $square = false): int
@@ -491,7 +491,7 @@ class Parser
     /**
      * Tests whether current position of stream matches 'func_name' production from PostgreSQL's grammar
      *
-     * Actually func_name allows indirection via array subscripts and appearance of '*' in
+     * Actually `func_name` allows indirection via array subscripts and appearance of `*` in
      * name, these are only disallowed later in processing, we disallow these here.
      *
      * @return int|false position after func_name if matches, false if not
@@ -659,8 +659,8 @@ class Parser
     /**
      * Magic method for function overloading
      *
-     * The method allows calling parseWhatever() methods that map to protected Whatever() methods
-     * listed in $callable static property.
+     * The method allows calling `parseWhatever()` methods that map to protected `Whatever()` methods
+     * listed in {@see Parser::CALLABLE CALLABLE} constant.
      *
      * @throws exceptions\BadMethodCallException
      * @throws exceptions\SyntaxException
@@ -1725,13 +1725,13 @@ class Parser
      * Parses BETWEEN expressions
      *
      * Note that in pre-9.5 Postgres BETWEEN expressions were de-facto left-associative, so that
-     * <code>
+     * ```SQL
      * select 1 between 0 and 2 between false and true;
-     * </code>
+     * ```
      * actually worked. Expressions of the form
-     * <code>
+     * ```SQL
      * select 2 between 3 and 4 is false;
-     * </code>
+     * ```
      * resulted in syntax error but work in 9.5+
      */
     protected function BetweenExpression(bool $targetElement): nodes\ScalarExpression
@@ -1783,11 +1783,11 @@ class Parser
      * Parses [NOT ] IN (...) expression
      *
      * The query
-     * <code>
+     * ```SQL
      * select 'foo' in ('foo', 'bar') in (true, false);
-     * </code>
-     * actually works, so we allow it here. That's pretty strange as [NOT ] IN is defined
-     * %nonassoc in gram.y and the above code should be a syntax error per bison docs:
+     * ```
+     * actually works, so we allow it here. That's pretty strange as `[NOT ] IN` is defined
+     * `%nonassoc` in `gram.y` and the above code should be a syntax error per bison docs:
      * > %nonassoc specifies no associativity, which means that `x op y op z' is considered a syntax error.
      */
     protected function InExpression(bool $targetElement): nodes\ScalarExpression

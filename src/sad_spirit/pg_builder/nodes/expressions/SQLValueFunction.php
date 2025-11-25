@@ -27,10 +27,10 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 /**
  * Node for parameterless functions with special grammar productions
  *
- * Direct interpretation of SQLValueFunction in src/include/nodes/primnodes.h
+ * Direct interpretation of `SQLValueFunction` in `src/include/nodes/primnodes.h`
  *
- * Previously these functions were converted either to FunctionCall nodes with corresponding functions from pg_catalog,
- * or to TypecastExpression nodes. Better (and probably more compatible) is to keep them as-is.
+ * Previously these functions were converted either to `FunctionCall` nodes with corresponding functions
+ * from `pg_catalog`, or to `TypecastExpression` nodes. Better (and probably more compatible) is to keep them as-is.
  *
  * @property-read SQLValueFunctionName $name
  * @property-read NumericConstant|null $modifier

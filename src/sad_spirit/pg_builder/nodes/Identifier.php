@@ -71,7 +71,6 @@ class Identifier extends GenericNode implements \Stringable
 
     /**
      * Serialized representation of Identifier is its value property
-     * @return array
      */
     public function __serialize(): array
     {
@@ -80,7 +79,6 @@ class Identifier extends GenericNode implements \Stringable
 
     /**
      * Sets the value property from given array
-     * @param array $data
      */
     public function __unserialize(array $data): void
     {
@@ -89,8 +87,6 @@ class Identifier extends GenericNode implements \Stringable
 
     /**
      * Returns the string representation of the identifier, possibly with double quotes added
-     *
-     * @return string
      */
     public function __toString(): string
     {

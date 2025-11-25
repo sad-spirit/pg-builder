@@ -47,8 +47,6 @@ class CaseExpression extends NonAssociativeList implements ScalarExpression
      * CaseExpression constructor
      *
      * @param iterable<WhenExpression> $whenClauses
-     * @param ScalarExpression|null    $elseClause
-     * @param ScalarExpression|null    $argument
      */
     public function __construct(
         iterable $whenClauses,

@@ -40,9 +40,7 @@ class SearchClause extends GenericNode
     /**
      * Constructor
      *
-     * @param bool                        $breadthFirst
      * @param iterable<Identifier>|string $trackColumns
-     * @param Identifier|string           $sequenceColumn
      */
     public function __construct(bool $breadthFirst, string|iterable $trackColumns, Identifier|string $sequenceColumn)
     {

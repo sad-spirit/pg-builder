@@ -26,8 +26,8 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 /**
  * Node for type cast used in the context of AexprConst, this can only take the form of "type.name 'a string value'"
  *
- * Currently, this Node is only used by CycleClause, where values for $markColumn are defined as AexprConstant in
- * the grammar.
+ * Currently, this `Node` is only used by `CycleClause`, where values for `$markColumn` are defined
+ * as `AexprConstant` in the grammar.
  *
  * @property StringConstant $argument
  */

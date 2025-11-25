@@ -44,10 +44,7 @@ class LockingElement extends NonAssociativeList
     /**
      * Constructor for LockingElement
      *
-     * @param LockingStrength      $strength
-     * @param array<QualifiedName> $relations
-     * @param bool                 $noWait
-     * @param bool                 $skipLocked
+     * @param QualifiedName[] $relations
      */
     public function __construct(
         LockingStrength $strength,

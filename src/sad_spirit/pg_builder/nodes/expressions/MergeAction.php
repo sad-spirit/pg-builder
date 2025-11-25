@@ -27,9 +27,13 @@ use sad_spirit\pg_builder\TreeWalker;
  *
  * Added in Postgres 17 together with support for `RETURNING` clauses in `MERGE` statements.
  *
- * Unfortunately, this construct can be represented neither by {@see SQLValueFunction}, as it requires parentheses,
- * nor by {@see SystemFunctionCall}, as it cannot have arguments. It is an error for it to appear
- * outside `RETURNING` clause of `MERGE` statement, so this class does not implement `FunctionLike`.
+ * Unfortunately, this construct can be represented neither by
+ * {@see \sad_spirit\pg_builder\nodes\expressions\SQLValueFunction SQLValueFunction}, as it requires parentheses,
+ * nor by {@see \sad_spirit\pg_builder\nodes\expressions\SystemFunctionCall SystemFunctionCall},
+ * as it cannot have arguments.
+ *
+ * It is an error for it to appear outside `RETURNING` clause of `MERGE` statement,
+ * so this class does not implement `FunctionLike`.
  */
 class MergeAction extends GenericNode implements ScalarExpression
 {

@@ -46,11 +46,7 @@ class CycleClause extends GenericNode
     /**
      * Constructor
      *
-     * @param iterable<Identifier>|string              $trackColumns
-     * @param Identifier|string                        $markColumn
-     * @param Identifier|string                        $pathColumn
-     * @param Constant|ConstantTypecastExpression|null $markValue
-     * @param Constant|ConstantTypecastExpression|null $markDefault
+     * @param iterable<Identifier>|string $trackColumns
      */
     public function __construct(
         string|iterable $trackColumns,

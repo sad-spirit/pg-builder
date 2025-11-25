@@ -39,7 +39,6 @@ abstract class FromElement extends GenericNode
     /**
      * Sets table and column aliases for a FROM clause item
      *
-     * @param Identifier|null $tableAlias
      * @param IdentifierList|null $columnAliases
      */
     public function setAlias(?Identifier $tableAlias, ?NodeList $columnAliases = null): void

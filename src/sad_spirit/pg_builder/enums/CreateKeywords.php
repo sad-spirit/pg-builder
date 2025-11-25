@@ -17,14 +17,14 @@ namespace sad_spirit\pg_builder\enums;
 use sad_spirit\pg_builder\Keyword;
 
 /**
- * Helper methods for converting enums into {@see Keyword} cases
+ * Helper methods for converting enums into Keyword cases
  *
  * @psalm-require-implements \BackedEnum
  */
 trait CreateKeywords
 {
     /**
-     * Returns an array of {@see Keyword} cases based on cases of current enum
+     * Returns an array of Keyword cases based on cases of current enum
      *
      * @return Keyword[]
      */

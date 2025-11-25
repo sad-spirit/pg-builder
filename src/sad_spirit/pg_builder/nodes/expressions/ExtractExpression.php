@@ -26,14 +26,15 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing EXTRACT(field FROM source) expression
  *
- * Previously this was parsed to a FunctionExpression node having pg_catalog.date_part as function name.
- * However, since in Postgres 14 EXTRACT() has changed its mapping to pg_catalog.extract and as Postgres itself
+ * Previously this was parsed to a `FunctionExpression` node having `pg_catalog.date_part` as function name.
+ * However, since in Postgres 14 `EXTRACT()` has changed its mapping to `pg_catalog.extract` and as Postgres itself
  * now outputs the original SQL standard form of the expression when generating SQL, we follow the suit by
  * creating a separate Node with SQL standard output.
  *
  * As "extract_arg" grammar production accepts either a string constant, an identifier, or several SQL keywords
- * for the first argument, it can be either a string or {@see ExtractPart}. Everything that is not a known keyword
- * represented by the latter will be treated as an identifier when generating SQL.
+ * for the first argument, it can be either a string or {@see \sad_spirit\pg_builder\enums\ExtractPart ExtractPart}.
+ * Everything that is not a known keyword represented by the latter will be treated as an identifier
+ * when generating SQL.
  *
  * @property string|ExtractPart $field
  * @property ScalarExpression   $source

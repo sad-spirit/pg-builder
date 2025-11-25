@@ -26,14 +26,14 @@ interface ScalarExpression extends Node
     /**
      * Returns the relative precedence of this ScalarExpression
      *
-     * https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-PRECEDENCE
+     * @link https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-PRECEDENCE
      */
     public function getPrecedence(): ScalarExpressionPrecedence;
 
     /**
      * Returns the associativity of this ScalarExpression
      *
-     * https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-PRECEDENCE
+     * @link https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-PRECEDENCE
      */
     public function getAssociativity(): ScalarExpressionAssociativity;
 }

@@ -21,7 +21,7 @@ use sad_spirit\pg_builder\nodes\ScalarExpression;
 /**
  * Base class for Nodes representing "WHEN [NOT] MATCHED ..." clauses of MERGE statement
  *
- * "WHEN MATCHED" / "WHEN NOT MATCHED" are represented by different classes as they have different possible actions
+ * `WHEN MATCHED` / `WHEN NOT MATCHED` are represented by different classes as they have different possible actions
  *
  * @property ScalarExpression|null $condition
  */

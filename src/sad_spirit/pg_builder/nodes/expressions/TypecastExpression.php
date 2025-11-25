@@ -28,9 +28,13 @@ use sad_spirit\pg_builder\{
  * AST node representing a conversion of some value to a given datatype
  *
  * All possible type casting expressions are represented by this node:
- *  * CAST(foo as bar)
- *  * foo::bar
- *  * bar 'string constant'
+ *  * `CAST(foo as bar)`
+ *  * `foo::bar`
+ *  * `bar 'string constant'`
+ *
+ * The latter form may also be represented by an instance of
+ * {@see \sad_spirit\pg_builder\nodes\expressions\ConstantTypecastExpression ConstantTypecastExpression subclass},
+ * but that is currently only done for typecasts in `CYCLE` clause of `WITH`.
  *
  * @property      ScalarExpression $argument
  * @property-read TypeName         $type

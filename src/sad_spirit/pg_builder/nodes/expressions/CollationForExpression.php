@@ -25,7 +25,7 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing a COLLATION FOR(...) expression
  *
- * Previously this was parsed to a FunctionExpression node having pg_catalog.pg_collation_for as function name.
+ * Previously this was parsed to a `FunctionExpression` node having `pg_catalog.pg_collation_for` as function name.
  * As Postgres itself now outputs the original SQL standard form of the expression when generating SQL,
  * we follow the suit by creating a separate Node with SQL standard output.
  *

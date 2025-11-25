@@ -18,7 +18,7 @@ namespace sad_spirit\pg_builder;
  * Interface for TreeWalkers building SQL
  *
  * Adds explicit string return type hints to methods accepting Statement instances, so that
- * StatementFactory::createFromAST() will work as expected
+ * `StatementFactory::createFromAST()` will work as expected
  */
 interface StatementToStringWalker extends TreeWalker
 {
@@ -27,14 +27,12 @@ interface StatementToStringWalker extends TreeWalker
      *
      * This should do two things
      *  - prevent generating of dollar-quoted strings PDO cannot parse properly
-     *  - escape question marks in operators so that PDO will not treat them as placeholders (requires PHP 7.4)
+     *  - escape question marks in operators so that PDO will not treat them as placeholders
      *    https://wiki.php.net/rfc/pdo_escape_placeholders
      *
      * This switch is defined here rather than implemented as an option for SqlBuilderWalker because it should
      * be toggled on only when we know that the statement actually *has* placeholders, in other words,
      * only after running ParameterWalker in StatementFactory::createFromAST()
-     *
-     * @param bool $enable
      */
     public function enablePDOPrepareCompatibility(bool $enable): void;
 

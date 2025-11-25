@@ -20,9 +20,9 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * Represents a target column (with possible indirection) for INSERT or UPDATE statements
  *
- * Indirection is represented by array offsets. Unlike normal Indirection nodes,
+ * Indirection is represented by array offsets. Unlike normal `Indirection` nodes,
  * Star indirection is not possible as Postgres does not allow it:
- * 'ERROR:  row expansion via "*" is not supported here'
+ * > ERROR:  row expansion via "*" is not supported here
  *
  * @property Identifier $name
  * @extends NonAssociativeList<Identifier|ArrayIndexes, iterable<Identifier|ArrayIndexes>, Identifier|ArrayIndexes>
@@ -45,7 +45,6 @@ class SetTargetElement extends NonAssociativeList
     /**
      * SetTargetElement constructor
      *
-     * @param string|Identifier                  $name
      * @param array<int,Identifier|ArrayIndexes> $indirection
      */
     public function __construct(string|Identifier $name, array $indirection = [])

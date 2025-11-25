@@ -48,7 +48,6 @@ class Indirection extends NonAssociativeList implements ScalarExpression
      * Indirection constructor
      *
      * @param iterable<Identifier|ArrayIndexes|Star> $indirection
-     * @param ScalarExpression $expression
      */
     public function __construct($indirection, ScalarExpression $expression)
     {

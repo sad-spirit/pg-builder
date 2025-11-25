@@ -152,14 +152,14 @@ class WhereOrHavingClause extends GenericNode
     /**
      * Helper method for creating nested conditions
      *
-     * <code>
+     * ```PHP
      * $select->where->and('foo')->and('bar')->or('baz');
-     * </code>
-     * will yield 'foo and bar or baz' in SQL output, while
-     * <code>
+     * ```
+     * will yield `foo and bar or baz` in SQL output, while
+     * ```PHP
      * $select->where->and('foo')->and($select->where->nested('bar')->or('baz'));
-     * </code>
-     * will yield 'foo and (bar or baz)'.
+     * ```
+     * will yield `foo and (bar or baz)`.
      */
     public function nested(self|string|ScalarExpression $condition): self
     {

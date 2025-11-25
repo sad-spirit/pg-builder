@@ -27,8 +27,8 @@ interface Node
     /**
      * Adds the link to the Node containing current one
      *
-     * @param Node|null $parent Node containing the current one, null if the link should
-     *                          really be removed (when calling from removeChild())
+     * @param Node|null $parent Node containing the current one, `null` if the link should
+     *                          really be removed (e.g. when calling from `removeChild()`)
      *
      * @throws exceptions\InvalidArgumentException When trying to set a child of a Node as its parent
      */
@@ -44,7 +44,7 @@ interface Node
      *
      * This is a building block for methods that change the AST, see e.g. ParameterWalker
      *
-     * @return Node|null $newChild in case of successful replace, null otherwise
+     * @return Node|null `$newChild` in case of successful replace, `null` otherwise
      * @throws exceptions\InvalidArgumentException
      */
     public function replaceChild(Node $oldChild, Node $newChild): ?Node;

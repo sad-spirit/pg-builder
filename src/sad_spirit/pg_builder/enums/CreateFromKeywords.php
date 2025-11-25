@@ -17,14 +17,14 @@ namespace sad_spirit\pg_builder\enums;
 use sad_spirit\pg_builder\Keyword;
 
 /**
- * Helper methods for creating enums from {@see Keyword} enum cases
+ * Helper methods for creating enums from Keyword enum cases
  *
  * @psalm-require-implements \BackedEnum
  */
 trait CreateFromKeywords
 {
     /**
-     * Translates a string composed of space-separated values of given `Keyword`s into the corresponding `Enum` case
+     * Translates a string composed of space-separated values of given Keywords into the corresponding enum case
      *
      * The underlying `from()` method will throw a `ValueError` if there is no matching case
      */
@@ -34,7 +34,7 @@ trait CreateFromKeywords
     }
 
     /**
-     * Translates a string composed of space-separated values of given `Keyword`s into the corresponding `Enum` case
+     * Translates a string composed of space-separated values of given Keywords into the corresponding enum case
      *
      * Will return `null` if there is no matching case
      */

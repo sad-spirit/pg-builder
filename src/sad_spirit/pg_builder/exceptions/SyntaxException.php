@@ -48,11 +48,7 @@ class SyntaxException extends \DomainException implements Exception
     /**
      * Thrown when an actual Token in TokenStream does not match expectations
      *
-     * @param TokenType            $expectedType
      * @param string|string[]|null $expectedValue
-     * @param Token                $actual
-     * @param string               $source
-     * @return SyntaxException
      */
     public static function expectationFailed(
         TokenType $expectedType,

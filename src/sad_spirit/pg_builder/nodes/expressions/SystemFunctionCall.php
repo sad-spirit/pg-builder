@@ -27,14 +27,14 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * Node for function calls with special grammar productions
  *
- * This represents parts of func_expr_common_subexpr grammar rule that defines functions that have
- *   - an SQL keyword for a name ('coalesce', 'greatest', 'least', 'xmlconcat')
- *   - an expr_list (our ExpressionList) for arguments
+ * This represents parts of `func_expr_common_subexpr` grammar rule that defines functions that have
+ *   - an SQL keyword for a name (`coalesce`, `greatest`, `least`, `xmlconcat`);
+ *   - an `expr_list` (our `ExpressionList`) for arguments.
  *
- * Formerly these calls were represented by FunctionCall / FunctionExpression with $name given as string,
+ * Formerly these calls were represented by `FunctionCall` / `FunctionExpression` with `$name` given as string,
  * but that caused at least two problems:
- *   - checks whether $name is string or QualifiedName had to be added everywhere
- *   - FunctionCall has several other properties that are invalid for system functions
+ *   - checks whether `$name` is a string or a `QualifiedName` had to be added everywhere;
+ *   - `FunctionCall` has several other properties that are invalid for system functions.
  *
  * @property-read SystemFunctionName $name
  * @property      ExpressionList     $arguments

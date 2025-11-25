@@ -28,8 +28,8 @@ interface NodeList extends Node, \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Merges one or more lists with the current one
      *
-     * The arguments can be arrays, Traversables or even strings if current class
-     * implements Parseable and a Parser is available.
+     * The arguments can be traversables or even strings if current class
+     * implements `Parseable` and a `Parser` is available.
      *
      * @param TListInput ...$lists
      */
@@ -39,7 +39,7 @@ interface NodeList extends Node, \ArrayAccess, \Countable, \IteratorAggregate
      * Replaces the elements of the list with the given ones
      *
      * @param TListInput $list strings are allowed if current class
-     *                         implements Parseable and a Parser is available
+     *                         implements `Parseable` and a `Parser` is available
      */
     public function replace($list): void;
 }

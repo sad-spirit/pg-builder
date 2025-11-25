@@ -19,8 +19,9 @@ use sad_spirit\pg_builder\Node;
 /**
  * Interface for nodes that are considered functions in Postgres' grammar
  *
- * Generally everything that is returned by Parser::SpecialFunctionCall() should implement this interface, as
- * these Nodes may be used instead of "normal" FunctionCall nodes in e.g. range\FunctionCall and range\RowsFromElement
+ * Generally everything that is returned by `Parser::SpecialFunctionCall()` should implement this interface, as
+ * these Nodes may be used instead of "normal" `FunctionCall` nodes in e.g. `range\FunctionCall`
+ * and `range\RowsFromElement`
  */
 interface FunctionLike extends Node
 {

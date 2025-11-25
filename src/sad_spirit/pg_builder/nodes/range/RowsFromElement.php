@@ -24,7 +24,7 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * Represents a function call inside ROWS FROM construct
  *
- * Cannot use range\FunctionCall instead as it has a lot more properties
+ * Cannot use `range\FunctionCall` instead as it has a lot more properties
  *
  * @property-read FunctionLike         $function
  * @property      ColumnDefinitionList $columnAliases

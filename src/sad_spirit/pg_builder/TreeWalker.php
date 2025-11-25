@@ -16,7 +16,6 @@ namespace sad_spirit\pg_builder;
 
 /**
  * Interface for walkers of abstract syntax trees
- *
  */
 interface TreeWalker
 {
@@ -277,7 +276,6 @@ interface TreeWalker
     /**
      * Visits the node representing a keyword ANY / ALL / SOME applied to an array-type expression
      *
-     * @param nodes\expressions\ArrayComparisonExpression $expression
      * since 1.0.0 Previously represented by FunctionCall / FunctionExpression nodes
      */
     public function walkArrayComparisonExpression(nodes\expressions\ArrayComparisonExpression $expression): mixed;

@@ -32,8 +32,10 @@ abstract class GenericNode implements Node
     private static array $propertyNamesCache = [];
 
     /**
-     * Mapping ["magic property" => "actual protected property"] for current object, {@see generatePropertyNames()}
+     * Mapping ["magic property" => "actual protected property"] for current object
+     *
      * @var array<string, string>
+     * @see GenericNode::generatePropertyNames()
      */
     protected array $propertyNames = [];
 
@@ -43,7 +45,7 @@ abstract class GenericNode implements Node
      */
     protected ?\WeakReference $parentNode = null;
 
-    /** Flag for preventing endless recursion in {@see setParentNode()} */
+    /** Flag for preventing endless recursion in setParentNode() */
     protected bool $settingParentNode = false;
 
     /**
@@ -154,9 +156,9 @@ abstract class GenericNode implements Node
     /**
      * Generates mapping from magic property names to names of actual protected properties
      *
-     * Magic property 'foo' corresponds to protected property 'p_foo'
+     * Magic property `$foo` maps to protected property `$p_foo`
      *
-     * Should be called from both __construct() and unserialize() methods of GenericNode descendant that defines
+     * Should be called from both `__construct()` and `unserialize()` methods of `GenericNode` descendant that defines
      * new magic properties
      */
     final protected function generatePropertyNames(): void
@@ -282,8 +284,8 @@ abstract class GenericNode implements Node
     /**
      * Sets the given property to the given value, takes care of updating parentNode info
      *
-     * A helper for __set() / replaceChild() / removeChild() / setWhatever() methods. As the method accepts any
-     * Node instance as $value, more stringent class / interface checks should be performed in calling methods.
+     * A helper for `__set()` / `replaceChild()` / `removeChild()` / `setWhatever()` methods. As the method accepts any
+     * `Node` instance as `$value`, more stringent class / interface checks should be performed in calling methods.
      *
      * @template Prop of Node
      * @param Prop|null $property

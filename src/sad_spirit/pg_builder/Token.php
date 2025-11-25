@@ -26,9 +26,7 @@ interface Token extends \Stringable
      * * type and value (or array of possible values)
      * * just type ($type is integer, $values is null)
      *
-     * @param TokenType            $type
      * @param string|string[]|null $values
-     * @return bool
      */
     public function matches(TokenType $type, array|string|null $values = null): bool;
 

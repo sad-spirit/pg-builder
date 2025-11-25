@@ -23,7 +23,6 @@ interface ElementParseable
     /**
      * Parses the SQL for a list element, returning the AST for it
      *
-     * @param string $sql
      * @return T
      * @throws exceptions\SyntaxException
      */

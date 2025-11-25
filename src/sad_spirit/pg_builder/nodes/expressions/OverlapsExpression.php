@@ -26,8 +26,8 @@ use sad_spirit\pg_builder\{
 /**
  * AST node representing (...) OVERLAPS (...) construct
  *
- * Both arguments can only be instances of RowExpression containing two elements, so we implement
- * this as a special subclass rather than use generic OperatorExpression
+ * Both arguments can only be instances of `RowExpression` containing two elements, so we implement
+ * this as a special subclass rather than use generic `OperatorExpression`
  *
  * @property RowExpression $left
  * @property RowExpression $right

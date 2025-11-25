@@ -26,7 +26,7 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
 /**
  * AST node representing OVERLAY(...) function call with special arguments format
  *
- * Previously this was parsed to a FunctionExpression node having pg_catalog.overlay as function name.
+ * Previously this was parsed to a `FunctionExpression` node having `pg_catalog.overlay` as function name.
  * As Postgres itself now outputs the original SQL standard form of the expression when generating SQL,
  * we follow the suit by creating a separate Node with SQL standard output.
  *

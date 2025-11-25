@@ -24,8 +24,8 @@ use sad_spirit\pg_builder\nodes\{
 /**
  * Base class for JSON query expressions
  *
- * Roughly corresponds to json_api_common_syntax production without json_as_path_name_clause_opt, as the latter
- * is only used by json_table() and causes an error when actually appearing in JSON query functions
+ * Roughly corresponds to `json_api_common_syntax` production without `json_as_path_name_clause_opt`, as the latter
+ * is only used by `json_table()` and causes an error when actually appearing in JSON query functions
  *
  * @property JsonFormattedValue $context
  * @property ScalarExpression   $path

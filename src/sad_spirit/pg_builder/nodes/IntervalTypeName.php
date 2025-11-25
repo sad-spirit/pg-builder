@@ -21,12 +21,13 @@ use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
  * Represents a type name for INTERVAL type
  *
  * A separate class is required as interval may have a mask specified, like in
- * <code>
+ * ```SQL
  * interval '2 days 2 seconds' minute to second
- * </code>
+ * ```
+ *
  * While this mask can be converted to an integer type modifier and casting can be
- * done to underlying type pg_catalog.interval, this is too implementation-specific.
- * So we keep the mask in text form and use the standard INTERVAL type name.
+ * done to underlying type `pg_catalog.interval`, this is too implementation-specific.
+ * So we keep the mask in text form and use the standard `INTERVAL` type name.
  *
  * @property ?IntervalMask $mask
  */

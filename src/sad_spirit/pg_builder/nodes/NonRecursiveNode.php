@@ -19,7 +19,7 @@ use sad_spirit\pg_builder\Node;
 /**
  * Trait for Nodes that cannot legitimately be parents for the Nodes of the same type
  *
- * Implements setParentNode() method without redundant checks for circular reference
+ * Implements `setParentNode()` method without redundant checks for circular reference
  *
  * @require-extends GenericNode
  */

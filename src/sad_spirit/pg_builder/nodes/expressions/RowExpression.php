@@ -29,13 +29,13 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
 /**
  * Represents a ROW(...) constructor expression
  *
- * In Postgres 10+ DEFAULT keyword is allowed by grammar in any expression (a_expr production),
- * however it will later cause an error except when appearing as a top-level expression
- *  - in row of VALUES clause *if* that clause is attached to INSERT
- *  - in row expression being assigned to multiple columns in UPDATE
+ * In Postgres 10+ `DEFAULT` keyword is allowed by grammar in any expression (`a_expr` production),
+ * however it will later cause an error except when appearing as a top-level expression in
+ *  - a row of `VALUES` clause *if* that clause is attached to `INSERT`
+ *  - a row expression being assigned to multiple columns in `UPDATE`
  *
- * Therefore we don't make SetToDefault node an implementation of ScalarExpression and only allow
- * it on the top level of RowExpression.
+ * Therefore, we don't make `SetToDefault` node an implementation of `ScalarExpression` and only allow
+ * it on the top level of `RowExpression`.
  *
  * @extends NonAssociativeList<
  *      ScalarExpression|SetToDefault,

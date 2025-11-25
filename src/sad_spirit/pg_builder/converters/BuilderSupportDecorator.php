@@ -140,11 +140,11 @@ class BuilderSupportDecorator implements ConfigurableTypeConverterFactory, TypeN
      * Converts query parameters according to types stored in NativeStatement
      *
      * This is a convenience method for using NativeStatement with PDO, the resultant array may be directly
-     * fed to PDOStatement::execute():
-     * <code>
+     * fed to `PDOStatement::execute()`:
+     * ```PHP
      * $stmt = $pdo->prepare($native->getSql());
      * $stmt->execute($factory->convertParameters($native, $params));
-     * </code>
+     * ```
      *
      * @param array<string, mixed> $parameters
      * @param array<string, mixed> $paramTypes Additional parameter types, values from this array will take precedence

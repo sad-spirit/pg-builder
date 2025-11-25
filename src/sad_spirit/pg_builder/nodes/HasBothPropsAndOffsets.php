@@ -17,7 +17,7 @@ namespace sad_spirit\pg_builder\nodes;
 /**
  * Trait for descendants of GenericNodeList that expose properties alongside array offsets
  *
- * Serializes / unserializes both array instead of just $offsets
+ * Serializes / unserializes both arrays instead of just `$offsets`
  *
  * @psalm-require-extends GenericNode
  */

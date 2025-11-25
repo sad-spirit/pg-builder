@@ -27,13 +27,13 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * AST node representing TRIM(...) function call with special arguments format
  *
- * Previously this was parsed to a FunctionExpression node having pg_catalog.(btrim|ltrim|rtrim) as function name.
+ * Previously this was parsed to a `FunctionExpression` node having `pg_catalog.(btrim|ltrim|rtrim)` as function name.
  * As Postgres itself now outputs the original SQL standard form of the expression when generating SQL,
  * we follow the suit by creating a separate Node with SQL standard output.
  *
- * NB: we define $arguments as ExpressionList as this is what Postgres itself does (see trim_list grammar
+ * NB: we define `$arguments` as `ExpressionList` as this is what Postgres itself does (see `trim_list` grammar
  * production). However, passing more than two arguments will result in a "function does not exist" error and
- * thus Postgres only outputs at most two arguments when generating SQL in src/backend/utils/adt/ruleutils.c
+ * thus Postgres only outputs at most two arguments when generating SQL in `src/backend/utils/adt/ruleutils.c`
  * Obviously, we cannot  check for function existence, so just pass on all arguments in generated SQL.
  *
  * @property      ExpressionList $arguments

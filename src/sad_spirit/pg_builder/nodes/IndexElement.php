@@ -24,8 +24,8 @@ use sad_spirit\pg_builder\{
 /**
  * AST node representing a column description in CREATE INDEX statement
  *
- * We don't parse CREATE INDEX statements, but the same syntax is also used in ON CONFLICT
- * clauses of INSERT statements, and we do parse those.
+ * We don't parse `CREATE INDEX` statements, but the same syntax is also used in `ON CONFLICT`
+ * clauses of `INSERT` statements, and we do parse those.
  *
  * @property      ScalarExpression|Identifier $expression
  * @property-read QualifiedName|null          $collation

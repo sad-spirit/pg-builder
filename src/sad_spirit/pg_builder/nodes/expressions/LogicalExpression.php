@@ -43,7 +43,6 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
      * LogicalExpression constructor
      *
      * @param null|string|iterable<ScalarExpression> $terms
-     * @param LogicalOperator $operator
      */
     public function __construct(string|iterable|null $terms = null, LogicalOperator $operator = LogicalOperator::AND)
     {

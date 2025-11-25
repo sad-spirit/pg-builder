@@ -20,7 +20,7 @@ use sad_spirit\pg_builder\enums\ScalarExpressionPrecedence;
 /**
  * Implements getPrecedence() and getAssociativity() methods suitable for expression "atoms"
  *
- * Atoms correspond to c_expr production in PostgreSQL's grammar
+ * Atoms correspond to `c_expr` production in PostgreSQL's grammar
  *
  * @psalm-require-implements ScalarExpression
  */

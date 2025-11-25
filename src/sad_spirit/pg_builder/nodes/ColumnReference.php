@@ -154,8 +154,6 @@ class ColumnReference extends GenericNode implements ScalarExpression, \Stringab
 
     /**
      * Returns the string representation of the node, with double quotes added as needed
-     *
-     * @return string
      */
     public function __toString(): string
     {

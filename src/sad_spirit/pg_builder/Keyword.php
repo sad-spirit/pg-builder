@@ -20,7 +20,7 @@ namespace sad_spirit\pg_builder;
  * The cases are generated from `src/include/parser/kwlist.h` file, additional keyword properties specified there
  * are returned by {@see Keyword::getType()} and {@see Keyword::isBareLabel()} methods.
  *
- * A case for "class" keyword is named CLASS_ as "::class" is reserved in PHP.
+ * A case for "class" keyword is named `CLASS_` as `::class` is reserved in PHP.
  */
 enum Keyword: string
 {
@@ -731,9 +731,10 @@ enum Keyword: string
     ];
 
     /**
-     * Returns {@see TokenType} case representing the keyword's category
+     * Returns TokenType case representing the keyword's category
      *
-     * Only TokenType cases matching {@see TokenType::KEYWORD} will be returned
+     * Only {@see \sad_spirit\pg_builder\TokenType TokenType} cases matching
+     * {@see \sad_spirit\pg_builder\TokenType::KEYWORD TokenType::KEYWORD} will be returned
      */
     public function getType(): TokenType
     {

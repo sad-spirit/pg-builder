@@ -21,7 +21,7 @@ use sad_spirit\pg_wrapper\TypeConverterFactory;
 /**
  * Interface for type converter factories that can handle TypeName AST Nodes
  *
- * WARNING: this interface will likely extend ConfigurableTypeConverterFactory in the next major release,
+ * **WARNING**: this interface will likely extend `ConfigurableTypeConverterFactory` in the next major release,
  * consider this when implementing
  */
 interface TypeNameNodeHandler extends /*Configurable*/TypeConverterFactory

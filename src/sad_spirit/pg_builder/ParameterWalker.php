@@ -35,8 +35,8 @@ class ParameterWalker extends BlankWalker
     /**
      * Constructor, specifies how to handle named parameters
      *
-     * @param bool $keepNamedParameters Whether to leave NamedParameter nodes in the AST or replace them
-     *                                  with PositionalParameter ones
+     * @param bool $keepNamedParameters Whether to leave `NamedParameter` nodes in the AST or replace them
+     *                                  with `PositionalParameter` ones
      */
     public function __construct(private readonly bool $keepNamedParameters = false)
     {

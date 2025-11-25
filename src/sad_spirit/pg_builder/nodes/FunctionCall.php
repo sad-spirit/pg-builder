@@ -23,9 +23,9 @@ use sad_spirit\pg_builder\TreeWalker;
 /**
  * Represents a function call (func_application or func_expr_common_subexpr)
  *
- * This will be wrapped by either expressions\FunctionExpression for scalar
- * contexts where window functions are possible, or by range\FunctionCall
- * for functions in FROM
+ * This will be wrapped by either `expressions\FunctionExpression` for scalar
+ * contexts where window functions are possible, or by `range\FunctionCall`
+ * for functions in `FROM`
  *
  * @property-read QualifiedName             $name
  * @property      FunctionArgumentList|Star $arguments
