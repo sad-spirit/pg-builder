@@ -42,7 +42,6 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  *      iterable<ScalarExpression|SetToDefault|string>|string,
  *      ScalarExpression|SetToDefault|string
  * >
- * @implements ElementParseable<ScalarExpression|SetToDefault>
  */
 class RowExpression extends NonAssociativeList implements Parseable, ElementParseable, ScalarExpression
 {
@@ -56,7 +55,7 @@ class RowExpression extends NonAssociativeList implements Parseable, ElementPars
         ];
     }
 
-    public function createElementFromString(string $sql): Node
+    public function createElementFromString(string $sql): ScalarExpression|SetToDefault
     {
         return $this->getParserOrFail('a list element')->parseExpressionWithDefault($sql);
     }

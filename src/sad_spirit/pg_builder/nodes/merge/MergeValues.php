@@ -38,7 +38,6 @@ use sad_spirit\pg_builder\nodes\{
  *      iterable<ScalarExpression|SetToDefault|string>|string,
  *      ScalarExpression|SetToDefault|string
  * >
- * @implements ElementParseable<ScalarExpression|SetToDefault>
  */
 class MergeValues extends NonAssociativeList implements Parseable, ElementParseable
 {
@@ -50,7 +49,7 @@ class MergeValues extends NonAssociativeList implements Parseable, ElementParsea
         ];
     }
 
-    public function createElementFromString(string $sql): Node
+    public function createElementFromString(string $sql): ScalarExpression|SetToDefault
     {
         return $this->getParserOrFail('VALUES element')->parseExpressionWithDefault($sql);
     }

@@ -31,7 +31,6 @@ use sad_spirit\pg_builder\{
  *     iterable<SingleSetClause|MultipleSetClause|string>|string,
  *     SingleSetClause|MultipleSetClause|string
  * >
- * @implements ElementParseable<SingleSetClause|MultipleSetClause>
  */
 class SetClauseList extends NonAssociativeList implements Parseable, ElementParseable
 {
@@ -43,7 +42,7 @@ class SetClauseList extends NonAssociativeList implements Parseable, ElementPars
         ];
     }
 
-    public function createElementFromString(string $sql): Node
+    public function createElementFromString(string $sql): SingleSetClause|MultipleSetClause
     {
         return $this->getParserOrFail('a list element')->parseSetClause($sql);
     }

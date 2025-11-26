@@ -32,7 +32,6 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  *     iterable<CommonTableExpression|string>|string,
  *     CommonTableExpression|string
  * >
- * @implements ElementParseable<CommonTableExpression>
  */
 class WithClause extends NonAssociativeList implements Parseable, ElementParseable
 {
@@ -62,7 +61,7 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
         return $walker->walkWithClause($this);
     }
 
-    public function createElementFromString(string $sql): Node
+    public function createElementFromString(string $sql): CommonTableExpression
     {
         return $this->getParserOrFail('a list element')->parseCommonTableExpression($sql);
     }

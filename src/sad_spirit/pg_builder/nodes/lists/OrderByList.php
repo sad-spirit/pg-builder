@@ -30,7 +30,6 @@ use sad_spirit\pg_builder\{
  *      iterable<OrderByElement|string>|string,
  *      OrderByElement|string
  * >
- * @implements ElementParseable<OrderByElement>
  */
 class OrderByList extends NonAssociativeList implements Parseable, ElementParseable
 {
@@ -39,7 +38,7 @@ class OrderByList extends NonAssociativeList implements Parseable, ElementParsea
         return [OrderByElement::class];
     }
 
-    public function createElementFromString(string $sql): Node
+    public function createElementFromString(string $sql): OrderByElement
     {
         return $this->getParserOrFail('a list element')->parseOrderByElement($sql);
     }

@@ -30,7 +30,6 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  *     iterable<XmlNamespace|string>|string,
  *     XmlNamespace|string
  * >
- * @implements ElementParseable<XmlNamespace>
  */
 class XmlNamespaceList extends NonAssociativeList implements Parseable, ElementParseable
 {
@@ -39,7 +38,7 @@ class XmlNamespaceList extends NonAssociativeList implements Parseable, ElementP
         return [XmlNamespace::class];
     }
 
-    public function createElementFromString(string $sql): Node
+    public function createElementFromString(string $sql): XmlNamespace
     {
         return $this->getParserOrFail('a list element')->parseXmlNamespace($sql);
     }

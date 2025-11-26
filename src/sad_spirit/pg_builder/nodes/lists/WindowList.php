@@ -30,7 +30,6 @@ use sad_spirit\pg_builder\{
  *      iterable<WindowDefinition|string>|string,
  *      WindowDefinition|string
  * >
- * @implements ElementParseable<WindowDefinition>
  */
 class WindowList extends NonAssociativeList implements Parseable, ElementParseable
 {
@@ -39,7 +38,7 @@ class WindowList extends NonAssociativeList implements Parseable, ElementParseab
         return [WindowDefinition::class];
     }
 
-    public function createElementFromString(string $sql): Node
+    public function createElementFromString(string $sql): WindowDefinition
     {
         return $this->getParserOrFail('a list element')->parseWindowDefinition($sql);
     }

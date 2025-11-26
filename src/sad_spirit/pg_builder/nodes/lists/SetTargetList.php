@@ -27,7 +27,6 @@ use sad_spirit\pg_builder\{
  * Represents a list of SetTargetElements, used by INSERT and UPDATE statements
  *
  * @extends NonAssociativeList<SetTargetElement, iterable<SetTargetElement|string>|string, SetTargetElement|string>
- * @implements ElementParseable<SetTargetElement>
  */
 class SetTargetList extends NonAssociativeList implements Parseable, ElementParseable
 {
@@ -43,7 +42,7 @@ class SetTargetList extends NonAssociativeList implements Parseable, ElementPars
         return $parser->parseInsertTargetList($sql);
     }
 
-    public function createElementFromString(string $sql): Node
+    public function createElementFromString(string $sql): SetTargetElement
     {
         return $this->getParserOrFail('a list element')->parseSetTargetElement($sql);
     }

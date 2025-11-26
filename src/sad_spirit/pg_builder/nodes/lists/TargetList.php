@@ -31,7 +31,6 @@ use sad_spirit\pg_builder\{
  *     iterable<TargetElement|Star|string>|string,
  *     TargetElement|Star|string
  * >
- * @implements ElementParseable<TargetElement|Star>
  */
 class TargetList extends NonAssociativeList implements Parseable, ElementParseable
 {
@@ -43,7 +42,7 @@ class TargetList extends NonAssociativeList implements Parseable, ElementParseab
         ];
     }
 
-    public function createElementFromString(string $sql): Node
+    public function createElementFromString(string $sql): TargetElement|Star
     {
         return $this->getParserOrFail('a list element')->parseTargetElement($sql);
     }

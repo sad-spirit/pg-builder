@@ -31,7 +31,6 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  *
  * @property-read WhereOrHavingClause $where
  * @extends NonAssociativeList<IndexElement, iterable<IndexElement|string>|string, IndexElement|string>
- * @implements ElementParseable<IndexElement>
  */
 class IndexParameters extends NonAssociativeList implements Parseable, ElementParseable
 {
@@ -57,7 +56,7 @@ class IndexParameters extends NonAssociativeList implements Parseable, ElementPa
         return $parser->parseIndexParameters($sql);
     }
 
-    public function createElementFromString(string $sql): Node
+    public function createElementFromString(string $sql): IndexElement
     {
         return $this->getParserOrFail('a list element')->parseIndexElement($sql);
     }

@@ -31,7 +31,6 @@ use sad_spirit\pg_builder\{
  *      iterable<LockingElement|string>|string,
  *      LockingElement|string
  * >
- * @implements ElementParseable<LockingElement>
  */
 class LockList extends NonAssociativeList implements Parseable, ElementParseable
 {
@@ -42,7 +41,7 @@ class LockList extends NonAssociativeList implements Parseable, ElementParseable
         return [LockingElement::class];
     }
 
-    public function createElementFromString(string $sql): Node
+    public function createElementFromString(string $sql): LockingElement
     {
         return $this->getParserOrFail('a list element')->parseLockingElement($sql);
     }

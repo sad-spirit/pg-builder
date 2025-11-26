@@ -30,7 +30,6 @@ use sad_spirit\pg_builder\{
  *      iterable<ScalarExpression|string>|string,
  *      ScalarExpression|string
  * >
- * @implements ElementParseable<ScalarExpression>
  */
 class ExpressionList extends NonAssociativeList implements Parseable, ElementParseable
 {
@@ -39,7 +38,7 @@ class ExpressionList extends NonAssociativeList implements Parseable, ElementPar
         return [ScalarExpression::class];
     }
 
-    public function createElementFromString(string $sql): Node
+    public function createElementFromString(string $sql): ScalarExpression
     {
         return $this->getParserOrFail('a list element')->parseExpression($sql);
     }

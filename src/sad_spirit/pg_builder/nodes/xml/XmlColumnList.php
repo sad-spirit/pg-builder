@@ -30,7 +30,6 @@ use sad_spirit\pg_builder\nodes\lists\NonAssociativeList;
  *     iterable<XmlColumnDefinition|string>|string,
  *     XmlColumnDefinition|string
  * >
- * @implements ElementParseable<XmlColumnDefinition>
  */
 class XmlColumnList extends NonAssociativeList implements Parseable, ElementParseable
 {
@@ -39,7 +38,7 @@ class XmlColumnList extends NonAssociativeList implements Parseable, ElementPars
         return [XmlColumnDefinition::class];
     }
 
-    public function createElementFromString(string $sql): Node
+    public function createElementFromString(string $sql): XmlColumnDefinition
     {
         return $this->getParserOrFail('a list element')->parseXmlColumnDefinition($sql);
     }

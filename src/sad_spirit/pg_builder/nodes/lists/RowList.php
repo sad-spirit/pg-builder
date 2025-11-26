@@ -32,7 +32,6 @@ use sad_spirit\pg_builder\nodes\expressions\RowExpression;
  *     iterable<RowExpression|string|iterable<ScalarExpression|SetToDefault|string>>|string,
  *     RowExpression|string|iterable<ScalarExpression|SetToDefault|string>
  * >
- * @implements ElementParseable<RowExpression>
  */
 class RowList extends NonAssociativeList implements Parseable, ElementParseable
 {
@@ -49,7 +48,7 @@ class RowList extends NonAssociativeList implements Parseable, ElementParseable
         return parent::prepareListElement($value);
     }
 
-    public function createElementFromString(string $sql): Node
+    public function createElementFromString(string $sql): RowExpression
     {
         return $this->getParserOrFail('a list element')->parseRowConstructorNoKeyword($sql);
     }

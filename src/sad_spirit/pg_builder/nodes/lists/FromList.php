@@ -30,7 +30,6 @@ use sad_spirit\pg_builder\nodes\range\FromElement;
  *      iterable<FromElement|string>|string,
  *      FromElement|string
  * >
- * @implements ElementParseable<FromElement>
  */
 class FromList extends NonAssociativeList implements Parseable, ElementParseable
 {
@@ -39,7 +38,7 @@ class FromList extends NonAssociativeList implements Parseable, ElementParseable
         return [FromElement::class];
     }
 
-    public function createElementFromString(string $sql): Node
+    public function createElementFromString(string $sql): FromElement
     {
         return $this->getParserOrFail('a list element')->parseFromElement($sql);
     }
