@@ -22,8 +22,7 @@ interface Parseable
     /**
      * Parses the SQL returning an AST for the relevant element
      *
-     * @return self
      * @throws exceptions\SyntaxException
      */
-    public static function createFromString(Parser $parser, string $sql);
+    public static function createFromString(Parser $parser, string $sql): self;
 }

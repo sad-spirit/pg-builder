@@ -39,7 +39,7 @@ class MergeWhenList extends NonAssociativeList implements Parseable, ElementPars
         return $this->getParserOrFail('WHEN [NOT] MATCHED clause')->parseMergeWhenClause($sql);
     }
 
-    public static function createFromString(Parser $parser, string $sql)
+    public static function createFromString(Parser $parser, string $sql): self
     {
         return $parser->parseMergeWhenList($sql);
     }

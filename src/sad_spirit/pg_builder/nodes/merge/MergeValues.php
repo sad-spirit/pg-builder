@@ -54,9 +54,9 @@ class MergeValues extends NonAssociativeList implements Parseable, ElementParsea
         return $this->getParserOrFail('VALUES element')->parseExpressionWithDefault($sql);
     }
 
-    public static function createFromString(Parser $parser, string $sql)
+    public static function createFromString(Parser $parser, string $sql): self
     {
-        return $parser->parseRowConstructorNoKeyword($sql);
+        return new self($parser->parseRowConstructorNoKeyword($sql));
     }
 
     public function dispatch(TreeWalker $walker): mixed
