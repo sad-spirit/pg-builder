@@ -34,8 +34,11 @@ class XmlParse extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$documentOrContent` magic property, use the latter instead */
     protected XmlOption $p_documentOrContent;
+    /** @internal Maps to `$argument` magic property, use the latter instead */
     protected ScalarExpression $p_argument;
+    /** @internal Maps to `$preserveWhitespace` magic property, use the latter instead */
     protected bool $p_preserveWhitespace;
 
     public function __construct(
@@ -53,6 +56,7 @@ class XmlParse extends GenericNode implements ScalarExpression, FunctionLike
         $this->p_preserveWhitespace = $preserveWhitespace;
     }
 
+    /** @internal Support method for `$argument` magic property, use the property instead */
     public function setArgument(ScalarExpression $argument): void
     {
         $this->setRequiredProperty($this->p_argument, $argument);

@@ -34,8 +34,11 @@ class ColumnDefinition extends GenericNode
 {
     use NonRecursiveNode;
 
+    /** @internal Maps to `$name` magic property, use the latter instead */
     protected Identifier $p_name;
+    /** @internal Maps to `$type` magic property, use the latter instead */
     protected TypeName $p_type;
+    /** @internal Maps to `$collation` magic property, use the latter instead */
     protected ?QualifiedName $p_collation = null;
 
     public function __construct(Identifier $name, TypeName $type, ?QualifiedName $collation = null)

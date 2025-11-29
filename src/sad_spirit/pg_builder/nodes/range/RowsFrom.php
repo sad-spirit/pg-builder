@@ -24,6 +24,7 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class RowsFrom extends FunctionFromElement
 {
+    /** @internal Maps to `$functions` magic property, use the latter instead */
     protected RowsFromList $p_functions;
 
     public function __construct(RowsFromList $functions)

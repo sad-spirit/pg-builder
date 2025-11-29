@@ -32,6 +32,7 @@ class JsonExistsColumnDefinition extends JsonTypedColumnDefinition
 {
     use HasBehaviours;
 
+    /** @internal Maps to `$onError` magic property, use the latter instead */
     protected ?JsonBehaviour $p_onError = null;
 
     public function __construct(
@@ -44,6 +45,7 @@ class JsonExistsColumnDefinition extends JsonTypedColumnDefinition
         $this->setOnError($onError);
     }
 
+    /** @internal Support method for `$onError` magic property, use the property instead */
     public function setOnError(?JsonBehaviour $onError): void
     {
         /** @psalm-suppress PossiblyInvalidPropertyAssignmentValue */

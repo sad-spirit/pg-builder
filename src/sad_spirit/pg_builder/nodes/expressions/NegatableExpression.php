@@ -24,8 +24,10 @@ use sad_spirit\pg_builder\nodes\ScalarExpression;
  */
 abstract class NegatableExpression extends GenericNode implements ScalarExpression
 {
+    /** @internal Maps to `$not` magic property, use the latter instead */
     protected bool $p_not = false;
 
+    /** @internal Support method for `$not` magic property, use the property instead */
     public function setNot(bool $not): void
     {
         $this->p_not = $not;

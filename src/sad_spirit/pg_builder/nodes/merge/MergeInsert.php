@@ -28,8 +28,11 @@ use sad_spirit\pg_builder\nodes\lists\SetTargetList;
  */
 class MergeInsert extends GenericNode
 {
+    /** @internal Maps to `$cols` magic property, use the latter instead */
     protected SetTargetList $p_cols;
+    /** @internal Maps to `$values` magic property, use the latter instead */
     protected ?MergeValues $p_values = null;
+    /** @internal Maps to `$overriding` magic property, use the latter instead */
     protected ?InsertOverriding $p_overriding = null;
 
     public function __construct(
@@ -50,11 +53,13 @@ class MergeInsert extends GenericNode
         $this->setOverriding($overriding);
     }
 
+    /** @internal Support method for `$values` magic property, use the property instead */
     public function setValues(?MergeValues $values): void
     {
         $this->setProperty($this->p_values, $values);
     }
 
+    /** @internal Support method for `$overriding` magic property, use the property instead */
     public function setOverriding(?InsertOverriding $overriding): void
     {
         $this->p_overriding = $overriding;

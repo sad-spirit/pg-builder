@@ -31,6 +31,7 @@ class GroupByClause extends GroupByList implements Parseable
 {
     use HasBothPropsAndOffsets;
 
+    /** @internal Maps to `$distinct` magic property, use the latter instead */
     protected bool $p_distinct;
 
     public function __construct($list = null, bool $distinct = false)
@@ -42,6 +43,7 @@ class GroupByClause extends GroupByList implements Parseable
         $this->p_distinct = $distinct;
     }
 
+    /** @internal Support method for `$distinct` magic property, use the property instead */
     public function setDistinct(bool $distinct): void
     {
         $this->p_distinct = $distinct;

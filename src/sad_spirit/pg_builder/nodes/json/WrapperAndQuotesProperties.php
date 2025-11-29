@@ -28,9 +28,12 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  */
 trait WrapperAndQuotesProperties
 {
+    /** @internal Maps to `$wrapper` magic property, use the latter instead */
     protected ?JsonWrapper $p_wrapper = null;
+    /** @internal Maps to `$keepQuotes` magic property, use the latter instead */
     protected ?bool $p_keepQuotes = null;
 
+    /** @internal Support method for `$wrapper` magic property, use the property instead */
     public function setWrapper(?JsonWrapper $wrapper): void
     {
         if (null !== $wrapper && JsonWrapper::WITHOUT !== $wrapper && null !== $this->p_keepQuotes) {
@@ -39,6 +42,7 @@ trait WrapperAndQuotesProperties
         $this->p_wrapper = $wrapper;
     }
 
+    /** @internal Support method for `$keepQuotes` magic property, use the property instead */
     public function setKeepQuotes(?bool $keepQuotes): void
     {
         if (null !== $keepQuotes && null !== $this->p_wrapper && JsonWrapper::WITHOUT !== $this->p_wrapper) {

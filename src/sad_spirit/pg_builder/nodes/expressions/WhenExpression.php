@@ -30,7 +30,9 @@ use sad_spirit\pg_builder\{
  */
 class WhenExpression extends GenericNode
 {
+    /** @internal Maps to `$when` magic property, use the latter instead */
     protected ScalarExpression $p_when;
+    /** @internal Maps to `$then` magic property, use the latter instead */
     protected ScalarExpression $p_then;
 
     public function __construct(ScalarExpression $when, ScalarExpression $then)
@@ -48,11 +50,13 @@ class WhenExpression extends GenericNode
         $this->p_then->setParentNode($this);
     }
 
+    /** @internal Support method for `$when` magic property, use the property instead */
     public function setWhen(ScalarExpression $when): void
     {
         $this->setRequiredProperty($this->p_when, $when);
     }
 
+    /** @internal Support method for `$then` magic property, use the property instead */
     public function setThen(ScalarExpression $then): void
     {
         $this->setRequiredProperty($this->p_then, $then);

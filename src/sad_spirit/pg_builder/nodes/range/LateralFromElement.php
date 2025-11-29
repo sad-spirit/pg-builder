@@ -21,8 +21,10 @@ namespace sad_spirit\pg_builder\nodes\range;
  */
 abstract class LateralFromElement extends FromElement
 {
+    /** @internal Maps to `$lateral` magic property, use the latter instead */
     protected bool $p_lateral = false;
 
+    /** @internal Support method for `$lateral` magic property, use the property instead */
     public function setLateral(bool $lateral): void
     {
         $this->p_lateral = $lateral;

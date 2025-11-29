@@ -23,6 +23,7 @@ use sad_spirit\pg_builder\nodes\lists\RowList;
  */
 class Values extends SelectCommon
 {
+    /** @internal Maps to `$rows` magic property, use the latter instead */
     protected RowList $p_rows;
 
     public function __construct(RowList $rows)

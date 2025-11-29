@@ -36,12 +36,19 @@ use sad_spirit\pg_builder\nodes\{
  */
 class Select extends SelectCommon
 {
+    /** @internal Maps to `$list` magic property, use the latter instead */
     protected TargetList $p_list;
+    /** @internal Maps to `$distinct` magic property, use the latter instead */
     protected bool|ExpressionList $p_distinct = false;
+    /** @internal Maps to `$from` magic property, use the latter instead */
     protected FromList $p_from;
+    /** @internal Maps to `$where` magic property, use the latter instead */
     protected WhereOrHavingClause $p_where;
+    /** @internal Maps to `$group` magic property, use the latter instead */
     protected GroupByClause $p_group;
+    /** @internal Maps to `$having` magic property, use the latter instead */
     protected WhereOrHavingClause $p_having;
+    /** @internal Maps to `$window` magic property, use the latter instead */
     protected WindowList $p_window;
 
     public function __construct(TargetList $list, bool|ExpressionList $distinct = false)
@@ -68,6 +75,8 @@ class Select extends SelectCommon
 
     /**
      * Sets the property corresponding to DISTINCT / DISTINCT ON clause
+     *
+     * @internal Support method for `$distinct` magic property, use the property instead
      */
     public function setDistinct(string|bool|ExpressionList|null $distinct): void
     {

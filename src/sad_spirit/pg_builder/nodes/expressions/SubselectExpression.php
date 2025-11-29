@@ -33,7 +33,9 @@ class SubselectExpression extends GenericNode implements ScalarExpression
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$query` magic property, use the latter instead */
     protected SelectCommon $p_query;
+    /** @internal Maps to `$operator` magic property, use the latter instead */
     protected ?SubselectConstruct $p_operator;
 
     public function __construct(SelectCommon $query, ?SubselectConstruct $operator = null)
@@ -46,6 +48,7 @@ class SubselectExpression extends GenericNode implements ScalarExpression
         $this->p_operator = $operator;
     }
 
+    /** @internal Support method for `$query` magic property, use the property instead */
     public function setQuery(SelectCommon $query): void
     {
         $this->setRequiredProperty($this->p_query, $query);

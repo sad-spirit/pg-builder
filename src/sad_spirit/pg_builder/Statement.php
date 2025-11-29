@@ -26,6 +26,7 @@ use sad_spirit\pg_builder\nodes\{
  */
 abstract class Statement extends GenericNode
 {
+    /** @internal Maps to `$with` magic property, use the latter instead */
     protected WithClause $p_with;
     /** Parser instance, used when adding nodes to a statement as SQL strings */
     private ?Parser $parser = null;
@@ -38,6 +39,7 @@ abstract class Statement extends GenericNode
         $this->p_with->parentNode = \WeakReference::create($this);
     }
 
+    /** @internal Support method for `$with` magic property, use the property instead */
     public function setWith(WithClause $with): void
     {
         $this->setRequiredProperty($this->p_with, $with);

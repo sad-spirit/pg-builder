@@ -24,6 +24,7 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class Subselect extends LateralFromElement
 {
+    /** @internal Maps to `$query` magic property, use the latter instead */
     protected SelectCommon $p_query;
 
     public function __construct(SelectCommon $query)
@@ -34,6 +35,7 @@ class Subselect extends LateralFromElement
         $this->p_query->setParentNode($this);
     }
 
+    /** @internal Support method for `$query` magic property, use the property instead */
     public function setQuery(SelectCommon $query): void
     {
         $this->setRequiredProperty($this->p_query, $query);

@@ -32,6 +32,7 @@ class JsonSerialize extends GenericNode implements ScalarExpression, FunctionLik
     use ExpressionAtom;
     use ReturningProperty;
 
+    /** @internal Maps to `$expression` magic property, use the latter instead */
     protected JsonFormattedValue $p_expression;
 
     public function __construct(JsonFormattedValue $expression, ?JsonReturning $returning = null)
@@ -47,6 +48,7 @@ class JsonSerialize extends GenericNode implements ScalarExpression, FunctionLik
         }
     }
 
+    /** @internal Support method for `$expression` magic property, use the property instead */
     public function setExpression(JsonFormattedValue $expression): void
     {
         $this->setRequiredProperty($this->p_expression, $expression);

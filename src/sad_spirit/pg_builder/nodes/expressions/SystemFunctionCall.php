@@ -43,7 +43,9 @@ class SystemFunctionCall extends GenericNode implements FunctionLike, ScalarExpr
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$name` magic property, use the latter instead */
     protected SystemFunctionName $p_name;
+    /** @internal Maps to `$arguments` magic property, use the latter instead */
     protected ExpressionList $p_arguments;
 
     public function __construct(SystemFunctionName $name, ExpressionList $arguments)

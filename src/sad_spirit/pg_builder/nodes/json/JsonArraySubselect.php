@@ -25,7 +25,9 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class JsonArraySubselect extends JsonArray
 {
+    /** @internal Maps to `$query` magic property, use the latter instead */
     protected SelectCommon $p_query;
+    /** @internal Maps to `$format` magic property, use the latter instead */
     protected ?JsonFormat $p_format = null;
 
     public function __construct(
@@ -44,11 +46,13 @@ class JsonArraySubselect extends JsonArray
         }
     }
 
+    /** @internal Support method for `$query` magic property, use the property instead */
     public function setQuery(SelectCommon $query): void
     {
         $this->setRequiredProperty($this->p_query, $query);
     }
 
+    /** @internal Support method for `$format` magic property, use the property instead */
     public function setFormat(?JsonFormat $format): void
     {
         $this->setProperty($this->p_format, $format);

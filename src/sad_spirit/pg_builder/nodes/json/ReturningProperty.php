@@ -21,8 +21,10 @@ namespace sad_spirit\pg_builder\nodes\json;
  */
 trait ReturningProperty
 {
+    /** @internal Maps to `$returning` magic property, use the latter instead */
     protected ?JsonReturning $p_returning = null;
 
+    /** @internal Support method for `$returning` magic property, use the property instead */
     public function setReturning(?JsonReturning $returning): void
     {
         $this->setProperty($this->p_returning, $returning);

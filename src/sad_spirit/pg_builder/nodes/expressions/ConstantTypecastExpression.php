@@ -36,6 +36,7 @@ class ConstantTypecastExpression extends TypecastExpression
     use ExpressionAtom;
     use NonRecursiveNode;
 
+    /** @internal Support method for `$argument` magic property, use the property instead */
     public function setArgument(ScalarExpression $argument): void
     {
         if (!$argument instanceof StringConstant || StringConstantType::CHARACTER !== $argument->type) {

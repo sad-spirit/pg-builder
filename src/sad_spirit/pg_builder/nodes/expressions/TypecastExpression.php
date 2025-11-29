@@ -41,7 +41,9 @@ use sad_spirit\pg_builder\{
  */
 class TypecastExpression extends GenericNode implements ScalarExpression, FunctionLike
 {
+    /** @internal Maps to `$argument` magic property, use the latter instead */
     protected ?ScalarExpression $p_argument = null;
+    /** @internal Maps to `$type` magic property, use the latter instead */
     protected TypeName $p_type;
 
     public function __construct(ScalarExpression $argument, TypeName $type)
@@ -54,6 +56,7 @@ class TypecastExpression extends GenericNode implements ScalarExpression, Functi
         $this->p_type->setParentNode($this);
     }
 
+    /** @internal Support method for `$argument` magic property, use the property instead */
     public function setArgument(ScalarExpression $argument): void
     {
         if (null !== $this->p_argument) {

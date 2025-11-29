@@ -35,7 +35,9 @@ class InsertTarget extends GenericNode
 {
     use NonRecursiveNode;
 
+    /** @internal Maps to `$relation` magic property, use the latter instead */
     protected QualifiedName $p_relation;
+    /** @internal Maps to `$alias` magic property, use the latter instead */
     protected ?Identifier $p_alias = null;
 
     public function __construct(QualifiedName $relation, ?Identifier $alias = null)

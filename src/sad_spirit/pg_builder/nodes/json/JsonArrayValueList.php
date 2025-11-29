@@ -25,6 +25,7 @@ class JsonArrayValueList extends JsonArray
 {
     use AbsentOnNullProperty;
 
+    /** @internal Maps to `$arguments` magic property, use the latter instead */
     protected JsonFormattedValueList $p_arguments;
 
     public function __construct(

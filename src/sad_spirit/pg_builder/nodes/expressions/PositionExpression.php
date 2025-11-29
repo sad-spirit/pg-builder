@@ -37,7 +37,9 @@ class PositionExpression extends GenericNode implements ScalarExpression, Functi
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$substring` magic property, use the latter instead */
     protected ScalarExpression $p_substring;
+    /** @internal Maps to `$string` magic property, use the latter instead */
     protected ScalarExpression $p_string;
 
     public function __construct(ScalarExpression $substring, ScalarExpression $string)
@@ -55,11 +57,13 @@ class PositionExpression extends GenericNode implements ScalarExpression, Functi
         $this->p_string->setParentNode($this);
     }
 
+    /** @internal Support method for `$substring` magic property, use the property instead */
     public function setSubstring(ScalarExpression $substring): void
     {
         $this->setRequiredProperty($this->p_substring, $substring);
     }
 
+    /** @internal Support method for `$string` magic property, use the property instead */
     public function setString(ScalarExpression $string): void
     {
         $this->setRequiredProperty($this->p_string, $string);

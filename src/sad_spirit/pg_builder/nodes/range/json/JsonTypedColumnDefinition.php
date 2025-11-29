@@ -28,7 +28,9 @@ use sad_spirit\pg_builder\nodes\{
  */
 abstract class JsonTypedColumnDefinition extends JsonNamedColumnDefinition
 {
+    /** @internal Maps to `$path` magic property, use the latter instead */
     protected ?StringConstant $p_path = null;
+    /** @internal Maps to `$type` magic property, use the latter instead */
     protected TypeName $p_type;
 
     public function __construct(Identifier $name, TypeName $type, ?StringConstant $path = null)
@@ -44,11 +46,13 @@ abstract class JsonTypedColumnDefinition extends JsonNamedColumnDefinition
         }
     }
 
+    /** @internal Support method for `$type` magic property, use the property instead */
     public function setType(TypeName $type): void
     {
         $this->setRequiredProperty($this->p_type, $type);
     }
 
+    /** @internal Support method for `$path` magic property, use the property instead */
     public function setPath(?StringConstant $path): void
     {
         $this->setProperty($this->p_path, $path);

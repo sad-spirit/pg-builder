@@ -31,7 +31,9 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class RowsFromElement extends GenericNode
 {
+    /** @internal Maps to `$function` magic property, use the latter instead */
     protected FunctionLike $p_function;
+    /** @internal Maps to `$columnAliases` magic property, use the latter instead */
     protected ColumnDefinitionList $p_columnAliases;
 
     public function __construct(FunctionLike $function, ?ColumnDefinitionList $columnAliases = null)

@@ -64,8 +64,11 @@ class OperatorExpression extends GenericNode implements ScalarExpression
         '-' => ScalarExpressionPrecedence::UNARY_MINUS
     ];
 
+    /** @internal Maps to `$left` magic property, use the latter instead */
     protected ScalarExpression|null $p_left = null;
+    /** @internal Maps to `$right` magic property, use the latter instead */
     protected ScalarExpression $p_right;
+    /** @internal Maps to `$operator` magic property, use the latter instead */
     protected string|QualifiedOperator $p_operator;
 
     public function __construct(string|QualifiedOperator $operator, ?ScalarExpression $left, ScalarExpression $right)
@@ -96,11 +99,13 @@ class OperatorExpression extends GenericNode implements ScalarExpression
         }
     }
 
+    /** @internal Support method for `$left` magic property, use the property instead */
     public function setLeft(?ScalarExpression $left): void
     {
         $this->setProperty($this->p_left, $left);
     }
 
+    /** @internal Support method for `$right` magic property, use the property instead */
     public function setRight(ScalarExpression $right): void
     {
         $this->setRequiredProperty($this->p_right, $right);

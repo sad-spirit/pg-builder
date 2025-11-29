@@ -37,8 +37,11 @@ class FunctionExpression extends FunctionCall implements ScalarExpression
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$filter` magic property, use the latter instead */
     protected ScalarExpression|null $p_filter = null;
+    /** @internal Maps to `$over` magic property, use the latter instead */
     protected WindowDefinition|null $p_over = null;
+    /** @internal Maps to `$withinGroup` magic property, use the latter instead */
     protected bool $p_withinGroup;
 
     public function __construct(

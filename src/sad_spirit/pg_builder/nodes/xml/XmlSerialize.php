@@ -36,9 +36,13 @@ class XmlSerialize extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$documentOrContent` magic property, use the latter instead */
     protected XmlOption $p_documentOrContent;
+    /** @internal Maps to `$argument` magic property, use the latter instead */
     protected ScalarExpression $p_argument;
+    /** @internal Maps to `$type` magic property, use the latter instead */
     protected TypeName $p_type;
+    /** @internal Maps to `$indent` magic property, use the latter instead */
     protected ?bool $p_indent;
 
     public function __construct(
@@ -58,11 +62,13 @@ class XmlSerialize extends GenericNode implements ScalarExpression, FunctionLike
         $this->p_type->setParentNode($this);
     }
 
+    /** @internal Support method for `$argument` magic property, use the property instead */
     public function setArgument(ScalarExpression $argument): void
     {
         $this->setRequiredProperty($this->p_argument, $argument);
     }
 
+    /** @internal Support method for `$indent` magic property, use the property instead */
     public function setIndent(?bool $indent): void
     {
         $this->p_indent = $indent;

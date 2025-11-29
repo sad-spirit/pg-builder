@@ -25,8 +25,10 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class MergeWhenNotMatched extends MergeWhenClause
 {
+    /** @internal Maps to `$action` magic property, use the latter instead */
     protected MergeInsert|null $p_action;
 
+    /** @internal Support method for `$action` magic property, use the property instead */
     public function setAction(?Node $action): void
     {
         if (null !== $action && !($action instanceof MergeInsert)) {

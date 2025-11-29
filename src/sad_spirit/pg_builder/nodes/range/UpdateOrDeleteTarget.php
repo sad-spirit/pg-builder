@@ -27,6 +27,7 @@ use sad_spirit\pg_builder\{
  */
 class UpdateOrDeleteTarget extends InsertTarget
 {
+    /** @internal Maps to `$inherit` magic property, use the latter instead */
     protected ?bool $p_inherit;
 
     public function __construct(QualifiedName $relation, ?Identifier $alias = null, ?bool $inherit = null)

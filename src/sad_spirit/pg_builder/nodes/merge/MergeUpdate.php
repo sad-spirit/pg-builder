@@ -27,6 +27,7 @@ use sad_spirit\pg_builder\nodes\{
  */
 class MergeUpdate extends GenericNode
 {
+    /** @internal Maps to `$set` magic property, use the latter instead */
     protected SetClauseList $p_set;
 
     public function __construct(SetClauseList $set)

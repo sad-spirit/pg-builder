@@ -32,9 +32,13 @@ use sad_spirit\pg_builder\{
  */
 class WindowFrameClause extends GenericNode
 {
+    /** @internal Maps to `$type` magic property, use the latter instead */
     protected WindowFrameMode $p_type;
+    /** @internal Maps to `$start` magic property, use the latter instead */
     protected WindowFrameBound $p_start;
+    /** @internal Maps to `$end` magic property, use the latter instead */
     protected ?WindowFrameBound $p_end = null;
+    /** @internal Maps to `$exclusion` magic property, use the latter instead */
     protected ?WindowFrameExclusion $p_exclusion = null;
 
     public function __construct(

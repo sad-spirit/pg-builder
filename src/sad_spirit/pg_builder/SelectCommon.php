@@ -33,10 +33,15 @@ use sad_spirit\pg_builder\enums\SetOperator;
  */
 abstract class SelectCommon extends Statement
 {
+    /** @internal Maps to `$order` magic property, use the latter instead */
     protected OrderByList $p_order;
+    /** @internal Maps to `$limit` magic property, use the latter instead */
     protected ?ScalarExpression $p_limit = null;
+    /** @internal Maps to `$limitWithTies` magic property, use the latter instead */
     protected bool $p_limitWithTies = false;
+    /** @internal Maps to `$offset` magic property, use the latter instead */
     protected ?ScalarExpression $p_offset = null;
+    /** @internal Maps to `$locking` magic property, use the latter instead */
     protected LockList $p_locking;
 
     public function __construct()
@@ -63,12 +68,15 @@ abstract class SelectCommon extends Statement
 
     /**
      * Sets the node representing LIMIT clause
+     *
+     * @internal Support method for `$limit` magic property, use the property instead
      */
     public function setLimit(string|ScalarExpression|null $limit): void
     {
         $this->setProperty($this->p_limit, $this->normalizeExpression($limit));
     }
 
+    /** @internal Support method for `$limitWithTies` magic property, use the property instead */
     public function setLimitWithTies(bool $withTies): void
     {
         $this->p_limitWithTies = $withTies;
@@ -76,6 +84,8 @@ abstract class SelectCommon extends Statement
 
     /**
      * Sets the node representing OFFSET clause
+     *
+     * @internal Support method for `$offset` magic property, use the property instead
      */
     public function setOffset(string|ScalarExpression|null $offset): void
     {

@@ -35,8 +35,11 @@ class XmlRoot extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$xml` magic property, use the latter instead */
     protected ScalarExpression $p_xml;
+    /** @internal Maps to `$version` magic property, use the latter instead */
     protected ?ScalarExpression $p_version;
+    /** @internal Maps to `$standalone` magic property, use the latter instead */
     protected ?XmlStandalone $p_standalone;
 
     public function __construct(
@@ -61,11 +64,13 @@ class XmlRoot extends GenericNode implements ScalarExpression, FunctionLike
         $this->p_standalone = $standalone;
     }
 
+    /** @internal Support method for `$xml` magic property, use the property instead */
     public function setXml(ScalarExpression $xml): void
     {
         $this->setRequiredProperty($this->p_xml, $xml);
     }
 
+    /** @internal Support method for `$version` magic property, use the property instead */
     public function setVersion(?ScalarExpression $version): void
     {
         $this->setProperty($this->p_version, $version);

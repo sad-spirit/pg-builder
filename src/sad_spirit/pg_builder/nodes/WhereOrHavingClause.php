@@ -26,6 +26,7 @@ use sad_spirit\pg_builder\nodes\expressions\LogicalExpression;
  */
 class WhereOrHavingClause extends GenericNode
 {
+    /** @internal Maps to `$condition` magic property, use the latter instead */
     protected ScalarExpression|null $p_condition;
 
     public function __construct(?ScalarExpression $condition = null)
@@ -54,6 +55,7 @@ class WhereOrHavingClause extends GenericNode
      * Explicitly sets the expression for the clause
      *
      * @return $this
+     * @internal Support method for `$condition` magic property, use the property instead
      */
     public function setCondition(string|null|self|ScalarExpression $condition): self
     {

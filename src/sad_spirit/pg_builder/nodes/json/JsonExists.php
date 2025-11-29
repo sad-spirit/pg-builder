@@ -27,6 +27,7 @@ class JsonExists extends JsonQueryCommon
 {
     use HasBehaviours;
 
+    /** @internal Maps to `$onError` magic property, use the latter instead */
     protected ?JsonBehaviour $p_onError = null;
 
     public function __construct(
@@ -42,6 +43,8 @@ class JsonExists extends JsonQueryCommon
 
     /**
      * Sets the value for `ON ERROR` clause
+     *
+     * @internal Support method for `$onError` magic property, use the property instead
      */
     public function setOnError(?JsonBehaviour $onError): void
     {

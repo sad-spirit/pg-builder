@@ -27,7 +27,9 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class MergeWhenMatched extends MergeWhenClause
 {
+    /** @internal Maps to `$action` magic property, use the latter instead */
     protected MergeUpdate|MergeDelete|null $p_action;
+    /** @internal Maps to `$matchedBySource` magic property, use the latter instead */
     protected bool $p_matchedBySource = true;
 
     public function __construct(
@@ -40,6 +42,7 @@ class MergeWhenMatched extends MergeWhenClause
         $this->p_matchedBySource = $matchedBySource;
     }
 
+    /** @internal Support method for `$action` magic property, use the property instead */
     public function setAction(?Node $action): void
     {
         if (null !== $action && !($action instanceof MergeDelete) && !($action instanceof MergeUpdate)) {
@@ -52,6 +55,7 @@ class MergeWhenMatched extends MergeWhenClause
         $this->setProperty($this->p_action, $action);
     }
 
+    /** @internal Support method for `$matchedBySource` magic property, use the property instead */
     public function setMatchedBySource(bool $matchedBySource): void
     {
         $this->p_matchedBySource = $matchedBySource;

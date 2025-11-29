@@ -32,8 +32,12 @@ use sad_spirit\pg_builder\exceptions\InvalidArgumentException;
  */
 abstract class FunctionFromElement extends LateralFromElement
 {
-    /** @var IdentifierList|ColumnDefinitionList|null */
+    /**
+     * @var IdentifierList|ColumnDefinitionList|null
+     * @internal Maps to `$columnAliases` magic property, use the latter instead
+     */
     protected NodeList|null $p_columnAliases = null;
+    /** @internal Maps to `$withOrdinality` magic property, use the latter instead */
     protected bool $p_withOrdinality = false;
 
     /**
@@ -70,6 +74,7 @@ abstract class FunctionFromElement extends LateralFromElement
         $this->setProperty($this->p_columnAliases, $columnAliases);
     }
 
+    /** @internal Support method for `$withOrdinality` magic property, use the property instead */
     public function setWithOrdinality(bool $ordinality): void
     {
         $this->p_withOrdinality = $ordinality;

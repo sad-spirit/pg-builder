@@ -36,8 +36,11 @@ class XmlElement extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$name` magic property, use the latter instead */
     protected Identifier $p_name;
+    /** @internal Maps to `$attributes` magic property, use the latter instead */
     protected TargetList $p_attributes;
+    /** @internal Maps to `$content` magic property, use the latter instead */
     protected ExpressionList $p_content;
 
     public function __construct(Identifier $name, ?TargetList $attributes = null, ?ExpressionList $content = null)

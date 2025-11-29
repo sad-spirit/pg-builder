@@ -33,7 +33,9 @@ use sad_spirit\pg_builder\{
  */
 class IsExpression extends NegatableExpression
 {
+    /** @internal Maps to `$argument` magic property, use the latter instead */
     protected ScalarExpression $p_argument;
+    /** @internal Maps to `$what` magic property, use the latter instead */
     protected IsPredicate $p_what;
 
     public function __construct(ScalarExpression $argument, IsPredicate $what, bool $not = false)
@@ -48,11 +50,13 @@ class IsExpression extends NegatableExpression
         $this->setWhat($what);
     }
 
+    /** @internal Support method for `$argument` magic property, use the property instead */
     public function setArgument(ScalarExpression $argument): void
     {
         $this->setRequiredProperty($this->p_argument, $argument);
     }
 
+    /** @internal Support method for `$what` magic property, use the property instead */
     public function setWhat(IsPredicate $what): void
     {
         $this->p_what = $what;

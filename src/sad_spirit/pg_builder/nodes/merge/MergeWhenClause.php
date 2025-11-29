@@ -27,6 +27,7 @@ use sad_spirit\pg_builder\nodes\ScalarExpression;
  */
 abstract class MergeWhenClause extends GenericNode
 {
+    /** @internal Maps to `$condition` magic property, use the latter instead */
     protected ScalarExpression|null $p_condition = null;
 
     public function __construct(?ScalarExpression $condition = null, ?Node $action = null)
@@ -37,10 +38,12 @@ abstract class MergeWhenClause extends GenericNode
         $this->setAction($action);
     }
 
+    /** @internal Support method for `$condition` magic property, use the property instead */
     public function setCondition(?ScalarExpression $condition): void
     {
         $this->setProperty($this->p_condition, $condition);
     }
 
+    /** @internal Support method for `$action` magic property, use the property instead */
     abstract public function setAction(?Node $action): void;
 }

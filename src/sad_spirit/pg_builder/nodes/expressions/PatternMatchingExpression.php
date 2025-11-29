@@ -36,9 +36,13 @@ use sad_spirit\pg_builder\{
  */
 class PatternMatchingExpression extends NegatableExpression
 {
+    /** @internal Maps to `$argument` magic property, use the latter instead */
     protected ScalarExpression $p_argument;
+    /** @internal Maps to `$pattern` magic property, use the latter instead */
     protected ScalarExpression $p_pattern;
+    /** @internal Maps to `$operator` magic property, use the latter instead */
     protected PatternPredicate $p_operator;
+    /** @internal Maps to `$escape` magic property, use the latter instead */
     protected ?ScalarExpression $p_escape = null;
 
     public function __construct(
@@ -69,16 +73,19 @@ class PatternMatchingExpression extends NegatableExpression
         $this->p_not      = $not;
     }
 
+    /** @internal Support method for `$argument` magic property, use the property instead */
     public function setArgument(ScalarExpression $argument): void
     {
         $this->setRequiredProperty($this->p_argument, $argument);
     }
 
+    /** @internal Support method for `$pattern` magic property, use the property instead */
     public function setPattern(ScalarExpression $pattern): void
     {
         $this->setRequiredProperty($this->p_pattern, $pattern);
     }
 
+    /** @internal Support method for `$escape` magic property, use the property instead */
     public function setEscape(?ScalarExpression $escape): void
     {
         $this->setProperty($this->p_escape, $escape);

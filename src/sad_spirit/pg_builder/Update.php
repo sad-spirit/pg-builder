@@ -33,10 +33,15 @@ use sad_spirit\pg_builder\nodes\{
  */
 class Update extends Statement
 {
+    /** @internal Maps to `$relation` magic property, use the latter instead */
     protected UpdateOrDeleteTarget $p_relation;
+    /** @internal Maps to `$set` magic property, use the latter instead */
     protected SetClauseList $p_set;
+    /** @internal Maps to `$from` magic property, use the latter instead */
     protected FromList $p_from;
+    /** @internal Maps to `$where` magic property, use the latter instead */
     protected WhereOrHavingClause $p_where;
+    /** @internal Maps to `$returning` magic property, use the latter instead */
     protected ReturningClause $p_returning;
 
     public function __construct(UpdateOrDeleteTarget $relation, SetClauseList $set)

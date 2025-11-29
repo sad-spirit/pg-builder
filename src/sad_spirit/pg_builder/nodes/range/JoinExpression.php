@@ -34,11 +34,17 @@ use sad_spirit\pg_builder\{
  */
 class JoinExpression extends FromElement
 {
+    /** @internal Maps to `$left` magic property, use the latter instead */
     protected FromElement $p_left;
+    /** @internal Maps to `$right` magic property, use the latter instead */
     protected FromElement $p_right;
+    /** @internal Maps to `$natural` magic property, use the latter instead */
     protected bool $p_natural = false;
+    /** @internal Maps to `$using` magic property, use the latter instead */
     protected ?UsingClause $p_using = null;
+    /** @internal Maps to `$on` magic property, use the latter instead */
     protected ?ScalarExpression $p_on = null;
+    /** @internal Maps to `$type` magic property, use the latter instead */
     protected JoinType $p_type;
 
     public function __construct(FromElement $left, FromElement $right, JoinType $type = JoinType::INNER)
@@ -58,16 +64,19 @@ class JoinExpression extends FromElement
         $this->p_type = $type;
     }
 
+    /** @internal Support method for `$left` magic property, use the property instead */
     public function setLeft(FromElement $left): void
     {
         $this->setRequiredProperty($this->p_left, $left);
     }
 
+    /** @internal Support method for `$right` magic property, use the property instead */
     public function setRight(FromElement $right): void
     {
         $this->setRequiredProperty($this->p_right, $right);
     }
 
+    /** @internal Support method for `$natural` magic property, use the property instead */
     public function setNatural(bool $natural): void
     {
         if ($natural) {
@@ -84,6 +93,7 @@ class JoinExpression extends FromElement
      * Sets USING clause for JOIN expression
      *
      * @param null|string|iterable<Identifier>|UsingClause $using
+     * @internal Support method for `$using` magic property, use the property instead
      */
     public function setUsing(null|string|iterable|UsingClause $using): void
     {
@@ -104,6 +114,8 @@ class JoinExpression extends FromElement
 
     /**
      * Sets ON clause for JOIN expression
+     *
+     * @internal Support method for `$on` magic property, use the property instead
      */
     public function setOn(null|string|ScalarExpression $on): void
     {

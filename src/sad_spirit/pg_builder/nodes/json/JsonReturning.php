@@ -28,7 +28,9 @@ use sad_spirit\pg_builder\{
  */
 class JsonReturning extends GenericNode
 {
+    /** @internal Maps to `$type` magic property, use the latter instead */
     protected TypeName $p_type;
+    /** @internal Maps to `$format` magic property, use the latter instead */
     protected ?JsonFormat $p_format = null;
 
     public function __construct(TypeName $type, ?JsonFormat $format = null)
@@ -44,11 +46,13 @@ class JsonReturning extends GenericNode
         }
     }
 
+    /** @internal Support method for `$type` magic property, use the property instead */
     public function setType(TypeName $type): void
     {
         $this->setRequiredProperty($this->p_type, $type);
     }
 
+    /** @internal Support method for `$format` magic property, use the property instead */
     public function setFormat(?JsonFormat $format): void
     {
         $this->setProperty($this->p_format, $format);

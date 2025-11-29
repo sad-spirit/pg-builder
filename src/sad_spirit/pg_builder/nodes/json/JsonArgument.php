@@ -26,7 +26,9 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class JsonArgument extends GenericNode
 {
+    /** @internal Maps to `$value` magic property, use the latter instead */
     protected JsonFormattedValue $p_value;
+    /** @internal Maps to `$alias` magic property, use the latter instead */
     protected Identifier $p_alias;
 
     public function __construct(JsonFormattedValue $value, Identifier $alias)
@@ -40,11 +42,13 @@ class JsonArgument extends GenericNode
         $this->p_alias->setParentNode($this);
     }
 
+    /** @internal Support method for `$value` magic property, use the property instead */
     public function setValue(JsonFormattedValue $value): void
     {
         $this->setRequiredProperty($this->p_value, $value);
     }
 
+    /** @internal Support method for `$alias` magic property, use the property instead */
     public function setAlias(Identifier $alias): void
     {
         $this->setRequiredProperty($this->p_alias, $alias);

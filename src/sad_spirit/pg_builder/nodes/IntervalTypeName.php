@@ -33,6 +33,7 @@ use sad_spirit\pg_builder\nodes\lists\TypeModifierList;
  */
 class IntervalTypeName extends TypeName
 {
+    /** @internal Maps to `$mask` magic property, use the latter instead */
     protected ?IntervalMask $p_mask = null;
 
     public function __construct(?TypeModifierList $typeModifiers = null)
@@ -40,6 +41,7 @@ class IntervalTypeName extends TypeName
         parent::__construct(new QualifiedName('pg_catalog', 'interval'), $typeModifiers);
     }
 
+    /** @internal Support method for `$mask` magic property, use the property instead */
     public function setMask(?IntervalMask $mask): void
     {
         $this->p_mask = $mask;

@@ -28,6 +28,7 @@ class CubeOrRollupClause extends ExpressionList implements GroupByElement
 {
     use HasBothPropsAndOffsets;
 
+    /** @internal Maps to `$type` magic property, use the latter instead */
     protected CubeOrRollup $p_type = CubeOrRollup::CUBE;
 
     public function __construct($list = null, CubeOrRollup $type = CubeOrRollup::CUBE)
@@ -37,6 +38,7 @@ class CubeOrRollupClause extends ExpressionList implements GroupByElement
         $this->setType($type);
     }
 
+    /** @internal Support method for `$type` magic property, use the property instead */
     public function setType(CubeOrRollup $type): void
     {
         $this->p_type = $type;

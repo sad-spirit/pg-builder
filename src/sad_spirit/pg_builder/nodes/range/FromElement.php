@@ -32,8 +32,12 @@ use sad_spirit\pg_builder\nodes\lists\IdentifierList;
  */
 abstract class FromElement extends GenericNode
 {
+    /** @internal Maps to `$tableAlias` magic property, use the latter instead */
     protected ?Identifier $p_tableAlias = null;
-    /** @var IdentifierList|null  */
+    /**
+     * @var IdentifierList|null
+     * @internal Maps to `$columnAliases` magic property, use the latter instead
+     */
     protected ?NodeList $p_columnAliases = null;
 
     /**
@@ -49,6 +53,8 @@ abstract class FromElement extends GenericNode
 
     /**
      * Sets an alias for the FROM item itself
+     *
+     * @internal Support method for `$tableAlias` magic property, use the property instead
      */
     public function setTableAlias(?Identifier $tableAlias): void
     {
@@ -59,6 +65,7 @@ abstract class FromElement extends GenericNode
      * Sets aliases for columns of FROM item
      *
      * @param IdentifierList|null $columnAliases
+     * @internal Support method for `$columnAliases` magic property, use the property instead
      */
     public function setColumnAliases(?NodeList $columnAliases): void
     {

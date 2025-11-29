@@ -33,8 +33,11 @@ use sad_spirit\pg_builder\{
  */
 class IsJsonExpression extends NegatableExpression
 {
+    /** @internal Maps to `$argument` magic property, use the latter instead */
     protected ScalarExpression $p_argument;
+    /** @internal Maps to `$type` magic property, use the latter instead */
     protected ?IsJsonType $p_type;
+    /** @internal Maps to `$uniqueKeys` magic property, use the latter instead */
     protected ?bool $p_uniqueKeys;
 
     public function __construct(
@@ -53,16 +56,19 @@ class IsJsonExpression extends NegatableExpression
         $this->p_uniqueKeys = $uniqueKeys;
     }
 
+    /** @internal Support method for `$argument` magic property, use the property instead */
     public function setArgument(ScalarExpression $argument): void
     {
         $this->setRequiredProperty($this->p_argument, $argument);
     }
 
+    /** @internal Support method for `$type` magic property, use the property instead */
     public function setType(?IsJsonType $type): void
     {
         $this->p_type = $type;
     }
 
+    /** @internal Support method for `$uniqueKeys` magic property, use the property instead */
     public function setUniqueKeys(?bool $unique): void
     {
         $this->p_uniqueKeys = $unique;

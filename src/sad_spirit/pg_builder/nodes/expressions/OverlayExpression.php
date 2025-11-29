@@ -39,9 +39,13 @@ class OverlayExpression extends GenericNode implements ScalarExpression, Functio
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$string` magic property, use the latter instead */
     protected ScalarExpression $p_string;
+    /** @internal Maps to `$newSubstring` magic property, use the latter instead */
     protected ScalarExpression $p_newSubstring;
+    /** @internal Maps to `$start` magic property, use the latter instead */
     protected ScalarExpression $p_start;
+    /** @internal Maps to `$count` magic property, use the latter instead */
     protected ?ScalarExpression $p_count;
 
     public function __construct(
@@ -78,21 +82,25 @@ class OverlayExpression extends GenericNode implements ScalarExpression, Functio
         }
     }
 
+    /** @internal Support method for `$string` magic property, use the property instead */
     public function setString(ScalarExpression $string): void
     {
         $this->setRequiredProperty($this->p_string, $string);
     }
 
+    /** @internal Support method for `$newSubstring` magic property, use the property instead */
     public function setNewSubstring(ScalarExpression $newSubstring): void
     {
         $this->setRequiredProperty($this->p_newSubstring, $newSubstring);
     }
 
+    /** @internal Support method for `$start` magic property, use the property instead */
     public function setStart(ScalarExpression $start): void
     {
         $this->setRequiredProperty($this->p_start, $start);
     }
 
+    /** @internal Support method for `$count` magic property, use the property instead */
     public function setCount(?ScalarExpression $count): void
     {
         $this->setProperty($this->p_count, $count);

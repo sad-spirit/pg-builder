@@ -33,10 +33,15 @@ use sad_spirit\pg_builder\nodes\{
  */
 class Merge extends Statement
 {
+    /** @internal Maps to `$relation` magic property, use the latter instead */
     protected UpdateOrDeleteTarget $p_relation;
+    /** @internal Maps to `$using` magic property, use the latter instead */
     protected FromElement $p_using;
+    /** @internal Maps to `$on` magic property, use the latter instead */
     protected ScalarExpression $p_on;
+    /** @internal Maps to `$when` magic property, use the latter instead */
     protected MergeWhenList $p_when;
+    /** @internal Maps to `$returning` magic property, use the latter instead */
     protected ReturningClause $p_returning;
 
     public function __construct(
@@ -63,16 +68,19 @@ class Merge extends Statement
         $this->p_returning->setParentNode($this);
     }
 
+    /** @internal Support method for `$relation` magic property, use the property instead */
     public function setRelation(UpdateOrDeleteTarget $relation): void
     {
         $this->setRequiredProperty($this->p_relation, $relation);
     }
 
+    /** @internal Support method for `$using` magic property, use the property instead */
     public function setUsing(FromElement $using): void
     {
         $this->setRequiredProperty($this->p_using, $using);
     }
 
+    /** @internal Support method for `$on` magic property, use the property instead */
     public function setOn(ScalarExpression $on): void
     {
         $this->setRequiredProperty($this->p_on, $on);

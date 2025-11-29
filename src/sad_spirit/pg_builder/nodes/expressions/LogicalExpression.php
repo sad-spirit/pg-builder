@@ -37,6 +37,7 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
     protected array $propertyNames = [
         'operator' => 'p_operator'
     ];
+    /** @internal Maps to `$operator` magic property, use the latter instead */
     protected LogicalOperator $p_operator;
 
     /**

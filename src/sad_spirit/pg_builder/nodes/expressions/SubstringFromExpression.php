@@ -38,8 +38,11 @@ class SubstringFromExpression extends GenericNode implements ScalarExpression, F
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$string` magic property, use the latter instead */
     protected ScalarExpression $p_string;
+    /** @internal Maps to `$from` magic property, use the latter instead */
     protected ?ScalarExpression $p_from;
+    /** @internal Maps to `$for` magic property, use the latter instead */
     protected ?ScalarExpression $p_for;
 
     public function __construct(
@@ -70,11 +73,13 @@ class SubstringFromExpression extends GenericNode implements ScalarExpression, F
         }
     }
 
+    /** @internal Support method for `$string` magic property, use the property instead */
     public function setString(ScalarExpression $string): void
     {
         $this->setRequiredProperty($this->p_string, $string);
     }
 
+    /** @internal Support method for `$from` magic property, use the property instead */
     public function setFrom(?ScalarExpression $from): void
     {
         if (null === $from && null === $this->p_for) {
@@ -83,6 +88,7 @@ class SubstringFromExpression extends GenericNode implements ScalarExpression, F
         $this->setProperty($this->p_from, $from);
     }
 
+    /** @internal Support method for `$for` magic property, use the property instead */
     public function setFor(?ScalarExpression $for): void
     {
         if (null === $for && null === $this->p_from) {

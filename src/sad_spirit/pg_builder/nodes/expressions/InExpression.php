@@ -33,7 +33,9 @@ use sad_spirit\pg_builder\nodes\lists\ExpressionList;
  */
 class InExpression extends NegatableExpression
 {
+    /** @internal Maps to `$left` magic property, use the latter instead */
     protected ScalarExpression $p_left;
+    /** @internal Maps to `$right` magic property, use the latter instead */
     protected SelectCommon|ExpressionList $p_right;
 
     public function __construct(ScalarExpression $left, SelectCommon|ExpressionList $right, bool $not = false)
@@ -49,6 +51,7 @@ class InExpression extends NegatableExpression
         $this->p_not = $not;
     }
 
+    /** @internal Support method for `$left` magic property, use the property instead */
     public function setLeft(ScalarExpression $left): void
     {
         $this->setRequiredProperty($this->p_left, $left);
@@ -56,6 +59,8 @@ class InExpression extends NegatableExpression
 
     /**
      * Sets the subselect or a list of expressions appearing in parentheses: foo IN (...)
+     *
+     * @internal Support method for `$right` magic property, use the property instead
      */
     public function setRight(SelectCommon|ExpressionList $right): void
     {

@@ -40,11 +40,17 @@ class JsonTable extends LateralFromElement
 {
     use HasBehaviours;
 
+    /** @internal Maps to `$context` magic property, use the latter instead */
     protected JsonFormattedValue $p_context;
+    /** @internal Maps to `$path` magic property, use the latter instead */
     protected ScalarExpression $p_path;
+    /** @internal Maps to `$pathName` magic property, use the latter instead */
     protected ?Identifier $p_pathName = null;
+    /** @internal Maps to `$passing` magic property, use the latter instead */
     protected JsonArgumentList $p_passing;
+    /** @internal Maps to `$columns` magic property, use the latter instead */
     protected json\JsonColumnDefinitionList $p_columns;
+    /** @internal Maps to `$onError` magic property, use the latter instead */
     protected ?JsonBehaviour $p_onError = null;
 
     public function __construct(
@@ -77,21 +83,25 @@ class JsonTable extends LateralFromElement
         $this->setOnError($onError);
     }
 
+    /** @internal Support method for `$context` magic property, use the property instead */
     public function setContext(JsonFormattedValue $context): void
     {
         $this->setRequiredProperty($this->p_context, $context);
     }
 
+    /** @internal Support method for `$path` magic property, use the property instead */
     public function setPath(ScalarExpression $path): void
     {
         $this->setRequiredProperty($this->p_path, $path);
     }
 
+    /** @internal Support method for `$pathName` magic property, use the property instead */
     public function setPathName(?Identifier $pathName): void
     {
         $this->setProperty($this->p_pathName, $pathName);
     }
 
+    /** @internal Support method for `$onError` magic property, use the property instead */
     public function setOnError(?JsonBehaviour $onError): void
     {
         /** @psalm-suppress PossiblyInvalidPropertyAssignmentValue */

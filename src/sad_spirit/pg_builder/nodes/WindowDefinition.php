@@ -29,10 +29,15 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class WindowDefinition extends GenericNode
 {
+    /** @internal Maps to `$name` magic property, use the latter instead */
     protected Identifier|null $p_name = null;
+    /** @internal Maps to `$refName` magic property, use the latter instead */
     protected Identifier|null $p_refName = null;
+    /** @internal Maps to `$partition` magic property, use the latter instead */
     protected ExpressionList $p_partition;
+    /** @internal Maps to `$order` magic property, use the latter instead */
     protected OrderByList $p_order;
+    /** @internal Maps to `$frame` magic property, use the latter instead */
     protected WindowFrameClause|null $p_frame = null;
 
     public function __construct(
@@ -60,6 +65,7 @@ class WindowDefinition extends GenericNode
         }
     }
 
+    /** @internal Support method for `$name` magic property, use the property instead */
     public function setName(?Identifier $name): void
     {
         $this->setProperty($this->p_name, $name);

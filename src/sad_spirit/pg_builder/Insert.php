@@ -34,11 +34,17 @@ use sad_spirit\pg_builder\enums\InsertOverriding;
  */
 class Insert extends Statement
 {
+    /** @internal Maps to `$relation` magic property, use the latter instead */
     protected InsertTarget $p_relation;
+    /** @internal Maps to `$cols` magic property, use the latter instead */
     protected SetTargetList $p_cols;
+    /** @internal Maps to `$values` magic property, use the latter instead */
     protected ?SelectCommon $p_values = null;
+    /** @internal Maps to `$overriding` magic property, use the latter instead */
     protected ?InsertOverriding $p_overriding = null;
+    /** @internal Maps to `$onConflict` magic property, use the latter instead */
     protected ?OnConflictClause $p_onConflict = null;
+    /** @internal Maps to `$returning` magic property, use the latter instead */
     protected ReturningClause $p_returning;
 
     public function __construct(InsertTarget $relation)
@@ -55,6 +61,7 @@ class Insert extends Statement
         $this->p_returning->parentNode = \WeakReference::create($this);
     }
 
+    /** @internal Support method for `$values` magic property, use the property instead */
     public function setValues(?SelectCommon $values): void
     {
         $this->setProperty($this->p_values, $values);
@@ -62,6 +69,8 @@ class Insert extends Statement
 
     /**
      * Sets the Node representing 'ON CONFLICT' clause
+     *
+     * @internal Support method for `$onConflict` magic property, use the property instead
      */
     public function setOnConflict(string|OnConflictClause|null $onConflict): void
     {
@@ -71,6 +80,7 @@ class Insert extends Statement
         $this->setProperty($this->p_onConflict, $onConflict);
     }
 
+    /** @internal Support method for `$overriding` magic property, use the property instead */
     public function setOverriding(?InsertOverriding $overriding): void
     {
         $this->p_overriding = $overriding;

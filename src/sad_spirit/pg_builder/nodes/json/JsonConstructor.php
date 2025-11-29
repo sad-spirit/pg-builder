@@ -32,6 +32,7 @@ class JsonConstructor extends GenericNode implements ScalarExpression, FunctionL
     use ExpressionAtom;
     use UniqueKeysProperty;
 
+    /** @internal Maps to `$expression` magic property, use the latter instead */
     protected JsonFormattedValue $p_expression;
 
     public function __construct(JsonFormattedValue $expression, ?bool $uniqueKeys = null)
@@ -44,6 +45,7 @@ class JsonConstructor extends GenericNode implements ScalarExpression, FunctionL
         $this->p_uniqueKeys = $uniqueKeys;
     }
 
+    /** @internal Support method for `$expression` magic property, use the property instead */
     public function setExpression(JsonFormattedValue $expression): void
     {
         $this->setRequiredProperty($this->p_expression, $expression);

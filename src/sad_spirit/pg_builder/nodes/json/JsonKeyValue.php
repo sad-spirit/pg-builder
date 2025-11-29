@@ -28,7 +28,9 @@ use sad_spirit\pg_builder\{
  */
 class JsonKeyValue extends GenericNode
 {
+    /** @internal Maps to `$key` magic property, use the latter instead */
     protected ScalarExpression $p_key;
+    /** @internal Maps to `$value` magic property, use the latter instead */
     protected JsonFormattedValue $p_value;
 
     public function __construct(ScalarExpression $key, JsonFormattedValue $value)
@@ -42,11 +44,13 @@ class JsonKeyValue extends GenericNode
         $this->p_value->setParentNode($this);
     }
 
+    /** @internal Support method for `$key` magic property, use the property instead */
     public function setKey(ScalarExpression $key): void
     {
         $this->setRequiredProperty($this->p_key, $key);
     }
 
+    /** @internal Support method for `$value` magic property, use the property instead */
     public function setValue(JsonFormattedValue $value): void
     {
         $this->setRequiredProperty($this->p_value, $value);

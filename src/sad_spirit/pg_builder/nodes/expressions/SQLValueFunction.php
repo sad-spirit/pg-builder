@@ -39,7 +39,9 @@ class SQLValueFunction extends GenericNode implements FunctionLike, ScalarExpres
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$name` magic property, use the latter instead */
     protected SQLValueFunctionName $p_name;
+    /** @internal Maps to `$modifier` magic property, use the latter instead */
     protected ?NumericConstant $p_modifier;
 
     public function __construct(SQLValueFunctionName $name, ?NumericConstant $modifier = null)

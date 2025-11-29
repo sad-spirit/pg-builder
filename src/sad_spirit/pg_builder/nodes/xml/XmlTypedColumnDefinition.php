@@ -32,9 +32,13 @@ use sad_spirit\pg_builder\{
  */
 class XmlTypedColumnDefinition extends XmlColumnDefinition
 {
+    /** @internal Maps to `$type` magic property, use the latter instead */
     protected TypeName $p_type;
+    /** @internal Maps to `$path` magic property, use the latter instead */
     protected ?ScalarExpression $p_path = null;
+    /** @internal Maps to `$default` magic property, use the latter instead */
     protected ?ScalarExpression $p_default = null;
+    /** @internal Maps to `$nullable` magic property, use the latter instead */
     protected ?bool $p_nullable;
 
     public function __construct(
@@ -66,21 +70,25 @@ class XmlTypedColumnDefinition extends XmlColumnDefinition
         }
     }
 
+    /** @internal Support method for `$type` magic property, use the property instead */
     public function setType(TypeName $type): void
     {
         $this->setRequiredProperty($this->p_type, $type);
     }
 
+    /** @internal Support method for `$path` magic property, use the property instead */
     public function setPath(?ScalarExpression $path): void
     {
         $this->setProperty($this->p_path, $path);
     }
 
+    /** @internal Support method for `$nullable` magic property, use the property instead */
     public function setNullable(?bool $nullable): void
     {
         $this->p_nullable = $nullable;
     }
 
+    /** @internal Support method for `$default` magic property, use the property instead */
     public function setDefault(?ScalarExpression $default): void
     {
         $this->setProperty($this->p_default, $default);

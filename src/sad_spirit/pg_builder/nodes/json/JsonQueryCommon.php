@@ -35,8 +35,11 @@ abstract class JsonQueryCommon extends GenericNode implements ScalarExpression, 
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$context` magic property, use the latter instead */
     protected JsonFormattedValue $p_context;
+    /** @internal Maps to `$path` magic property, use the latter instead */
     protected ScalarExpression $p_path;
+    /** @internal Maps to `$passing` magic property, use the latter instead */
     protected JsonArgumentList $p_passing;
 
     public function __construct(
@@ -56,11 +59,13 @@ abstract class JsonQueryCommon extends GenericNode implements ScalarExpression, 
         $this->p_passing->setParentNode($this);
     }
 
+    /** @internal Support method for `$context` magic property, use the property instead */
     public function setContext(JsonFormattedValue $context): void
     {
         $this->setRequiredProperty($this->p_context, $context);
     }
 
+    /** @internal Support method for `$path` magic property, use the property instead */
     public function setPath(ScalarExpression $path): void
     {
         $this->setRequiredProperty($this->p_path, $path);

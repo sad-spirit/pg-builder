@@ -34,7 +34,9 @@ class ReturningClause extends TargetList
 {
     use HasBothPropsAndOffsets;
 
+    /** @internal Maps to `$oldAlias` magic property, use the latter instead */
     protected ?Identifier $p_oldAlias = null;
+    /** @internal Maps to `$newAlias` magic property, use the latter instead */
     protected ?Identifier $p_newAlias = null;
 
     public function __construct(
@@ -52,11 +54,13 @@ class ReturningClause extends TargetList
         $this->setNewAlias($newAlias);
     }
 
+    /** @internal Support method for `$oldAlias` magic property, use the property instead */
     public function setOldAlias(Identifier|string|null $oldAlias): void
     {
         $this->setProperty($this->p_oldAlias, \is_string($oldAlias) ? new Identifier($oldAlias) : $oldAlias);
     }
 
+    /** @internal Support method for `$newAlias` magic property, use the property instead */
     public function setNewAlias(Identifier|string|null $newAlias): void
     {
         $this->setProperty($this->p_newAlias, \is_string($newAlias) ? new Identifier($newAlias) : $newAlias);

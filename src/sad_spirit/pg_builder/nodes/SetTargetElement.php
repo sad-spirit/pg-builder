@@ -32,6 +32,7 @@ class SetTargetElement extends NonAssociativeList
     use NonRecursiveNode;
     use HasBothPropsAndOffsets;
 
+    /** @internal Maps to `$name` magic property, use the latter instead */
     protected Identifier $p_name;
 
     protected static function getAllowedElementClasses(): array
@@ -58,6 +59,8 @@ class SetTargetElement extends NonAssociativeList
 
     /**
      * Sets the target column name
+     *
+     * @internal Support method for `$name` magic property, use the property instead
      */
     public function setName(string|Identifier $name): void
     {

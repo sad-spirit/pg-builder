@@ -37,10 +37,15 @@ class CycleClause extends GenericNode
 {
     use NonRecursiveNode;
 
+    /** @internal Maps to `$trackColumns` magic property, use the latter instead */
     protected ?IdentifierList $p_trackColumns = null;
+    /** @internal Maps to `$markColumn` magic property, use the latter instead */
     protected ?Identifier $p_markColumn = null;
+    /** @internal Maps to `$pathColumn` magic property, use the latter instead */
     protected ?Identifier $p_pathColumn = null;
+    /** @internal Maps to `$markValue` magic property, use the latter instead */
     protected Constant|ConstantTypecastExpression|null $p_markValue;
+    /** @internal Maps to `$markDefault` magic property, use the latter instead */
     protected Constant|ConstantTypecastExpression|null $p_markDefault;
 
     /**
@@ -71,6 +76,7 @@ class CycleClause extends GenericNode
      * Sets the list of columns to track for cycles
      *
      * @param string|iterable<Identifier> $columns
+     * @internal Support method for `$trackColumns` magic property, use the property instead
      */
     public function setTrackColumns(string|iterable $columns): void
     {
@@ -90,6 +96,8 @@ class CycleClause extends GenericNode
 
     /**
      * Sets the name of the column that will be used for marking cycle detection
+     *
+     * @internal Support method for `$markColumn` magic property, use the property instead
      */
     public function setMarkColumn(Identifier|string $column): void
     {
@@ -107,6 +115,8 @@ class CycleClause extends GenericNode
 
     /**
      * Sets the name of the column that will store the path to visited rows
+     *
+     * @internal Support method for `$pathColumn` magic property, use the property instead
      */
     public function setPathColumn(Identifier|string $column): void
     {
@@ -124,6 +134,8 @@ class CycleClause extends GenericNode
 
     /**
      * Sets the constant value that will be assigned to $markColumn when cycle is detected
+     *
+     * @internal Support method for `$markValue` magic property, use the property instead
      */
     public function setMarkValue(Constant|ConstantTypecastExpression|null $markValue): void
     {
@@ -132,6 +144,8 @@ class CycleClause extends GenericNode
 
     /**
      * Sets the constant value that will be assigned to $markColumn when cycle is NOT detected
+     *
+     * @internal Support method for `$markDefault` magic property, use the property instead
      */
     public function setMarkDefault(Constant|ConstantTypecastExpression|null $markDefault): void
     {

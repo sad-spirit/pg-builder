@@ -24,7 +24,9 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class SingleSetClause extends GenericNode
 {
+    /** @internal Maps to `$column` magic property, use the latter instead */
     protected SetTargetElement $p_column;
+    /** @internal Maps to `$value` magic property, use the latter instead */
     protected ScalarExpression|SetToDefault $p_value;
 
     public function __construct(SetTargetElement $column, ScalarExpression|SetToDefault $value)
@@ -40,6 +42,8 @@ class SingleSetClause extends GenericNode
 
     /**
      * Sets the Node representing a new value for the column
+     *
+     * @internal Support method for `$value` magic property, use the property instead
      */
     public function setValue(ScalarExpression|SetToDefault $value): void
     {

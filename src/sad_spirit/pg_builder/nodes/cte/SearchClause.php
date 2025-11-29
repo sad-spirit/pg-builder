@@ -33,8 +33,11 @@ class SearchClause extends GenericNode
 {
     use NonRecursiveNode;
 
+    /** @internal Maps to `$breadthFirst` magic property, use the latter instead */
     protected bool $p_breadthFirst;
+    /** @internal Maps to `$trackColumns` magic property, use the latter instead */
     protected ?IdentifierList $p_trackColumns = null;
+    /** @internal Maps to `$sequenceColumn` magic property, use the latter instead */
     protected ?Identifier $p_sequenceColumn = null;
 
     /**
@@ -50,6 +53,7 @@ class SearchClause extends GenericNode
         $this->setSequenceColumn($sequenceColumn);
     }
 
+    /** @internal Support method for `$breadthFirst` magic property, use the property instead */
     public function setBreadthFirst(bool $breadthFirst): void
     {
         $this->p_breadthFirst = $breadthFirst;
@@ -59,6 +63,7 @@ class SearchClause extends GenericNode
      * Sets the list of columns to track for sorting
      *
      * @param string|iterable<Identifier> $columns
+     * @internal Support method for `$trackColumns` magic property, use the property instead
      */
     public function setTrackColumns(string|iterable $columns): void
     {
@@ -78,6 +83,8 @@ class SearchClause extends GenericNode
 
     /**
      * Sets the name of the column that can be used for sorting
+     *
+     * @internal Support method for `$sequenceColumn` magic property, use the property instead
      */
     public function setSequenceColumn(Identifier|string $column): void
     {

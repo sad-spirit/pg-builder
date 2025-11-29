@@ -43,7 +43,9 @@ class ExtractExpression extends GenericNode implements ScalarExpression, Functio
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$field` magic property, use the latter instead */
     protected ExtractPart|string $p_field;
+    /** @internal Maps to `$source` magic property, use the latter instead */
     protected ScalarExpression $p_source;
 
     public function __construct(string|ExtractPart $field, ScalarExpression $source)
@@ -55,11 +57,13 @@ class ExtractExpression extends GenericNode implements ScalarExpression, Functio
         $this->p_source->setParentNode($this);
     }
 
+    /** @internal Support method for `$field` magic property, use the property instead */
     public function setField(string|ExtractPart $field): void
     {
         $this->p_field = $field;
     }
 
+    /** @internal Support method for `$source` magic property, use the property instead */
     public function setSource(ScalarExpression $source): void
     {
         $this->setRequiredProperty($this->p_source, $source);

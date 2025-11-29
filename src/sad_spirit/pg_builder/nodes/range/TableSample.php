@@ -33,9 +33,13 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class TableSample extends FromElement
 {
+    /** @internal Maps to `$relation` magic property, use the latter instead */
     protected RelationReference $p_relation;
+    /** @internal Maps to `$method` magic property, use the latter instead */
     protected QualifiedName $p_method;
+    /** @internal Maps to `$arguments` magic property, use the latter instead */
     protected ExpressionList $p_arguments;
+    /** @internal Maps to `$repeatable` magic property, use the latter instead */
     protected ?ScalarExpression $p_repeatable = null;
 
     public function __construct(
@@ -61,16 +65,19 @@ class TableSample extends FromElement
         }
     }
 
+    /** @internal Support method for `$method` magic property, use the property instead */
     public function setMethod(QualifiedName $method): void
     {
         $this->setRequiredProperty($this->p_method, $method);
     }
 
+    /** @internal Support method for `$repeatable` magic property, use the property instead */
     public function setRepeatable(?ScalarExpression $repeatable): void
     {
         $this->setProperty($this->p_repeatable, $repeatable);
     }
 
+    /** @internal Support method for `$alias` magic property, use the property instead */
     public function setAlias(?Identifier $tableAlias, ?NodeList $columnAliases = null): void
     {
         $this->p_relation->setAlias($tableAlias, $columnAliases);

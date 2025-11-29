@@ -33,7 +33,9 @@ abstract class JsonAggregate extends GenericNode implements ScalarExpression
     use AbsentOnNullProperty;
     use ReturningProperty;
 
+    /** @internal Maps to `$filter` magic property, use the latter instead */
     protected ?ScalarExpression $p_filter = null;
+    /** @internal Maps to `$over` magic property, use the latter instead */
     protected ?WindowDefinition $p_over = null;
 
     public function __construct(
@@ -59,11 +61,13 @@ abstract class JsonAggregate extends GenericNode implements ScalarExpression
         }
     }
 
+    /** @internal Support method for `$filter` magic property, use the property instead */
     public function setFilter(?ScalarExpression $filter): void
     {
         $this->setProperty($this->p_filter, $filter);
     }
 
+    /** @internal Support method for `$over` magic property, use the property instead */
     public function setOver(?WindowDefinition $over): void
     {
         $this->setProperty($this->p_over, $over);

@@ -29,7 +29,9 @@ use sad_spirit\pg_builder\{
  */
 class XmlNamespace extends GenericNode
 {
+    /** @internal Maps to `$value` magic property, use the latter instead */
     protected ScalarExpression $p_value;
+    /** @internal Maps to `$alias` magic property, use the latter instead */
     protected ?Identifier $p_alias = null;
 
     public function __construct(ScalarExpression $value, ?Identifier $alias = null)
@@ -45,11 +47,13 @@ class XmlNamespace extends GenericNode
         }
     }
 
+    /** @internal Support method for `$value` magic property, use the property instead */
     public function setValue(ScalarExpression $value): void
     {
         $this->setRequiredProperty($this->p_value, $value);
     }
 
+    /** @internal Support method for `$alias` magic property, use the property instead */
     public function setAlias(?Identifier $alias): void
     {
         $this->setProperty($this->p_alias, $alias);

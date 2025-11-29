@@ -19,7 +19,7 @@ namespace sad_spirit\pg_builder\nodes;
  *
  * Serializes / unserializes both arrays instead of just `$offsets`
  *
- * @psalm-require-extends GenericNode
+ * @psalm-require-extends lists\GenericNodeList
  */
 trait HasBothPropsAndOffsets
 {

@@ -31,9 +31,13 @@ use sad_spirit\pg_builder\{
  */
 class OrderByElement extends GenericNode
 {
+    /** @internal Maps to `$expression` magic property, use the latter instead */
     protected ScalarExpression $p_expression;
+    /** @internal Maps to `$direction` magic property, use the latter instead */
     protected ?OrderByDirection $p_direction = null;
+    /** @internal Maps to `$nullsOrder` magic property, use the latter instead */
     protected ?NullsOrder $p_nullsOrder = null;
+    /** @internal Maps to `$operator` magic property, use the latter instead */
     protected string|QualifiedOperator|null $p_operator;
 
     public function __construct(
@@ -60,6 +64,7 @@ class OrderByElement extends GenericNode
         }
     }
 
+    /** @internal Support method for `$expression` magic property, use the property instead */
     public function setExpression(ScalarExpression $expression): void
     {
         $this->setRequiredProperty($this->p_expression, $expression);

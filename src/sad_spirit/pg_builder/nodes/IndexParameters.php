@@ -36,6 +36,7 @@ class IndexParameters extends NonAssociativeList implements Parseable, ElementPa
 {
     use HasBothPropsAndOffsets;
 
+    /** @internal Maps to `$where` magic property, use the latter instead */
     protected WhereOrHavingClause $p_where;
 
     protected static function getAllowedElementClasses(): array

@@ -34,6 +34,7 @@ class UsingClause extends IdentifierList implements Parseable
 {
     use HasBothPropsAndOffsets;
 
+    /** @internal Maps to `$alias` magic property, use the latter instead */
     protected ?Identifier $p_alias = null;
 
     /**
@@ -50,6 +51,8 @@ class UsingClause extends IdentifierList implements Parseable
 
     /**
      * Sets the table alias for the join columns in USING clause
+     *
+     * @internal Support method for `$alias` magic property, use the property instead
      */
     public function setAlias(Identifier|string|null $alias): void
     {

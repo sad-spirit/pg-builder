@@ -29,6 +29,7 @@ class JsonObjectAgg extends JsonAggregate
 {
     use UniqueKeysProperty;
 
+    /** @internal Maps to `$keyValue` magic property, use the latter instead */
     protected JsonKeyValue $p_keyValue;
 
     public function __construct(
@@ -47,6 +48,7 @@ class JsonObjectAgg extends JsonAggregate
         $this->p_uniqueKeys = $uniqueKeys;
     }
 
+    /** @internal Support method for `$keyValue` magic property, use the property instead */
     public function setKeyValue(JsonKeyValue $keyValue): void
     {
         $this->setRequiredProperty($this->p_keyValue, $keyValue);

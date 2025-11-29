@@ -32,8 +32,11 @@ class QualifiedOperator extends GenericNode implements \Stringable
 {
     use NonRecursiveNode;
 
+    /** @internal Maps to `$catalog` magic property, use the latter instead */
     protected Identifier|null $p_catalog = null;
+    /** @internal Maps to `$schema` magic property, use the latter instead */
     protected Identifier|null $p_schema;
+    /** @internal Maps to `$operator` magic property, use the latter instead */
     protected string $p_operator;
 
     /**

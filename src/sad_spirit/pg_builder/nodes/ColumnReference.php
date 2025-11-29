@@ -33,9 +33,13 @@ class ColumnReference extends GenericNode implements ScalarExpression, \Stringab
     use NonRecursiveNode;
     use ExpressionAtom;
 
+    /** @internal Maps to `$catalog` magic property, use the latter instead */
     protected ?Identifier $p_catalog = null;
+    /** @internal Maps to `$schema` magic property, use the latter instead */
     protected ?Identifier $p_schema = null;
+    /** @internal Maps to `$relation` magic property, use the latter instead */
     protected ?Identifier $p_relation = null;
+    /** @internal Maps to `$column` magic property, use the latter instead */
     protected Identifier|Star $p_column;
 
     /**

@@ -33,7 +33,9 @@ class NullIfExpression extends GenericNode implements FunctionLike, ScalarExpres
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$first` magic property, use the latter instead */
     protected ScalarExpression $p_first;
+    /** @internal Maps to `$second` magic property, use the latter instead */
     protected ScalarExpression $p_second;
 
     public function __construct(ScalarExpression $first, ScalarExpression $second)
@@ -51,11 +53,13 @@ class NullIfExpression extends GenericNode implements FunctionLike, ScalarExpres
         $this->p_second->setParentNode($this);
     }
 
+    /** @internal Support method for `$first` magic property, use the property instead */
     public function setFirst(ScalarExpression $first): void
     {
         $this->setRequiredProperty($this->p_first, $first);
     }
 
+    /** @internal Support method for `$second` magic property, use the property instead */
     public function setSecond(ScalarExpression $second): void
     {
         $this->setRequiredProperty($this->p_second, $second);

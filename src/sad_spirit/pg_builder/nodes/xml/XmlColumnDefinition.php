@@ -24,6 +24,7 @@ use sad_spirit\pg_builder\nodes\Identifier;
  */
 abstract class XmlColumnDefinition extends GenericNode
 {
+    /** @internal Maps to `$name` magic property, use the latter instead */
     protected Identifier $p_name;
 
     public function __construct(Identifier $name)
@@ -34,6 +35,7 @@ abstract class XmlColumnDefinition extends GenericNode
         $this->p_name->setParentNode($this);
     }
 
+    /** @internal Support method for `$name` magic property, use the property instead */
     public function setName(Identifier $name): void
     {
         $this->setRequiredProperty($this->p_name, $name);

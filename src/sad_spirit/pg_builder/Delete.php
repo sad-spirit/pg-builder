@@ -31,9 +31,13 @@ use sad_spirit\pg_builder\nodes\{
  */
 class Delete extends Statement
 {
+    /** @internal Maps to `$relation` magic property, use the latter instead */
     protected UpdateOrDeleteTarget $p_relation;
+    /** @internal Maps to `$using` magic property, use the latter instead */
     protected FromList $p_using;
+    /** @internal Maps to `$where` magic property, use the latter instead */
     protected WhereOrHavingClause $p_where;
+    /** @internal Maps to `$returning` magic property, use the latter instead */
     protected ReturningClause $p_returning;
 
     public function __construct(UpdateOrDeleteTarget $relation)

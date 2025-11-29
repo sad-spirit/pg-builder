@@ -21,8 +21,10 @@ namespace sad_spirit\pg_builder\nodes\json;
  */
 trait AbsentOnNullProperty
 {
+    /** @internal Maps to `$absentOnNull` magic property, use the latter instead */
     protected ?bool $p_absentOnNull = null;
 
+    /** @internal Support method for `$absentOnNull` magic property, use the property instead */
     public function setAbsentOnNull(?bool $absentOnNull): void
     {
         $this->p_absentOnNull = $absentOnNull;

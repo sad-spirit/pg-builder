@@ -32,8 +32,11 @@ class LockingElement extends NonAssociativeList
     use NonRecursiveNode;
     use HasBothPropsAndOffsets;
 
+    /** @internal Maps to `$strength` magic property, use the latter instead */
     protected LockingStrength $p_strength;
+    /** @internal Maps to `$noWait` magic property, use the latter instead */
     protected bool $p_noWait;
+    /** @internal Maps to `$skipLocked` magic property, use the latter instead */
     protected bool $p_skipLocked;
 
     protected static function getAllowedElementClasses(): array

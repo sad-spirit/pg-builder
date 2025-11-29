@@ -24,7 +24,9 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class TargetElement extends GenericNode
 {
+    /** @internal Maps to `$expression` magic property, use the latter instead */
     protected ScalarExpression $p_expression;
+    /** @internal Maps to `$alias` magic property, use the latter instead */
     protected Identifier|null $p_alias = null;
 
     public function __construct(ScalarExpression $expression, ?Identifier $alias = null)
@@ -37,6 +39,7 @@ class TargetElement extends GenericNode
         $this->setProperty($this->p_alias, $alias);
     }
 
+    /** @internal Support method for `$expression` magic property, use the property instead */
     public function setExpression(ScalarExpression $expression): void
     {
         $this->setRequiredProperty($this->p_expression, $expression);

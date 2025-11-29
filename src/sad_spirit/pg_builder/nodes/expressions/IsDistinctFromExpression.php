@@ -30,7 +30,9 @@ use sad_spirit\pg_builder\{
  */
 class IsDistinctFromExpression extends NegatableExpression
 {
+    /** @internal Maps to `$left` magic property, use the latter instead */
     protected ScalarExpression $p_left;
+    /** @internal Maps to `$right` magic property, use the latter instead */
     protected ScalarExpression $p_right;
 
     public function __construct(ScalarExpression $left, ScalarExpression $right, bool $not = false)
@@ -50,11 +52,13 @@ class IsDistinctFromExpression extends NegatableExpression
         $this->p_not = $not;
     }
 
+    /** @internal Support method for `$left` magic property, use the property instead */
     public function setLeft(ScalarExpression $left): void
     {
         $this->setRequiredProperty($this->p_left, $left);
     }
 
+    /** @internal Support method for `$right` magic property, use the property instead */
     public function setRight(ScalarExpression $right): void
     {
         $this->setRequiredProperty($this->p_right, $right);

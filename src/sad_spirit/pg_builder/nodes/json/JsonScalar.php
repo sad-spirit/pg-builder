@@ -31,6 +31,7 @@ class JsonScalar extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$expression` magic property, use the latter instead */
     protected ScalarExpression $p_expression;
 
     public function __construct(ScalarExpression $expression)
@@ -41,6 +42,7 @@ class JsonScalar extends GenericNode implements ScalarExpression, FunctionLike
         $this->p_expression->setParentNode($this);
     }
 
+    /** @internal Support method for `$expression` magic property, use the property instead */
     public function setExpression(ScalarExpression $expression): void
     {
         $this->setRequiredProperty($this->p_expression, $expression);

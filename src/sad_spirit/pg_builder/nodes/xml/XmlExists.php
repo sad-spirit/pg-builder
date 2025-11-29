@@ -37,7 +37,9 @@ class XmlExists extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$xpath` magic property, use the latter instead */
     protected ScalarExpression $p_xpath;
+    /** @internal Maps to `$xml` magic property, use the latter instead */
     protected ScalarExpression $p_xml;
 
     public function __construct(ScalarExpression $xpath, ScalarExpression $xml)
@@ -55,11 +57,13 @@ class XmlExists extends GenericNode implements ScalarExpression, FunctionLike
         $this->p_xml->setParentNode($this);
     }
 
+    /** @internal Support method for `$xpath` magic property, use the property instead */
     public function setXpath(ScalarExpression $xpath): void
     {
         $this->setRequiredProperty($this->p_xpath, $xpath);
     }
 
+    /** @internal Support method for `$xml` magic property, use the property instead */
     public function setXml(ScalarExpression $xml): void
     {
         $this->setRequiredProperty($this->p_xml, $xml);

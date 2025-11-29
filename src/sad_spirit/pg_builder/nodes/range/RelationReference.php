@@ -30,7 +30,9 @@ class RelationReference extends FromElement
 {
     use NonRecursiveNode;
 
+    /** @internal Maps to `$name` magic property, use the latter instead */
     protected QualifiedName $p_name;
+    /** @internal Maps to `$inherit` magic property, use the latter instead */
     protected ?bool $p_inherit;
 
     public function __construct(QualifiedName $name, ?bool $inherit = null)

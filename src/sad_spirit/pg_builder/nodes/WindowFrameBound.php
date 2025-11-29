@@ -28,7 +28,9 @@ use sad_spirit\pg_builder\{
  */
 class WindowFrameBound extends GenericNode
 {
+    /** @internal Maps to `$direction` magic property, use the latter instead */
     protected WindowFrameDirection $p_direction;
+    /** @internal Maps to `$value` magic property, use the latter instead */
     protected ?ScalarExpression $p_value = null;
 
     public function __construct(WindowFrameDirection $direction, ?ScalarExpression $value = null)
@@ -38,6 +40,7 @@ class WindowFrameBound extends GenericNode
         $this->setValue($value);
     }
 
+    /** @internal Support method for `$value` magic property, use the property instead */
     public function setValue(?ScalarExpression $value): void
     {
         if (

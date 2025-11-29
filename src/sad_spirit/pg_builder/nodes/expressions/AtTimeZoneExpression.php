@@ -25,6 +25,7 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class AtTimeZoneExpression extends AtExpression
 {
+    /** @internal Maps to `$timeZone` magic property, use the latter instead */
     protected ScalarExpression $p_timeZone;
 
     public function __construct(ScalarExpression $argument, ScalarExpression $timeZone)
@@ -39,6 +40,7 @@ class AtTimeZoneExpression extends AtExpression
         $this->p_timeZone->setParentNode($this);
     }
 
+    /** @internal Support method for `$timeZone` magic property, use the property instead */
     public function setTimeZone(ScalarExpression $timeZone): void
     {
         $this->setRequiredProperty($this->p_timeZone, $timeZone);

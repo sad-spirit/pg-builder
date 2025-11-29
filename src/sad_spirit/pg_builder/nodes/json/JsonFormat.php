@@ -33,6 +33,7 @@ class JsonFormat extends GenericNode
 {
     use NonRecursiveNode;
 
+    /** @internal Maps to `$encoding` magic property, use the latter instead */
     protected ?JsonEncoding $p_encoding = null;
 
     public function __construct(?JsonEncoding $encoding = null)

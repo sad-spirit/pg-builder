@@ -33,7 +33,9 @@ class XmlPi extends GenericNode implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$name` magic property, use the latter instead */
     protected Identifier $p_name;
+    /** @internal Maps to `$content` magic property, use the latter instead */
     protected ?ScalarExpression $p_content = null;
 
     public function __construct(Identifier $name, ?ScalarExpression $content = null)
@@ -49,6 +51,7 @@ class XmlPi extends GenericNode implements ScalarExpression, FunctionLike
         }
     }
 
+    /** @internal Support method for `$content` magic property, use the property instead */
     public function setContent(?ScalarExpression $content): void
     {
         $this->setProperty($this->p_content, $content);

@@ -32,7 +32,9 @@ class ArrayComparisonExpression extends GenericNode implements ScalarExpression
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$keyword` magic property, use the latter instead */
     protected ArrayComparisonConstruct $p_keyword;
+    /** @internal Maps to `$array` magic property, use the latter instead */
     protected ScalarExpression $p_array;
 
     public function __construct(ArrayComparisonConstruct $keyword, ScalarExpression $array)
@@ -45,6 +47,7 @@ class ArrayComparisonExpression extends GenericNode implements ScalarExpression
         $this->p_array->setParentNode($this);
     }
 
+    /** @internal Support method for `$array` magic property, use the property instead */
     public function setArray(ScalarExpression $array): void
     {
         $this->setRequiredProperty($this->p_array, $array);

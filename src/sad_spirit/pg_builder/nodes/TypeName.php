@@ -34,10 +34,16 @@ class TypeName extends GenericNode
         setParentNode as private setParentNodeImpl;
     }
 
+    /** @internal Maps to `$name` magic property, use the latter instead */
     protected QualifiedName $p_name;
+    /** @internal Maps to `$setOf` magic property, use the latter instead */
     protected bool $p_setOf = false;
-    /** @var array<int,int> */
+    /**
+     * @var array<int,int>
+     * @internal Maps to `$bounds` magic property, use the latter instead
+     */
     protected array $p_bounds = [];
+    /** @internal Maps to `$modifiers` magic property, use the latter instead */
     protected ?TypeModifierList $p_modifiers = null;
 
     public function __construct(QualifiedName $name, ?TypeModifierList $typeModifiers = null)
@@ -51,6 +57,7 @@ class TypeName extends GenericNode
         $this->p_modifiers->setParentNode($this);
     }
 
+    /** @internal Support method for `$setOf` magic property, use the property instead */
     public function setSetOf(bool $setOf): void
     {
         if ($setOf && $this->getParentNode() instanceof ConstantTypecastExpression) {
@@ -63,6 +70,7 @@ class TypeName extends GenericNode
      * Sets the bounds for an array type
      *
      * @param array<int, int|string> $bounds
+     * @internal Support method for `$bounds` magic property, use the property instead
      */
     public function setBounds(array $bounds): void
     {

@@ -21,8 +21,10 @@ namespace sad_spirit\pg_builder\nodes\json;
  */
 trait UniqueKeysProperty
 {
+    /** @internal Maps to `$uniqueKeys` magic property, use the latter instead */
     protected ?bool $p_uniqueKeys;
 
+    /** @internal Support method for `$uniqueKeys` magic property, use the property instead */
     public function setUniqueKeys(?bool $uniqueKeys): void
     {
         $this->p_uniqueKeys = $uniqueKeys;

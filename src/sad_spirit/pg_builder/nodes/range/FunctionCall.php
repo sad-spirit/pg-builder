@@ -24,6 +24,7 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class FunctionCall extends FunctionFromElement
 {
+    /** @internal Maps to `$function` magic property, use the latter instead */
     protected FunctionLike $p_function;
 
     public function __construct(FunctionLike $function)

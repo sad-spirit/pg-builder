@@ -35,10 +35,15 @@ use sad_spirit\pg_builder\{
  */
 class IndexElement extends GenericNode
 {
+    /** @internal Maps to `$expression` magic property, use the latter instead */
     protected Identifier|ScalarExpression $p_expression;
+    /** @internal Maps to `$collation` magic property, use the latter instead */
     protected ?QualifiedName $p_collation;
+    /** @internal Maps to `$opClass` magic property, use the latter instead */
     protected ?QualifiedName $p_opClass;
+    /** @internal Maps to `$direction` magic property, use the latter instead */
     protected ?IndexElementDirection $p_direction;
+    /** @internal Maps to `$nullsOrder` magic property, use the latter instead */
     protected ?NullsOrder $p_nullsOrder;
 
     public function __construct(
@@ -66,6 +71,8 @@ class IndexElement extends GenericNode
 
     /**
      * Sets the node identifying the indexed column / function call / expression
+     *
+     * @internal Support method for `$expression` magic property, use the property instead
      */
     public function setExpression(ScalarExpression|Identifier $expression): void
     {

@@ -34,7 +34,9 @@ use sad_spirit\pg_builder\{
  */
 class OverlapsExpression extends GenericNode implements ScalarExpression
 {
+    /** @internal Maps to `$left` magic property, use the latter instead */
     protected RowExpression $p_left;
+    /** @internal Maps to `$right` magic property, use the latter instead */
     protected RowExpression $p_right;
 
     public function __construct(RowExpression $left, RowExpression $right)
@@ -58,6 +60,7 @@ class OverlapsExpression extends GenericNode implements ScalarExpression
         $this->p_right->setParentNode($this);
     }
 
+    /** @internal Support method for `$left` magic property, use the property instead */
     public function setLeft(RowExpression $left): void
     {
         if (2 !== \count($left)) {
@@ -66,6 +69,7 @@ class OverlapsExpression extends GenericNode implements ScalarExpression
         $this->setRequiredProperty($this->p_left, $left);
     }
 
+    /** @internal Support method for `$right` magic property, use the property instead */
     public function setRight(RowExpression $right): void
     {
         if (2 !== \count($right)) {

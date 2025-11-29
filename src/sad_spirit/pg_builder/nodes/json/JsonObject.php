@@ -34,6 +34,7 @@ class JsonObject extends GenericNode implements ScalarExpression, FunctionLike
     use ReturningProperty;
     use UniqueKeysProperty;
 
+    /** @internal Maps to `$arguments` magic property, use the latter instead */
     protected JsonKeyValueList $p_arguments;
 
     public function __construct(

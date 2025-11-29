@@ -26,8 +26,11 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class ArrayIndexes extends GenericNode
 {
+    /** @internal Maps to `$lower` magic property, use the latter instead */
     protected ScalarExpression|null $p_lower;
+    /** @internal Maps to `$upper` magic property, use the latter instead */
     protected ScalarExpression|null $p_upper;
+    /** @internal Maps to `$isSlice` magic property, use the latter instead */
     protected bool $p_isSlice = false;
 
     public function __construct(
@@ -45,6 +48,7 @@ class ArrayIndexes extends GenericNode
         $this->setLower($lower);
     }
 
+    /** @internal Support method for `$lower` magic property, use the property instead */
     public function setLower(?ScalarExpression $lower): void
     {
         if (!$this->p_isSlice && null !== $lower) {
@@ -53,6 +57,7 @@ class ArrayIndexes extends GenericNode
         $this->setProperty($this->p_lower, $lower);
     }
 
+    /** @internal Support method for `$upper` magic property, use the property instead */
     public function setUpper(?ScalarExpression $upper): void
     {
         if (!$this->p_isSlice && null === $upper) {
@@ -61,6 +66,7 @@ class ArrayIndexes extends GenericNode
         $this->setProperty($this->p_upper, $upper);
     }
 
+    /** @internal Support method for `$isSlice` magic property, use the property instead */
     public function setIsSlice(bool $isSlice): void
     {
         if (!$isSlice) {

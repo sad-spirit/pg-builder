@@ -41,8 +41,11 @@ class JsonRegularColumnDefinition extends JsonTypedColumnDefinition
     use WrapperAndQuotesProperties;
     use HasBehaviours;
 
+    /** @internal Maps to `$format` magic property, use the latter instead */
     protected ?JsonFormat $p_format = null;
+    /** @internal Maps to `$onEmpty` magic property, use the latter instead */
     protected JsonBehaviour|ScalarExpression|null $p_onEmpty = null;
+    /** @internal Maps to `$onError` magic property, use the latter instead */
     protected JsonBehaviour|ScalarExpression|null $p_onError = null;
 
     public function __construct(
@@ -69,6 +72,8 @@ class JsonRegularColumnDefinition extends JsonTypedColumnDefinition
 
     /**
      * Sets the value for `ON EMPTY` clause (`DEFAULT ...` is represented by an implementation of `ScalarExpression`)
+     *
+     * @internal Support method for `$onEmpty` magic property, use the property instead
      */
     public function setOnEmpty(JsonBehaviour|ScalarExpression|null $onEmpty): void
     {
@@ -77,6 +82,8 @@ class JsonRegularColumnDefinition extends JsonTypedColumnDefinition
 
     /**
      * Sets the value for `ON ERROR` clause (`DEFAULT ...` is represented by an implementation of `ScalarExpression`)
+     *
+     * @internal Support method for `$onError` magic property, use the property instead
      */
     public function setOnError(JsonBehaviour|ScalarExpression|null $onError): void
     {

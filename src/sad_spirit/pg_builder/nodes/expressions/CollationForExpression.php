@@ -35,6 +35,7 @@ class CollationForExpression extends GenericNode implements ScalarExpression, Fu
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$argument` magic property, use the latter instead */
     protected ScalarExpression $p_argument;
 
     public function __construct(ScalarExpression $argument)
@@ -45,6 +46,7 @@ class CollationForExpression extends GenericNode implements ScalarExpression, Fu
         $this->p_argument->setParentNode($this);
     }
 
+    /** @internal Support method for `$argument` magic property, use the property instead */
     public function setArgument(ScalarExpression $argument): void
     {
         $this->setRequiredProperty($this->p_argument, $argument);

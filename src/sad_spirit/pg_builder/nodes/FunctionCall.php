@@ -35,10 +35,15 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class FunctionCall extends GenericNode implements FunctionLike
 {
+    /** @internal Maps to `$name` magic property, use the latter instead */
     protected QualifiedName $p_name;
+    /** @internal Maps to `$arguments` magic property, use the latter instead */
     protected FunctionArgumentList|Star $p_arguments;
+    /** @internal Maps to `$distinct` magic property, use the latter instead */
     protected bool $p_distinct;
+    /** @internal Maps to `$variadic` magic property, use the latter instead */
     protected bool $p_variadic;
+    /** @internal Maps to `$order` magic property, use the latter instead */
     protected OrderByList $p_order;
 
     public function __construct(

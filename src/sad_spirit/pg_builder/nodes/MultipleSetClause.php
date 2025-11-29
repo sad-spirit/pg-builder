@@ -29,7 +29,9 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class MultipleSetClause extends GenericNode
 {
+    /** @internal Maps to `$columns` magic property, use the latter instead */
     protected SetTargetList $p_columns;
+    /** @internal Maps to `$value` magic property, use the latter instead */
     protected ScalarExpression $p_value;
 
     public function __construct(SetTargetList $columns, ScalarExpression $value)
@@ -43,6 +45,7 @@ class MultipleSetClause extends GenericNode
         $this->p_value->setParentNode($this);
     }
 
+    /** @internal Support method for `$value` magic property, use the property instead */
     public function setValue(ScalarExpression $value): void
     {
         $this->setRequiredProperty($this->p_value, $value);

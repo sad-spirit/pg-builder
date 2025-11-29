@@ -37,6 +37,7 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
 {
     use HasBothPropsAndOffsets;
 
+    /** @internal Maps to `$recursive` magic property, use the latter instead */
     protected bool $p_recursive = false;
 
     protected static function getAllowedElementClasses(): array
@@ -97,6 +98,7 @@ class WithClause extends NonAssociativeList implements Parseable, ElementParseab
         parent::replace($list);
     }
 
+    /** @internal Support method for `$recursive` magic property, use the property instead */
     public function setRecursive(bool $recursive): void
     {
         $this->p_recursive = $recursive;

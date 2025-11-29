@@ -35,7 +35,9 @@ class CaseExpression extends NonAssociativeList implements ScalarExpression
     use ExpressionAtom;
     use HasBothPropsAndOffsets;
 
+    /** @internal Maps to `$argument` magic property, use the latter instead */
     protected ?ScalarExpression $p_argument = null;
+    /** @internal Maps to `$else` magic property, use the latter instead */
     protected ?ScalarExpression $p_else = null;
 
     protected static function getAllowedElementClasses(): array
@@ -73,11 +75,13 @@ class CaseExpression extends NonAssociativeList implements ScalarExpression
         }
     }
 
+    /** @internal Support method for `$argument` magic property, use the property instead */
     public function setArgument(?ScalarExpression $argument): void
     {
         $this->setProperty($this->p_argument, $argument);
     }
 
+    /** @internal Support method for `$else` magic property, use the property instead */
     public function setElse(?ScalarExpression $elseClause): void
     {
         $this->setProperty($this->p_else, $elseClause);

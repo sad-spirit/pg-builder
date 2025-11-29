@@ -43,7 +43,9 @@ class TrimExpression extends GenericNode implements ScalarExpression, FunctionLi
 {
     use ExpressionAtom;
 
+    /** @internal Maps to `$arguments` magic property, use the latter instead */
     protected ExpressionList $p_arguments;
+    /** @internal Maps to `$side` magic property, use the latter instead */
     protected TrimSide $p_side;
 
     public function __construct(ExpressionList $arguments, TrimSide $side = TrimSide::BOTH)

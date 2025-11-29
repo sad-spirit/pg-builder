@@ -29,9 +29,13 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class OnConflictClause extends GenericNode
 {
+    /** @internal Maps to `$action` magic property, use the latter instead */
     protected OnConflictAction $p_action;
+    /** @internal Maps to `$target` magic property, use the latter instead */
     protected IndexParameters|Identifier|null $p_target = null;
+    /** @internal Maps to `$set` magic property, use the latter instead */
     protected SetClauseList $p_set;
+    /** @internal Maps to `$where` magic property, use the latter instead */
     protected WhereOrHavingClause $p_where;
 
     public function __construct(
@@ -51,6 +55,7 @@ class OnConflictClause extends GenericNode
         $this->p_where->setParentNode($this);
     }
 
+    /** @internal Support method for `$action` magic property, use the property instead */
     public function setAction(OnConflictAction $action): void
     {
         $this->p_action = $action;
@@ -58,6 +63,8 @@ class OnConflictClause extends GenericNode
 
     /**
      * Sets the Node for conflicting constraint name / index parameters
+     *
+     * @internal Support method for `$target` magic property, use the property instead
      */
     public function setTarget(IndexParameters|Identifier|null $target): void
     {

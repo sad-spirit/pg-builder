@@ -26,8 +26,11 @@ use sad_spirit\pg_builder\enums\SetOperatorPrecedence;
  */
 class SetOpSelect extends SelectCommon
 {
+    /** @internal Maps to `$left` magic property, use the latter instead */
     protected SelectCommon $p_left;
+    /** @internal Maps to `$right` magic property, use the latter instead */
     protected SelectCommon $p_right;
+    /** @internal Maps to `$operator` magic property, use the latter instead */
     protected SetOperator $p_operator;
 
     public function __construct(SelectCommon $left, SelectCommon $right, SetOperator $operator = SetOperator::UNION)
@@ -47,11 +50,13 @@ class SetOpSelect extends SelectCommon
         $this->p_operator = $operator;
     }
 
+    /** @internal Support method for `$left` magic property, use the property instead */
     public function setLeft(SelectCommon $left): void
     {
         $this->setRequiredProperty($this->p_left, $left);
     }
 
+    /** @internal Support method for `$right` magic property, use the property instead */
     public function setRight(SelectCommon $right): void
     {
         $this->setRequiredProperty($this->p_right, $right);

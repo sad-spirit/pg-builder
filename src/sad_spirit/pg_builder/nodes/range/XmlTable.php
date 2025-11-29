@@ -32,9 +32,13 @@ use sad_spirit\pg_builder\TreeWalker;
  */
 class XmlTable extends LateralFromElement
 {
+    /** @internal Maps to `$rowExpression` magic property, use the latter instead */
     protected ScalarExpression $p_rowExpression;
+    /** @internal Maps to `$documentExpression` magic property, use the latter instead */
     protected ScalarExpression $p_documentExpression;
+    /** @internal Maps to `$columns` magic property, use the latter instead */
     protected XmlColumnList $p_columns;
+    /** @internal Maps to `$namespaces` magic property, use the latter instead */
     protected XmlNamespaceList $p_namespaces;
 
     public function __construct(
@@ -62,11 +66,13 @@ class XmlTable extends LateralFromElement
         $this->p_namespaces->setParentNode($this);
     }
 
+    /** @internal Support method for `$rowExpression` magic property, use the property instead */
     public function setRowExpression(ScalarExpression $rowExpression): void
     {
         $this->setRequiredProperty($this->p_rowExpression, $rowExpression);
     }
 
+    /** @internal Support method for `$documentExpression` magic property, use the property instead */
     public function setDocumentExpression(ScalarExpression $documentExpression): void
     {
         $this->setRequiredProperty($this->p_documentExpression, $documentExpression);
