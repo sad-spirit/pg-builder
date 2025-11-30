@@ -17,7 +17,7 @@ namespace sad_spirit\pg_builder\nodes;
 use sad_spirit\pg_builder\Node;
 
 /**
- * Trait for Nodes that cannot legitimately be parents for the Nodes of the same type
+ * Trait for Nodes that cannot legitimately be ancestors for the Nodes of the same type
  *
  * Implements `setParentNode()` method without redundant checks for circular reference
  *
@@ -28,17 +28,25 @@ trait NonRecursiveNode
     /**
      * Link to the Node containing current one
      * @var \WeakReference<Node>|null
+     * @internal
      */
     protected ?\WeakReference $parentNode = null;
 
     /**
      * Flag for preventing endless recursion in setParentNode()
      * @var bool
+     * @internal
      */
     protected bool $settingParentNode = false;
 
     /**
-     * Checks in base setParentNode() are redundant as this is a leaf node
+     * Adds the link to the Node containing current one
+     *
+     * Checks in base {@see \sad_spirit\pg_builder\nodes\GenericNode::setParentNode() setParentNode()}
+     * are redundant as this `Node` cannot have instances of `self` as descendants
+     *
+     * @param Node|null $parent Node containing the current one, `null` if the link should
+     *                          really be removed (e.g. when calling from `removeChild()`)
      */
     public function setParentNode(?Node $parent): void
     {

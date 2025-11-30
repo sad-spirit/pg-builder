@@ -33,7 +33,10 @@ class LogicalExpression extends ExpressionList implements ScalarExpression
 {
     use HasBothPropsAndOffsets;
 
-    /** @var array<string, string> */
+    /**
+     * @var array<string, string>
+     * @internal
+     */
     protected array $propertyNames = [
         'operator' => 'p_operator'
     ];

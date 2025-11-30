@@ -35,12 +35,25 @@ trait HasBothPropsAndOffsets
         $this->updateParentNodeOnOffsets();
     }
 
+    /**
+     * Returns an array containing all magic properties, used when serializing
+     * @return array<string, mixed>
+     * @internal
+     */
     abstract protected function collectProperties(): array;
 
     /**
+     * Unserializes properties, restoring parent node link for child nodes
+     *
      * @param array<string, mixed> $properties
+     * @internal
      */
     abstract protected function unserializeProperties(array $properties): void;
 
+    /**
+     * Restores the parent node link for array offsets on unserializing the object
+     *
+     * @internal
+     */
     abstract protected function updateParentNodeOnOffsets(): void;
 }

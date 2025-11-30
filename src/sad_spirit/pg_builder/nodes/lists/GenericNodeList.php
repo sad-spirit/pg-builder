@@ -40,6 +40,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
     /**
      * Child nodes available through ArrayAccess
      * @var array<TKey,T>
+     * @internal Will probably be declared private in the next major version
      */
     protected array $offsets = [];
 
@@ -47,6 +48,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * Instances of these classes / interfaces will be allowed as list elements (Node is always checked)
      *
      * @return class-string[]
+     * @internal
      */
     protected static function getAllowedElementClasses(): array
     {
@@ -105,6 +107,8 @@ abstract class GenericNodeList extends GenericNode implements NodeList
 
     /**
      * Restores the parent node link for array offsets on unserializing the object
+     *
+     * @internal
      */
     protected function updateParentNodeOnOffsets(): void
     {
@@ -209,9 +213,6 @@ abstract class GenericNodeList extends GenericNode implements NodeList
         return new \ArrayIterator($this->offsets);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function merge(...$lists): void
     {
         $prepared = [];
@@ -222,9 +223,6 @@ abstract class GenericNodeList extends GenericNode implements NodeList
         $this->offsets = \array_merge($this->offsets, ...$prepared);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function replace($list): void
     {
         $prepared = $this->convertToArray($list, __METHOD__);
@@ -235,17 +233,11 @@ abstract class GenericNodeList extends GenericNode implements NodeList
         $this->offsets = $prepared;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function dispatch(TreeWalker $walker): mixed
     {
         return $walker->walkGenericNodeList($this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function replaceChild(Node $oldChild, Node $newChild): ?Node
     {
         if (
@@ -261,9 +253,6 @@ abstract class GenericNodeList extends GenericNode implements NodeList
         return $result;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function removeChild(Node $child): ?Node
     {
         if (
@@ -294,6 +283,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      * @param string     $method calling method, used only for Exception messages
      * @return iterable<TInput>
      * @throws InvalidArgumentException
+     * @internal
      */
     protected function prepareList($array, string $method): iterable
     {
@@ -320,6 +310,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      *
      * @param TListInput $list
      * @return array<TKey, T>
+     * @internal
      */
     abstract protected function convertToArray($list, string $method): array;
 
@@ -334,6 +325,7 @@ abstract class GenericNodeList extends GenericNode implements NodeList
      *
      * @param T|TInput $value
      * @return T
+     * @internal
      */
     protected function prepareListElement($value): Node
     {

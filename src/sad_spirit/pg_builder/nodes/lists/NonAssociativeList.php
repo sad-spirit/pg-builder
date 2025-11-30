@@ -49,6 +49,7 @@ abstract class NonAssociativeList extends GenericNodeList
      * Converts the incoming $list to an array of Nodes dropping the keys information
      *
      * {@inheritDoc}
+     * @internal
      */
     protected function convertToArray($list, string $method): array
     {

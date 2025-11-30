@@ -36,16 +36,21 @@ abstract class GenericNode implements Node
      *
      * @var array<string, string>
      * @see GenericNode::generatePropertyNames()
+     * @internal
      */
     protected array $propertyNames = [];
 
     /**
      * Link to the Node containing current one
      * @var \WeakReference<Node>|null
+     * @internal Non-package code should use `setParentNode()` / `getParentNode()`
      */
     protected ?\WeakReference $parentNode = null;
 
-    /** Flag for preventing endless recursion in setParentNode() */
+    /**
+     * Flag for preventing endless recursion in setParentNode()
+     * @internal Should only be used inside `setParentNode()`
+     */
     protected bool $settingParentNode = false;
 
     /**
@@ -125,6 +130,7 @@ abstract class GenericNode implements Node
     /**
      * Returns an array containing all magic properties, used when serializing
      * @return array<string, mixed>
+     * @internal
      */
     protected function collectProperties(): array
     {
@@ -139,6 +145,7 @@ abstract class GenericNode implements Node
      * Unserializes properties, restoring parent node link for child nodes
      *
      * @param array<string, mixed> $properties
+     * @internal
      */
     protected function unserializeProperties(array $properties): void
     {
@@ -160,6 +167,8 @@ abstract class GenericNode implements Node
      *
      * Should be called from both `__construct()` and `unserialize()` methods of `GenericNode` descendant that defines
      * new magic properties
+     *
+     * @internal
      */
     final protected function generatePropertyNames(): void
     {
@@ -174,9 +183,6 @@ abstract class GenericNode implements Node
         $this->propertyNames = self::$propertyNamesCache[$className];
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function setParentNode(?Node $parent): void
     {
         // no-op? recursion?
@@ -204,17 +210,11 @@ abstract class GenericNode implements Node
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getParentNode(): ?Node
     {
         return $this->parentNode?->get();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function replaceChild(Node $oldChild, Node $newChild): ?Node
     {
         if ($this !== $oldChild->getParentNode()) {
@@ -242,9 +242,6 @@ abstract class GenericNode implements Node
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function removeChild(Node $child): ?Node
     {
         if ($this !== $child->getParentNode()) {
@@ -262,9 +259,6 @@ abstract class GenericNode implements Node
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getParser(): ?Parser
     {
         return $this->parentNode?->get()?->getParser();
@@ -272,6 +266,7 @@ abstract class GenericNode implements Node
 
     /**
      * Returns the Parser or throws an Exception if one is not available
+     * @internal
      */
     protected function getParserOrFail(string $as): Parser
     {
@@ -290,6 +285,7 @@ abstract class GenericNode implements Node
      * @template Prop of Node
      * @param Prop|null $property
      * @param Prop|null $value
+     * @internal
      */
     protected function setProperty(?Node &$property, ?Node $value): void
     {
@@ -322,6 +318,7 @@ abstract class GenericNode implements Node
      * @template Prop of Node
      * @param Prop $property
      * @param Prop $value
+     * @internal
      */
     protected function setRequiredProperty(Node &$property, Node $value): void
     {
