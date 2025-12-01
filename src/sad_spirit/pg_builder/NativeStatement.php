@@ -23,6 +23,8 @@ use sad_spirit\pg_wrapper\{
 
 /**
  * Wraps the results of query building process, can be serialized and stored in cache
+ *
+ * @final
  */
 class NativeStatement
 {

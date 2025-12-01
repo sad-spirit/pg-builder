@@ -33,6 +33,8 @@ use sad_spirit\pg_wrapper\Connection;
 
 /**
  * Helper class for creating statements and passing Parser object to them
+ *
+ * @final
  */
 class StatementFactory
 {

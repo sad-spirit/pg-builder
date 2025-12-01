@@ -18,6 +18,8 @@ use sad_spirit\pg_builder\TokenType;
 
 /**
  * Token representing end of input
+ *
+ * @final
  */
 class EOFToken extends GenericToken
 {
