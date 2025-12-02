@@ -76,7 +76,7 @@ Public API of ``NativeStatement``:
         Result
     };
 
-    class NativeStatement
+    final class NativeStatement
     {
         public function __construct(
             private readonly string $sql,
@@ -110,6 +110,9 @@ Public API of ``NativeStatement``:
         ) : PreparedStatement;
         public function executePrepared(array $params = []) : Result;
     }
+
+.. note::
+    The class is tagged ``@final`` in version 3.3 and will be declared ``final`` in the next major release.
 
 The helper methods use mappings shown above to convert / update parameters and parameter types:
 

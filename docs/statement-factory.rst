@@ -19,7 +19,7 @@ Public API
 
     use sad_spirit\pg_wrapper\Connection;
 
-    class StatementFactory
+    final class StatementFactory
     {
         // Constructor methods
         public function __construct(
@@ -62,6 +62,9 @@ Public API
             > $rows
         ) : Values;
     }
+
+.. note::
+    The class is tagged ``@final`` in version 3.3 and will be declared ``final`` in the next major release.
 
 
 Constructor methods and getters
