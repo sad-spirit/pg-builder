@@ -19,7 +19,9 @@
 
 ### Fixed
 * `nodes\merge\MergeValues::createFromString()` properly returns an instance of `MergeValues`
-  instead of `RowExpression`
+  instead of `RowExpression`.
+* Changed version in cache keys for AST fragments. This was overlooked in release 3.2.0:
+  changes to `RETURNING` clause representation may cause errors when restoring AST of DML statements.
 * PHPDoc: removed redundant type info, fixed usage of `@see` and `@link` tags, fixed markup in descriptions.
   The API docs are now rendered correctly by phpDocumentor.
 

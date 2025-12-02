@@ -677,7 +677,7 @@ class Parser
         if (null !== $this->cache) {
             $source = $arguments[0] instanceof TokenStream ? $arguments[0]->getSource() : (string)$arguments[0];
             try {
-                $cacheItem = $this->cache->getItem('parsetree-v3-' . \md5('{' . $name . '}' . $source));
+                $cacheItem = $this->cache->getItem('parsetree-v3.3-' . \md5('{' . $name . '}' . $source));
                 if ($cacheItem->isHit()) {
                     return clone $cacheItem->get();
                 }
