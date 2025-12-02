@@ -1,5 +1,28 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+* Tested on PHP 8.5
+
+### Changed
+* Protected properties and setter methods used to implement magic properties of AST nodes
+  are now tagged `@internal`. The next major version of the package targeting PHP 8.4+ will likely 
+  replace magic properties with native public ones having property hooks.
+* `StatementFactory`, `NativeStatement`, and `tokens\EOFToken` classes are now tagged `@final`,
+  these will be actually declared final in the next major version.
+* Classes implementing `ElementParseable` now have typehints that narrow the returned types 
+  on their `createElementFromString()` methods, these used PHPDoc previously.
+* `Parseable::createFromString()` now has a return typehint of `self`, used PHPDoc previously.
+* Methods of `converters\BuilderSupportDecorator` now have the same argument typehints as their
+  definitions in `ConfigurableTypeConverterFactory`.
+
+### Fixed
+* `nodes\merge\MergeValues::createFromString()` properly returns an instance of `MergeValues`
+  instead of `RowExpression`
+* PHPDoc: removed redundant type info, fixed usage of `@see` and `@link` tags, fixed markup in descriptions.
+  The API docs are now rendered correctly by phpDocumentor.
+
 ## [3.2.0] - 2025-10-10
 
 ### Added
@@ -485,3 +508,4 @@ Initial release on GitHub
 [3.0.0]: https://github.com/sad-spirit/pg-builder/compare/v3.0.0-beta.2...v3.0.0
 [3.1.0]: https://github.com/sad-spirit/pg-builder/compare/v3.0.0...v3.1.0
 [3.2.0]: https://github.com/sad-spirit/pg-builder/compare/v3.1.0...v3.2.0
+[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v3.2.0...HEAD
