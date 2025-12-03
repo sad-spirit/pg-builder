@@ -6,6 +6,7 @@
 * Tested on PHP 8.5
 
 ### Changed
+* Added recommended `__serialize()` helper and deprecated `__sleep()` on `NativeStatement`.  
 * Protected properties and setter methods used to implement magic properties of AST nodes
   are now tagged `@internal`. The next major version of the package targeting PHP 8.4+ will likely 
   replace magic properties with native public ones having property hooks.

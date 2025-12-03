@@ -85,7 +85,7 @@ Public API of ``NativeStatement``:
         );
 
         // Serialization helper
-        public function __sleep() : array
+        public function __serialize() : array
 
         // getters for properties
         public function getSql() : string;
@@ -343,7 +343,7 @@ Caching ``NativeStatement`` instances
        // This is not OK:
        $ast->where->and('foo_id in (' . implode(', ', $ids) . ')');
 
-``NativeStatement`` is designed with caching in mind and implements ``__sleep()`` serialization helper.
+``NativeStatement`` is designed with caching in mind and implements ``__serialize()`` serialization helper.
 
 The main issue with caching the complete statement is generating the cache key: it should not depend on generated
 SQL as this defeats the whole idea but should uniquely identify that statement.

@@ -48,10 +48,24 @@ class NativeStatement
 
     /**
      * Prevents serialization of $preparedStatement property
+     *
+     * @deprecated
      */
     public function __sleep(): array
     {
         return ['sql', 'parameterTypes', 'namedParameterMap'];
+    }
+
+    /**
+     * Prevents serialization of $preparedStatement property
+     */
+    public function __serialize(): array
+    {
+        return [
+            'sql'               => $this->sql,
+            'parameterTypes'    => $this->parameterTypes,
+            'namedParameterMap' => $this->namedParameterMap
+        ];
     }
 
     /**
