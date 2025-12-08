@@ -644,7 +644,7 @@ class Parser
      * It is recommended to always use cache in production: loading AST from cache is generally 3-4 times faster
      * than parsing.
      */
-    public function __construct(private readonly Lexer $lexer, private ?CacheItemPoolInterface $cache = null)
+    public function __construct(public readonly Lexer $lexer, private ?CacheItemPoolInterface $cache = null)
     {
     }
 
