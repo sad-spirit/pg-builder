@@ -238,7 +238,6 @@ QRY
     public function testBlankWalkerVisitsEverything(): void
     {
         $parser     = new Parser(new Lexer());
-        // @phpstan-ignore callable.nonNativeMethod
         $statements = \array_map($parser->parseStatement(...), $this->sql);
 
         $this->assertAllNodeSubClassesAreUsed(...$statements);
