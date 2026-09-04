@@ -71,7 +71,7 @@ class StatementFactoryTest extends TestCase
             $this->markTestSkipped('Connection string is not configured');
         }
         /* @var $mockPool CacheItemPoolInterface|MockObject */
-        $cache      = $this->createMock(CacheItemPoolInterface::class);
+        $cache      = $this->createStub(CacheItemPoolInterface::class);
         $connection = new Connection(TESTS_SAD_SPIRIT_PG_BUILDER_CONNECTION_STRING);
         $connection->execute("set standard_conforming_strings = off");
         $connection->execute("set client_encoding = 'windows-1251'");
