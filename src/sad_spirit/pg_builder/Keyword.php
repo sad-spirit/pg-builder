@@ -135,6 +135,7 @@ enum Keyword: string
     case DEPENDS           = 'depends';
     case DEPTH             = 'depth';
     case DESC              = 'desc';
+    case DESTINATION       = 'destination';
     case DETACH            = 'detach';
     case DICTIONARY        = 'dictionary';
     case DISABLE           = 'disable';
@@ -146,6 +147,7 @@ enum Keyword: string
     case DOUBLE            = 'double';
     case DROP              = 'drop';
     case EACH              = 'each';
+    case EDGE              = 'edge';
     case ELSE              = 'else';
     case EMPTY             = 'empty';
     case ENABLE            = 'enable';
@@ -190,6 +192,8 @@ enum Keyword: string
     case GLOBAL            = 'global';
     case GRANT             = 'grant';
     case GRANTED           = 'granted';
+    case GRAPH             = 'graph';
+    case GRAPH_TABLE       = 'graph_table';
     case GREATEST          = 'greatest';
     case GROUP             = 'group';
     case GROUPING          = 'grouping';
@@ -201,6 +205,7 @@ enum Keyword: string
     case HOUR              = 'hour';
     case IDENTITY          = 'identity';
     case IF                = 'if';
+    case IGNORE            = 'ignore';
     case ILIKE             = 'ilike';
     case IMMEDIATE         = 'immediate';
     case IMMUTABLE         = 'immutable';
@@ -268,6 +273,7 @@ enum Keyword: string
     case LOCK              = 'lock';
     case LOCKED            = 'locked';
     case LOGGED            = 'logged';
+    case LSN               = 'lsn';
     case MAPPING           = 'mapping';
     case MATCH             = 'match';
     case MATCHED           = 'matched';
@@ -294,6 +300,7 @@ enum Keyword: string
     case NFKC              = 'nfkc';
     case NFKD              = 'nfkd';
     case NO                = 'no';
+    case NODE              = 'node';
     case NONE              = 'none';
     case NORMALIZE         = 'normalize';
     case NORMALIZED        = 'normalized';
@@ -336,6 +343,7 @@ enum Keyword: string
     case PARSER            = 'parser';
     case PARTIAL           = 'partial';
     case PARTITION         = 'partition';
+    case PARTITIONS        = 'partitions';
     case PASSING           = 'passing';
     case PASSWORD          = 'password';
     case PATH              = 'path';
@@ -344,6 +352,7 @@ enum Keyword: string
     case PLAN              = 'plan';
     case PLANS             = 'plans';
     case POLICY            = 'policy';
+    case PORTION           = 'portion';
     case POSITION          = 'position';
     case PRECEDING         = 'preceding';
     case PRECISION         = 'precision';
@@ -357,6 +366,8 @@ enum Keyword: string
     case PROCEDURE         = 'procedure';
     case PROCEDURES        = 'procedures';
     case PROGRAM           = 'program';
+    case PROPERTIES        = 'properties';
+    case PROPERTY          = 'property';
     case PUBLICATION       = 'publication';
     case QUOTE             = 'quote';
     case QUOTES            = 'quotes';
@@ -372,13 +383,16 @@ enum Keyword: string
     case REFERENCING       = 'referencing';
     case REFRESH           = 'refresh';
     case REINDEX           = 'reindex';
+    case RELATIONSHIP      = 'relationship';
     case RELATIVE          = 'relative';
     case RELEASE           = 'release';
     case RENAME            = 'rename';
+    case REPACK            = 'repack';
     case REPEATABLE        = 'repeatable';
     case REPLACE           = 'replace';
     case REPLICA           = 'replica';
     case RESET             = 'reset';
+    case RESPECT           = 'respect';
     case RESTART           = 'restart';
     case RESTRICT          = 'restrict';
     case RETURN            = 'return';
@@ -421,6 +435,7 @@ enum Keyword: string
     case SNAPSHOT          = 'snapshot';
     case SOME              = 'some';
     case SOURCE            = 'source';
+    case SPLIT             = 'split';
     case SQL               = 'sql';
     case STABLE            = 'stable';
     case STANDALONE        = 'standalone';
@@ -491,10 +506,12 @@ enum Keyword: string
     case VARYING           = 'varying';
     case VERBOSE           = 'verbose';
     case VERSION           = 'version';
+    case VERTEX            = 'vertex';
     case VIEW              = 'view';
     case VIEWS             = 'views';
     case VIRTUAL           = 'virtual';
     case VOLATILE          = 'volatile';
+    case WAIT              = 'wait';
     case WHEN              = 'when';
     case WHERE             = 'where';
     case WHITESPACE        = 'whitespace';
@@ -635,6 +652,7 @@ enum Keyword: string
         'EXISTS'            => TokenType::COL_NAME_KEYWORD,
         'EXTRACT'           => TokenType::COL_NAME_KEYWORD,
         'FLOAT'             => TokenType::COL_NAME_KEYWORD,
+        'GRAPH_TABLE'       => TokenType::COL_NAME_KEYWORD,
         'GREATEST'          => TokenType::COL_NAME_KEYWORD,
         'GROUPING'          => TokenType::COL_NAME_KEYWORD,
         'INOUT'             => TokenType::COL_NAME_KEYWORD,
@@ -704,6 +722,7 @@ enum Keyword: string
         'GROUP'             => true,
         'HAVING'            => true,
         'HOUR'              => true,
+        'IGNORE'            => true,
         'INTERSECT'         => true,
         'INTO'              => true,
         'ISNULL'            => true,
@@ -717,6 +736,7 @@ enum Keyword: string
         'OVER'              => true,
         'OVERLAPS'          => true,
         'PRECISION'         => true,
+        'RESPECT'           => true,
         'RETURNING'         => true,
         'SECOND'            => true,
         'TO'                => true,
