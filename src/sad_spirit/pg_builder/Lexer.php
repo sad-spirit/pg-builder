@@ -33,7 +33,7 @@ class Lexer
     /**
      * Characters that should be returned as TokenType::SPECIAL_CHAR
      */
-    private const CHARS_SPECIAL  = ',()[].;:+-*/%^<>=';
+    private const CHARS_SPECIAL  = ',()[].;:|+-*/%^<>={}';
 
     /**
      * Replacements for simple backslash escapes in e'...' strings
@@ -597,6 +597,11 @@ REGEXP;
                 || '>' === $operator[1] && '<' === $operator[0]
             ) {
                 $this->tokens[] = new tokens\StringToken(TokenType::INEQUALITY, $operator, $this->position);
+                $this->position += 2;
+                return;
+            }
+            if ('-' === $operator[0] && '>' === $operator[1]) {
+                $this->tokens[] = new tokens\StringToken(TokenType::RIGHT_ARROW, $operator, $this->position);
                 $this->position += 2;
                 return;
             }

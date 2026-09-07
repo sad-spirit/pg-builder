@@ -51,6 +51,7 @@ enum TokenType: int
     case OPERATOR               = self::SPECIAL->value | 1 << 3;
     case INEQUALITY             = self::SPECIAL->value | 1 << 4;
     case EQUALS_GREATER         = self::SPECIAL->value | 1 << 5;
+    case RIGHT_ARROW            = self::SPECIAL->value | 1 << 6;
 
     // Identifier with Unicode escapes, will only appear in Lexer, never in resultant TokenStream
     case UNICODE_IDENTIFIER     = self::IDENTIFIER->value | 1 << 0;
@@ -90,6 +91,7 @@ enum TokenType: int
             self::TYPECAST          => 'typecast operator',
             self::COLON_EQUALS,
             self::EQUALS_GREATER    => 'named argument mark',
+            self::RIGHT_ARROW       => 'right arrow',
             self::SPECIAL_CHAR      => 'special character',
             self::INEQUALITY        => 'comparison operator',
             self::IDENTIFIER        => 'identifier',
