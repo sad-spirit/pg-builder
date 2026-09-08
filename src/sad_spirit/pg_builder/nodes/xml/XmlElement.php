@@ -20,17 +20,18 @@ use sad_spirit\pg_builder\nodes\{
     ScalarExpression,
     GenericNode,
     Identifier,
-    lists\TargetList,
-    lists\ExpressionList
+    lists\ExpressionList,
+    lists\LabeledExpressionList,
+    lists\TargetList
 };
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents xmlelement() expression (cannot be a FunctionCall due to special arguments format)
  *
- * @property-read Identifier     $name
- * @property-read TargetList     $attributes
- * @property      ExpressionList $content
+ * @property-read Identifier            $name
+ * @property-read LabeledExpressionList $attributes
+ * @property      ExpressionList        $content
  */
 class XmlElement extends GenericNode implements ScalarExpression, FunctionLike
 {
@@ -39,18 +40,28 @@ class XmlElement extends GenericNode implements ScalarExpression, FunctionLike
     /** @internal Maps to `$name` magic property, use the latter instead */
     protected Identifier $p_name;
     /** @internal Maps to `$attributes` magic property, use the latter instead */
-    protected TargetList $p_attributes;
+    protected LabeledExpressionList $p_attributes;
     /** @internal Maps to `$content` magic property, use the latter instead */
     protected ExpressionList $p_content;
 
-    public function __construct(Identifier $name, ?TargetList $attributes = null, ?ExpressionList $content = null)
-    {
+    public function __construct(
+        Identifier $name,
+        LabeledExpressionList|TargetList|null $attributes = null,
+        ?ExpressionList $content = null
+    ) {
         $this->generatePropertyNames();
 
         $this->p_name = $name;
         $this->p_name->setParentNode($this);
 
-        $this->p_attributes = $attributes ?? new TargetList();
+        if ($attributes instanceof TargetList) {
+            \trigger_error(
+                'Passing an instance of TargetList as $attributes is deprecated since release 3.4.0',
+                \E_USER_DEPRECATED
+            );
+            $attributes = new LabeledExpressionList($attributes);
+        }
+        $this->p_attributes = $attributes ?? new LabeledExpressionList();
         $this->p_attributes->setParentNode($this);
 
         $this->p_content = $content ?? new ExpressionList();

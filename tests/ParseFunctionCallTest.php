@@ -99,9 +99,9 @@ use sad_spirit\pg_builder\nodes\json\{
 use sad_spirit\pg_builder\nodes\lists\{
     ExpressionList,
     FunctionArgumentList,
+    LabeledExpressionList,
     OrderByList,
-    RowList,
-    TargetList
+    RowList
 };
 use sad_spirit\pg_builder\nodes\xml\{
     XmlElement,
@@ -344,7 +344,7 @@ QRY
                 ),
                 new XmlElement(
                     new Identifier('blah'),
-                    new TargetList([
+                    new LabeledExpressionList([
                         new TargetElement(new ColumnReference('baz')),
                         new TargetElement(new ColumnReference('quux'), new Identifier('xyzzy'))
                     ]),

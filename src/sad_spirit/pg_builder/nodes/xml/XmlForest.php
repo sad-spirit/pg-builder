@@ -18,14 +18,14 @@ use sad_spirit\pg_builder\nodes\{
     ExpressionAtom,
     FunctionLike,
     ScalarExpression,
-    lists\TargetList
+    lists\LabeledExpressionList
 };
 use sad_spirit\pg_builder\TreeWalker;
 
 /**
  * Represents xmlforest() expression (cannot be a FunctionCall due to special arguments format)
  */
-class XmlForest extends TargetList implements ScalarExpression, FunctionLike
+class XmlForest extends LabeledExpressionList implements ScalarExpression, FunctionLike
 {
     use ExpressionAtom;
 

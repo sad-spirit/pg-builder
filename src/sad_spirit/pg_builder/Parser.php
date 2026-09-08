@@ -70,6 +70,8 @@ use Psr\Cache\InvalidArgumentException;
  * @method nodes\merge\MergeWhenList        parseMergeWhenList(string|TokenStream $input)
  * @method nodes\merge\MergeWhenClause      parseMergeWhenClause(string|TokenStream $input)
  * @method nodes\ReturningClause            parseReturningClause(string|TokenStream $input)
+ * @method nodes\lists\LabeledExpressionList parseLabeledExpressionList(string|TokenStream $input)
+ * @method nodes\TargetElement              parseLabeledExpression(string|TokenStream $input)
  */
 class Parser
 {
@@ -331,7 +333,9 @@ class Parser
         'typename'                   => true,
         'mergewhenlist'              => true,
         'mergewhenclause'            => true,
-        'returningclause'            => true
+        'returningclause'            => true,
+        'labeledexpression'          => true,
+        'labeledexpressionlist'      => true
     ];
 
     private TokenStream $stream;
@@ -2910,7 +2914,7 @@ class Parser
                 break;
 
             case Keyword::XMLFOREST:
-                $funcNode = new nodes\xml\XmlForest($this->XmlAttributeList());
+                $funcNode = new nodes\xml\XmlForest($this->LabeledExpressionList());
                 break;
 
             case Keyword::XMLPARSE:
@@ -3160,7 +3164,7 @@ class Parser
             } else {
                 $this->stream->next();
                 $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
-                $attributes = new nodes\lists\TargetList($this->XmlAttributeList());
+                $attributes = $this->LabeledExpressionList();
                 $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
                 if ($this->stream->matchesSpecialChar(',')) {
                     $this->stream->next();
@@ -3196,20 +3200,49 @@ class Parser
 
     /**
      * @return nodes\TargetElement[]
+     * @deprecated since 3.4.0
      */
     protected function XmlAttributeList(): array
     {
-        $attributes = [$this->XmlAttribute()];
+        \trigger_error(
+            'Parser::XmlAttributeList() is deprecated since release 3.4.0, use LabeledExpressionList() instead.',
+            \E_USER_DEPRECATED
+        );
+        $attributes = [$this->LabeledExpression()];
 
         while ($this->stream->matchesSpecialChar(',')) {
             $this->stream->next();
-            $attributes[] = $this->XmlAttribute();
+            $attributes[] = $this->LabeledExpression();
         }
 
         return $attributes;
     }
 
+    /**
+     * @deprecated since 3.4.0
+     */
     protected function XmlAttribute(): nodes\TargetElement
+    {
+        \trigger_error(
+            'Parser::XmlAttribute() is deprecated since release 3.4.0, use LabeledExpression() instead.',
+            \E_USER_DEPRECATED
+        );
+        return $this->LabeledExpression();
+    }
+
+    protected function LabeledExpressionList(): nodes\lists\LabeledExpressionList
+    {
+        $expressions = new nodes\lists\LabeledExpressionList([$this->LabeledExpression()]);
+
+        while ($this->stream->matchesSpecialChar(',')) {
+            $this->stream->next();
+            $expressions[] = $this->LabeledExpression();
+        }
+
+        return $expressions;
+    }
+
+    protected function LabeledExpression(): nodes\TargetElement
     {
         $value   = $this->Expression();
         $attName = null;

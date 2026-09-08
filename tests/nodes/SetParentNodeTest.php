@@ -67,6 +67,7 @@ use sad_spirit\pg_builder\nodes\expressions\{
 };
 use sad_spirit\pg_builder\nodes\lists\{
     ColumnDefinitionList,
+    LabeledExpressionList,
     RowList,
     ExpressionList,
     FunctionArgumentList,
@@ -522,7 +523,7 @@ class SetParentNodeTest extends TestCase
     {
         $xml = new XmlElement(
             new Identifier('name'),
-            new TargetList([new TargetElement(new StringConstant('attvalue'), new Identifier('attname'))]),
+            new LabeledExpressionList([new TargetElement(new StringConstant('attvalue'), new Identifier('attname'))]),
             new ExpressionList([new StringConstant('stuff')])
         );
 
