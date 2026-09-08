@@ -20,6 +20,7 @@ use sad_spirit\pg_builder\{
     Lexer,
     Select,
     enums\ConstantName,
+    enums\GraphElementPatternKind,
     enums\JoinType,
     enums\JsonBehaviour,
     enums\JsonEncoding,
@@ -33,7 +34,8 @@ use sad_spirit\pg_builder\nodes\{
     QualifiedName,
     Star,
     TargetElement,
-    TypeName
+    TypeName,
+    WhereOrHavingClause
 };
 use sad_spirit\pg_builder\nodes\expressions\{
     KeywordConstant,
@@ -52,6 +54,7 @@ use sad_spirit\pg_builder\nodes\json\{
 use sad_spirit\pg_builder\nodes\range\{
     ColumnDefinition,
     FunctionCall as RangeFunctionCall,
+    GraphTable,
     JoinExpression,
     JsonTable,
     RelationReference,
@@ -61,6 +64,13 @@ use sad_spirit\pg_builder\nodes\range\{
     TableSample,
     UsingClause,
     XmlTable
+};
+use sad_spirit\pg_builder\nodes\range\graph\{
+    ElementPattern,
+    GraphPattern,
+    NestedPattern,
+    PathFactor,
+    PathTerm
 };
 use sad_spirit\pg_builder\nodes\range\json\{
     JsonColumnDefinitionList,
@@ -75,6 +85,7 @@ use sad_spirit\pg_builder\nodes\lists\{
     FunctionArgumentList,
     IdentifierList,
     ColumnDefinitionList,
+    LabeledExpressionList,
     RowsFromList,
     TargetList,
     TypeModifierList
@@ -584,6 +595,146 @@ QRY
 
         $table2->setLateral(true);
         $table2->setAlias(new Identifier('jst'));
+
+        $this::assertEquals(new FromList([$table1, $table2]), $list);
+    }
+
+    public function testGraphTable(): void
+    {
+        $list = $this->parser->parseFromList(
+            <<<QRY
+graph_table(foo match () columns (bar)),
+graph_table(
+    a
+    match
+        (b is something)
+        (-[c is link]-){1, 3}
+        (d where d.dd > 1)
+        - >{,2}
+        ()
+        ->{4}
+        (e is ab|cd where e.ee < 1)
+        <-
+        (),
+        ()
+        -[is it_right]-
+        ()
+        -
+        ()
+        -[is it_left]->
+        ()
+        -[f where f.uck] - >
+        ()
+        < - [g is gone] -
+    where g.gg ~ '!!!'
+    columns (v, w)
+) as x (y, z)
+QRY
+        );
+
+        $empty  = new PathFactor(new ElementPattern(GraphElementPatternKind::VERTEX));
+        $table1 = new GraphTable(
+            new QualifiedName('foo'),
+            new GraphPattern([new PathTerm([clone $empty])]),
+            new LabeledExpressionList([new TargetElement(new ColumnReference('bar'))])
+        );
+        $table2 = new GraphTable(
+            new QualifiedName('a'),
+            new GraphPattern(
+                [
+                    new PathTerm([
+                        new PathFactor(new ElementPattern(
+                            GraphElementPatternKind::VERTEX,
+                            new Identifier('b'),
+                            new IdentifierList([new Identifier('something')])
+                        )),
+                        new PathFactor(
+                            new NestedPattern(
+                                new PathTerm([
+                                    new PathFactor(new ElementPattern(
+                                        GraphElementPatternKind::EDGE_ANY,
+                                        new Identifier('c'),
+                                        new IdentifierList([new Identifier('link')])
+                                    ))
+                                ])
+                            ),
+                            new NumericConstant('1'),
+                            new NumericConstant('3')
+                        ),
+                        new PathFactor(new ElementPattern(
+                            GraphElementPatternKind::VERTEX,
+                            new Identifier('d'),
+                            where: new WhereOrHavingClause(new OperatorExpression(
+                                '>',
+                                new ColumnReference('d', 'dd'),
+                                new NumericConstant('1')
+                            ))
+                        )),
+                        new PathFactor(
+                            new ElementPattern(GraphElementPatternKind::EDGE_RIGHT),
+                            upper: new NumericConstant('2')
+                        ),
+                        clone $empty,
+                        new PathFactor(
+                            new ElementPattern(GraphElementPatternKind::EDGE_RIGHT),
+                            lower: new NumericConstant('4')
+                        ),
+                        new PathFactor(new ElementPattern(
+                            GraphElementPatternKind::VERTEX,
+                            new Identifier('e'),
+                            new IdentifierList([new Identifier('ab'), new Identifier('cd')]),
+                            new WhereOrHavingClause(new OperatorExpression(
+                                '<',
+                                new ColumnReference('e', 'ee'),
+                                new NumericConstant('1')
+                            ))
+                        )),
+                        new PathFactor(new ElementPattern(GraphElementPatternKind::EDGE_LEFT)),
+                        clone $empty
+                    ]),
+                    new PathTerm([
+                        clone $empty,
+                        new PathFactor(new ElementPattern(
+                            GraphElementPatternKind::EDGE_ANY,
+                            labelExpression: new IdentifierList([new Identifier('it_right')])
+                        )),
+                        clone $empty,
+                        new PathFactor(new ElementPattern(GraphElementPatternKind::EDGE_ANY)),
+                        clone $empty,
+                        new PathFactor(new ElementPattern(
+                            GraphElementPatternKind::EDGE_RIGHT,
+                            labelExpression: new IdentifierList([new Identifier('it_left')])
+                        )),
+                        clone $empty,
+                        new PathFactor(new ElementPattern(
+                            GraphElementPatternKind::EDGE_RIGHT,
+                            new Identifier('f'),
+                            where: new WhereOrHavingClause(new ColumnReference('f', 'uck'))
+                        )),
+                        clone $empty,
+                        new PathFactor(new ElementPattern(
+                            GraphElementPatternKind::EDGE_LEFT,
+                            new Identifier('g'),
+                            new IdentifierList([new Identifier('gone')])
+                        ))
+                    ])
+                ],
+                new WhereOrHavingClause(new OperatorExpression(
+                    '~',
+                    new ColumnReference('g', 'gg'),
+                    new StringConstant('!!!')
+                ))
+            ),
+            new LabeledExpressionList([
+                new TargetElement(new ColumnReference('v')),
+                new TargetElement(new ColumnReference('w')),
+            ])
+        );
+
+        $table2->setAlias(
+            new Identifier('x'),
+            new IdentifierList([new Identifier('y'), new Identifier('z')])
+        );
 
         $this::assertEquals(new FromList([$table1, $table2]), $list);
     }

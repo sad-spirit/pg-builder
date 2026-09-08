@@ -72,6 +72,8 @@ use Psr\Cache\InvalidArgumentException;
  * @method nodes\ReturningClause            parseReturningClause(string|TokenStream $input)
  * @method nodes\lists\LabeledExpressionList parseLabeledExpressionList(string|TokenStream $input)
  * @method nodes\TargetElement              parseLabeledExpression(string|TokenStream $input)
+ * @method nodes\range\graph\GraphPattern   parseGraphPattern(string|TokenStream $input)
+ * @method nodes\range\graph\PathPattern    parsePathPattern(string|TokenStream $input)
  */
 class Parser
 {
@@ -80,7 +82,7 @@ class Parser
      *
      * `mathOp` production from `gram.y`
      */
-    private const MATH_OPERATORS = ['+', '-', '*', '/', '%', '^', '<', '>', '=', '<=', '>=', '!=', '<>'];
+    private const MATH_OPERATORS = ['+', '-', '*', '/', '%', '^', '<', '>', '=', '<=', '>=', '!=', '<>', '|', '->'];
 
     /**
      * Subquery expressions that can appear at right side of most scalar operators
@@ -288,6 +290,11 @@ class Parser
     ];
 
     /**
+     * Special characters that can start the graph patterns
+     */
+    private const GRAPH_PATTERN_START = ['(', '-', '<', '->'];
+
+    /**
      * Methods that are exposed through __call()
      * @var array
      */
@@ -335,7 +342,9 @@ class Parser
         'mergewhenclause'            => true,
         'returningclause'            => true,
         'labeledexpression'          => true,
-        'labeledexpressionlist'      => true
+        'labeledexpressionlist'      => true,
+        'graphpattern'               => true,
+        'pathpattern'                => true
     ];
 
     private TokenStream $stream;
@@ -3755,6 +3764,9 @@ class Parser
         } elseif (Keyword::JSON_TABLE === $this->stream->getKeyword()) {
             $reference = $this->JsonTable();
 
+        } elseif (Keyword::GRAPH_TABLE === $this->stream->getKeyword()) {
+            $reference = $this->GraphTable();
+
         } elseif (
             $this->stream->matchesKeywordSequence(Keyword::ROWS, Keyword::FROM)
                   || $this->matchesFunctionCall()
@@ -5129,5 +5141,192 @@ class Parser
         } else {
             $newAlias = $this->ColId();
         }
+    }
+
+    protected function GraphTable(): nodes\range\GraphTable
+    {
+        $this->stream->expectKeyword(Keyword::GRAPH_TABLE);
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
+
+        $name = $this->QualifiedName();
+
+        $this->stream->expectKeyword(Keyword::MATCH);
+
+        $pattern = $this->GraphPattern();
+
+        $this->stream->expectKeyword(Keyword::COLUMNS);
+
+        $this->stream->expect(TokenType::SPECIAL_CHAR, '(');
+
+        $columns = $this->LabeledExpressionList();
+
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
+
+        $table = new nodes\range\GraphTable($name, $pattern, $columns);
+
+        $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
+
+        if ($alias = $this->OptionalAliasClause()) {
+            $table->setAlias($alias[0], $alias[1]);
+        }
+
+        return $table;
+    }
+
+    protected function GraphPattern(): nodes\range\graph\GraphPattern
+    {
+        $list = [$this->PathPattern()];
+        while ($this->stream->matches(TokenType::SPECIAL_CHAR, ',')) {
+            $this->stream->next();
+            $list[] = $this->PathPattern();
+        }
+
+        return new nodes\range\graph\GraphPattern($list, $this->WhereClause());
+    }
+
+    protected function PathPattern(): nodes\range\graph\PathPattern
+    {
+        return $this->PathTerm();
+    }
+
+    protected function PathTerm(): nodes\range\graph\PathTerm
+    {
+        $factors = [$this->PathFactor()];
+
+        while ($this->stream->matches(TokenType::SPECIAL, self::GRAPH_PATTERN_START)) {
+            $factors[] = $this->PathFactor();
+        }
+
+        return new nodes\range\graph\PathTerm($factors);
+    }
+
+    protected function PathFactor(): nodes\range\graph\PathFactor
+    {
+        $primary = $this->PathPrimary();
+        $lower   = null;
+        $upper   = null;
+
+        if ($this->stream->matches(TokenType::SPECIAL_CHAR, '{')) {
+            $this->stream->next();
+
+            if (!$this->stream->matches(TokenType::SPECIAL_CHAR, ',')) {
+                $lower = new nodes\expressions\NumericConstant(
+                    $this->stream->expect(TokenType::INTEGER)->getValue()
+                );
+            }
+            if ($this->stream->matches(TokenType::SPECIAL_CHAR, ',')) {
+                $this->stream->next();
+                $upper = new nodes\expressions\NumericConstant(
+                    $this->stream->expect(TokenType::INTEGER)->getValue()
+                );
+            }
+
+            $this->stream->expect(TokenType::SPECIAL_CHAR, '}');
+        }
+
+        return new nodes\range\graph\PathFactor($primary, $lower, $upper);
+    }
+
+    protected function PathPrimary(): nodes\range\graph\PathPrimary
+    {
+        switch ($this->stream->expect(TokenType::SPECIAL, self::GRAPH_PATTERN_START)->getValue()) {
+            case '(':
+                if (!$this->stream->matches(TokenType::SPECIAL, self::GRAPH_PATTERN_START)) {
+                    // Vertex pattern (probably), case 1 in gram.y, `path_primary` production
+                    $path = $this->ElementPatternFiller(enums\GraphElementPatternKind::VERTEX);
+
+                } else {
+                    // Nested pattern, case 10
+                    $path = new nodes\range\graph\NestedPattern(
+                        $this->PathPattern(),
+                        $this->WhereClause()
+                    );
+                }
+                $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
+                break;
+
+            case '<':
+                // Left edge, should always be followed by '-'
+                $this->stream->expect(TokenType::SPECIAL_CHAR, '-');
+                if (!$this->stream->matches(TokenType::SPECIAL_CHAR, '[')) {
+                    // abbreviated, case 6
+                    return new nodes\range\graph\ElementPattern(enums\GraphElementPatternKind::EDGE_LEFT);
+                } else {
+                    // full, case 2
+                    $this->stream->next();
+                    $path = $this->ElementPatternFiller(enums\GraphElementPatternKind::EDGE_LEFT);
+                    $this->stream->expect(TokenType::SPECIAL_CHAR, ']');
+                    $this->stream->expect(TokenType::SPECIAL_CHAR, '-');
+                }
+                break;
+
+            case '->':
+                // case 8
+                return new nodes\range\graph\ElementPattern(enums\GraphElementPatternKind::EDGE_RIGHT);
+
+            case '-':
+            default:
+                if ($this->stream->matches(TokenType::SPECIAL, '>')) {
+                    // case 7
+                    $this->stream->next();
+                    return new nodes\range\graph\ElementPattern(enums\GraphElementPatternKind::EDGE_RIGHT);
+                } elseif (!$this->stream->matches(TokenType::SPECIAL, '[')) {
+                    // case 9
+                    return new nodes\range\graph\ElementPattern(enums\GraphElementPatternKind::EDGE_ANY);
+                }
+                // remaining full edges
+                $this->stream->next();
+                $path = $this->ElementPatternFiller(enums\GraphElementPatternKind::EDGE_ANY);
+                $this->stream->expect(TokenType::SPECIAL_CHAR, ']');
+
+                if ($this->stream->matches(TokenType::RIGHT_ARROW)) {
+                    // case 4
+                    $this->stream->next();
+                    $path->setKind(enums\GraphElementPatternKind::EDGE_RIGHT);
+                } else {
+                    $this->stream->expect(TokenType::SPECIAL, '-');
+                    if ($this->stream->matches(TokenType::SPECIAL, '>')) {
+                        // case 3
+                        $this->stream->next();
+                        $path->setKind(enums\GraphElementPatternKind::EDGE_RIGHT);
+                    }
+                    // case 5
+                }
+        }
+
+        return $path;
+    }
+
+    protected function ElementPatternFiller(enums\GraphElementPatternKind $kind): nodes\range\graph\ElementPattern
+    {
+        $variable = null;
+        if (
+            !$this->stream->matchesAnyKeyword(Keyword::WHERE, Keyword::IS)
+            && !$this->stream->matches(TokenType::SPECIAL_CHAR, [')', ']'])
+        ) {
+            $variable = $this->ColId();
+        }
+
+        $labelExpression = null;
+        if (Keyword::IS === $this->stream->getKeyword()) {
+            $this->stream->next();
+            $labelExpression = new nodes\lists\IdentifierList([$this->ColId()]);
+            while ($this->stream->matches(TokenType::SPECIAL_CHAR, '|')) {
+                $this->stream->next();
+                $labelExpression[] = $this->ColId();
+            }
+        }
+
+        return new nodes\range\graph\ElementPattern($kind, $variable, $labelExpression, $this->WhereClause());
+    }
+
+    protected function WhereClause(): ?nodes\WhereOrHavingClause
+    {
+        if (Keyword::WHERE !== $this->stream->getKeyword()) {
+            return null;
+        }
+
+        $this->stream->next();
+        return new nodes\WhereOrHavingClause($this->Expression());
     }
 }
