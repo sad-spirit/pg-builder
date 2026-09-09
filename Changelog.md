@@ -1,5 +1,23 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+* Support for new syntax of PostgreSQL 19 (as of beta 3):
+  * `graph_table()` construct in the `FROM` clause allows querying newly added property graphs.
+* Tested on PHP 8.6
+
+### Fixed
+
+* XML-related dlasses that formerly reused `TargetList` for a list of labeled expressions
+  now use a more appropriate `LabeledExpressionList`. The latter does not allow `*` and
+  require `AS` keyword before a label when parsing. Specifically,
+  * `XmlForest` is now a subclass of `LabeledExpressionList` rather than `TargetList`;
+  * `XmlElement` uses `LabeledExpressionList` for its `$attributes` property. An instance of
+    `TargetList` is still accepted by its constructor, but will trigger a deprecation.  
+
+
 ## [3.3.1] - 2025-12-08
 
 ### Changed
@@ -519,3 +537,4 @@ Initial release on GitHub
 [3.2.0]: https://github.com/sad-spirit/pg-builder/compare/v3.1.0...v3.2.0
 [3.3.0]: https://github.com/sad-spirit/pg-builder/compare/v3.2.0...v3.3.0
 [3.3.1]: https://github.com/sad-spirit/pg-builder/compare/v3.3.0...v3.3.1
+[Unreleased]: https://github.com/sad-spirit/pg-builder/compare/v3.3.1...HEAD
