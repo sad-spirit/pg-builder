@@ -23,4 +23,32 @@ enum GraphElementPatternKind
     case EDGE_LEFT;
     case EDGE_RIGHT;
     case EDGE_ANY;
+
+    /**
+     * Returns string representation for an abbreviated pattern (with no filler parts present)
+     */
+    public function abbreviatedPattern(): string
+    {
+        return match ($this) {
+            self::VERTEX     => '()',
+            self::EDGE_ANY   => '-',
+            self::EDGE_LEFT  => '<-',
+            self::EDGE_RIGHT => '->'
+        };
+    }
+
+    /**
+     * Returns borders to use around the filler parts
+     *
+     * @return array{string, string}
+     */
+    public function patternBorders(): array
+    {
+        return match ($this) {
+            self::VERTEX     => ['(',   ')'],
+            self::EDGE_ANY   => ['-[',  ']-'],
+            self::EDGE_LEFT  => ['<-[', ']-'],
+            self::EDGE_RIGHT => ['-[',  ']->']
+        };
+    }
 }

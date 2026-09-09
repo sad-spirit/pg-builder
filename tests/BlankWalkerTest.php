@@ -161,7 +161,18 @@ from s34, s35 left join (s36 as s37 left join s38 as s39 using (s40))
             )
          )
      ) as j20,
-     json_table('{"foo":"bar"}', '$' columns (foo text))
+     json_table('{"foo":"bar"}', '$' columns (foo text)),
+     graph_table(
+        z1
+        match
+            (z2 is z3|z4 where z5 > z6)
+            (-[z7 is z8 where z9]-){3}
+            ()
+            -[z10 is z11|z12]->
+            (z13)
+        where z14 <> z15
+        columns (z16, z17)
+     ) as z18 (z19, z20)
 where s73.s74 <= any(array[s75, s76]) or
       not ((not e49) is false and e50)
 group by g3.g4, g5, grouping sets(cube((g6, g7), g8), rollup(g9, (g10, g11)), g12, ())

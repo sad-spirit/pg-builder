@@ -1159,4 +1159,43 @@ abstract class BlankWalker implements TreeWalker
         $this->walkGenericNodeList($clause);
         return null;
     }
+
+    public function walkGraphTable(nodes\range\GraphTable $rangeItem): mixed
+    {
+        $rangeItem->name->dispatch($this);
+        $rangeItem->pattern->dispatch($this);
+        $rangeItem->columns->dispatch($this);
+        $this->walkRangeItemAliases($rangeItem);
+        return null;
+    }
+
+    public function walkGraphPattern(nodes\range\graph\GraphPattern $pattern): mixed
+    {
+        $this->walkGenericNodeList($pattern);
+        $pattern->where->dispatch($this);
+        return null;
+    }
+
+    public function walkPathFactor(nodes\range\graph\PathFactor $pattern): mixed
+    {
+        $pattern->pattern->dispatch($this);
+        $pattern->lower?->dispatch($this);
+        $pattern->upper?->dispatch($this);
+        return null;
+    }
+
+    public function walkElementPattern(nodes\range\graph\ElementPattern $pattern): mixed
+    {
+        $pattern->variable?->dispatch($this);
+        $pattern->labelExpression->dispatch($this);
+        $pattern->where->dispatch($this);
+        return null;
+    }
+
+    public function walkNestedPattern(nodes\range\graph\NestedPattern $pattern): mixed
+    {
+        $pattern->expression->dispatch($this);
+        $pattern->where->dispatch($this);
+        return null;
+    }
 }

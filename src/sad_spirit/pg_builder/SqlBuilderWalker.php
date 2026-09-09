@@ -1823,6 +1823,104 @@ class SqlBuilderWalker implements StatementToStringWalker
         return $this->implode($prefix, $this->walkGenericNodeList($clause), ',');
     }
 
+    public function walkGraphTable(nodes\range\GraphTable $rangeItem): string
+    {
+        $this->indentLevel++;
+        $lines = ['graph_table('];
+
+        $lines[] = $this->getIndent() . $rangeItem->name->dispatch($this);
+
+        $this->indentLevel++;
+        $pattern = $rangeItem->pattern->dispatch($this);
+        $this->indentLevel--;
+        $lines[] = $this->getIndent() . 'match ' . $pattern;
+
+        $lines[] = $this->getIndent() . 'columns ('
+            . \implode(', ', $this->walkGenericNodeList($rangeItem->columns))
+            . ')';
+
+        $this->indentLevel--;
+
+        $sql = \implode($this->options['linebreak'] ?: ' ', $lines)
+            . $this->options['linebreak'] . $this->getIndent() . ')';
+        if ($rangeItem->tableAlias || $rangeItem->columnAliases) {
+            $sql .= $this->getFromItemAliases($rangeItem);
+        }
+
+        return $sql;
+    }
+
+    public function walkGraphPattern(nodes\range\graph\GraphPattern $pattern): string
+    {
+        $parts = [];
+        foreach ($pattern as $pathPattern) {
+            $parts[] = $this->walkPathPattern($pathPattern);
+        }
+
+        $clauses = [\implode(',' . ($this->options['linebreak'] ?: ' ') . $this->getIndent(), $parts)];
+
+        if (null !== $pattern->where->condition) {
+            $clauses[] = $this->getIndent() . 'where ' . $pattern->where->dispatch($this);
+        }
+
+        return \implode($this->options['linebreak'] ?: ' ', $clauses);
+    }
+
+    public function walkPathFactor(nodes\range\graph\PathFactor $pattern): string
+    {
+        $sql = $pattern->pattern->dispatch($this);
+        if (null !== $pattern->lower || null !== $pattern->upper) {
+            $sql .= '{'
+                . (null !== $pattern->lower ? $pattern->lower->dispatch($this) : '')
+                . (null !== $pattern->upper ? ',' . $pattern->upper->dispatch($this) : '')
+                . '}';
+        }
+        return $sql;
+    }
+
+    public function walkElementPattern(nodes\range\graph\ElementPattern $pattern): string
+    {
+        if (
+            null === $pattern->variable
+            && 0 === \count($pattern->labelExpression)
+            && null === $pattern->where->condition
+        ) {
+            return $pattern->kind->abbreviatedPattern();
+        }
+
+        $borders = $pattern->kind->patternBorders();
+        $filler  = [];
+        if (null !== $pattern->variable) {
+            $filler[] = $pattern->variable->dispatch($this);
+        }
+        if (0 !== \count($pattern->labelExpression)) {
+            $filler[] = 'is ' . \implode('|', $pattern->labelExpression->dispatch($this));
+        }
+        if (null !== $pattern->where->condition) {
+            $filler[] = 'where ' . $pattern->where->condition->dispatch($this);
+        }
+
+        return $borders[0] . \implode(' ', $filler) . $borders[1];
+    }
+
+    public function walkNestedPattern(nodes\range\graph\NestedPattern $pattern): string
+    {
+        $parts = [$this->walkPathPattern($pattern->expression)];
+        if (null !== $pattern->where->condition) {
+            $parts[] = 'where ' . $pattern->where->dispatch($this);
+        }
+        return '(' . $this->implode('', $parts, ' ') . ')';
+    }
+
+    protected function walkPathPattern(nodes\range\graph\PathPattern $pattern): string
+    {
+        $result = $pattern->dispatch($this);
+        if (!\is_array($result)) {
+            return (string)$result;
+        }
+        return $this->implode('', $result, ' ');
+    }
+
     /**
      * Returns an array of code points corresponding to characters in UTF-8 string
      *

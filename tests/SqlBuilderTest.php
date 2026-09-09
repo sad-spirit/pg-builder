@@ -232,7 +232,26 @@ from quux, xyzzy left join (atable as one left join anothertable as two using (c
          '{"foo":"bar"}', '$'
          columns (id for ordinality, foo text)
          empty on error
-     )     
+     ),
+     graph_table(foo match () columns (bar)),
+     graph_table(
+        a
+        match
+            (b is something)
+            (-[c is link]-){1, 3}
+            (d where d.dd > 1)
+            ->{,2}
+            ()
+            <-
+            (e is ab|cd where e.ee < 1),
+            ()
+            -[is it_right]-{4}
+            ()
+            -[f where f.uck] - >
+            ()
+            where g.gg ~ '!!!'
+        columns (v, w)
+    ) as x (y, z)
 where quux.id = ya.five and
       quux.id = xyzzy.quux_id or
       ya.six <= any(select stuff from setopstuff) or

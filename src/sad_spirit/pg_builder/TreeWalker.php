@@ -931,4 +931,39 @@ interface TreeWalker
      * @since 3.2.0
      */
     public function walkReturningClause(nodes\ReturningClause $clause): mixed;
+
+    /**
+     * Visits the node representing graph_table() expression in FROM clause
+     *
+     * @since 3.4.0
+     */
+    public function walkGraphTable(nodes\range\GraphTable $rangeItem): mixed;
+
+    /**
+     * Visits the node representing a query to a property graph
+     *
+     * @since 3.4.0
+     */
+    public function walkGraphPattern(nodes\range\graph\GraphPattern $pattern): mixed;
+
+    /**
+     * Visits the node representing a part of a path query with possible quantifiers
+     *
+     * @since 3.4.0
+     */
+    public function walkPathFactor(nodes\range\graph\PathFactor $pattern): mixed;
+
+    /**
+     * Visits the node representing either a vertex or an edge pattern
+     *
+     * @since 3.4.0
+     */
+    public function walkElementPattern(nodes\range\graph\ElementPattern $pattern): mixed;
+
+    /**
+     * Visits the node representing a parenthesized path pattern
+     *
+     * @since 3.4.0
+     */
+    public function walkNestedPattern(nodes\range\graph\NestedPattern $pattern): mixed;
 }
