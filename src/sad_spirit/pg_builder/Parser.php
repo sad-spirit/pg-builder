@@ -1079,17 +1079,7 @@ class Parser
 
     protected function LockingElement(): nodes\LockingElement
     {
-        $this->stream->expectKeyword(Keyword::FOR);
-        $strength = [$this->stream->expectKeyword(Keyword::UPDATE, Keyword::NO, Keyword::SHARE, Keyword::KEY)];
-        switch ($strength[0]) {
-            case Keyword::NO:
-                $strength[] = $this->stream->expectKeyword(Keyword::KEY);
-                $strength[] = $this->stream->expectKeyword(Keyword::UPDATE);
-                break;
-            case Keyword::KEY:
-                $strength[] = $this->stream->expectKeyword(Keyword::SHARE);
-        }
-
+        $strength   = $this->LockingStrength();
         $relations  = [];
         $noWait     = false;
         $skipLocked = false;
@@ -1110,12 +1100,23 @@ class Parser
             $skipLocked = true;
         }
 
-        return new nodes\LockingElement(
-            enums\LockingStrength::fromKeywords(...$strength),
-            $relations,
-            $noWait,
-            $skipLocked
-        );
+        return new nodes\LockingElement($strength, $relations, $noWait, $skipLocked);
+    }
+
+    protected function LockingStrength(): enums\LockingStrength
+    {
+        $this->stream->expectKeyword(Keyword::FOR);
+        $strength = [$this->stream->expectKeyword(Keyword::UPDATE, Keyword::NO, Keyword::SHARE, Keyword::KEY)];
+        switch ($strength[0]) {
+            case Keyword::NO:
+                $strength[] = $this->stream->expectKeyword(Keyword::KEY);
+                $strength[] = $this->stream->expectKeyword(Keyword::UPDATE);
+                break;
+            case Keyword::KEY:
+                $strength[] = $this->stream->expectKeyword(Keyword::SHARE);
+        }
+
+        return enums\LockingStrength::fromKeywords(...$strength);
     }
 
     protected function LimitOffsetClause(SelectCommon $stmt): void
@@ -4134,6 +4135,7 @@ class Parser
         $target    = null;
         $set       = null;
         $condition = null;
+        $strength  = null;
         if ($this->stream->matchesKeywordSequence(Keyword::ON, Keyword::CONSTRAINT)) {
             $this->stream->skip(2);
             $target = $this->ColId();
@@ -4143,16 +4145,21 @@ class Parser
         }
 
         $this->stream->expectKeyword(Keyword::DO);
-        if (Keyword::UPDATE === $action = $this->stream->expectKeyword(Keyword::UPDATE, Keyword::NOTHING)) {
+        $action = enums\OnConflictAction::fromKeywords(
+            $this->stream->expectKeyword(Keyword::UPDATE, Keyword::SELECT, Keyword::NOTHING)
+        );
+        if (enums\OnConflictAction::UPDATE === $action) {
             $this->stream->expectKeyword(Keyword::SET);
             $set = $this->SetClauseList();
-            if (Keyword::WHERE === $this->stream->getKeyword()) {
-                $this->stream->next();
-                $condition = $this->Expression();
-            }
+        } elseif (enums\OnConflictAction::SELECT === $action && Keyword::FOR === $this->stream->getKeyword()) {
+            $strength = $this->LockingStrength();
+        }
+        if (enums\OnConflictAction::NOTHING !== $action && Keyword::WHERE === $this->stream->getKeyword()) {
+            $this->stream->next();
+            $condition = $this->Expression();
         }
 
-        return new nodes\OnConflictClause(enums\OnConflictAction::fromKeywords($action), $target, $set, $condition);
+        return new nodes\OnConflictClause($action, $target, $set, $condition, $strength);
     }
 
     protected function IndexParameters(): nodes\IndexParameters

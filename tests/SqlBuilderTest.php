@@ -87,7 +87,8 @@ QRY
         );
     }
 
-    public function testBuildInsertStatement(): void
+    #[DataProvider('onConflictClause')]
+    public function testBuildInsertStatement(string $clause): void
     {
         $this->assertBuiltStatementProducesTheSameAST(
             <<<QRY
@@ -104,13 +105,22 @@ overriding user value
 values
     (default, 'foo', (select somefoo from foobar where idfoo = 1)),
     (-1, 'blah', 'duh-huh')
-on conflict (id, (name || surname) collate "zz_ZZ" asc nulls last) where not blergh do update
-    set name = excluded.name,
-        surname = excluded.surname || ' (formerly ' || blah.surname || ')'
-    where something is distinct from anything
+on conflict $clause
 returning with (new as newer) *
 QRY
         );
+    }
+
+    public static function onConflictClause(): iterable
+    {
+        yield [<<<QRY
+(id, (name || surname) collate "zz_ZZ" asc nulls last) where not blergh do update
+        set name = excluded.name,
+        surname = excluded.surname || ' (formerly ' || blah.surname || ')'
+    where something is distinct from anything
+QRY];
+        yield ['on constraint uhoh do select for no key update where argh'];
+        yield ['do nothing'];
     }
 
     public function testBuildMergeStatement(): void

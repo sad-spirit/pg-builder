@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder;
 
+use sad_spirit\pg_builder\enums\OnConflictAction;
+
 /**
  * A tree walker that generates SQL from abstract syntax tree
  */
@@ -1361,12 +1363,17 @@ class SqlBuilderWalker implements StatementToStringWalker
             $sql .= $onConflict->target->dispatch($this);
         }
         $sql .= ' do ' . $onConflict->action->value;
-        if (enums\OnConflictAction::UPDATE === $onConflict->action) {
+        if (enums\OnConflictAction::NOTHING !== $onConflict->action) {
             $indent = $this->getIndent();
             $this->indentLevel++;
 
-            $clauses = [''];
-            $clauses[] = $this->implode($indent . 'set ', $onConflict->set->dispatch($this), ',');
+            $clauses = [];
+            if (enums\OnConflictAction::UPDATE === $onConflict->action) {
+                $clauses[] = '';
+                $clauses[] = $this->implode($indent . 'set ', $onConflict->set->dispatch($this), ',');
+            } elseif (null !== $onConflict->lockStrength) {
+                $sql .= ' for ' . $onConflict->lockStrength->value;
+            }
             if (null !== $onConflict->where->condition) {
                 $clauses[] = $indent . 'where ' . $onConflict->where->dispatch($this);
             }

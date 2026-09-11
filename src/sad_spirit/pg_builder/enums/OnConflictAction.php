@@ -23,4 +23,5 @@ enum OnConflictAction: string
 
     case NOTHING = 'nothing';
     case UPDATE  = 'update';
+    case SELECT  = 'select';
 }

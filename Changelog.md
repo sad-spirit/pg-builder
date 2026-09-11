@@ -5,12 +5,13 @@
 ### Added
 
 * Support for new syntax of PostgreSQL 19 (as of beta 3):
-  * `graph_table()` construct in the `FROM` clause allows querying newly added property graphs.
+  * `graph_table()` construct in the `FROM` clause allows querying newly added property graphs;
+  * `INSERT ... ON CONFLICT ... DO SELECT`.
 * Tested on PHP 8.6
 
 ### Fixed
 
-* XML-related dlasses that formerly reused `TargetList` for a list of labeled expressions
+* XML-related classes that formerly reused `TargetList` for a list of labeled expressions
   now use a more appropriate `LabeledExpressionList`. The latter does not allow `*` and
   require `AS` keyword before a label when parsing. Specifically,
   * `XmlForest` is now a subclass of `LabeledExpressionList` rather than `TargetList`;

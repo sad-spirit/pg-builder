@@ -22,6 +22,7 @@ use sad_spirit\pg_builder\{
     Insert,
     Select,
     enums\InsertOverriding,
+    enums\LockingStrength,
     enums\OnConflictAction
 };
 use sad_spirit\pg_builder\nodes\{
@@ -206,6 +207,16 @@ QRY
                 new OnConflictClause(
                     OnConflictAction::NOTHING,
                     new Identifier('distributors_pkey')
+                )
+            ],
+            [
+                '(did) DO SELECT FOR UPDATE',
+                new OnConflictClause(
+                    OnConflictAction::SELECT,
+                    new IndexParameters([
+                        new IndexElement(new Identifier('did'))
+                    ]),
+                    lockStrength: LockingStrength::UPDATE
                 )
             ]
         ];
