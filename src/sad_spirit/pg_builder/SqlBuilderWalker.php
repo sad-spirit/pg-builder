@@ -14,8 +14,6 @@ declare(strict_types=1);
 
 namespace sad_spirit\pg_builder;
 
-use sad_spirit\pg_builder\enums\OnConflictAction;
-
 /**
  * A tree walker that generates SQL from abstract syntax tree
  */
