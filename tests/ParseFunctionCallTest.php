@@ -868,7 +868,7 @@ QRY
     {
         $list = $this->parser->parseExpressionList(
             <<<QRY
-    foo() over (), bar() over (blah), rank() over (partition by whatever),
+    foo() over (), bar() over (blah), bar() over blah, rank() over (partition by whatever),
     something() over (rows between 5 preceding and unbounded following exclude current row),
     count(bar) filter(where !@#& bar) over (partition by foo),
     foo() over (range between unbounded preceding and 3 following),
@@ -897,6 +897,10 @@ QRY
                     false,
                     null,
                     new WindowDefinition(new Identifier('blah'))
+                ),
+                new FunctionExpression(
+                    new QualifiedName('bar'),
+                    over: new WindowDefinition(new Identifier('blah'))
                 ),
                 new FunctionExpression(
                     new QualifiedName('rank'),

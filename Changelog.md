@@ -9,7 +9,7 @@
   * `INSERT ... ON CONFLICT ... DO SELECT`.
 * Tested on PHP 8.6
 
-### Fixed
+### Changed
 
 * XML-related classes that formerly reused `TargetList` for a list of labeled expressions
   now use a more appropriate `LabeledExpressionList`. The latter does not allow `*` and
@@ -17,6 +17,11 @@
   * `XmlForest` is now a subclass of `LabeledExpressionList` rather than `TargetList`;
   * `XmlElement` uses `LabeledExpressionList` for its `$attributes` property. An instance of
     `TargetList` is still accepted by its constructor, but will trigger a deprecation.  
+
+### Fixed
+
+* Window function calls having an unparenthesized window name as an `OVER` clause (`foo() OVER bar`)
+  are parsed properly.
 
 
 ## [3.3.1] - 2025-12-08

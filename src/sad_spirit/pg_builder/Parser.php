@@ -3354,7 +3354,9 @@ class Parser
             return null;
         }
         $this->stream->next();
-        return $this->WindowSpecification();
+        return $this->stream->matches(TokenType::SPECIAL_CHAR, '(')
+            ? $this->WindowSpecification()
+            : new nodes\WindowDefinition($this->ColId());
     }
 
     protected function SpecialFunctionCall(): nodes\FunctionLike|nodes\ScalarExpression|null
