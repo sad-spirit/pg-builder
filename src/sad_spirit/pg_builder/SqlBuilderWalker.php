@@ -878,6 +878,10 @@ class SqlBuilderWalker implements StatementToStringWalker
 
         return $sql
                . (null === $expression->filter ? '' : ' filter (where ' . $expression->filter->dispatch($this) . ')')
+               . (null === $expression->ignoreNulls
+                    ? ''
+                    : ($expression->ignoreNulls ? ' ignore' : ' respect') . ' nulls'
+               )
                . (null === $expression->over ? '' : ' over ' . $expression->over->dispatch($this));
     }
 

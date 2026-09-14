@@ -3289,6 +3289,7 @@ class Parser
         $function    = $this->GenericFunctionCall($identifiers);
         $withinGroup = false;
         $order       = null;
+        $ignoreNulls = null;
 
         if ($this->stream->matchesKeywordSequence(Keyword::WITHIN, Keyword::GROUP)) {
             if (\count($function->order) > 0) {
@@ -3321,6 +3322,14 @@ class Parser
             $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
         }
 
+        $filter = $this->FilterClause();
+
+        if (null !== $nullTreatment = $this->stream->matchesAnyKeyword(Keyword::IGNORE, Keyword::RESPECT)) {
+            $this->stream->next();
+            $this->stream->expectKeyword(Keyword::NULLS);
+            $ignoreNulls = Keyword::IGNORE === $nullTreatment;
+        }
+
         return new nodes\expressions\FunctionExpression(
             clone $function->name,
             clone $function->arguments,
@@ -3328,8 +3337,9 @@ class Parser
             $function->variadic,
             $order ?: clone $function->order,
             $withinGroup,
-            $this->FilterClause(),
-            $this->OverClause()
+            $filter,
+            $this->OverClause(),
+            $ignoreNulls
         );
     }
 

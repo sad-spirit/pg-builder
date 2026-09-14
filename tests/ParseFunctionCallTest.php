@@ -872,7 +872,9 @@ QRY
     something() over (rows between 5 preceding and unbounded following exclude current row),
     count(bar) filter(where !@#& bar) over (partition by foo),
     foo() over (range between unbounded preceding and 3 following),
-    bar() over (groups between current row and unbounded following exclude ties)
+    bar() over (groups between current row and unbounded following exclude ties),
+    lag() ignore nulls over blah,
+    lead() respect nulls over (partition by foo) 
 QRY
         );
 
@@ -980,6 +982,18 @@ QRY
                             WindowFrameExclusion::TIES
                         )
                     )
+                ),
+                new FunctionExpression(
+                    new QualifiedName('lag'),
+                    over: new WindowDefinition(new Identifier('blah')),
+                    ignoreNulls: true
+                ),
+                new FunctionExpression(
+                    new QualifiedName('lead'),
+                    over: new WindowDefinition(
+                        partition: new ExpressionList([new ColumnReference('foo')]),
+                    ),
+                    ignoreNulls: false
                 )
             ]),
             $list

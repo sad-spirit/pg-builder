@@ -187,6 +187,7 @@ select distinct on (something) quux.one, xyzzy.two[1], (quux.three).four, $1.bla
        case when foo = 'bar' then 10 when foo = 'baz' then 100 else 1 end,
        'foo' collate bar.baz, '''whatever$$' noT ILIke 'quux' escape '!',
        cast (foo as text array[5]), foo::bar::baz(666), windowfn() over (win95), count(*) filter(where foo > 10),
+       lag() ignore nulls over win95,
        interval 'a value' minute to second (10), grouping(one, two, three, four),
        xyzzy.arr[:], xyzzy.arr[2:], xyzzy.arr[:3],
        extract(epoch from ancient.times),

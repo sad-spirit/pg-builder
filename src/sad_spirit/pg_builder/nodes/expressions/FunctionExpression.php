@@ -32,6 +32,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * @property-read bool                  $withinGroup
  * @property-read ScalarExpression|null $filter
  * @property-read WindowDefinition|null $over
+ * @property      ?bool                 $ignoreNulls
  */
 class FunctionExpression extends FunctionCall implements ScalarExpression
 {
@@ -43,6 +44,8 @@ class FunctionExpression extends FunctionCall implements ScalarExpression
     protected WindowDefinition|null $p_over = null;
     /** @internal Maps to `$withinGroup` magic property, use the latter instead */
     protected bool $p_withinGroup;
+    /** @internal Maps to `$ignoreNulls` magic property, use the latter instead */
+    protected ?bool $p_ignoreNulls = null;
 
     public function __construct(
         string|QualifiedName $funcName,
@@ -52,11 +55,13 @@ class FunctionExpression extends FunctionCall implements ScalarExpression
         ?OrderByList $orderBy = null,
         bool $withinGroup = false,
         ?ScalarExpression $filter = null,
-        ?WindowDefinition $over = null
+        ?WindowDefinition $over = null,
+        ?bool $ignoreNulls = null
     ) {
         parent::__construct($funcName, $arguments, $distinct, $variadic, $orderBy);
 
         $this->p_withinGroup = $withinGroup;
+        $this->p_ignoreNulls = $ignoreNulls;
 
         if (null !== $filter) {
             $this->p_filter = $filter;
@@ -67,6 +72,12 @@ class FunctionExpression extends FunctionCall implements ScalarExpression
             $this->p_over = $over;
             $this->p_over->setParentNode($this);
         }
+    }
+
+    /** @internal Support method for `$ignoreNulls` magic property, use the property instead */
+    public function setIgnoreNulls(?bool $ignoreNulls = null): void
+    {
+        $this->p_ignoreNulls = $ignoreNulls;
     }
 
     public function dispatch(TreeWalker $walker): mixed
