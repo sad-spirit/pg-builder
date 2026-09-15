@@ -42,7 +42,7 @@ with recursive w1 (w2, w3) as (
 ) search depth first by w11, w12 set w13
   cycle w14, w15 set w16 to date 'tomorrow' default date 'yesterday' using w17,
 w4 as (
-    delete from only d1 as d2
+    delete from only d1 for portion of d14 (d15) as d2
     using d3.d4 as d5
     where d6.d7 in (select s23 from s24) and
           d8.d9 = 'blah'
@@ -62,7 +62,7 @@ w5 as (
     returning i24, nullif(i25, i26) as i27
 ), 
 w6 (w7, w8) as (
-    update u1 u2 
+    update u1 for portion of u28 from u29 to u30 u2 
     set u3.u4 = 'blah', u5 = u6, (u7[u8], u9) = (u10, default),
            (u11, u12, u13) = (select s28, s29, s30 from s31)
     from u14

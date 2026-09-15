@@ -78,7 +78,8 @@ with recursive items (id, title, level, path) as (
     from tree_items i, items pi
     where i.parent_id = pi.id order by i.item_id
 )
-delete from only tree_items as foo using item_properties as bar
+delete from only tree_items for portion of blah ('today') as foo
+using item_properties as bar
 where foo.item_id in (select id from items) and
       foo.item_id = bar.item_id and
       bar.property_type = 'blah'
@@ -285,7 +286,8 @@ QRY
 with foo as (
     select somefoo from basefoo
 )
-update bar baralias set blah.one = 'blah', blahblah = default, (baz[1], quux) = ('quux', default),
+update bar for portion of some_range from 'yesterday' to 'tomorrow' baralias 
+set blah.one = 'blah', blahblah = default, (baz[1], quux) = ('quux', default),
        (a, b, c) = (select aa, bb, cc from somewhere)
 from baz
 where baz.id = baralias.baz_id and

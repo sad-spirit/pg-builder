@@ -966,4 +966,11 @@ interface TreeWalker
      * @since 3.4.0
      */
     public function walkNestedPattern(nodes\range\graph\NestedPattern $pattern): mixed;
+
+    /**
+     * Visits the node representing FOR PORTION OF clause of DELETE / UPDATE statement
+     *
+     * @since 3.4.0
+     */
+    public function walkForPortionOfClause(nodes\ForPortionOfClause $clause): mixed;
 }
