@@ -29,7 +29,7 @@ use sad_spirit\pg_builder\TreeWalker;
  * have column aliases and cannot participate in JOINs
  *
  * @property-read QualifiedName   $relation
- * @property-read Identifier|null $alias
+ * @property      Identifier|null $alias
  */
 class InsertTarget extends GenericNode
 {
@@ -51,6 +51,12 @@ class InsertTarget extends GenericNode
             $this->p_alias = $alias;
             $this->p_alias->setParentNode($this);
         }
+    }
+
+    /** @internal Support method for `$alias` magic property, use the property instead */
+    public function setAlias(?Identifier $alias): void
+    {
+        $this->setProperty($this->p_alias, $alias);
     }
 
     public function dispatch(TreeWalker $walker): mixed

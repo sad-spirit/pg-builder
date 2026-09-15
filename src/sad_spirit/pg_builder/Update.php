@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace sad_spirit\pg_builder;
 
 use sad_spirit\pg_builder\nodes\{
+    ForPortionOfClause,
     ReturningClause,
     WhereOrHavingClause,
     lists\FromList,
@@ -30,6 +31,7 @@ use sad_spirit\pg_builder\nodes\{
  * @property      FromList             $from
  * @property-read WhereOrHavingClause  $where
  * @property      ReturningClause      $returning
+ * @property      ?ForPortionOfClause  $forPortionOf
  */
 class Update extends Statement
 {
@@ -43,6 +45,8 @@ class Update extends Statement
     protected WhereOrHavingClause $p_where;
     /** @internal Maps to `$returning` magic property, use the latter instead */
     protected ReturningClause $p_returning;
+    /** @internal Maps to `$forPortionOf` magic property, use the latter instead */
+    protected ?ForPortionOfClause $p_forPortionOf = null;
 
     public function __construct(UpdateOrDeleteTarget $relation, SetClauseList $set)
     {
@@ -61,6 +65,15 @@ class Update extends Statement
         $this->p_from->parentNode      = \WeakReference::create($this);
         $this->p_returning->parentNode = \WeakReference::create($this);
         $this->p_where->parentNode     = \WeakReference::create($this);
+    }
+
+    /** @internal Support method for `$forPortionOf` magic property, use the property instead */
+    public function setForPortionOf(ForPortionOfClause|string|null $forPortionOf): void
+    {
+        if (\is_string($forPortionOf)) {
+            $forPortionOf = $this->getParserOrFail('FOR PORTION OF clause')->parseForPortionOfClause($forPortionOf);
+        }
+        $this->setProperty($this->p_forPortionOf, $forPortionOf);
     }
 
     public function dispatch(TreeWalker $walker): mixed
