@@ -1953,7 +1953,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         if (null !== $clause->targetStart && null !== $clause->targetEnd) {
             $sql .= ' from ' . $clause->targetStart->dispatch($this)
                 . ' to ' . $clause->targetEnd->dispatch($this);
-        } else {
+        } elseif (null !== $clause->target) {
             $sql .= ' (' . $clause->target->dispatch($this) . ')';
         }
         return $sql;
