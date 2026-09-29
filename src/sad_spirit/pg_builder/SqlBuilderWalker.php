@@ -335,11 +335,8 @@ class SqlBuilderWalker implements StatementToStringWalker
         }
         $indent = $this->getIndent();
         $this->indentLevel++;
-        $relation = null === $statement->forPortionOf
-            ? $statement->relation->dispatch($this)
-            : $this->walkUpdateOrDeleteTargetWithForPortionOf($statement->relation, $statement->forPortionOf);
         /** @noinspection SqlWithoutWhere, SqlNoDataSourceInspection */
-        $clauses[] = $indent . 'delete from ' . $relation;
+        $clauses[] = $indent . 'delete from ' . $statement->relation->dispatch($this);
 
         if (0 < \count($statement->using)) {
             $clauses[] = $this->implode($indent . 'using ', $statement->using->dispatch($this), ',');
@@ -401,10 +398,7 @@ class SqlBuilderWalker implements StatementToStringWalker
         $indent = $this->getIndent();
         $this->indentLevel++;
 
-        $relation = null === $statement->forPortionOf
-            ? $statement->relation->dispatch($this)
-            : $this->walkUpdateOrDeleteTargetWithForPortionOf($statement->relation, $statement->forPortionOf);
-        $clauses[] = $indent . 'update ' . $relation;
+        $clauses[] = $indent . 'update ' . $statement->relation->dispatch($this);
         $clauses[] = $this->implode($indent . 'set ', $statement->set->dispatch($this), ',');
         if (0 < \count($statement->from)) {
             $clauses[] = $this->implode($indent . 'from ', $statement->from->dispatch($this), ',');
@@ -1242,17 +1236,6 @@ class SqlBuilderWalker implements StatementToStringWalker
                . (null === $target->alias ? '' : ' as ' . $target->alias->dispatch($this));
     }
 
-    protected function walkUpdateOrDeleteTargetWithForPortionOf(
-        nodes\range\UpdateOrDeleteTarget $target,
-        nodes\ForPortionOfClause $forPortionOf
-    ): string {
-        return (false === $target->inherit ? 'only ' : '')
-            . $target->relation->dispatch($this)
-            . (true === $target->inherit ? ' *' : '')
-            . ' for portion of ' . $forPortionOf->dispatch($this)
-            . (null === $target->alias ? '' : ' as ' . $target->alias->dispatch($this));
-    }
-
     public function walkTableSample(nodes\range\TableSample $rangeItem): string
     {
         return $rangeItem->relation->dispatch($this)
@@ -1945,18 +1928,6 @@ class SqlBuilderWalker implements StatementToStringWalker
             return (string)$result;
         }
         return $this->implode('', $result, ' ');
-    }
-
-    public function walkForPortionOfClause(nodes\ForPortionOfClause $clause): string
-    {
-        $sql = $clause->name->dispatch($this);
-        if (null !== $clause->targetStart && null !== $clause->targetEnd) {
-            $sql .= ' from ' . $clause->targetStart->dispatch($this)
-                . ' to ' . $clause->targetEnd->dispatch($this);
-        } elseif (null !== $clause->target) {
-            $sql .= ' (' . $clause->target->dispatch($this) . ')';
-        }
-        return $sql;
     }
 
     /**

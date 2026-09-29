@@ -81,7 +81,6 @@ abstract class BlankWalker implements TreeWalker
         $statement->using->dispatch($this);
         $statement->where->dispatch($this);
         $statement->returning->dispatch($this);
-        $statement->forPortionOf?->dispatch($this);
         return null;
     }
 
@@ -108,7 +107,6 @@ abstract class BlankWalker implements TreeWalker
         $statement->from->dispatch($this);
         $statement->where->dispatch($this);
         $statement->returning->dispatch($this);
-        $statement->forPortionOf?->dispatch($this);
         return null;
     }
 
@@ -1198,15 +1196,6 @@ abstract class BlankWalker implements TreeWalker
     {
         $pattern->expression->dispatch($this);
         $pattern->where->dispatch($this);
-        return null;
-    }
-
-    public function walkForPortionOfClause(nodes\ForPortionOfClause $clause): mixed
-    {
-        $clause->name->dispatch($this);
-        $clause->target?->dispatch($this);
-        $clause->targetStart?->dispatch($this);
-        $clause->targetEnd?->dispatch($this);
         return null;
     }
 }

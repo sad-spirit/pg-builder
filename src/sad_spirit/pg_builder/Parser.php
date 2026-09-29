@@ -74,7 +74,6 @@ use Psr\Cache\InvalidArgumentException;
  * @method nodes\TargetElement              parseLabeledExpression(string|TokenStream $input)
  * @method nodes\range\graph\GraphPattern   parseGraphPattern(string|TokenStream $input)
  * @method nodes\range\graph\PathPattern    parsePathPattern(string|TokenStream $input)
- * @method nodes\ForPortionOfClause         parseForPortionOfClause(string|TokenStream $input)
  */
 class Parser
 {
@@ -345,8 +344,7 @@ class Parser
         'labeledexpression'          => true,
         'labeledexpressionlist'      => true,
         'graphpattern'               => true,
-        'pathpattern'                => true,
-        'forportionofclause'         => true,
+        'pathpattern'                => true
     ];
 
     private TokenStream $stream;
@@ -894,11 +892,10 @@ class Parser
         }
 
         $this->stream->expectKeyword(Keyword::UPDATE);
-        [$relation, $forPortionOf] = $this->UpdateOrDeleteTargetWithForPortionOf();
+        $relation = $this->UpdateOrDeleteTarget();
         $this->stream->expectKeyword(Keyword::SET);
 
         $stmt = new Update($relation, $this->SetClauseList());
-        $stmt->forPortionOf = $forPortionOf;
 
         if (!empty($withClause)) {
             $stmt->with = $withClause;
@@ -931,10 +928,7 @@ class Parser
         $this->stream->expectKeyword(Keyword::DELETE);
         $this->stream->expectKeyword(Keyword::FROM);
 
-        [$target, $forPortionOf] = $this->UpdateOrDeleteTargetWithForPortionOf(self::RELATION_FORMAT_DELETE);
-
-        $stmt = new Delete($target);
-        $stmt->forPortionOf = $forPortionOf;
+        $stmt = new Delete($this->UpdateOrDeleteTarget(self::RELATION_FORMAT_DELETE));
 
         if (!empty($withClause)) {
             $stmt->with = $withClause;
@@ -3933,51 +3927,6 @@ class Parser
         return $expression;
     }
 
-    /**
-     * @return array{nodes\range\UpdateOrDeleteTarget, ?nodes\ForPortionOfClause}
-     */
-    protected function UpdateOrDeleteTargetWithForPortionOf(
-        string $statementType = self::RELATION_FORMAT_UPDATE
-    ): array {
-        [$name, $inherit] = $this->QualifiedNameWithInheritOption();
-        if (!$this->stream->matchesKeywordSequence(Keyword::FOR, Keyword::PORTION, Keyword::OF)) {
-            $forPortionOf = null;
-        } else {
-            $this->stream->skip(3);
-            $forPortionOf = $this->ForPortionOfClause();
-        }
-        return [
-            new nodes\range\UpdateOrDeleteTarget(
-                $name,
-                $this->DMLAliasClause($statementType, null !== $forPortionOf),
-                $inherit
-            ),
-            $forPortionOf
-        ];
-    }
-
-    protected function ForPortionOfClause(): nodes\ForPortionOfClause
-    {
-        $name = $this->ColId();
-        if ($this->stream->matches(TokenType::SPECIAL_CHAR, '(')) {
-            $this->stream->next();
-            $target = $this->Expression();
-            $this->stream->expect(TokenType::SPECIAL_CHAR, ')');
-
-            $targetStart = null;
-            $targetEnd   = null;
-        } else {
-            $this->stream->expectKeyword(Keyword::FROM);
-            $targetStart = $this->Expression();
-            $this->stream->expectKeyword(Keyword::TO);
-            $targetEnd   = $this->Expression();
-
-            $target      = null;
-        }
-
-        return new nodes\ForPortionOfClause($name, $target, $targetStart, $targetEnd);
-    }
-
     protected function UpdateOrDeleteTarget(
         string $statementType = self::RELATION_FORMAT_UPDATE
     ): nodes\range\UpdateOrDeleteTarget {
@@ -4023,38 +3972,20 @@ class Parser
     /**
      * Corresponds to relation_expr_opt_alias production from grammar, see the comment there.
      */
-    protected function DMLAliasClause(string $statementType, bool $afterPortion = false): ?nodes\Identifier
+    protected function DMLAliasClause(string $statementType): ?nodes\Identifier
     {
-        if (TokenType::IDENTIFIER === $this->stream->getCurrent()->getType()) {
-            return new nodes\Identifier($this->stream->next()->getValue());
-
-        } elseif (null !== $keyword = $this->stream->getKeyword()) {
-            if (Keyword::AS === $keyword) {
+        if (
+            Keyword::AS === $this->stream->getKeyword()
+            || $this->stream->matchesAnyType(TokenType::IDENTIFIER, TokenType::COL_NAME_KEYWORD)
+            || ($this->stream->matches(TokenType::UNRESERVED_KEYWORD)
+                && (self::RELATION_FORMAT_UPDATE !== $statementType
+                    || Keyword::SET !== $this->stream->getCurrent()->getKeyword()))
+        ) {
+            if (Keyword::AS === $this->stream->getKeyword()) {
                 $this->stream->next();
-                return $this->ColId();
             }
-
-            // Other possible following keywords are both reserved and not "bare-label"
-            if (
-                self::RELATION_FORMAT_UPDATE === $statementType && Keyword::SET === $keyword
-                || self::RELATION_FORMAT_DELETE === $statementType && Keyword::USING === $keyword
-            ) {
-                return null;
-            }
-
-            // This seems incorrect, since BareColLabel used in for_portion_of_opt_alias allows more keywords
-            // than ColId() used in every other branch
-            if (
-                $afterPortion
-                ? $keyword->isBareLabel()
-                : (TokenType::UNRESERVED_KEYWORD === $keyword->getType()
-                   || TokenType::COL_NAME_KEYWORD === $keyword->getType())
-            ) {
-                $this->stream->next();
-                return new nodes\Identifier($keyword->value);
-            }
+            return $this->ColId();
         }
-
         return null;
     }
 

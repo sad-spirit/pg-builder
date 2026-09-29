@@ -25,7 +25,6 @@ use sad_spirit\pg_builder\exceptions\NotImplementedException;
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
     CommonTableExpression,
-    ForPortionOfClause,
     ReturningClause,
     Star,
     WithClause,
@@ -33,7 +32,6 @@ use sad_spirit\pg_builder\nodes\{
     TargetElement,
     Identifier,
     expressions\OperatorExpression,
-    expressions\StringConstant,
     lists\IdentifierList,
     lists\TargetList,
     range\RelationReference,
@@ -59,14 +57,14 @@ class ParseDeleteStatementTest extends TestCase
 with foo (id) as (
     select somefoo from basefoo
 )
-delete from bar for portion of baz ('2026-09-14') end
+delete from bar
 using foo
 where foo.id = bar.foo_id
 returning with (old as older) *
 QRY
         );
 
-        $built = new Delete(new UpdateOrDeleteTarget(new QualifiedName('bar'), new Identifier('end')));
+        $built = new Delete(new UpdateOrDeleteTarget(new QualifiedName('bar')));
         $built->using->merge([
             new RelationReference(new QualifiedName('foo'))
         ]);
@@ -89,11 +87,6 @@ QRY
             new Identifier('foo'),
             new IdentifierList([new Identifier('id')])
         )]);
-
-        $built->forPortionOf = new ForPortionOfClause(
-            new Identifier('baz'),
-            target: new StringConstant('2026-09-14')
-        );
 
         $this->assertEquals($built, $parsed);
     }

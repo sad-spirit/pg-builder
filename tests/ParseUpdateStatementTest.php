@@ -25,7 +25,6 @@ use sad_spirit\pg_builder\{
 use sad_spirit\pg_builder\nodes\{
     ColumnReference,
     CommonTableExpression,
-    ForPortionOfClause,
     ReturningClause,
     Star,
     WithClause,
@@ -68,10 +67,6 @@ class ParseUpdateStatementTest extends TestCase
         $this->parser = new Parser(new Lexer());
     }
 
-    /**
-     * @noinspection SqlNoDataSourceInspection
-     * @noinspection SqlResolve
-     */
     public function testParseSetClause(): void
     {
         $parsed = $this->parser->parseStatement(
@@ -132,11 +127,6 @@ QRY
         $this->assertEquals($update, $parsed);
     }
 
-    /**
-     * @noinspection SqlNoDataSourceInspection
-     * @noinspection SqlResolve
-     * @noinspection SqlWithoutWhere
-     */
     public function testTreatSetAsKeyword(): void
     {
         $parsed = $this->parser->parseStatement(
@@ -164,7 +154,7 @@ QRY
 with foo as not materialized (
     select somefoo from basefoo
 )
-update bar for portion of baz from '2014-09-20' to '2026-09-14' as quux
+update bar
 set blah = foo.blah
 from foo
 where foo.id = bar.foo_id
@@ -173,7 +163,7 @@ QRY
         );
 
         $built = new Update(
-            new UpdateOrDeleteTarget(new QualifiedName('bar'), new Identifier('quux')),
+            new UpdateOrDeleteTarget(new QualifiedName('bar')),
             new SetClauseList([
                 new SingleSetClause(
                     new SetTargetElement(new Identifier('blah')),
@@ -206,19 +196,9 @@ QRY
             new CommonTableExpression($cte, new Identifier('foo'), new IdentifierList(), false)
         ]);
 
-        $built->forPortionOf = new ForPortionOfClause(
-            new Identifier('baz'),
-            targetStart: new StringConstant('2014-09-20'),
-            targetEnd: new StringConstant('2026-09-14')
-        );
-
         $this->assertEquals($built, $parsed);
     }
 
-    /**
-     * @noinspection SqlNoDataSourceInspection
-     * @noinspection SqlResolve
-     */
     public function testDisallowWhereCurrentOf(): void
     {
         $this->expectException(NotImplementedException::class);
