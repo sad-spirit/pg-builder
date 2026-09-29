@@ -4,8 +4,7 @@
 
 ### Added
 
-* Support for new syntax of PostgreSQL 19 (as of beta 3):
-  * `graph_table()` construct in the `FROM` clause allows querying newly added property graphs;
+* Support for new syntax of PostgreSQL 19 (as of beta 4):
   * `INSERT ... ON CONFLICT ... DO SELECT`;
   * `IGNORE NULLS` / `RESPECT NULLS` setting for window functions.
 * Tested on PHP 8.6

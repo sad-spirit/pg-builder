@@ -3,7 +3,7 @@ parameters:
 		# Looks like a bug with memoizing the result of stream->matches(...) call
 		-
 			message: "#^If condition is always false\\.$#"
-			count: 3
+			count: 2
 			path: src/sad_spirit/pg_builder/Parser.php
 
 		# Looks like a bug with memoizing the result of stream->matches(...) call

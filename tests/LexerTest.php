@@ -42,9 +42,7 @@ class LexerTest extends TestCase
 
     public function testTokenTypes(): void
     {
-        $stream = $this->lexer->tokenize(
-            "sElEcT\t'select'\v\"select\",\fFOO + 1.2 - 3., 4 | 5 <> :foo, $1::integer, a -> b, c => d"
-        );
+        $stream = $this->lexer->tokenize("sElEcT\t'select'\v\"select\",\fFOO + 1.2 - 3., 4 ! <> :foo, $1::integer");
 
         $stream->expect(TokenType::KEYWORD, 'select');
         $stream->expect(TokenType::STRING, 'select');
@@ -57,22 +55,13 @@ class LexerTest extends TestCase
         $stream->expect(TokenType::FLOAT, '3.');
         $stream->expect(TokenType::SPECIAL_CHAR, ',');
         $stream->expect(TokenType::INTEGER, '4');
-        $stream->expect(TokenType::SPECIAL_CHAR, '|');
-        $stream->expect(TokenType::INTEGER, '5');
+        $stream->expect(TokenType::OPERATOR, '!');
         $stream->expect(TokenType::INEQUALITY, '<>');
         $stream->expect(TokenType::NAMED_PARAM, 'foo');
         $stream->expect(TokenType::SPECIAL_CHAR, ',');
         $stream->expect(TokenType::POSITIONAL_PARAM, '1');
         $stream->expect(TokenType::TYPECAST, '::');
         $stream->expect(TokenType::KEYWORD, 'integer');
-        $stream->expect(TokenType::SPECIAL_CHAR, ',');
-        $stream->expect(TokenType::IDENTIFIER, 'a');
-        $stream->expect(TokenType::RIGHT_ARROW);
-        $stream->expect(TokenType::IDENTIFIER, 'b');
-        $stream->expect(TokenType::SPECIAL_CHAR, ',');
-        $stream->expect(TokenType::IDENTIFIER, 'c');
-        $stream->expect(TokenType::EQUALS_GREATER);
-        $stream->expect(TokenType::IDENTIFIER, 'd');
         $this->assertTrue($stream->isEOF());
     }
 
@@ -254,8 +243,8 @@ QRY
     public function testUnexpectedSymbol(): void
     {
         $this->expectException(SyntaxException::class);
-        $this->expectExceptionMessage("Unexpected '\\'");
-        $this->lexer->tokenize('select foo \\ bar');
+        $this->expectExceptionMessage("Unexpected '{'");
+        $this->lexer->tokenize('select foo{bar}');
     }
 
     public function testNonAsciiIdentifiers(): void
