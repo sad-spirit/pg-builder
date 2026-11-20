@@ -1,6 +1,11 @@
 # Changelog
 
-## [3.4.0-beta] 2026-09-29
+## [3.4.0] - 2026-11-20
+
+### Changed
+Psalm upgraded to version 7
+
+## [3.4.0-beta] - 2026-09-29
 
 ### Added
 
@@ -544,3 +549,4 @@ Initial release on GitHub
 [3.3.0]: https://github.com/sad-spirit/pg-builder/compare/v3.2.0...v3.3.0
 [3.3.1]: https://github.com/sad-spirit/pg-builder/compare/v3.3.0...v3.3.1
 [3.4.0-beta]: https://github.com/sad-spirit/pg-builder/compare/v3.3.1...v3.4.0-beta
+[3.4.0]: https://github.com/sad-spirit/pg-builder/compare/v3.4.0-beta...v3.4.0
