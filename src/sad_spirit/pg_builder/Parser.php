@@ -2107,7 +2107,10 @@ class Parser
         }
 
         return new nodes\TypeName(
-            new nodes\QualifiedName('pg_catalog', self::STANDARD_TYPES_MAPPING[$typeName ?? $keyword->value]),
+            new nodes\QualifiedName(
+                'pg_catalog',
+                    self::STANDARD_TYPES_MAPPING[$typeName ?? $keyword->value] ?? 'numeric'
+            ),
             $modifiers
         );
     }

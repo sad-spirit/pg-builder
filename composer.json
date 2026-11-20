@@ -29,7 +29,7 @@
         "sad_spirit/pg_wrapper": "^3.1",
         "psr/cache":             "^3",
         "phpstan/phpstan":       "^2",
-        "vimeo/psalm":           "^6.8"
+        "vimeo/psalm":           "^7.0"
     },
     "conflict": {
         "sad_spirit/pg_wrapper": "<3.1"

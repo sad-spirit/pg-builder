@@ -20,30 +20,12 @@
     </projectFiles>
 
     <issueHandlers>
-        <InaccessibleProperty>
-            <errorLevel type="suppress">
-                <!-- Bug https://github.com/vimeo/psalm/issues/5156 reappeared -->
-                <file name="src/sad_spirit/pg_builder/Insert.php"/>
-                <file name="src/sad_spirit/pg_builder/SelectCommon.php"/>
-                <file name="src/sad_spirit/pg_builder/nodes/ColumnReference.php"/>
-                <file name="src/sad_spirit/pg_builder/nodes/QualifiedName.php"/>
-                <file name="src/sad_spirit/pg_builder/nodes/QualifiedOperator.php"/>
-            </errorLevel>
-        </InaccessibleProperty>
-        
         <InvalidArrayOffset>
             <errorLevel type="suppress">
                 <!-- https://github.com/vimeo/psalm/issues/5672 -->
                 <file name="src/sad_spirit/pg_builder/enums/JsonBehaviour.php"/>
             </errorLevel>
         </InvalidArrayOffset>
-
-        <InvalidEnumCaseValue>
-            <errorLevel type="suppress">
-                <file name="src/sad_spirit/pg_builder/TokenType.php"/>
-                <referencedClass name="\sad_spirit\pg_builder\TokenType"/>
-            </errorLevel>
-        </InvalidEnumCaseValue>
 
         <InvalidPropertyAssignmentValue>
             <errorLevel type="suppress">
@@ -75,6 +57,11 @@
         </PossiblyNullArgument>
 
         <!-- Ignore these in tests, whatever we access is guaranteed to be not null -->
+        <InvalidArrayAccess>
+            <errorLevel type="suppress">
+                <directory name="tests"/>
+            </errorLevel>
+        </InvalidArrayAccess>
         <PossiblyNullArrayAccess>
             <errorLevel type="suppress">
                 <directory name="tests"/>
